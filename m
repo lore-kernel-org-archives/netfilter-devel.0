@@ -1,58 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793869409;
-	b=Xvvl8PA90+dFRuL4HRLJg5pFTO0HB8bKv343UM3AXfgEutNxudYNXy/h+oTrFqrGNChI
-	 45hpnYzkyGwOkzEbjnMSrZHIhGdL35dqcZfyHNvcGB3M+RwJW/8YS+lwpRk4AHKkejY62
-	 dKEhVkpT3mO5K+mNShpwd0YHG6XTO1VlBnlm8Sln51qHKQtEeU582ciQhBukGt82xcMIW
-	 p+2uMm3pq1EKDm4F1N/HHMu3kN3x5QVSnHCHKbm/tML/Y0Tbs32dttEZMhySthGh/IAkd
-	 hPdoXG8GK9j1rT6d7Vac10eKhNiaz04/BsO1wgmEK9rSYw/l7SSw4z/stbdnbv2yVIQ==
+	t=1793869410;
+	b=fh6TSrKs3PO4cMDCknQjyRPj0LKTEYPjNWiCcVa8BvHBO5ButoVo1XIM3je+SnnkEXYK
+	 UXjK2b81pwbblIlIHdq54TbLCPxGwoAy+FxIFsS5EFVL7G1vo1g4rvtoQot1p133fxiN5
+	 pLiBhVRPbhnc5sXPD+s/0qGfx8FrCh/L2MQQ1d6UWHCP55nPhMaRr89CmvMTAFUGqZM2g
+	 QYySw5k4SN5okTMHTciQIn5WvdkqITsbIvn9YsQtKdiVgaIhouZ8dzr9gOuyGdaILncRA
+	 6BJSV1UXaJoLhq0BmMnEeDlOS9JvC8iS8EMIRmF3cMpqqKA8YBzVnXOMs814kqIPySg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793869409;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793869410;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=yfdFy6IF2ZSTW4IIgQ/Zl1ryhrMMJ5q0oMnV5GTJ8pg=;
-	b=JHUkeH245WDBhtfXAjhp9X+k3LYJivuevMDmJ9fB8+A8Jdu9RzemnPnFpWnNzo+7kQbZ
-	 WQ4f4JBFir98jMH751Yo3Yj51GV6tZvQPjGdzLGUc5ppHVWfMjisS0lxm5ypaoKO5H/73
-	 rxMVKOanYqbX1uB5bdyyQDlZkjlO/+HM+oN99ALjcaGDyV6MnAPiAR1DpgMbdL+euvV+X
-	 Uv7kTQ8FaxTwGizC/NehVSCsDBtKChbLX1MZXxXZT5GtXXcCr2TR61z5GG/NFWMU3ucuU
-	 EJVsKtFIkg8r1ugMRs5ejGtZVED/uVYTshRDHsJ5mUEZYQDyIUFCULS+R6eOaoVcGmg==
+	bh=TRXlzlkbH1m9T6kN9Rtt9KXhOZxtIzD4QvUfCH3ejVA=;
+	b=ne1aqw8LW1msb9Q1/BNARVPniTsFxVe+JJZiZp+dN7HRXgETp3X60ukmYhIi9fdQaG8b
+	 pAy0AdB3HFepqMmez37N8r3LteQllmZgJjkoalC7yFKjAA7f/gizRdk1pYNHkDQRW5iC7
+	 EH6fJt5+muVifdQckqK4Fo/9gXmi1J2WyNMIxwKIPD+Lr91jE1Z2lN+9OUPXCYhTu0cJQ
+	 q1EtUTfA2501vm2aS5X9R1n0WLZhhXfMf7kP1hE/vxfKacAkB5vIKmYXew6D2WYK+ui0a
+	 YbHjuTaLKvKeGrwM2TCUB7Xd4wHeNVLi4CdBXcqJnonjXnIi171prkQpyu2vuy4fLOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8X8xzSs;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CMOBud2D;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EA69606A329;
-	Thu,  5 Nov 2026 09:03:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A288606A333;
+	Thu,  5 Nov 2026 09:03:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8X8xzSs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEB4F1F000C1;
-	Thu,  5 Nov 2026 09:03:27 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CMOBud2D
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65BDF1F00919;
+	Thu,  5 Nov 2026 09:03:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793869408;
-	bh=yfdFy6IF2ZSTW4IIgQ/Zl1ryhrMMJ5q0oMnV5GTJ8pg=;
+	s=k20260515; t=1793869410;
+	bh=TRXlzlkbH1m9T6kN9Rtt9KXhOZxtIzD4QvUfCH3ejVA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=h8X8xzSsec0nZmGFDQmrUejk1RMXcM/uSRaPyyMLZ+PIrzh6njwvifB5mc6mRR0dp
-	 vxcHWIhbChOL2t75lKfhbHkZk1ZRnRwyOufztnCBXfiV4Ertlg9livn6sD7C9Q6Lvc
-	 ykf0Y6CCKMHJggNapid6VzKHZeGZGvuWClFAnrTFS6eLgGGDn1jVEFsp3h/W4dafHx
-	 mYxzKeDPJ/Ew4mYA8K9omHSHg7vcJLj5wlfb52AK/OyM6uWjdmZoooDFWzIipAogfo
-	 aj2eaXdxwzAU3baC43QpcjZBvs6uwljskQPaQ0IZnasyGdeCD2sVfYTfsrj5ncDph7
-	 ZgoxhwHyBPEFg==
-Subject: Re: [PATCH net 1/2] netfilter: conntrack: avoid secs-to-jiffies
- overflow in SIP helper
+	b=CMOBud2DttsLsbSlhfn6aTb2FDrnwsHhLhIKWy9WB3/gwDm3gswnqRPJGYpKf7QNo
+	 BaKwWDUsxM9TVsz8fuoCQeehaCAhH8NQRSQ4+Ofk0f9qTdcsNm81Qru9K2CcQOyVuF
+	 oKmLUZkftEXKj/nPVFWQJVFeT+uTBKI9MiGGlZl3V9SY0cltZPPh5AtogjrG4GZM0e
+	 CkzYQOmDYeiPeBVf/MpEx7Halrggnii3CLdJDkX773jskIhmUOl/ghk9RA/kVmsoz+
+	 RIS9tyfjzZ3tztVwEMYsGkx4pVfzS8yu+Te0NVm/D1/cBu7P4EkSzmCevPuqebjO0j
+	 0StrcYqZzVsHA==
+Subject: Re: [PATCH net 2/2] netfilter: h323: avoid secs-to-jiffies overflow
+ in RAS timeout
 From: netdev-bot+sashiko@kernel.org
 To: l1138897701@163.com
 Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
  edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
  kaber@trash.net, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 05 Nov 2026 09:03:27 +0000
-Message-ID: <179386940745.488856.2949210034419775650@kernel.org>
-In-Reply-To: <20261104085925.773471-1-l1138897701@163.com>
-References: <20261104085925.773471-1-l1138897701@163.com>
-X-sashiko-severity: Low
+Date: Thu, 05 Nov 2026 09:03:28 +0000
+Message-ID: <179386940893.488856.3164971137869500824@kernel.org>
+In-Reply-To: <20261104085925.773471-2-l1138897701@163.com>
+References: <20261104085925.773471-2-l1138897701@163.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -65,96 +65,93 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] The Fixes: tag gives the wrong origin for the failure the commit
-  message mainly describes, which matters for backporting.
-- [Low] This is a bug fix under net/, which MAINTAINERS 'NETWORKING
-  [GENERAL]' covers with 'P: Documentation/process/maintainer-…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit message names a symptom that the overflow cannot
+  cause and that the patch does not fix.
+- [Low] process_rcf() calls nf_ct_secs_to_jiffies().
 
 --
 
-netfilter: conntrack: avoid secs-to-jiffies overflow in SIP helper
+netfilter: h323: avoid secs-to-jiffies overflow in RAS timeout
 
-This adds nf_ct_secs_to_jiffies(), which multiplies in u64 and saturates
-at INT_MAX. refresh_signalling_expectation() now uses it, so a large
-expiry in a SIP REGISTER 2xx response can no longer wrap the u32
-exp->timeout or make the expectation read as already expired.
+This patch replaces the two 32-bit "info->timeout * HZ" conversions in
+process_rcf() with one call to nf_ct_secs_to_jiffies(). That helper
+multiplies in 64 bits and saturates at INT_MAX. The result is used for
+both the RAS conntrack refresh and the Q.931 expectation timeout.
 
-> Expectations are reaped with "(__s32)(exp->timeout - nfct_time_stamp)
-> <= 0".  At HZ=1000 an expiry of 2147484 seconds (24.9 days) crosses
-> 2^31 and the expectation is born expired, while 4294968 seconds wraps
-> to 704 jiffies.  Registration refreshes break, or a signalling
-> expectation stays pinned for days.
+> With the signed expiry test "(__s32)(ct->timeout - nfct_time_stamp)
+> <= 0", a timeout of 2147484 seconds (24.9 days) at HZ=1000 is born
+> expired, and 4294968 seconds wraps to 704 jiffies.  The RAS connection
+> therefore drops mid-call, or the Q.931 expectation stays pinned for
+> days after the peer is gone.
 
-[ ... ]
+[Severity: Medium]
+Is the second half of this accurate? Can the 32-bit wrap of
+info->timeout * HZ ever make a lifetime longer than the one requested?
 
-> Fixes: 0f32a40fc91a ("[NETFILTER]: nf_conntrack_sip: create signalling expectations")
-> Cc: stable@vger.kernel.org
-
-[Severity: Low]
-Should this also have a Fixes: tag for b8b09dc2bf35 ("netfilter:
-nf_conntrack_expect: use conntrack GC to reap expectations")?
-
-The commit message quotes a signed expiry test. That test is in
+For X > INT_MAX / HZ, the old value X * HZ mod 2^32 ends up in one of two
+places. If it is >= 2^31, it reads as already expired under
 nf_ct_exp_is_expired():
 
     return (__s32)(READ_ONCE(exp->timeout) - nfct_time_stamp) <= 0;
 
-b8b09dc2bf35 added that test. It also made exp->timeout a u32 and added
-the line this patch changes in refresh_signalling_expectation():
+If it is below 2^31, it is smaller than X * HZ. Either way the lifetime
+is shorter than what the peer asked for, never longer.
 
-    WRITE_ONCE(exp->timeout, nfct_time_stamp + (expires * HZ));
+After this patch, the timeToLive stored by process_rrq() or process_rcf()
+still has no upper bound. The only limit is the INT_MAX jiffies
+saturation in nf_ct_secs_to_jiffies(). That is about 24.8 days at HZ=1000
+and about 248 days at HZ=100.
 
-0f32a40fc91a used a timer instead:
+A peer could already reach that same maximum before this patch by
+sending 2147483 seconds. So the longest lifetime a remote peer can force
+on the RAS conntrack and the Q.931 expectation is the same before and
+after the patch.
 
-    exp->timeout.expires = jiffies + expires * HZ;
-    add_timer(&exp->timeout);
+For oversized TTLs the change actually goes the other way. Values that
+used to wrap to a short lifetime or come out already expired now get the
+maximum lifetime. For example, 0xFFFFFFFF used to come out as s32 -1000
+at HZ=1000.
 
-Later trees changed this to mod_timer_pending(), but still added
-jiffies + expires * HZ.
+Could the commit message drop the "pinned for days" symptom? It could
+instead say directly that oversized TTLs now saturate to INT_MAX jiffies.
 
-Trees from before b8b09dc2bf35 only have the 2^32 wrap (4294968 seconds
-turning into 704 jiffies). On 64-bit, a product between 2^31 and 2^32 is a
-positive unsigned long delta, and the timer wheel clamps it. So the
-24.9 day "born expired" case does not seem to exist in those trees.
-
-Those older trees also do not have the WRITE_ONCE(exp->timeout, ...)
-context, so the stable backport will not apply cleanly there.
-
-Could the tags or the message say which failure mode applies to which
-trees?
-
-The h323 patch in this series ("netfilter: h323: avoid secs-to-jiffies
-overflow in RAS timeout") has the same pattern. It cites only
-f587de0e2feb, but it relies on the same signed expiry test.
-
-> Sweeping all 2^32-1 inputs at HZ=1000, the helper never wraps, never
-> yields a value that reads as expired, and matches the old expression
-> up to INT_MAX / HZ.
+> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+> index 4cb1665bba021..5e900037fa6f1 100644
+> --- a/net/netfilter/nf_conntrack_h323_main.c
+> +++ b/net/netfilter/nf_conntrack_h323_main.c
+> @@ -1375,9 +1375,11 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
+>  	}
+>  
+>  	if (info->timeout > 0) {
+> +		u32 timeout = nf_ct_secs_to_jiffies(info->timeout);
 
 [Severity: Low]
-Could the commit message say how this issue was found, and how the fix
-was tested beyond the arithmetic sweep of nf_ct_secs_to_jiffies()?
+nf_ct_secs_to_jiffies() only exists because the previous patch in this
+series, "netfilter: conntrack: avoid secs-to-jiffies overflow in SIP
+helper", adds it to include/net/netfilter/nf_conntrack.h. That patch
+carries a different Fixes: tag (0f32a40fc91a, where this one has
+f587de0e2feb).
 
-net/netfilter/ is covered by the NETWORKING [GENERAL] entry, which points
-to Documentation/process/maintainer-netdev.rst. Its bug fixes section
-says:
+Will this still build if it is backported to stable without the SIP
+patch? That could happen if the SIP patch does not apply cleanly to an
+older tree.
 
-    All bug fixes must state how the issue was discovered and validated,
-    and how the fix was tested.
+The SIP patch is also tagged for stable and comes first in the series,
+so stable tooling will usually pick up both. Still, would it help to
+note the dependency on the Cc: stable line?
 
-It also asks whether the fix was tested against the reproducer and the
-kernel selftests.
-
-The message says "Registration refreshes break, or a signalling
-expectation stays pinned for days". It does not say whether this was
-seen with real REGISTER 2xx traffic through the SIP helper, or found by
-reading the code. There is also no Reported-by: tag.
+[ ... ]
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261104085925.773471-1-l1138897701%40163.com
