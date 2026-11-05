@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882746;
-	b=AeF3cfucrEMS2HaSxkLKFyAlHh6FTMTIz9EaVGdCagH4Gwz0A5vQxQQIcp6mfL5iQHyW
-	 Tk5cycRSK2N+r7hyRqU539gMD4W69m6VtqyqHTmUwsAyOrp/NPliSAEo8gssAMIrtsSA6
-	 AWdeUmL5YYiEKauxlZECkFFOCmyVdGUZ7y0hF1AWp1V3u/WzroV9DfjTJ90EY3HVCblUt
-	 QtHalZaliQPhbpT6qfDhTg4IoCYN56PhasQ7LnayBifGRxUM27y47WM0kedLo4+Lxl8dt
-	 Mj1GJF+iKbmvx5ZLwcEOxmH+nm+D8py3pjrLCiNBADxAr92kOxV+9HMXV9/g8Q9gL8w==
+	t=1793882752;
+	b=Ie1bvQv2jF9/nbjv+pJOUKK62Qq5+QQ5dLSXJkfQj5z/2/wsZvAX5214U5NVV84NcBJZ
+	 Z9Do0V31GVXOU8s0FgSUPd7boFfKhfQsW3kLvWhKnDASh7iIovZBfjr1XVZidQv0XY74U
+	 hPLiRRrDkgrs4mnWE9dXfJws6c9GeVnvITzHxIJT2IaDzkXFilbM5feehvzlQVA0zMm9o
+	 Bq3Un3FFOqdNgQWMrpVpMCpy7+yLJs4GPQZjSPUSBNYR8cb8jP2NZ7pPWbdGNi5n+FcNx
+	 b9/JoUzjeWwrDdMRfiR1X22im7HII1LFYXiTDSPh2u/RsnYkGnnhBxFBq59GxtTzmgg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882746;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882752;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
-	b=IzZbkgoepD0XSgNmqqteCY2Kc3YJM15UiYjsqebv5fF7qM/4h1/ngqcLkknRkj0p5v+g
-	 d4+VFl/FQdR1jq0e01amH9pJh+LMVkbidREw3pQqiD2nVeRXauAZSUZgX0gIAG8xHntrU
-	 m+vZdiXnKhNWODBZYyyZWB48SH8OfjLXbgwGydGyM+6phAjbeD/T+ZGTOwVTbqJ6oMjJ6
-	 2hDMeqzNtfDdDxbFJ6LZGuotnqS9+SXF15V+V6CrhNyyiJs7BYQMgcPu3VhNMqfdhzZn9
-	 MRuIPxZlTd82+MqFfnyrxS3MGSBYxjpoRx28QBdpVSMTgIHRJ0KtdaEvsCvFXIC4l8Q==
+	bh=XClvt/H6YMd9+Exyu1R4Oy60MLFqQ2fw95DTYxl2feU=;
+	b=gxjIr2UvUK7NE6r9wprvUg13eSP538VP3cgbjZasXpLW+BZWcYaLsl862ZMUMdYhciZE
+	 p+n5DXHvPQiYqJPLeWLGW61POvhqAf4f+YVxlrbo9/1Ci181zNNHEEeSXX0SqcqH1MqpM
+	 TRlZh5k5ZU165lrQAwX2YzFhvnuKLYvUMJSNqx9jA18Glp6C1EI4YGUUXSGliUcRj8V0M
+	 RMVpw8lCO3XAGUiZe9dpQnYHU3Idqm2NrUFsok2c1v3fDGY0asvxevXYakAWXiQp+KR/4
+	 CB8aLN7a1+U5xksfjH58xjIwBPNJq6iY94HM48lEgMIlsfahviZOvzYDPg7KtJ/ug5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vtKnT0Of;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=K+4jFZdi;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46753606A32C;
-	Thu,  5 Nov 2026 12:45:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46753606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024C8606EE85;
+	Thu,  5 Nov 2026 12:45:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 024C8606EE85
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=vtKnT0Of
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=K+4jFZdi
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882744;
-	bh=ACw4Crf3hJuHvBnGGimGcJkB6r441MIl6lESNzI1wQ8=;
+	s=2025; t=1793882750;
+	bh=XClvt/H6YMd9+Exyu1R4Oy60MLFqQ2fw95DTYxl2feU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vtKnT0OffbbQB+UdkwWfOi5+dQWip8oHsnLW1OabTFgzSclERkHzi+o/LHMq+5Jnx
-	 ZvdUglDnRlqd+INNUWGUlm5bCfbuAUg3+EIqmogluHAhkZN01TuVi8VzUU8zbP6sXk
-	 oDUjZx8TlnwNXONmcwTNVsu32qfO6Gqg0fISfF32ixDDjGd4V596/9rTwKRxKuXp8w
-	 z6gUnjKBbxjGpdb6ke7IxG2uocDn5ye+g8tyxa/eAKFZTWvp/ui/0Ih1NY8LqRpcRB
-	 Ab3cRY33exfgErRZkCjr7UUPD+o92mmBgAE0rVHn48kibRiIfxdl4K5Mi2EX/G1X9C
-	 +A76RmUKdhc+Q==
+	b=K+4jFZdiO/6ai0708Xowj/K9p2ok61UKX5g7P13Y3ISXAOm+2a4WjqlB0uh4JjLx0
+	 KCr3LL9lyv+lB4E6rfprjQmD5eVUg53JxTlMst7yO0NkBPhiNFT1gVB1xVUd8efzpW
+	 OwccK7Dvf+Y7XEjrYdgBheUDYpt+79FAVetyZJoAJO2e2fDtE8rSiLx8T6fIi6AsOL
+	 nTT2g/LRmO/Jgu5pwL3OHRypAmnbm+JmfLZGjj2Y9AXn8Eakl/CScplTnU8cSfunX5
+	 KHPZLrnGCCp4PmURqeRpQ6fTq6pNIieuna9LZ9PWGOCE7OA2EwcqJzl9MJfH3MfFZD
+	 4bVG8JykZOmfA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 08A9E60082;
-	Thu,  5 Nov 2026 13:45:43 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 25D5560096;
+	Thu,  5 Nov 2026 13:45:50 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 03/12] ipvs: fix protocol data lifetime during namespace teardown
-Date: Thu,  5 Nov 2026 13:45:27 +0100
-Message-ID: <20261105124536.1009301-4-pablo@netfilter.org>
+Subject: [PATCH net 08/12] netfilter: x_tables: check target name before accessing verdict
+Date: Thu,  5 Nov 2026 13:45:32 +0100
+Message-ID: <20261105124536.1009301-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,90 +73,112 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Chengfeng Ye <nicoyip.dev@gmail.com>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-IPVS frees its per-net protocol data before control cleanup cancels
-defense work and unregisters the sysctl table. A defense worker can load
-a protocol data pointer, then namespace cleanup can unlink and free that
-object before the worker dereferences pd->pp or pd->next. The worker's
-securetcp_lock does not serialize with protocol cleanup. A concurrent
-defense-mode sysctl write can reach the same timeout update path.
+Non-standard targets may contain only struct xt_entry_target.
+mark_source_chains() nevertheless reads the target as an
+xt_standard_target before checking its name, potentially reading four
+bytes beyond a header-only target.
 
-KASAN reported:
+Check that the target is standard before reading its verdict.
+Non-standard targets remain handled as fallthrough rules.
 
-  BUG: KASAN: slab-use-after-free in ip_vs_protocol_timeout_change
-  Workqueue: events_long defense_work_handler
-  Call Trace:
-   ip_vs_protocol_timeout_change+0x1b4/0x1e0
-   update_defense_level+0x63e/0xd80
-   defense_work_handler+0x1e/0xc0
-  Allocated by task 125:
-   ip_vs_protocol_net_init+0xda/0x2f0
-   __ip_vs_init+0x16b/0x240
-   setup_net+0xfc/0x310
-  Freed by task 12:
-   ip_vs_protocol_net_cleanup+0x1d6/0x2e0
-   __ip_vs_cleanup_batch+0x7d/0x100
-   cleanup_net+0x38c/0x770
+See the following KASAN trace:
 
-Run control cleanup before protocol cleanup so that defense work and
-active sysctl handlers have finished before their protocol data is freed.
-Initialize protocols before exposing the control interface, and unwind
-in reverse order, to enforce the same lifetime on initialization failure.
-Protocol initialization and exit do not depend on control state.
+BUG: KASAN: slab-out-of-bounds in translate_table+0x1660/0x1a40 [ip6_tables]
+Read of size 4 at addr ffff88800ed56ff8 by task rep/432
 
-Fixes: 9330419d9aa4 ("IPVS: netns, use ip_vs_proto_data as param.")
-Cc: stable@vger.kernel.org
-Signed-off-by: Chengfeng Ye <nicoyip.dev@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Call Trace:
+ kasan_report+0xfa/0x120
+ translate_table+0x1660/0x1a40 [ip6_tables]
+ do_ip6t_set_ctl+0x667/0xa76 [ip6_tables]
+ nf_setsockopt+0x77/0xd0
+ do_sock_setsockopt+0x118/0x490
+ __sys_setsockopt+0xe4/0x160
+ __x64_sys_setsockopt+0xbd/0x190
+ do_syscall_64+0xde/0x4f0
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Allocated by task 432:
+ kasan_save_stack+0x2f/0x50
+ __kasan_kmalloc+0x7f/0x90
+ __kvmalloc_node_noprof+0x1b1/0x5c0
+ xt_alloc_table_info+0x3c/0xa0
+ do_ip6t_set_ctl+0x5ee/0xa76 [ip6_tables]
+ nf_setsockopt+0x77/0xd0
+ do_sock_setsockopt+0x118/0x490
+ __sys_setsockopt+0xe4/0x160
+ __x64_sys_setsockopt+0xbd/0x190
+ do_syscall_64+0xde/0x4f0
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-by: VEGA <vega@nebusec.ai>
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 5 +++--
+ net/ipv4/netfilter/ip_tables.c  | 5 +++--
+ net/ipv6/netfilter/ip6_tables.c | 5 +++--
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index fd503f0efb57..8a3c880fdb26 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2502,12 +2502,12 @@ static int __net_init __ip_vs_init(struct net *net)
- 	if (ip_vs_estimator_net_init(ipvs) < 0)
- 		goto estimator_fail;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index cf747e1e17a3..7ff3d1f0ffd4 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -371,11 +371,12 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+-				int newpos = t->verdict;
++				int newpos;
  
--	if (ip_vs_control_net_init(ipvs) < 0)
--		goto control_fail;
--
- 	if (ip_vs_protocol_net_init(ipvs) < 0)
- 		goto protocol_fail;
+ 				if (strcmp(t->target.u.user.name,
+ 					   XT_STANDARD_TARGET) == 0 &&
+-				    newpos >= 0) {
++				    t->verdict >= 0) {
++					newpos = t->verdict;
+ 					/* This a jump; chase it. */
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 809441cedced..b302bd77180a 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -422,11 +422,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+-				int newpos = t->verdict;
++				int newpos;
  
-+	if (ip_vs_control_net_init(ipvs) < 0)
-+		goto control_fail;
-+
- 	if (ip_vs_app_net_init(ipvs) < 0)
- 		goto app_fail;
+ 				if (strcmp(t->target.u.user.name,
+ 					   XT_STANDARD_TARGET) == 0 &&
+-				    newpos >= 0) {
++				    t->verdict >= 0) {
++					newpos = t->verdict;
+ 					/* This a jump; chase it. */
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 313c4aac377a..010baaa60665 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -440,11 +440,12 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+-				int newpos = t->verdict;
++				int newpos;
  
-@@ -2527,10 +2527,10 @@ static int __net_init __ip_vs_init(struct net *net)
- conn_fail:
- 	ip_vs_app_net_cleanup(ipvs);
- app_fail:
--	ip_vs_protocol_net_cleanup(ipvs);
--protocol_fail:
- 	ip_vs_control_net_cleanup(ipvs);
- control_fail:
-+	ip_vs_protocol_net_cleanup(ipvs);
-+protocol_fail:
- 	ip_vs_estimator_net_cleanup(ipvs);
- estimator_fail:
- 	net->ipvs = NULL;
-@@ -2547,8 +2547,8 @@ static void __net_exit __ip_vs_cleanup_batch(struct list_head *net_list)
- 		ipvs = net_ipvs(net);
- 		ip_vs_conn_net_cleanup(ipvs);
- 		ip_vs_app_net_cleanup(ipvs);
--		ip_vs_protocol_net_cleanup(ipvs);
- 		ip_vs_control_net_cleanup(ipvs);
-+		ip_vs_protocol_net_cleanup(ipvs);
- 		ip_vs_estimator_net_cleanup(ipvs);
- 		IP_VS_DBG(2, "ipvs netns %d released\n", ipvs->gen);
- 		net->ipvs = NULL;
+ 				if (strcmp(t->target.u.user.name,
+ 					   XT_STANDARD_TARGET) == 0 &&
+-				    newpos >= 0) {
++				    t->verdict >= 0) {
++					newpos = t->verdict;
+ 					/* This a jump; chase it. */
+ 					if (!xt_find_jump_offset(offsets, newpos,
+ 								 newinfo->number))
 -- 
 2.47.3
 
