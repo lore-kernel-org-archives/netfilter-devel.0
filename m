@@ -1,75 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793854777;
-	b=LBUcgj2X/kxzrHHg5q7FgYK8hnJuXX0PKZIi7PsWE1i+JjJ3cMYVdvMKo6cgQgoW8Do7
-	 kw9gGNVygRog+UzVvaPWgtYZq7aeTaJWuapaSsFLcAeSrm3J3bPDRV5qCqmlUa04y5ZiE
-	 nr0O1S7jIGHxOseDKZw6qgiV5OVeJJ9XWLyVo+CA/AWrCSQlLOr7/mHuHh9FFCiPSeyna
-	 TVRiOWkEmijw4hWRajUHxV/LNewdZj2NO6VMnVOf6fTEILj+EZA7RKyx0qVzTggEaIPNr
-	 PDlblq7ViGtPGyiCF3juP83uxeHL098X07bpXxs4bzyNppn17wDZcYpJxs2+RurGBhg==
+	t=1793861721;
+	b=GhvNHVfex1mi5mAn0n6LJ/jnxWAhcf82hcaeRwhASmcWArcomBBr+PIcPHrucGqK25sN
+	 kdl531ki3UoKewrheUknE8obuA3glZ5lXlYFAF8fsyR7b4V7i3Y3LD05NFjIxmKcRI7fj
+	 5sxzReeAxVuwwUVnlJGlqtWo8PsSdNJsWkH86IH4kB9AcNuUZ/qCoj+git28FYeS442+C
+	 r88f0zvyFeszqm634kLoNEFXDTCXXJeofwae5LpWVQbdnqNg0Oo062AyFfQMszmK9vt87
+	 MPdHnY/4GfZ22NEGHrvVVCJq+SQmaLaT/5c1c4sUTJjCwvx+omLuWYtXpeElZQZ+VbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793854777;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=sRVhAEacJUXzOD7Z9t9X7l05UEG0bagzaqInGlzUg/E=;
-	b=PTvzfMZcTbuT+Pq7sn1n0xfvtK2uwq0/BNaw2JryZu9V16wE1wjJdFVQeEAWe1YOPb8Q
-	 BJeWKGQyMBkT5tHsmt4lKIU2SMYjq+YNX9mycqRU1rKIinbP4+KOPIGVPov6nKg08imxo
-	 l/VotrxtXxsq9vffZu6ymZzxmplW8cb8LOLMe0/ERyBAWfug3ff0+IwmPtdueBMO7EV1X
-	 E5oln6ZsxYXP/rzEKnmC2zPSKX7VVGyQ4q1ZCNSllvuRpaKxoK3ro3mgDvDptBup8EQsR
-	 VPRBsF/fiu7ziObJ8DGthqPDfRlO7/MPrsvm0GwfND8V0+iV1cRZTvqFsJ9jBmUPk2g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793861721;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=LQW85bAVVPCdOOgk1XApSwydrJwSt71hzV9a95J//68=;
+	b=zoYxge7iNVWmMFZsKmD/HX2Sjr2qQqcAE6DH5uF72EtWybyNsVKVz7HGgBYE8gIDS9tX
+	 Ikj5jniUUC/kTCWtNOpGJMKaK2+rWXSEi1bZEjYBhsB9BCLHvIkY+UPccNUJcgLuK9kf8
+	 ptkIMLnAC0DbmcEBUSbjqooiPgA8USm6OqneQ0+65gvdqm8z25/24yTHGbs2KWjVYUZil
+	 WvN9n4yuwypN1xScTGDZIoE2sUrjvjVAsXFsBwY84X/fq39v3YKE71BUZthS02rXIEcik
+	 oMYSqFAr+Fx7g+ueDrY8oxxQjI0LDwrSnkJjq5WP4S2PBlRKQ+X3S3Z+URmyU4dh4tw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=vT2TwnZX;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CYBJgBxn;
+	arc=none smtp.remote-ip=209.85.216.43
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 054B4606A31B;
-	Thu,  5 Nov 2026 04:59:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 054B4606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56AB1606A329
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 06:55:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 56AB1606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=vT2TwnZX
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id E877A21DB9;
-	Thu, 05 Nov 2026 06:59:31 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=sRVhAEacJUXzOD7Z9t9X7l05UEG0bagzaqInGlzUg/E=; b=vT2TwnZXEndm
-	kcFdbC0mXc2Je/e1MuyrSbc06OLP//PwAeurZmlJ/UMvNlBjJAT9vcxW0QMo4ObV
-	dgeOmnFZBDWFYyPb8KC6VtxWA3I635JYwgJLssm2m+eIMCsD66BIrM2aEp8VbdG1
-	LD4yraIOWq8g32sB8f1DiNYpZDn0JaU2ROUZx9ikFQhXSTDidx3LJ5ffewvUT4Xh
-	YVONWAqNwIg2JVbexY8Wc7uKtN7GEDc+mULulHkGoXshmo8weyNhL2/EftTo/f/J
-	dOKoRVOt3tvoyalyta9BgLiEttZYPm+Zt1cyt3VEQ6QVRm+LlZo2gMg/vCVnH18J
-	zbgM3sndAHRLLdmYhIiaqEj3xw8LuoFcSWDKlCAwQCrqf+G98WgjyrHH0yYTzBKh
-	vxbiPvrh0WlWXiSDdkqZzgtixoWBjRIH1QdmaXpEH5Nb7zIdyilJBdSu7yHdiJTZ
-	TgrCI8ZnSmr+4kHItc0cvmVK+p9UPVHIzCOV1PLnxwq8cXJVkvqosPSTiPCNsw14
-	fD7dC4TLH+Qs7nAfvtljVgVKDjHfYsPGpXi2sHlTaqftP30WwiaMfHnoOYP1Hlmu
-	AHt2LRgs6RVfB14chyr8ORQdmZdYHJYjYfEF5PURLRq6Ptb92zmlUDM63LROAOG9
-	dM8rEmXyi+nSEcT0mjSQ7EGq1nuT0No=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Thu, 05 Nov 2026 06:59:31 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7F36961C68;
-	Thu,  5 Nov 2026 06:59:31 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A54xTS2007322;
-	Thu, 5 Nov 2026 06:59:29 +0200
-Date: Thu, 5 Nov 2026 06:59:29 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] ipvs: do not create conns from packets with port
- 0
-In-Reply-To: <20261104201530.147292-1-ja@ssi.bg>
-Message-ID: <5e3fc9f1-1786-bfb3-4da6-d313ba9f6125@ssi.bg>
-References: <20261104201530.147292-1-ja@ssi.bg>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=CYBJgBxn
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3ab7b8e6fc2so142946a91.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2026 22:55:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793861721; x=1794466521; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=LQW85bAVVPCdOOgk1XApSwydrJwSt71hzV9a95J//68=;
+        b=CYBJgBxn0EY06zA58v4VQ98AJISJdeEknofMoU64gnuZ15tc2TFF0OTo5Fzl4zSzo3
+         mhT/LynFJYsIEns4tggxcXTPmQ6Nko6WFvaXl1W5UYcc3UQAqg7Ok89mjPM/SpJGH4pu
+         kDXTZACy8zKkPTzkF6NKDIH3ZYiPaudqcLKV3owpnK1JRphfrneXYqliOtGINHTe4Feb
+         0W/PVlOo7wC5BAJu6Hy+fxqRp8o3nwllJeRPj+UoR+fkte0KcDaGc00yPbv8DFzf/fly
+         ZzL6qAJ7t9FEgjteU9nqFtJ+uoBKYhCEK7WlVmAZIfx2g9V5tLcbAtWOVAI1E3GwB+sP
+         8J1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793861721; x=1794466521;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=LQW85bAVVPCdOOgk1XApSwydrJwSt71hzV9a95J//68=;
+        b=LVlVG+p/HilRt3CFCp/y1D88dLcscutOhZf8/wK0bmmaZFq4r2BNvPMfouMoDMcVy8
+         idtniGyAxKkuS7E+0t8Tu0p2bt6swAjnouUdDYYRiv/7LBTENHipEVnXmaFJxLK6Js7x
+         A/lup3JqFis0+JnCOdlgOcD/ZYBZHYC81O82gfTLtVFWzsR2ccIKJ78XP9PU0PSD0zdo
+         OX0dqluZMAPe3VXdUB3ilwBQhlVTcoOkIrTA7dG0tTd7mpNFc2S8MmsUHxhz0uRNVvZ2
+         SAsgPtuj8MgUotvUwAIuWWvUAJ7/7Sis2sDz/Nw2z9yhCHRYjSh47L8I5lJJwUoI4g1w
+         zoPw==
+X-Forwarded-Encrypted: i=1; AKwUvByYe6M8XkzId2xrX1zWbcT+QnT+zc1hC6k1PLiZv7EDOmN1+6M/71s1fjvDPxCwTmVtV79w2WL5LTMrwQErsQQ=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8C9p6crHkWDx/VX/JkixSL/L7EHpQb7GAFIL7d2xl4KWMwiasc
+	NGwnlBRGDOpbFz+FvJEff53+gFzkypiFZSjvCMz2U2Y9C+RmNopKjx+x
+X-Gm-Gg: AYBFou3qeouDHotfBSY5+5LpauoFyIZPdA7nnE07vovKZf0XgHJH0FanMshijW3tCqr
+	/M70/6LTz2KMmIgvRdUhtbI3mZJ3gfxgHwKRB4B3PyOwcoerdkg5hyuCDmXnZri1TNVY7fQeevy
+	dw0O1vDDQW7tj7s8tZGBdnlH3pA7FSRzvmPD+yoqrt1A0exM4aTzQKGhvX1UCcyqQTcLpDbm2q4
+	+qiatVrYMyLXUX48e0DtsTR97iCXw7mbiiYq8LUF9yAGq674K9dt8bUKjbgO4KUIpxOjN/utqCq
+	LoJZZnFFE8pCZeBlet5SU/IAF63IhN3sOuGDy+UGsn1d51U7LQtTK0VCsJTMMemY7gM2rsUJfiN
+	LyAHh4zHKhOlQX255B1OkVGzxr0kfVnDoBw7qEthmhscp56ORRVYKRj9y9orI+oHbvh42y8WOYR
+	uie4Y2rCTwAkrcNkqAenSrXUTTYum070Uy9WmQlXU23LovUtmJblhJAMySQe91tyvP/a3XIVmoR
+	jg5N5RFjZcopsisjaiT2mzbnAmyMxBI+yN6BBJUEKXm3K2No4HDmMMQs2fDFhELHhyMw8Sa0vTd
+	cdskJPRjZ1PD/SbIlVh0H9mRyLx7wucReShaoyqsu+0ki4VqXXrL6q1EPUZYXK6qX7Vw/w3jZ9n
+	ur95k6yi6qnMNEGLY
+X-Received: by 2002:a17:90b:2e51:b0:3a0:c1b1:45fb with SMTP id 98e67ed59e1d1-3ae89282cf6mr26913916a91.0.1793861720549;
+        Wed, 04 Nov 2026 22:55:20 -0800 (PST)
+Received: from localhost.localdomain ([139.159.170.72])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b0b31f8804sm2322929a91.17.2026.11.04.22.55.13
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Wed, 04 Nov 2026 22:55:20 -0800 (PST)
+From: Qihang <q.h.hack.winter@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	vladbu@nvidia.com,
+	ozsh@nvidia.com,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Qihang <q.h.hack.winter@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH net] netfilter: nf_flow_table: defer pernet stats release to last flowtable teardown
+Date: Thu,  5 Nov 2026 14:55:09 +0800
+Message-ID: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -79,127 +103,184 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+The pernet flowtable statistics (net->ft.stat) are released when the
+netns exits, but the flowtables attached to a dying netns are torn down
+asynchronously afterwards: the tc conntrack action frees its flowtable
+from an RCU-delayed workqueue item (tcf_ct_flow_table_cleanup_work()),
+and nf_tables releases flowtables from the transaction release work.
 
-	Hello,
+nf_flow_table_free() ends with a garbage-collection pass that queues
+offload works; flow_offload_queue_work() increments the pernet counters
+when scheduling them and the handlers decrement the counters again once
+they complete.  The flushes in nf_flow_table_free() only drain those
+workqueues when hardware offload is in use, so after free_percpu() the
+stray workers still this_cpu_inc()/this_cpu_dec() into freed percpu
+memory.
 
-On Wed, 4 Nov 2026, Julian Anastasov wrote:
+Account flowtables at init time and defer the release of the statistics
+to the last nf_flow_table_free() of a dismantled netns, after draining
+the offload workqueues.  A netns without flowtables keeps the
+synchronous release.
 
-> We should disallow normal connections with cport 0 to be
-> created from packets by the scheduler (from clients) or
-> by ip_vs_new_conn_out (from real servers) because later
-> such traffic can not hit the connection due to the
-> NO_CPORT requirement. As result, it can lead to duplicate
-> connection for every packet. Do the same for vport 0.
-> 
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
-> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> ---
->  Changes in v2:
->  * Drop the packets with port 0 instead of passing them to the local
->    server
+Fixes: b038177636f8 ("netfilter: nf_flow_table: count pending offload workqueue tasks")
+Cc: stable@vger.kernel.org
+Signed-off-by: Qihang <q.h.hack.winter@gmail.com>
+---
+ include/net/netfilter/nf_flow_table.h |  1 +
+ include/net/netns/flow_table.h        | 11 +++++++
+ net/netfilter/nf_flow_table_core.c    | 44 ++++++++++++++++++++++++++-
+ net/netfilter/nf_flow_table_offload.c |  7 +++++
+ 4 files changed, 62 insertions(+), 1 deletion(-)
 
-	It was ok to ignore packets before service lookup but
-if we are dropping them it should be only for IPVS traffic,
-i.e. after service lookup. Dropping this v2 and preparing v3.
-
-https://sashiko.dev/#/patchset/20261104201530.147292-1-ja%40ssi.bg
-
-pw-bot: changes-requested
-
->  net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
->  net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 +++-
->  net/netfilter/ipvs/ip_vs_proto_tcp.c  | 4 +++-
->  net/netfilter/ipvs/ip_vs_proto_udp.c  | 3 ++-
->  4 files changed, 10 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index fd503f0efb57..0ed5f6c95ad8 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1305,6 +1305,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
->   *    In fwmark-VS actual vaddr and vport are unknown to IPVS
->   * 2) Real Server and Virtual Service were NOT configured without port:
->   *    This is to allow match of different VS to the same RS ip-addr
-> + * 3) Client port is not 0
->   */
->  struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
->  				      struct ip_vs_dest *dest,
-> @@ -1328,7 +1329,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
->  	/* check pre-requisites are satisfied */
->  	if (svc->fwmark)
->  		return NULL;
-> -	if (!vport || !dport)
-> +	if (!vport || !dport || !cport)
->  		return NULL;
->  
->  	/* for persistent service first create connection template */
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> index fb8af6b15a39..31431094073d 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-> @@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
->  						 sizeof(_schunkh), &_schunkh);
->  			if (sch) {
-> +				/* Accept packet without scheduling? */
->  				if (sch->type == SCTP_CID_ABORT ||
->  				    !(sysctl_sloppy_sctp(ipvs) ||
->  				      sch->type == SCTP_CID_INIT))
-> @@ -42,7 +43,8 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  			skb, iph->len, sizeof(_ports), &_ports);
->  	}
->  
-> -	if (!ports) {
-> +	/* Do not create connection for port 0 */
-> +	if (!ports || !ports[0] || !ports[1]) {
->  		*verdict = NF_DROP;
->  		return 0;
->  	}
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index fec0e8b47b71..6f1cc9165e0c 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> @@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  	if (likely(!ip_vs_iph_icmp(iph))) {
->  		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
->  		if (th) {
-> +			/* Accept packet without scheduling? */
->  			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
->  				return 1;
->  			ports = &th->source;
-> @@ -57,7 +58,8 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  			skb, iph->len, sizeof(_ports), &_ports);
->  	}
->  
-> -	if (!ports) {
-> +	/* Do not create connection for port 0 */
-> +	if (!ports || !ports[0] || !ports[1]) {
->  		*verdict = NF_DROP;
->  		return 0;
->  	}
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> index f32785682402..0e7b4427d258 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> @@ -47,7 +47,8 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  			skb, iph->len, sizeof(_ports), &_ports);
->  	}
->  
-> -	if (!ports) {
-> +	/* Do not create connection for port 0 */
-> +	if (!ports || !ports[0] || !ports[1]) {
->  		*verdict = NF_DROP;
->  		return 0;
->  	}
-> -- 
-> 2.56.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 5b22d31cb1407..91ffa3072a0cc 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -376,6 +376,7 @@ void nf_flow_offload_stats(struct nf_flowtable *flowtable,
+ 
+ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable);
+ void nf_flow_table_offload_flush_cleanup(struct nf_flowtable *flowtable);
++void nf_flow_table_offload_drain(void);
+ 
+ int nf_flow_table_offload_setup(struct nf_flowtable *flowtable,
+ 				struct net_device *dev,
+diff --git a/include/net/netns/flow_table.h b/include/net/netns/flow_table.h
+index 1c5fc657e2675..6d2dc0d1f06c7 100644
+--- a/include/net/netns/flow_table.h
++++ b/include/net/netns/flow_table.h
+@@ -2,6 +2,9 @@
+ #ifndef __NETNS_FLOW_TABLE_H
+ #define __NETNS_FLOW_TABLE_H
+ 
++#include <linux/spinlock.h>
++#include <linux/types.h>
++
+ struct nf_flow_table_stat {
+ 	unsigned int count_wq_add;
+ 	unsigned int count_wq_del;
+@@ -9,6 +12,14 @@ struct nf_flow_table_stat {
+ };
+ 
+ struct netns_ft {
++	/* Protects nr_ft and exiting. */
++	spinlock_t		lock;
++	/* Number of flowtables attached to this netns. */
++	int			nr_ft;
++	/* Set at netns exit; the statistics are then released by the
++	 * last flowtable teardown.
++	 */
++	bool			exiting;
+ 	struct nf_flow_table_stat __percpu *stat;
+ };
+ #endif
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 0d72dc8ae47a1..de0a9f0e4f7b9 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -715,6 +715,7 @@ EXPORT_SYMBOL_GPL(nf_flow_dnat_port);
+ 
+ int nf_flow_table_init(struct nf_flowtable *flowtable)
+ {
++	struct net *net;
+ 	int err;
+ 
+ 	INIT_DELAYED_WORK(&flowtable->gc_work, nf_flow_offload_work_gc);
+@@ -733,6 +734,13 @@ int nf_flow_table_init(struct nf_flowtable *flowtable)
+ 	list_add(&flowtable->list, &flowtables);
+ 	mutex_unlock(&flowtable_lock);
+ 
++	net = read_pnet(&flowtable->net);
++	if (net) {
++		spin_lock(&net->ft.lock);
++		net->ft.nr_ft++;
++		spin_unlock(&net->ft.lock);
++	}
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_init);
+@@ -771,6 +779,8 @@ EXPORT_SYMBOL_GPL(nf_flow_table_cleanup);
+ 
+ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ {
++	struct net *net;
++
+ 	mutex_lock(&flowtable_lock);
+ 	list_del(&flow_table->list);
+ 	mutex_unlock(&flowtable_lock);
+@@ -781,19 +791,51 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+ 	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+ 	nf_flow_table_gc_run(flow_table);
+ 	nf_flow_table_offload_flush_cleanup(flow_table);
++
++	/* The gc pass above can still queue offload works whose handlers
++	 * decrement the pernet statistics.  Drain them all.
++	 */
++	nf_flow_table_offload_drain();
+ 	rhashtable_destroy(&flow_table->rhashtable);
++
++	net = read_pnet(&flow_table->net);
++	if (net) {
++		bool release;
++
++		spin_lock(&net->ft.lock);
++		release = net->ft.exiting && !--net->ft.nr_ft;
++		spin_unlock(&net->ft.lock);
++
++		/* Released by the last flowtable teardown, see
++		 * nf_flow_table_fini_net().
++		 */
++		if (release)
++			free_percpu(net->ft.stat);
++	}
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_table_free);
+ 
+ static int nf_flow_table_init_net(struct net *net)
+ {
++	spin_lock_init(&net->ft.lock);
+ 	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
+ 	return net->ft.stat ? 0 : -ENOMEM;
+ }
+ 
+ static void nf_flow_table_fini_net(struct net *net)
+ {
+-	free_percpu(net->ft.stat);
++	bool release;
++
++	spin_lock(&net->ft.lock);
++	net->ft.exiting = true;
++	release = !net->ft.nr_ft;
++	spin_unlock(&net->ft.lock);
++
++	/* Pending flowtables still update the statistics from workqueue
++	 * context; the last one releases them, see nf_flow_table_free().
++	 */
++	if (release)
++		free_percpu(net->ft.stat);
+ }
+ 
+ static int nf_flow_table_pernet_init(struct net *net)
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e6a..6ac28802ef632 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1180,6 +1180,13 @@ void nf_flow_table_offload_flush(struct nf_flowtable *flowtable)
+ 	}
+ }
+ 
++void nf_flow_table_offload_drain(void)
++{
++	flush_workqueue(nf_flow_offload_add_wq);
++	flush_workqueue(nf_flow_offload_del_wq);
++	flush_workqueue(nf_flow_offload_stats_wq);
++}
++
+ static int nf_flow_table_block_setup(struct nf_flowtable *flowtable,
+ 				     struct flow_block_offload *bo,
+ 				     enum flow_block_command cmd)
+-- 
+2.54.0 (Apple Git-157)
 
