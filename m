@@ -1,61 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793881750;
-	b=2jIU4QMB/hydCdaqvn2kqYu5rHUbiZwhii4yWVYNgtqOmN8OsdH7K8/MnQeRKBQ1Hbt9
-	 I4nfc/uadO/Y0+WhAwcSeqiGwqZlkmJ0Vk6cg6S+v/2wQvZHIpseNTsY+F+E5jI76X++f
-	 Ypk0SyuAVI4g9xDRqlxPqPhRHKfyLVEO2RrA5SKS4wox/RXJI3yKuGQ5fvFhPV/stLcBk
-	 NnO/86wQWo7BqFaD2o8RvHD47sq0VPr0t3MEtt2j5b+NvxujlvNpDiMY9pTDLxoK9Qtgb
-	 ZsLOVilKIZekqllYCqjF3Rff2XQXSStyEmBoZcpm8qwV94KyEMNsGszS9YaL4CiopJA==
+	t=1793881812;
+	b=Z82I67jOo6zTMKzvfSFBB2+FvIubakaxTTaMJHBlSVFXbtXfMiQU1kyKIAcHlmEwhH9o
+	 e0vrvAD1YHeM8U7S7uvonKkIs8g/m1Yr7U+gQjyt6XLClkG/xhW+tTSHI050O/3uxUu7I
+	 gCM9jv+NubPYesmbOjdNsKoQPaJzybm2uH7uX0m3NfiWTCQ2lfrOxwAhq1yBYzwIpaiMR
+	 vhgARN7TxWmZ34HuF4MlqMHXebZzu37oN2mGgcgP8CCAJP6+cahF+XV34EQAkixA6OGyD
+	 YJBie5ZiXtI/qj6pOaSXM7dvaMjaXexzuUbmwtjVJn4uSu5qy8c441s2vObEDGpbPIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793881750;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793881812;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=L/wCDZTny+Lvo3Lr7G5P7WIRmymnjKm8RubBMyE/Vws=;
-	b=WyQqo4Pm7BqLzfr44jKTdaKOyykO534S0WoYM249vbCVg7i3pHgUh/7X2os4+JDNMm5N
-	 dpu8oiZ27jWhrxYF4XkM1bbG/W+qorUVtIYW7NzMgrXOvB6GfvcJ20a/vTLh3ddxNEzkM
-	 7rNbJmWjAflmpGxfUY8Ljc/8tXVIGEQs11T/LOa0Np8SZrrIdt4wTuFc+SQ5b74PR+5gg
-	 TlR3T4cp5Kco9B9XgIT09khjbPRQlifxbueluaNE85uYqyLA4PYJ5w07Zkbi/LdAXCzdm
-	 FZ/7DJoisK9hvjacvrTcWJdy7ClGhI3GluQSb+nhhkNy/kWlAwNhv18uf5X+1CuptSA==
+	bh=QakUyBDErgRXiJ0ckzUn1Er0kMcNvtv0U8whHoiAyx0=;
+	b=CW+Q74mUpFG/gCf8GOMAi0HXE5f0TPTgo1sHYoIlWTVhe5kZR5N6IDIprc3kJRLkUQOm
+	 5Sq1TL+yR4P4qkNAL6AgdU36E1SEby2m3aTJ7lsngTkW1AYfsO5tDuo+wCFSk0TNqNCH7
+	 M1Dg52naTG6sniwi1IoFjjvd1Tt23iSkQl9XsvWFE0aH/pLNnMVWMnqp6A998mr5T2lxz
+	 Kow4m1254kISCt7QbFbc2kmjKY/Kj8XfCKO8Nq4hWoPPAecKal8/faSt+V9i+jQIi47HC
+	 orCuvGZxiLz2/BZWn2u6k9S2R58MuFrN24rpvZa2XRIajJeTa4azoZ2MnEhbWmdFk3A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=HtTZbiF1;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=I4oqW2lx;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id D6594606A326;
-	Thu,  5 Nov 2026 12:29:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D6594606A326
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 2B505606A32E;
+	Thu,  5 Nov 2026 12:30:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2B505606A32E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=HtTZbiF1
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=I4oqW2lx
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793881745;
-	bh=L/wCDZTny+Lvo3Lr7G5P7WIRmymnjKm8RubBMyE/Vws=;
+	s=2025; t=1793881808;
+	bh=QakUyBDErgRXiJ0ckzUn1Er0kMcNvtv0U8whHoiAyx0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HtTZbiF1xVeDEHJ+P0DUkkXecJufRpNGTpLjtyETBMWmm+Gu9yyfDGSiijvznxSDw
-	 mSCk6pCuax6YfauJmYoDc3dWZlYdc7qbXuq/7kLWZCfJeyXIKYQ40TueiPC939vqHs
-	 ZyCEVCV9XuoY+guCMVDIsvj/8bCyXP9APLGGwABy/QZHWnPZcSvRauWS8dr0oGyJ3r
-	 y9f4MtawcCMVnkxql1DVIwdikAjxlJNYui0g2kVJ7m45ibFsijnpCCnxF+QasCMpH1
-	 YCZM47Y4We0h2hr+cmMTm1s2ad1ojgcmLG1uAeSOljUgOUonuOERa+DUCb/9iBkZg2
-	 XM9i3t/REaE7g==
+	b=I4oqW2lxhBpda3ZMqlF0pnEVvYTTO2EArEb6C6K4zh2HiyEeh8kOMqyuJw7MATnIS
+	 dEhIEGGH/v8xhpTJlF0Xrtr3tRYwbqmQ3RBUmxuqTk29tivKssyuDFCBjlDP739/Ph
+	 RjH/GZPGFjQXUMpP1dQf40bKaVsEEvXIiP6GffjuY9PWuVyPcgH4qfY3PRdKSQkJPx
+	 5KGD/L3SRhlHXcurmHjhUXCmwq5J3Ooh7j3D4S50IPv5971AzLXbmhMSRJcv26q7lS
+	 wWs0tYDNwQil36n+PVbQXKRiAYjmJipxnkkd1mQgwTKy2l6DkVBNtJ5XD3hPQT0O0z
+	 lKBxDErODFjZA==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CCDA8604FA;
-	Thu,  5 Nov 2026 13:29:05 +0100 (CET)
-Date: Thu, 5 Nov 2026 13:29:03 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5C93560052;
+	Thu,  5 Nov 2026 13:30:08 +0100 (CET)
+Date: Thu, 5 Nov 2026 13:30:05 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Paolo Abeni <pabeni@redhat.com>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, edumazet@kernel.org,
-	horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net,v3 00/13] Netfilter/IPVS fixes for net
-Message-ID: <aux2j6CxDB9ZxxO1@chamomile>
-References: <20261104090224.750548-1-pablo@netfilter.org>
- <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
+To: Henry Martin <bsdhenrymartin@gmail.com>
+Cc: fw@strlen.de, davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] netfilter: nf_tables: fix pernet use-after-free on
+ UNREGISTER rebroadcast
+Message-ID: <aux2zX3dLKYnzG56@chamomile>
+References: <20261105114817.3033625-1-bsdhenrymartin@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -67,27 +68,103 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
+In-Reply-To: <20261105114817.3033625-1-bsdhenrymartin@gmail.com>
 
-On Thu, Nov 05, 2026 at 10:46:46AM +0100, Paolo Abeni wrote:
-> On 11/4/26 10:02, Pablo Neira Ayuso wrote:
-> > v3: keep back two patches in the series with sashiko reports that
-> >      suggest they need a bit more work.
+On Thu, Nov 05, 2026 at 07:48:17PM +0800, Henry Martin wrote:
+> A device unregistered outside its netns teardown can be stuck in
+> netdev_wait_allrefs_any() while the pernet exit handlers of its
+> netns run to completion.  The nftables pernet storage is freed on
+> that path.  The rebroadcasts then hit the nf_tables netdev
+> notifiers (base chain, flowtable, offload), which read the freed
+> storage via nft_pernet() and take commit_mutex on it, e.g. on
+> mainline v7.4-rc1 (KASAN build):
 > 
-> I *think* Julian additionally suggested dropping/changing patch
+>     BUG: KASAN: slab-use-after-free in nf_tables_netdev_event+0x17c
+>     Read of size 8 at addr ffff88811061c980 by task ip/422
+>     Call Trace:
+>      nf_tables_netdev_event+0x17c/0x1c0
+>     Freed by task 62:
+>      kfree+0x161/0x450
+>      net_passive_dec+0xe5/0x180
+>      cleanup_net+0x45a/0x780
+
+Could ypu pass on a reproducer?
+
+> Skip the rebroadcasts in all three notifiers, which are the only
+> NETDEV_UNREGISTER events delivered with reg_state ==
+> NETREG_UNREGISTERED.  This mirrors commit fd0909e963ed8
+> ("netdev-genl: ignore NETDEV_UNREGISTER rebroadcasts").
 > 
-> ipvs: do not create conns from packets with port 0
+> This issue was discovered by Tencent CodeBuddy Security.
 > 
-> but it looks untouched ?!?
-
-I would suggest Julian follows up on this specific patch.
-
-But I can drop it too.
-
-> Also AI review did not kick on this revision, likely because
-> the bot is confused by the mismatch between cover letter prefix
-> "net,v3" and the patches prefix "net".
+> Fixes: 8a4fc54b07d75 ("net: get rid of rtnl_lock_unregistering()")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Henry Martin <bsdhenrymartin@gmail.com>
+> ---
+>  net/netfilter/nf_tables_api.c     | 9 +++++++++
+>  net/netfilter/nf_tables_offload.c | 8 ++++++++
+>  net/netfilter/nft_chain_filter.c  | 9 +++++++++
+>  3 files changed, 26 insertions(+)
 > 
-> I think a new revision may be needed?
-
-I can send a v4, of course.
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 59ac623e6805f..e43a1b9fefc36 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -9902,6 +9902,15 @@ static int nf_tables_flowtable_event(struct notifier_block *this,
+>  	    event != NETDEV_CHANGENAME)
+>  		return NOTIFY_DONE;
+>  
+> +	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
+> +	 * while waiting for the last references to be dropped; the
+> +	 * netns and its nftables pernet storage may already be torn
+> +	 * down by then.
+> +	 */
+> +	if (event == NETDEV_UNREGISTER &&
+> +	    READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
+> +		return NOTIFY_DONE;
+> +
+>  	net = dev_net(dev);
+>  	nft_net = nft_pernet(net);
+>  	mutex_lock(&nft_net->commit_mutex);
+> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+> index 0ac3c26dfb3d1..d360e233d0366 100644
+> --- a/net/netfilter/nf_tables_offload.c
+> +++ b/net/netfilter/nf_tables_offload.c
+> @@ -672,6 +672,14 @@ static int nft_offload_netdev_event(struct notifier_block *this,
+>  	if (event != NETDEV_UNREGISTER)
+>  		return NOTIFY_DONE;
+>  
+> +	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
+> +	 * while waiting for the last references to be dropped; the
+> +	 * netns and its nftables pernet storage may already be torn
+> +	 * down by then.
+> +	 */
+> +	if (READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
+> +		return NOTIFY_DONE;
+> +
+>  	nft_net = nft_pernet(net);
+>  	mutex_lock(&nft_net->commit_mutex);
+>  	chain = __nft_offload_get_chain(nft_net, dev);
+> diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+> index e04e689f22284..b3cfe8d426753 100644
+> --- a/net/netfilter/nft_chain_filter.c
+> +++ b/net/netfilter/nft_chain_filter.c
+> @@ -412,6 +412,15 @@ static int nf_tables_netdev_event(struct notifier_block *this,
+>  	    event != NETDEV_CHANGENAME)
+>  		return NOTIFY_DONE;
+>  
+> +	/* netdev_wait_allrefs_any() rebroadcasts NETDEV_UNREGISTER
+> +	 * while waiting for the last references to be dropped; the
+> +	 * netns and its nftables pernet storage may already be torn
+> +	 * down by then.
+> +	 */
+> +	if (event == NETDEV_UNREGISTER &&
+> +	    READ_ONCE(dev->reg_state) == NETREG_UNREGISTERED)
+> +		return NOTIFY_DONE;
+> +
+>  	nft_net = nft_pernet(dev_net(dev));
+>  	mutex_lock(&nft_net->commit_mutex);
+>  
+> -- 
+> 2.43.7
+> 
