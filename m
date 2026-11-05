@@ -1,60 +1,108 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793869410;
-	b=fh6TSrKs3PO4cMDCknQjyRPj0LKTEYPjNWiCcVa8BvHBO5ButoVo1XIM3je+SnnkEXYK
-	 UXjK2b81pwbblIlIHdq54TbLCPxGwoAy+FxIFsS5EFVL7G1vo1g4rvtoQot1p133fxiN5
-	 pLiBhVRPbhnc5sXPD+s/0qGfx8FrCh/L2MQQ1d6UWHCP55nPhMaRr89CmvMTAFUGqZM2g
-	 QYySw5k4SN5okTMHTciQIn5WvdkqITsbIvn9YsQtKdiVgaIhouZ8dzr9gOuyGdaILncRA
-	 6BJSV1UXaJoLhq0BmMnEeDlOS9JvC8iS8EMIRmF3cMpqqKA8YBzVnXOMs814kqIPySg==
+	t=1793872012;
+	b=kCtKG8O28tZ0sFozS9c4X4UjV3rckRcH3hTBVgvSp4OEwSG3U0m0EqJ7CiLZN7aMKjch
+	 9FHowbM+H4gtOJbPHENVIi/Ary2FA5IkV5m3OmqczCrU/YOehAOvedY09tqfOHAkNletZ
+	 KMCYISsZlPU7ejsNgu8xOa5VNYZeS2jb9M55x95WwUMFCp/ddsJne7PnBowWlh+wDf8YK
+	 Ks1clPCb2gH4s6IcBckUN6YhgkeWvgTHx5Hl96U8ayxli3T5VLDxtI9X7gB8FX5jZKK+6
+	 iaZntHPcgAVvOMimsBf8BgHMe8m49S+4V/8fWrn5oZovtA1Mn9MjltUTmh6+YUkfn1w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793869410;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=TRXlzlkbH1m9T6kN9Rtt9KXhOZxtIzD4QvUfCH3ejVA=;
-	b=ne1aqw8LW1msb9Q1/BNARVPniTsFxVe+JJZiZp+dN7HRXgETp3X60ukmYhIi9fdQaG8b
-	 pAy0AdB3HFepqMmez37N8r3LteQllmZgJjkoalC7yFKjAA7f/gizRdk1pYNHkDQRW5iC7
-	 EH6fJt5+muVifdQckqK4Fo/9gXmi1J2WyNMIxwKIPD+Lr91jE1Z2lN+9OUPXCYhTu0cJQ
-	 q1EtUTfA2501vm2aS5X9R1n0WLZhhXfMf7kP1hE/vxfKacAkB5vIKmYXew6D2WYK+ui0a
-	 YbHjuTaLKvKeGrwM2TCUB7Xd4wHeNVLi4CdBXcqJnonjXnIi171prkQpyu2vuy4fLOw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793872012;
+	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
+	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 X-Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:
+	 To:Cc:References:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
+	b=vPN8LIlrdbrrCl4aAzpi7lHmVUXPNsZcOhFqf2ElyikIu9+R8geawpVfRopHXUfJUVR1
+	 +naD4mmzJSKhcRaP7hQLKdYhe948THFMT5tp3m1IkLQJNGR9ICLY7Ecy/5Z+KoFmfgiou
+	 PnYcoXrvGAZ+COwchm7T3Rjcsu/PnHiwx1+8OCY/Q1rNOx9nYchzi511IabQCGGgxNhpn
+	 oINZGPt2gTmW6KhCXVb74m12f6rVF2M9OX6oNvHtJqrucF5mPSRsjZXjU7n/nF+qrMw9m
+	 wdi0mPCjljFdVasxl6bfKFGgkI/2frP7DQnZldsn49EK2K2dv8BlCX3f+EU3KU073Xw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CMOBud2D;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=redhat.com;
+	spf=pass smtp.mailfrom=redhat.com;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=SDbEXYtD;
+	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=IPe7dai3;
+	arc=none smtp.remote-ip=170.10.133.124
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A288606A333;
-	Thu,  5 Nov 2026 09:03:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAAD7606A31B
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 09:46:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EAAD7606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CMOBud2D
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65BDF1F00919;
-	Thu,  5 Nov 2026 09:03:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793869410;
-	bh=TRXlzlkbH1m9T6kN9Rtt9KXhOZxtIzD4QvUfCH3ejVA=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=CMOBud2DttsLsbSlhfn6aTb2FDrnwsHhLhIKWy9WB3/gwDm3gswnqRPJGYpKf7QNo
-	 BaKwWDUsxM9TVsz8fuoCQeehaCAhH8NQRSQ4+Ofk0f9qTdcsNm81Qru9K2CcQOyVuF
-	 oKmLUZkftEXKj/nPVFWQJVFeT+uTBKI9MiGGlZl3V9SY0cltZPPh5AtogjrG4GZM0e
-	 CkzYQOmDYeiPeBVf/MpEx7Halrggnii3CLdJDkX773jskIhmUOl/ghk9RA/kVmsoz+
-	 RIS9tyfjzZ3tztVwEMYsGkx4pVfzS8yu+Te0NVm/D1/cBu7P4EkSzmCevPuqebjO0j
-	 0StrcYqZzVsHA==
-Subject: Re: [PATCH net 2/2] netfilter: h323: avoid secs-to-jiffies overflow
- in RAS timeout
-From: netdev-bot+sashiko@kernel.org
-To: l1138897701@163.com
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
- edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
- kaber@trash.net, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 05 Nov 2026 09:03:28 +0000
-Message-ID: <179386940893.488856.3164971137869500824@kernel.org>
-In-Reply-To: <20261104085925.773471-2-l1138897701@163.com>
-References: <20261104085925.773471-2-l1138897701@163.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (1024-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=SDbEXYtD;
+	dkim=pass (2048-bit key, unprotected) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=IPe7dai3
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1793872010;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
+	b=SDbEXYtDBFy+nN/VLO/p7fNZ9zQd79FDJSaSgWTNvnSAiAm7lzG979eOakNO9FK3PorFqy
+	vRZmOf8r2sJoOCBbNMjKr3wjSK1G6e5NTi8dTMF5oVsLu6e9jYDCFa/+tPmYq3Eek1NCcv
+	IDt8qER22bTswxN+Hxih39VvH3j+7zE=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-630-AmBcnIP4MgmNzKJpN_-b-w-1; Thu, 05 Nov 2026 04:46:49 -0500
+X-MC-Unique: AmBcnIP4MgmNzKJpN_-b-w-1
+X-Mimecast-MFC-AGG-ID: AmBcnIP4MgmNzKJpN_-b-w_1793872008
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a1d1f26a63so13226745e9.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2026 01:46:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=redhat.com; s=google; t=1793872008; x=1794476808; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
+        b=IPe7dai3A3TwSaQxmblHBD5Q4Q/rWHpStHnErIm77+s6Yc5s9qvi766wpSRCdtPWTX
+         t4YpOqsSaNYxQIB62IuEpsghxR2yP/0Dadunp4d8kHLfXbyqLR6vj3pS6fee+9MRpGeq
+         2arlYDjKzVJQB4zjAWNYzIRHnNiG+t4j3c942+OTR5sdgAx0QToEvm1pF9N5n5/Av8uY
+         +e8tyDO9hO3WCJToAEElH0YZ/vIi3Ha5vxb3kItfdutfSRYhhkowAPz6S6jJ7ckm1BZp
+         1hSJWq43riqIxkBaOsLQ5f8hEteYXx6j3oG0yb/LniWnX0nlwQ4Bf6+q2Yi2pPnpe2yV
+         grRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793872008; x=1794476808;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=iyLm2JJ7Bha5k7fF1WN/RBaS9++WFeK4ddT2bao+YYA=;
+        b=Er5CjJuKahFzB55WtZ5qglaHtLi/i70coszKkT7sbynypdLz1vRwEz97JWPqFBLr16
+         14dQIpwIL53EtKUeH6ip8Na5KVGcn1MdTTRdkoDXwWHgzUbjk9KfYgrR8ZGK77Rap3ML
+         5DQl+E7Mo+lB48eBK5mQBPGQjV2qR4Dppv0pzM5b9/AUTwn/az9y2Ppz9ytmQHzeWVBx
+         NVL3xEmE9YRfqMVqDpBkfcolqLjCBPPWJjV+Tv4/za/bOirqNeYVg1di6qss3U1lgFFu
+         Zf9Syxp5+YCeb4GbP7je29Kt79Gpg5oeJi8LSyMiKfOqxXUMAiPQEIk8fuBWvQ4NO5QN
+         WE8w==
+X-Forwarded-Encrypted: i=1; AKwUvBx8TH07KFpTxCYSr6u0iyJgnV8ni8ckDxrs1I7Kq60vSzzApf6dB0Nnb9H8+8qTHV9mpEcfg5puxaZoE3xr7zg=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8ZA4fzeJHfGuTaGtTMKa1nx31/SKUPvG1+MnjhHZV+LusM2pV3
+	vXeqkedJtY6rlfzIPnZt4XDrwaUjVZ4qR9e1yOCNL3JnVzUzn0+RvlsRU0fpNnI13NLtgAa0cVw
+	PxuvEfooa+qK9uwYozdMd026ZlQ8NpeCmb1mNqozYzcKgobqLNgJ2WcJZmjoK6aItfG7VhA==
+X-Gm-Gg: AYBFou2cLOFsBxfPn48Brif0ATCzhIz1TTgz6eYmbwGwg7rWJl6MdGT38yTakfEcEku
+	GoOoL10gRTrGzih3raWoNWOD0s55EIjJdcLmaFSE2LHI2zXkJunWTLWh0tPoOUyVay8RdTlwWmo
+	MCoIui6zqGw61iZ3OL0SiQLlmgaBe2caNvUmQmz6vAgzeVBNxZYZtHyojtRh9ch4ZPmOBd9trtp
+	Y/4LDwp7PGCm/CJeyPjXpDwmDEBPvXcJgyR+FL8aqwImzPtj4r6p9VJsSEEPAE4zsF7WhVzuJTS
+	6/UYoGapSi5Fq04GPBMAGdkpdnbihtmVOr7ugWgqKCQ1oChJZWWRxJxfEtD+zfHdqGWATHeoSTD
+	j8XoScWs/q+EK5kU1XRSYqdaoaaYXFg4iicCF3YVs48gp4/laSh7+5g9OTJeP7K6Axramy6u6jb
+	3SXY5nyCK5NTkXHDHCC1wixl4aPWdPaITLUcQ1XEDTa7Q=
+X-Received: by 2002:a05:600c:848c:b0:4a5:dc5d:20f7 with SMTP id 5b1f17b1804b1-4ac175669d8mr452190185e9.14.1793872008407;
+        Thu, 05 Nov 2026 01:46:48 -0800 (PST)
+X-Received: by 2002:a05:600c:848c:b0:4a5:dc5d:20f7 with SMTP id 5b1f17b1804b1-4ac175669d8mr452189745e9.14.1793872007952;
+        Thu, 05 Nov 2026 01:46:47 -0800 (PST)
+Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b411de95b4sm84246655e9.0.2026.11.05.01.46.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 05 Nov 2026 01:46:47 -0800 (PST)
+Message-ID: <51aa2527-0a99-4d67-845a-a8b28f822efb@redhat.com>
+Date: Thu, 5 Nov 2026 10:46:46 +0100
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -64,94 +112,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net,v3 00/13] Netfilter/IPVS fixes for net
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+References: <20261104090224.750548-1-pablo@netfilter.org>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20261104090224.750548-1-pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+On 11/4/26 10:02, Pablo Neira Ayuso wrote:
+> v3: keep back two patches in the series with sashiko reports that
+>      suggest they need a bit more work.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+I *think* Julian additionally suggested dropping/changing patch
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+ipvs: do not create conns from packets with port 0
 
-- [Medium] The commit message names a symptom that the overflow cannot
-  cause and that the patch does not fix.
-- [Low] process_rcf() calls nf_ct_secs_to_jiffies().
+but it looks untouched ?!?
 
---
+Also AI review did not kick on this revision, likely because
+the bot is confused by the mismatch between cover letter prefix
+"net,v3" and the patches prefix "net".
 
-netfilter: h323: avoid secs-to-jiffies overflow in RAS timeout
+I think a new revision may be needed?
 
-This patch replaces the two 32-bit "info->timeout * HZ" conversions in
-process_rcf() with one call to nf_ct_secs_to_jiffies(). That helper
-multiplies in 64 bits and saturates at INT_MAX. The result is used for
-both the RAS conntrack refresh and the Q.931 expectation timeout.
+/P
 
-> With the signed expiry test "(__s32)(ct->timeout - nfct_time_stamp)
-> <= 0", a timeout of 2147484 seconds (24.9 days) at HZ=1000 is born
-> expired, and 4294968 seconds wraps to 704 jiffies.  The RAS connection
-> therefore drops mid-call, or the Q.931 expectation stays pinned for
-> days after the peer is gone.
-
-[Severity: Medium]
-Is the second half of this accurate? Can the 32-bit wrap of
-info->timeout * HZ ever make a lifetime longer than the one requested?
-
-For X > INT_MAX / HZ, the old value X * HZ mod 2^32 ends up in one of two
-places. If it is >= 2^31, it reads as already expired under
-nf_ct_exp_is_expired():
-
-    return (__s32)(READ_ONCE(exp->timeout) - nfct_time_stamp) <= 0;
-
-If it is below 2^31, it is smaller than X * HZ. Either way the lifetime
-is shorter than what the peer asked for, never longer.
-
-After this patch, the timeToLive stored by process_rrq() or process_rcf()
-still has no upper bound. The only limit is the INT_MAX jiffies
-saturation in nf_ct_secs_to_jiffies(). That is about 24.8 days at HZ=1000
-and about 248 days at HZ=100.
-
-A peer could already reach that same maximum before this patch by
-sending 2147483 seconds. So the longest lifetime a remote peer can force
-on the RAS conntrack and the Q.931 expectation is the same before and
-after the patch.
-
-For oversized TTLs the change actually goes the other way. Values that
-used to wrap to a short lifetime or come out already expired now get the
-maximum lifetime. For example, 0xFFFFFFFF used to come out as s32 -1000
-at HZ=1000.
-
-Could the commit message drop the "pinned for days" symptom? It could
-instead say directly that oversized TTLs now saturate to INT_MAX jiffies.
-
-> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-> index 4cb1665bba021..5e900037fa6f1 100644
-> --- a/net/netfilter/nf_conntrack_h323_main.c
-> +++ b/net/netfilter/nf_conntrack_h323_main.c
-> @@ -1375,9 +1375,11 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
->  	}
->  
->  	if (info->timeout > 0) {
-> +		u32 timeout = nf_ct_secs_to_jiffies(info->timeout);
-
-[Severity: Low]
-nf_ct_secs_to_jiffies() only exists because the previous patch in this
-series, "netfilter: conntrack: avoid secs-to-jiffies overflow in SIP
-helper", adds it to include/net/netfilter/nf_conntrack.h. That patch
-carries a different Fixes: tag (0f32a40fc91a, where this one has
-f587de0e2feb).
-
-Will this still build if it is backported to stable without the SIP
-patch? That could happen if the SIP patch does not apply cleanly to an
-older tree.
-
-The SIP patch is also tagged for stable and comes first in the series,
-so stable tooling will usually pick up both. Still, would it help to
-note the dependency on the Cc: stable line?
-
-[ ... ]
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261104085925.773471-1-l1138897701%40163.com
