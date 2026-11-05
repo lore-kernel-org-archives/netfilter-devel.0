@@ -1,100 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793854523;
-	b=ft4y2jybYt9uaw5MTdhJFZDc6dDM7uqFo50jmIoJfP9oo+3uvcAsInWxLMOZgypawbp7
-	 WumQUPZAvrd0uCHgNQDFBZApnXWMghav4NxHo7sAQYFnHg5Opfw5fmmeJ/5jThK5YrKAg
-	 n+lAonU/21XW70+LL3wpK9y956OsNBGCICG+r0/Y4jj3NEPiG8i67QkgGzR61/XxtmbnK
-	 by4ZKjWcPJMx4CwRAbsms0C28rw4p9yjmw33QBOBoOl2ha3sQOP+OtwY0jIKrtNlSK2Te
-	 jjQpD24Gcszsj6Ly3qLEip5r03GUwBY2Nzj9ySUHjHnkeWGiV7xiF0V+5bpBC/uzSZg==
+	t=1793854777;
+	b=LBUcgj2X/kxzrHHg5q7FgYK8hnJuXX0PKZIi7PsWE1i+JjJ3cMYVdvMKo6cgQgoW8Do7
+	 kw9gGNVygRog+UzVvaPWgtYZq7aeTaJWuapaSsFLcAeSrm3J3bPDRV5qCqmlUa04y5ZiE
+	 nr0O1S7jIGHxOseDKZw6qgiV5OVeJJ9XWLyVo+CA/AWrCSQlLOr7/mHuHh9FFCiPSeyna
+	 TVRiOWkEmijw4hWRajUHxV/LNewdZj2NO6VMnVOf6fTEILj+EZA7RKyx0qVzTggEaIPNr
+	 PDlblq7ViGtPGyiCF3juP83uxeHL098X07bpXxs4bzyNppn17wDZcYpJxs2+RurGBhg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793854523;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
-	b=c9pPBsGw5/WdxzEWDxGyTssCp9TczJpz4/z1IV8dATIWrDBZQ78xwenZItQfNnoIF7Lk
-	 zUnuMZdq1a9q6U0OH7mj9mJGKuy89bq/6Qdhi5yxfBMIuLwIjT6PJd6YroNejEySAlzO0
-	 /xq+ZeVkzxlWHDfwWtOOuxNOPo866YLJpvPJIhSjWW5ipDVJRmTy/4N4XIY3CVNvO16ZZ
-	 Xp2bW98VlrKFXpm3IcDx2anFKtrRtxlQSmEA+lOOiJXbdXdtp+zLjfwA2ODE1mfpuhdjS
-	 giiftfQTnkKvmIpHO018CwF8nA1uHzJCI0khxzF95+udu5jN69mGmALLlDBya7SfYWA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793854777;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
+	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
+	 Content-Type;
+	bh=sRVhAEacJUXzOD7Z9t9X7l05UEG0bagzaqInGlzUg/E=;
+	b=PTvzfMZcTbuT+Pq7sn1n0xfvtK2uwq0/BNaw2JryZu9V16wE1wjJdFVQeEAWe1YOPb8Q
+	 BJeWKGQyMBkT5tHsmt4lKIU2SMYjq+YNX9mycqRU1rKIinbP4+KOPIGVPov6nKg08imxo
+	 l/VotrxtXxsq9vffZu6ymZzxmplW8cb8LOLMe0/ERyBAWfug3ff0+IwmPtdueBMO7EV1X
+	 E5oln6ZsxYXP/rzEKnmC2zPSKX7VVGyQ4q1ZCNSllvuRpaKxoK3ro3mgDvDptBup8EQsR
+	 VPRBsF/fiu7ziObJ8DGthqPDfRlO7/MPrsvm0GwfND8V0+iV1cRZTvqFsJ9jBmUPk2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=mTKYyYeV;
-	arc=none smtp.remote-ip=209.85.216.54
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=vT2TwnZX;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D3A7606A328
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Nov 2026 04:55:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9D3A7606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 054B4606A31B;
+	Thu,  5 Nov 2026 04:59:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 054B4606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=mTKYyYeV
-Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3ad0c2e71ebso217396a91.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2026 20:55:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793854522; x=1794459322; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
-        b=mTKYyYeVr7uxttrPBh/zbgdicB4GtUsAEPY7xWdW42ONQLpFWniKAVmHzgolRVnz1R
-         7cGjdcpTCPUuQy/A64lwRFiyY3CHLGj3nlqbK6AEQwT2zG7biKPOWYGbyqYZoXfGRvF9
-         VMNjEFP/372eFVw5FbTuSsi8X8vRwpvlmPjZMD5VyyudE8jzRBB7z6J5DpdMGoY7Hq5p
-         KRhkUg8+WaJVVEcdue/XWCVzhYJgAPz+7SROTuyUkDUJZGvY0euOB/3t+nKtd4g2liXU
-         30ygp2YrQxS3ncCjh2vsNdYieq6M3aMH+1rBdw0W/ieO4AuFjVJakOI9Kr5nAz8+hS5n
-         ycYQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793854522; x=1794459322;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0K/OpJSJDyeiHFgRi2dD4j6fShhHweBIMHEcvs+4Jvc=;
-        b=cE0/OwzjyuYN/O4oDfGdDltY37ub4FnUv6y40o+vTOL0sRuy2Hh7qV3jXCqSo676Bw
-         iu4sKtJu4q0ugVNq5ZKK1iKik+DHZUQ9k+Y4wjM9xmmiPWFm78SmS3ulf9Dc+I5P0A9y
-         +Z1loF0QuzfXlZo85vZNCzVCYN4I5S6bVDHC/ZT7NlkY1TRsX2nAkL+0Es5FMi2Ppvl4
-         VGyuUrSdlikNBd6vuls+jUGeSnHHDhyD9ktUkl++Gwjp8jHC3xsOnCCvjIkjKxhdzdeU
-         UP+1ryzL0zav0xyDjz2z4EPpirOrQb0mMWC3+rGx1+jqU/9Yn1rSySKN9MFA/UU2ai8m
-         sSew==
-X-Forwarded-Encrypted: i=1; AKwUvBx8wv7+VhQu/+ofWEVkJaAL//MQsMrHmmqANXE6822djgKHS8MJi7KAAadN8oJzT6aMCC99dZVrU8cZBpkbG1Q=@vger.kernel.org
-X-Gm-Message-State: APuU4Z8L2ZqGKu7seLtsy4IVOlV5M0XShNlSFj8UcpNJM/V1PyXMrLDe
-	KnVtwLQRB+8+3u0K5CLPbMJtOWx9jsaMBYTMWd3u/NkeuQ7ky9WiFF0D
-X-Gm-Gg: AYBFou1jPLH+eCoU30XzKBCgYmUYcJu+2qJgezHZooWuYcZLI7/PG75deihpjbJcOQd
-	hdvLgYogw4DG1C8Gin2sLTScSADHwXvp8idZXoSw4aaCLFDOawiWScCpoSAAJtPqJRbO2I/SlGe
-	4iUm+0FbxVTvcMKqyK4EbuOzxFFfIAv46YPYn09G9DtmVfbFxHF489hai52evtFnW7Fz713iXnz
-	2FYxdmdfLnWzKWAKzX1O3z3fLXEi5yGYjP56D1gNMRli8nIFLf8BgAoURX/cP1KJ6BQievT/vRT
-	an8DfF9P0n9NtVWFLlyAtHKf7BwtEI4Nwc0y5MkNWaCTQDhUxRhmeQ2iRpX5hwyZ/PklyvLLQSQ
-	A3xYsiysCmq7qp9Ig3cghgMaGs+GURSX6swkrhIbTyYPlSOiUzcMt7VIqwjzip1gnn0nX0jJMne
-	uwfX2nbOwNuZ7K5aEF6ELcNRymAE3Pae+mfGvEux81r6z/a5hyLvy/fTcKfS7Ld+ZGcaGLCIkc1
-	DaujihQsZYAvqZI6uFGA1fh/2moVgqi+8evMXFkQL62a0va/uLWt2ExQ7x4OemAqqgTZW1hX/ys
-	JxvmMY0iws1xEhvtwOMvMQyWKD62V3aXV/LgrcmCTWx89sGrnDTTdR3A7EGt
-X-Received: by 2002:a17:90b:4487:b0:3ac:9c37:9422 with SMTP id 98e67ed59e1d1-3ae89626108mr25602011a91.2.1793854521680;
-        Wed, 04 Nov 2026 20:55:21 -0800 (PST)
-Received: from localhost.localdomain ([189.1.242.96])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b0944eb1d1sm3726000a91.0.2026.11.04.20.55.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 20:55:20 -0800 (PST)
-From: Yiqi Sun <sunyiqixm@gmail.com>
-To: fuchen.dust@gmail.com
-Cc: coreteam@netfilter.org,
-	fw@strlen.de,
-	kadlec@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org,
-	phil@nwl.cc,
-	stable@vger.kernel.org
-Subject: Re: [PATCH nf v3] netfilter: ipset: fix double free on kernel-side delete during resize
-Date: Thu,  5 Nov 2026 12:52:10 +0800
-Message-Id: <20261105045210.1179991-1-sunyiqixm@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261026102957.5530-1-fuchen.dust@gmail.com>
-References: <20261025090609.v2reply.4093.fuchen.dust@gmail.com> <20261026102957.5530-1-fuchen.dust@gmail.com>
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=vT2TwnZX
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id E877A21DB9;
+	Thu, 05 Nov 2026 06:59:31 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=sRVhAEacJUXzOD7Z9t9X7l05UEG0bagzaqInGlzUg/E=; b=vT2TwnZXEndm
+	kcFdbC0mXc2Je/e1MuyrSbc06OLP//PwAeurZmlJ/UMvNlBjJAT9vcxW0QMo4ObV
+	dgeOmnFZBDWFYyPb8KC6VtxWA3I635JYwgJLssm2m+eIMCsD66BIrM2aEp8VbdG1
+	LD4yraIOWq8g32sB8f1DiNYpZDn0JaU2ROUZx9ikFQhXSTDidx3LJ5ffewvUT4Xh
+	YVONWAqNwIg2JVbexY8Wc7uKtN7GEDc+mULulHkGoXshmo8weyNhL2/EftTo/f/J
+	dOKoRVOt3tvoyalyta9BgLiEttZYPm+Zt1cyt3VEQ6QVRm+LlZo2gMg/vCVnH18J
+	zbgM3sndAHRLLdmYhIiaqEj3xw8LuoFcSWDKlCAwQCrqf+G98WgjyrHH0yYTzBKh
+	vxbiPvrh0WlWXiSDdkqZzgtixoWBjRIH1QdmaXpEH5Nb7zIdyilJBdSu7yHdiJTZ
+	TgrCI8ZnSmr+4kHItc0cvmVK+p9UPVHIzCOV1PLnxwq8cXJVkvqosPSTiPCNsw14
+	fD7dC4TLH+Qs7nAfvtljVgVKDjHfYsPGpXi2sHlTaqftP30WwiaMfHnoOYP1Hlmu
+	AHt2LRgs6RVfB14chyr8ORQdmZdYHJYjYfEF5PURLRq6Ptb92zmlUDM63LROAOG9
+	dM8rEmXyi+nSEcT0mjSQ7EGq1nuT0No=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 05 Nov 2026 06:59:31 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 7F36961C68;
+	Thu,  5 Nov 2026 06:59:31 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6A54xTS2007322;
+	Thu, 5 Nov 2026 06:59:29 +0200
+Date: Thu, 5 Nov 2026 06:59:29 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf v2] ipvs: do not create conns from packets with port
+ 0
+In-Reply-To: <20261104201530.147292-1-ja@ssi.bg>
+Message-ID: <5e3fc9f1-1786-bfb3-4da6-d313ba9f6125@ssi.bg>
+References: <20261104201530.147292-1-ja@ssi.bg>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -104,70 +79,127 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-Hi,
 
-I discovered the same double-free during ipset hash resize
-and confirmed its exploitability by successfully exploiting it
-in my test environment.
+	Hello,
 
-While reviewing this fix, I noticed two remaining issues with the
-deferred operations in net/netfilter/ipset/ip_set_hash_gen.h:
+On Wed, 4 Nov 2026, Julian Anastasov wrote:
 
-1. Failure-path replay can resurrect a deleted element.
+> We should disallow normal connections with cport 0 to be
+> created from packets by the scheduler (from clients) or
+> by ip_vs_new_conn_out (from real servers) because later
+> such traffic can not hit the connection due to the
+> NO_CPORT requirement. As result, it can lead to duplicate
+> connection for every packet. Do the same for vport 0.
+> 
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
+> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> ---
+>  Changes in v2:
+>  * Drop the packets with port 0 instead of passing them to the local
+>    server
 
-In mtype_resize(), cleanup clears orig->resizing before reaching the new
-drain path. Packet-path operations can then modify the original table
-directly, while earlier operations are still waiting in the backlog.
+	It was ok to ignore packets before service lookup but
+if we are dropping them it should be only for IPVS traffic,
+i.e. after service lookup. Dropping this v2 and preparing v3.
 
-For example, starting with A absent:
+https://sashiko.dev/#/patchset/20261104201530.147292-1-ja%40ssi.bg
 
-  - During resize, a packet-path ADD inserts A into the original table
-    and also queues an ADD in orig->ad.
-  - A bucket allocation in the resize copy loop fails. cleanup clears
-    orig->resizing and waits for an RCU grace period.
-  - Before drain replays the backlog, a later packet-path DEL removes A
-    from the original table and returns success without queuing a DEL.
-  - drain replays the earlier ADD, inserting A again.
+pw-bot: changes-requested
 
-The final state therefore contradicts the later successful DEL. Before
-this change, the failure path discarded the queued ADD, so this sequence
-left A absent.
+>  net/netfilter/ipvs/ip_vs_core.c       | 3 ++-
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 +++-
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c  | 4 +++-
+>  net/netfilter/ipvs/ip_vs_proto_udp.c  | 3 ++-
+>  4 files changed, 10 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index fd503f0efb57..0ed5f6c95ad8 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1305,6 +1305,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
+>   *    In fwmark-VS actual vaddr and vport are unknown to IPVS
+>   * 2) Real Server and Virtual Service were NOT configured without port:
+>   *    This is to allow match of different VS to the same RS ip-addr
+> + * 3) Client port is not 0
+>   */
+>  struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+>  				      struct ip_vs_dest *dest,
+> @@ -1328,7 +1329,7 @@ struct ip_vs_conn *ip_vs_new_conn_out(struct ip_vs_service *svc,
+>  	/* check pre-requisites are satisfied */
+>  	if (svc->fwmark)
+>  		return NULL;
+> -	if (!vport || !dport)
+> +	if (!vport || !dport || !cport)
+>  		return NULL;
+>  
+>  	/* for persistent service first create connection template */
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> index fb8af6b15a39..31431094073d 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+> @@ -30,6 +30,7 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  			sch = skb_header_pointer(skb, iph->len + sizeof(_sctph),
+>  						 sizeof(_schunkh), &_schunkh);
+>  			if (sch) {
+> +				/* Accept packet without scheduling? */
+>  				if (sch->type == SCTP_CID_ABORT ||
+>  				    !(sysctl_sloppy_sctp(ipvs) ||
+>  				      sch->type == SCTP_CID_INIT))
+> @@ -42,7 +43,8 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  			skb, iph->len, sizeof(_ports), &_ports);
+>  	}
+>  
+> -	if (!ports) {
+> +	/* Do not create connection for port 0 */
+> +	if (!ports || !ports[0] || !ports[1]) {
+>  		*verdict = NF_DROP;
+>  		return 0;
+>  	}
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> index fec0e8b47b71..6f1cc9165e0c 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> @@ -48,6 +48,7 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  	if (likely(!ip_vs_iph_icmp(iph))) {
+>  		th = skb_header_pointer(skb, iph->len, sizeof(_tcph), &_tcph);
+>  		if (th) {
+> +			/* Accept packet without scheduling? */
+>  			if (th->rst || !(sysctl_sloppy_tcp(ipvs) || th->syn))
+>  				return 1;
+>  			ports = &th->source;
+> @@ -57,7 +58,8 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  			skb, iph->len, sizeof(_ports), &_ports);
+>  	}
+>  
+> -	if (!ports) {
+> +	/* Do not create connection for port 0 */
+> +	if (!ports || !ports[0] || !ports[1]) {
+>  		*verdict = NF_DROP;
+>  		return 0;
+>  	}
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+> index f32785682402..0e7b4427d258 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_udp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+> @@ -47,7 +47,8 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+>  			skb, iph->len, sizeof(_ports), &_ports);
+>  	}
+>  
+> -	if (!ports) {
+> +	/* Do not create connection for port 0 */
+> +	if (!ports || !ports[0] || !ports[1]) {
+>  		*verdict = NF_DROP;
+>  		return 0;
+>  	}
+> -- 
+> 2.56.0
 
-The set->lock around list_splice_init() protects the list, but does not
-serialize replay with packet-path updates under the region locks. The
-RCU grace period does not prevent new updates either. Could failure-path
-replay preserve ordering with those updates as well as within the backlog?
+Regards
 
-2. The new deferred-ADD branch can return success without queuing the ADD.
+--
+Julian Anastasov <ja@ssi.bg>
 
-In mtype_add(), the new branch for an existing element sets ret = 0 and
-jumps to resize. If allocation of struct mtype_resize_ad fails there,
-the existing "Don't bother" path goes to out with ret still zero.
-
-For example, starting with A present:
-
-  - During resize, a packet-path DEL queues a deletion of A, leaving A
-    in the original table.
-  - A subsequent packet-path ADD of A, without IPSET_FLAG_EXIST, takes
-    the new branch.
-  - Backlog allocation fails, but the ADD returns success.
-  - Replaying the queued DEL leaves A absent because no ADD was queued.
-
-This branch relies entirely on the backlog to preserve the ADD after
-the pending DEL. Allocation failure should at least return -ENOMEM for
-this deferred-only case, consistent with the deferred-DEL path.
-
-Validation of the two review findings above used a userspace harness
-containing the extracted add/delete functions and failure-path replay
-code, with lock/RCU stubs. Both sequences produced the incorrect final
-state with v3; the corresponding unpatched baseline cases did not.
-The baseline was mainline commit 05441d697f7f ("Merge tag 'cocci-7.4-rc1'
-of git://git.kernel.org/pub/scm/linux/kernel/git/jlawall/linux"). These
-are deterministic control-flow checks, not reproductions on a running
-kernel.
-
-This review and the harness were prepared with AI assistance.
-
-Thanks.
