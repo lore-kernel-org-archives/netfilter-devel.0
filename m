@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793882755;
-	b=g/iE8YXoVQq0gMTlCjqSTHGJkCqmq8oGM6TJcONtPtAd8Jra06SfSJNmNHxWNmB3ANT1
-	 aG8+U6FWTBmDj0ALX9QgFbNLQWt1h1bD52YX1QS4xBKBpgUIXhMKWaojauN+51iMw6FyF
-	 J4GN6lHojqdsiiv60k9sTYhndETzZvTm3BHur9oNMs6jOGIC8Hk/ii91x3WKqelBP1MFP
-	 G6bPJj217FKVNnzX9qB+qQT8Asc2HolkcxBq/C3vtRFYgkxPQxw4BRo7NCM79eeoL7tOB
-	 UWV0C1YWaV7F4wmHDlfD+RMnS19rvoIzzi2jd2uC1kw6EEwF4Dgfmj/MLZHoAJDBgFw==
+	t=1793882756;
+	b=KKnr1QtoirKQmq5CyB8PtQYxRIT4ZXNoF6ke75rsjFqBnhkbM1ROIcVa8Xr0WG5PW+0P
+	 Naz7ofdUyGaTafwEbRIDLjKHmo6wxdAMwk1aZUlRI6zznPATKXMVLtoyfECdh76IzrJ7t
+	 xOfXn/5BTHqAfv2FQZ4SGUfYIzvWP6QsWs/EtJmb/OgZ9j29ukVDrvWKZUPKgGWXwjzmm
+	 gjVfsS9V8KEFwS7OxBYOaukegyM+ERKTlOWlu4MKjeXLrV4znJLeHgJ8p4GrLNseNg/eT
+	 hzy+38P9ffyh8qGUpr8rPblY4nkcUCym+yi11hFN5hBOFG/4ddXovW8bLApXffZp/AQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793882755;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793882756;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=ERbJJjui3uMopKOsLz17s2PXsaNLTajEI06p8Pfiz/I=;
-	b=XbCoDVkwh3qjt8gSmtPkkbFNs0NdoxDrc7Zip8X6NPmCDY8IqNewf0b83W2iinAZwczr
-	 LwflgOuP42smqsgPfP4eUjy8ZqaE+Djx3wzhDvn9CW0LyD+QQf7ZSLlkVF7jnuNRCyDQi
-	 O2GFs7Mq1SCapYCij6fSmj7Di1yLm6zGSaMd0f1Hi/RzRnzgJcjts6Tk1ZIhLUbJajxol
-	 k8sj7jSAmcB1/hUvOqewcK9KdwVNcbkrqRqWmKFyR6GvvvleWlPgkjPhNWocsODk9uWXR
-	 JvEJMqx/essfTNznHYBeSYq1JfqI5ZQAzlzIJU+/ybqPhqz7t6+CxGytULBJo4QVEAw==
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
+	b=dSp/ag4ehR52/sKG6r0qq1P34V9XHVN2+JZtlCciM8rWdMWl2HGOmnK304ScOG+rtY1S
+	 o9xSG7IFQvll8WXRpKaYCy7KQs3Cf+DmRwZdQ2i1DvgxPRIrqL9WLvXUEuuzCrhia+2R2
+	 qiXFISENImSx09an2hdaqGAJjJnWgsJt65yws3+m/jhaOfTLmP3wq9bbKSDKPl6dtdBBH
+	 lyyyj1l5ZgBRVL0oSmvWKTs51A/ullgRRqd9x4zmVmon2t9Mpl/PfqRoaYuXzGyB4B4/u
+	 Ixm2Cx4rRy0ytzXEm2V/0dQeFsp+NAJPIxboSRLqHw8bmD/1GYIRCo6z1VsLfRVfeVg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=WNevKHfc;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ty9wGFuP;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93E9C606EE9C;
-	Thu,  5 Nov 2026 12:45:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 93E9C606EE9C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DD7606D809;
+	Thu,  5 Nov 2026 12:45:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D2DD7606D809
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=WNevKHfc
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=ty9wGFuP
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793882752;
-	bh=ERbJJjui3uMopKOsLz17s2PXsaNLTajEI06p8Pfiz/I=;
+	s=2025; t=1793882754;
+	bh=TaFMJ0UW3LigUoc0s6WNECoAhHhD44ITTyoS2M06BTs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WNevKHfcIT2pyBGKl3KhXZasICkCQixCCag1skr8wtkNb4Utx8UvVoTaI+r7TZ4iv
-	 6zoBxPXq7XPfgJS7TK6s9pPAvvisd+uNMl+AAipW9EELV+ue/gsB/C+w3BKkw18vXC
-	 3mEx+6fHNxPMDdSWux61+q/gS7Myfvxgm+4hdmVbXPa78j/EuqfaGIuCu4hbEPUV9T
-	 1CeRtMA9PE8Sl+foRXpT4N2AKrfjyjKNB6PjfRTDwoUv/jXoAmcocq2hRuadwWrshk
-	 3v4lHDwipdqRAdhsBIu2SupXb4sqmsUZ6AYOMX3XqCvFzjqOsWv56AVp9627Y9Hud1
-	 SRNKtVFK5S8TA==
+	b=ty9wGFuPIZ3qbD5jyhaRfokULlv5wc93G6y5hwPNakSQ4asdJR8Mvmv+LQx6CVtTJ
+	 VN5OYaCruP9SLltlyyp3+NzmfZUNiwfO7XWdOY+JXVN8wmj5wNHTwVgjf1qxjbDFEu
+	 CSJKsJIGNWfnXANElUOnmctjMs9mfjkrI5LVhZZNU4CIxIrlUsFB4psuLpAHPnv7/j
+	 eLS4isGsZqxab+IIHcn81hEt3F0vj/jH9WFB+wjCDsn3NwcNkVj0MDUM5xou1voJj9
+	 tNN5WBbWH3+A48CTmp/6WrA7P0MccJZds5y2Vv11rv/lYxQXfC7t9RsUHse1Rv+Rxa
+	 xsLFUHro9t2PA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 811DD60097;
-	Thu,  5 Nov 2026 13:45:52 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id BFB8560096;
+	Thu,  5 Nov 2026 13:45:53 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 10/12] netfilter: nf_tables: fix memleak when rule deletion fails with hardware offload
-Date: Thu,  5 Nov 2026 13:45:34 +0100
-Message-ID: <20261105124536.1009301-11-pablo@netfilter.org>
+Subject: [PATCH net 11/12] netfilter: xt_recent: do not call remove_proc_entry() under recent_lock
+Date: Thu,  5 Nov 2026 13:45:35 +0100
+Message-ID: <20261105124536.1009301-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261105124536.1009301-1-pablo@netfilter.org>
 References: <20261105124536.1009301-1-pablo@netfilter.org>
@@ -73,84 +73,80 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Allocate flow rule object after transaction has been allocation and rule
-deactivation has been performed, otherwise memleak is possible.  Let the
-transaction unwind the existing rule deactivation from the abort path,
-this needs to update nft_flow_rule_destroy() to skip release if
-flow_rule is null.
+From: "Cen Zhang (Microsoft)" <cenzhang@linux.microsoft.com>
 
-While at this, remove check for non-null flow_rule in newrule error path
-now that nft_flow_rule_destroy() is skipped if flow_rule is null.
+recent_proc_net_exit() removes the /proc/net/xt_recent/<name> entries of
+a dying network namespace while holding spin_lock_bh(&recent_lock).
+remove_proc_entry() may sleep: proc_entry_rundown() waits until every
+task that is still inside the entry's file operations has left. A reader
+of such an entry is counted in by proc_reg_read() before
+recent_seq_start() takes recent_lock. So if a read is in flight when the
+namespace is torn down, cleanup_net() sleeps in atomic context holding
+the spinlock that the reader is spinning on, and neither side can ever
+make progress.
 
-Fixes: 63b48c73ff56 ("netfilter: nf_tables_offload: undo updates if transaction fails")
-Reported-by: Xingyuan Mo <hdthky0@gmail.com>
-Link: https://patch.msgid.link/20261028062204.1079089-1-hdthky0@gmail.com/
+An unprivileged user can trigger this from a user namespace by adding a
+rule with the "recent" match and reading its proc file while the
+namespace is being destroyed. As recent_lock is global, every later
+attempt to take it spins forever too: the spinning can spread to all
+CPUs, and network namespace teardown stops system-wide.
+
+  BUG: sleeping function called from invalid context at
+    kernel/sched/completion.c:116
+   #3: (recent_lock){+...}-{3:3}, at: recent_net_exit+0x2b/0x140
+  Workqueue: netns cleanup_net
+  Call Trace:
+   proc_entry_rundown+0x185/0x1b0
+   remove_proc_entry+0x21a/0x520
+   recent_net_exit+0x7f/0x140
+   cleanup_net+0x414/0x8f0
+  ...
+  rcu: INFO: rcu_preempt self-detected stall on CPU
+  Call Trace:
+   queued_spin_lock_slowpath+0x313/0xc20
+   recent_seq_start+0x87/0x1b0
+   seq_read_iter+0x265/0x11e0
+   proc_reg_read+0x1ab/0x270
+
+Fix by taking recent_mutex instead of recent_lock. According to
+commit a0e889bb1bdc ("[NETFILTER]: recent match: fix "sleeping function
+called from invalid context""), recent_mutex is the lock to use here: it
+protects recent_net->tables and was introduced so that proc entries are
+created and removed without recent_lock held, because those calls may
+sleep. hashlimit_proc_net_exit() does the same for xt_hashlimit.
+
+Fixes: 665e205c16c1 ("netfilter: xt_recent: fix namespace destroy path")
+Cc: stable@vger.kernel.org
+Cc: AutonomousCodeSecurity@microsoft.com
+Signed-off-by: Cen Zhang (Microsoft) <cenzhang@linux.microsoft.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c     | 21 +++++++++------------
- net/netfilter/nf_tables_offload.c |  3 +++
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ net/netfilter/xt_recent.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 59ac623e6805..8b94b5e7dbdb 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -760,16 +760,6 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
- 	if (trans == NULL)
- 		return -ENOMEM;
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 55f1f2d89952..00cccf003cff 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -650,14 +650,15 @@ static void __net_exit recent_proc_net_exit(struct net *net)
  
--	if (ctx->chain->flags & NFT_CHAIN_HW_OFFLOAD) {
--		flow = nft_flow_rule_create(ctx->net, rule);
--		if (IS_ERR(flow)) {
--			nft_trans_destroy(trans);
--			return PTR_ERR(flow);
--		}
--
--		nft_trans_flow_rule(trans) = flow;
--	}
--
- 	err = nf_tables_delrule_deactivate(ctx, rule);
- 	if (err < 0) {
- 		nft_trans_destroy(trans);
-@@ -777,6 +767,14 @@ static int nft_delrule(struct nft_ctx *ctx, struct nft_rule *rule)
- 	}
- 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_PREPARE);
+ 	/* recent_net_exit() is called before recent_mt_destroy(). Make sure
+ 	 * that the parent xt_recent proc entry is empty before trying to
+-	 * remove it.
++	 * remove it. Use recent_mutex instead of recent_lock since
++	 * remove_proc_entry() may sleep.
+ 	 */
+-	spin_lock_bh(&recent_lock);
++	mutex_lock(&recent_mutex);
+ 	list_for_each_entry(t, &recent_net->tables, list)
+ 	        remove_proc_entry(t->name, recent_net->xt_recent);
  
-+	if (ctx->chain->flags & NFT_CHAIN_HW_OFFLOAD) {
-+		flow = nft_flow_rule_create(ctx->net, rule);
-+		if (IS_ERR(flow))
-+			return PTR_ERR(flow);
-+
-+		nft_trans_flow_rule(trans) = flow;
-+	}
-+
- 	return 0;
+ 	recent_net->xt_recent = NULL;
+-	spin_unlock_bh(&recent_lock);
++	mutex_unlock(&recent_mutex);
+ 
+ 	remove_proc_entry("xt_recent", net->proc_net);
  }
- 
-@@ -4570,8 +4568,7 @@ static int nf_tables_newrule(struct sk_buff *skb, const struct nfnl_info *info,
- err_destroy_flow_rule:
- 	nft_use_dec_restore(&chain->use);
- err_destroy_flow:
--	if (flow)
--		nft_flow_rule_destroy(flow);
-+	nft_flow_rule_destroy(flow);
- err_release_rule:
- 	nft_rule_expr_deactivate(&ctx, rule, NFT_TRANS_PREPARE_ERROR);
- 	nf_tables_rule_destroy(&ctx, rule);
-diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-index 0ac3c26dfb3d..48b9e58e0c44 100644
---- a/net/netfilter/nf_tables_offload.c
-+++ b/net/netfilter/nf_tables_offload.c
-@@ -148,6 +148,9 @@ void nft_flow_rule_destroy(struct nft_flow_rule *flow)
- 	struct flow_action_entry *entry;
- 	int i;
- 
-+	if (!flow)
-+		return;
-+
- 	flow_action_for_each(i, entry, &flow->rule->action) {
- 		switch (entry->id) {
- 		case FLOW_ACTION_REDIRECT:
 -- 
 2.47.3
 
