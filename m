@@ -1,63 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=124.126.103.232
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793763184;
-	b=PGwbt9Oa0n9pi0IZuk1zaWY/YGZYJRAwavNlctH6e5IT/e5UFh0Fo3tMW3VzD4V8IHUT
-	 w6aaX5GeknxhJve9hgwwRK2iaLVIABJUMXW4l4SSTRKufV1BbqgN4D1l2TTbiBVt2nTNx
-	 HWuyoDlWRVjCFpNzX/GBbXO5YWfJiz1kkjagIFVY1hl3kqFtaEOfDGiJD7ngYyeMHZo8Y
-	 2st4sK4tlBMDEtYXCcbEnpOIpec0hS2fB2ozdVsKk6R4cSgE3GcSpG3CFjP3m5fURwE2W
-	 54eNH3rNH3jx+p7UMATVV8SbnZyakznDiSxTzF6TWXAYH7SFK6+qUo79s43SNovnU0w==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793763184;
-	h=DMARC-Filter:X-UUID:X-CID-P-RULE:X-CID-O-INFO:X-CID-META:X-CID-BVR:
-	 X-CID-BAS:X-CID-FACTOR:X-CID-RHF:X-UUID:X-User:Received:From:To:Cc:
-	 Subject:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 MIME-Version;
-	bh=l8VqXxd/sdfHt2LeZCunmDHUpQmLkttaE3civqC/2uc=;
-	b=rNTNmTiDp0+peRRfNS55idg+Vqw04fop6GWWpvdvIgZMRhRn5P6R+DabwWWmlLS2cnMs
-	 0KLGfYhsDLgOxr+jQkPRbpVTJO2TNgHbEDEM6hB+mq4MJ1iNCZd9ZiZpO5FF7zx6eJyMv
-	 0zJa3GES1p43BQApyB78Pe6qIpuLaqkH6kAuxy+xthYD0VPojJzxFJQ02iHEIRs5t10oP
-	 XtESeaBYUsVpmubB3r3veYkj5O25vy07Q8uWNXsYaDJzLPox2kxiM6kSd6peJY70jAGPA
-	 bPWMJEJCKGHL+Xs8JgwRen9pBBD9PuNVXJwDgQPU52kyAAkP4T4AHli+du9e69L+OhQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=kylinos.cn;
-	spf=pass smtp.mailfrom=kylinos.cn;
-	arc=none smtp.remote-ip=124.126.103.232
-Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.46
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793962400;
+	b=hZ+1Sr/JcrxuLwnWJ7qQ1RO8PbfBy1hDdoNPndTaSilhgJZWDMU0CoCAa9CSBpeg21V3
+	 585BL5gidzaUSvjcp9sbxAmSN13sfUT3Ilt4bkEJfJeN/jkeqezik0ynm0hoXFb/kjZs4
+	 2sJMHsH8jl9ivHVU2eDWWBO8z5rU2dSi52zrKKkEkhg39o9dehOnyjn5gQAIOZlfh2q/z
+	 tbTzXeu+563uIezQHkILaAgWbMt2FB1MPmY2W3kwi3voOrdrgmNRO+kfh7TrudDZwmx4/
+	 SIAAyUY01yGIXFSB21NHh9B+WwhEeQ/Dq1zAZRamD+CIxwJLBwBhhjExUpGMHu3eQGA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793962400;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
+	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
+	bh=UqUmaRUubcVECI46J0khfr0jkBr2Tg4PfDuvk07wVm0=;
+	b=enK2OIwHp/JD1WoCPiJpHOmw3n/okED2Ifzbcw3zuU0qUy+lX+IUhsnxhjbgqzovQbWB
+	 OKhBnMMg0zZzI7KbsAfrR+98u0EKvdU/8h7FEuxQ7wWrAE6rapY/A1+uVRhEKmslVINWd
+	 gTAK+WBkE1PNobdnCCklOA/1n/KW4ZKwHLGjPBwzvlxoSlDq+daaj8aDGFmVhpc7GbwzN
+	 jmZx3XT1ssKWAuVgplNUofFL6HYpD6K8WTy/QqAm8jXXP/Pw3yHQWKMucGbW7K5He4DJt
+	 ibIJ3Itt6/Z68rO/l8mQx4G2712Ukc2acg5XHGemhjefdl8Xcht+a9iaAM2qGY3WN5g==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XPNze0Q5;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.46
+Received: from mail-dl1-f46.google.com (mail-dl1-f46.google.com [74.125.82.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8684606A31B
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Nov 2026 03:33:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E8684606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.3.19,REQID:c578295c-945f-4d84-8d15-e5ab0e360a6d,IP:0,U
-	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_Ham,ACTION:
-	release,TS:0
-X-CID-META: VersionHash:7db8b62,CLOUDID:ea64efadd61072fb2bf8b8ab97d23355,BulkI
-	D:nil,BulkQuantity:0,SF:82|102|136|865|898,TC:nil,Content:0|15|50|99,EDM:-
-	3|-100,IP:nil,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,BEC:nil,COL:0,OSI:0,OS
-	A:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
-X-CID-BVR: 2,SSN|SDN
-X-CID-BAS: 2,SSN|SDN,0,_
-X-CID-FACTOR: TF_CID_SPAM_SNR
-X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
-X-UUID: 6c470e5ed80011f19a56ed5b684f684d-20261104
-X-User: yupeng@kylinos.cn
-Received: from [127.0.1.1] [(10.44.16.150)] by mailgw.kylinos.cn
-	(envelope-from <yupeng@kylinos.cn>)
-	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
-	with ESMTP id 567319487; Wed, 04 Nov 2026 11:32:55 +0800
-From: YuPeng <yupeng@kylinos.cn>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de, phil@nwl.cc, debianyu@163.com
-Subject:
- [PATCH v2] extensions: ebt_string: Fix --string-icase using ebt_check_inverse
-In-Reply-To: <atXZ1Fc4HOy--Wam@strlen.de>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55AB9606A326
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 10:53:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 55AB9606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=XPNze0Q5
+Received: by mail-dl1-f46.google.com with SMTP id a92af1059eb24-1a3c08d6928so889629c88.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2026 02:53:20 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793962399; cv=none;
+        d=google.com; s=arc-20260327;
+        b=LkQxUVduO/MpA7CMXf10+PqCQTpBV7af0LXk8IxpGGpGvfzkD8kalANSfqki9gjtm1
+         PySVIVZr5UdOsREI/qMqwRX3V23caRDsWJkDZf29bYqzYDKq1domHQ7+3p2Fjxp1C4c7
+         ZRtXCmzno6A3+e8Vek8IHsX2/RopFQqfrwGJFn3LPjcTnXjF0C1mXsKxjwxrfmM0nww4
+         a4pzQ5fmVmJIQt/3OV8kiAxEGoJ4GmgaFbo1cydGQnKsdCqK9ng0dr1v3fzuiH5jJOYh
+         qWW+vsAJFP2ZYM937epCczpeX79wuzxn6aG+/8YcT8HwkM3cLDBqGj575l958BPXXOMV
+         X2WQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=UqUmaRUubcVECI46J0khfr0jkBr2Tg4PfDuvk07wVm0=;
+        fh=rKPHD65xw4fm8Eah2U6YCeRi9s/ZGxNrLF3JfAYUdVg=;
+        b=QhsJ/H25MV/cWO5W6YDSMP+B4W8ncI2Qv/1XcjkS/9cTqVlQvJebyD4cdfUj7UQPOg
+         E2yR6/zbU3rkpSxJXd6wvyJkV+/oAsDPZZnNvg9FHX1LGFRyVS46UAhMoOKqMhBcI44f
+         uGIBScXeCx/jJc66VRc8EjfNJI3+TLrQN5n10EPfpfnIDjNxlpwWE2TuonX0iKw28pAk
+         rAhBQuVZ87EgP9iMaAmb7UTt4jhpKnNFBAD4y+e1LaNSQ+jqaHcKApvW5D+78h2GQijX
+         2342DCXG82jjc/DEjiEcqS57KSrffNMgUCnCv0tPVMT3ulMsp3QmVY3cC7evNErxu7v8
+         HDZw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793962399; x=1794567199; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=UqUmaRUubcVECI46J0khfr0jkBr2Tg4PfDuvk07wVm0=;
+        b=XPNze0Q5tHQMNC6a0vff/dKH/Hf/5TjQI2x294CpMhkULlvUw2HPID9y0/fvGPqSOq
+         qS8wRa1lYHZGq4o/Xn0+qye80Ol2tnkUtaKNyEVA7GJJ0X9ozqL4nNhdf0XOyY/pZVRU
+         wk43BW4d9dO/vW0Wa297mdlH2+4JJhOvfE92HMqynGJf41pQYTErnrW7VXm/eH/aYxmh
+         xajMJGXObl0VRKI3n5wUIyM+9llzu16Rwf/UJc+ZhwC2Et01rf+BSusyibxdQSdGgaNt
+         RgDyc8u9PaqOX5dfX25YwNKcE796sqJPZmLa4Adey27iNMIybb8wN3bRYpkk7i028jZ5
+         ORBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793962399; x=1794567199;
+        h=content-type:cc:to:subject:message-id:date:from:mime-version
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=UqUmaRUubcVECI46J0khfr0jkBr2Tg4PfDuvk07wVm0=;
+        b=S5pisGIJkUCMeJb5AhI8TNAFfAkhmsTtr0k9gr3iNioN2W1jNbSmMzYoLRPuM+qtwM
+         VZA9iQFQIeDYLimJCnneQJe1xAcdbFm3nMCaIaRH9L31P4Avb0exUfrdGjavCt5peSQl
+         WCirIYCPm4+TtugQqHQDufGagd7W03z2HoESJ94LNB2mWeWPJJdLnWxlFeNU4ZMBcwbp
+         wEQVyKFMFW3Y6cSMbVMAtp/pgFhCIw+VHYcmVvWr0kbuiimvE6MyHpi5JnnmFj6swCPT
+         IHQMQdNXxK0AIdkHdbDYKILlh3NzCOb1ZlqEDMaIEQxlexf/ii7ndctUM5E8oh1f9ekN
+         +7ww==
+X-Gm-Message-State: APuU4Z/PbkXPXnIaZJEDCUSMsYnQbQVnYS1xZswuV37FpnVhfbF0CJ0E
+	EuM8Shms8ZyCxh7tmUgkB/4z43qI2ckPuhH0WlgP4kFYI8vZD4as6xx6qWQsi9hVS8cQWysjR+Z
+	z9+Gp3VO7oAhf5GWC81Nb1vuwdHlrgImfZA2Kpg==
+X-Gm-Gg: AYBFou01hq6e+Kv7pv1GGJwVGyFqU5v3ga6VyPNCjI1yJANyz7/rjCupHnVVIoNQnf9
+	3Al8TUKYchI/KIqBp2nxZTY+bruE2K4QfloVMich1nzXAg8AcDralx1+WSusbnERmi62krJhHXI
+	YQKQU/3H5fVqrmp7cVy7FNcKJOlgYX7xYPY484p3chptYKhpEJPhXGaOpFPjXpgiT11jPSpKgFi
+	cXrGWOUYxKRr/z5vRXFvBIeLScRWz1dTbBUKE2cj4jMyPn7hlnbGc2k9gh2J0cS4iB/xHnvTXRZ
+	yXqEFGJubUNS0BDCBkTzB4Vbs24/We6gPAr8sI33szfmeCtlDryLOX51O4dV+/v/Plaifj3bzro
+	HqEEO1sCdLo3T4Y+1OOtXj5v235jOfvd6L2ElV6Z4IssyXhjntdHTlq9/XXXcB/bTgO12shH4v4
+	nVxtwvjqJtjAqWIknH0Y0SX5+BkqS9X1AQXAQsG3Q4h0V2WEmyK3nw+zpSIEcgU22Xq7sQCjAM6
+	B5S7UDUfbMMJfhwxK04jcsRlg1WsZxG0rIYXofrq29ah6rK/ZZPHo4lmnQDB5FB9++PJA==
+X-Received: by 2002:a05:7022:b90c:b0:15e:3a65:5b97 with SMTP id
+ a92af1059eb24-1b25d31e64bmr2372976c88.16.1793962399330; Fri, 06 Nov 2026
+ 02:53:19 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -67,58 +101,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Message-ID: <20261104033301.8KWxTI3yG9qdXEYkV1rXVJAKX1PSCL35rGs9yax28SQ@z>
+From: "S.S.Vikash" <arisivikash@gmail.com>
+Date: Fri, 6 Nov 2026 16:23:08 +0530
+X-Gm-Features: AclHuK-WvG0zgl-MIla378cXPI_8PY8LTq3RMd-8qahwJVquNDWlBTd9QFc23WA
+Message-ID: <CAPGrzGkjouOeqOcy4pXbBgx58DWvZpqK8ppuChPsDsXKvxp4RA@mail.gmail.com>
+Subject: [RFC] netfilter: conntrack: early_drop eviction limitation under
+ sparse table configurations (max << buckets)
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de, pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 
---string-icase is registered as a no_argument option, so getopt_long
-always sets optarg to NULL when it is parsed.  The ebt_check_inverse2()
-macro contains a mandatory-argument guard:
+Hi,
 
-	if (!optarg) {
-		__ebt_print_error("Option without (mandatory) argument");
-		return -1;
-	}
+While investigating connection tracking exhaustion behavior under a spoofed
+SYN flood, I observed that the effectiveness of early eviction in
+net/netfilter/nf_conntrack_core.c:early_drop() degrades significantly when
+nf_conntrack_max is configured to be substantially smaller than
+nf_conntrack_buckets.
 
-so every use of --string-icase aborts parsing with the misleading error
-"Option without (mandatory) argument." and XT_STRING_FLAG_IGNORECASE
-can never be set.  The option has been broken since it was added in
-commit b1cdae8 ("extensions: Add string filter to ebtables").
+Setup & Reproduction:
+- Host kernel: Linux 6.14 (Proxmox host)
+- Workload: Conntrack table saturated with non-ASSURED, unreplied TCP
+  connections generated by spoofed SYN traffic.
+- Test: Verifying whether an inbound, legitimate SSH connection can be
+  established while the table is at capacity.
 
-Reproducer (no privileges required):
+Results observed:
 
-  $ ebtables-legacy --string-icase
-  Option without (mandatory) argument.
+nf_conntrack_max       |   nf_conntrack_buckets     |     New SSH Connection
+------------------------------+-----------------------------------+----------------------------------
+              4096              |              262144
+|         Failed (drops)
+              4096              |              4096
+  |         Established
+              65536            |              262144
+|         Established
+              262144          |              262144                  |
+        Established
 
-Use ebt_check_inverse() instead: it tolerates a NULL optarg and
-returns the current ebt_invert state, which the main option loop
-resets to 0 after every option, so the flag is set as intended and
-the "Unexpected '!'" diagnostic is kept.
+Root Cause Analysis:
+In early_drop(), the kernel examines at most NF_CT_EVICTION_RANGE (8)
+consecutive hash buckets starting from the calculated hash index.
 
-This fix was originally carried in the Kylin Linux SRPM since 2022;
-the commit message has been rewritten to describe the actual failure
-mode observed on current master.
+With nf_conntrack_max=4096 and nf_conntrack_buckets=262144, the hash table
+is sparsely populated. Since early_drop() examines only eight consecutive
+buckets, it can fail to locate an eligible entry even when many non-ASSURED
+connections remain in the table. This appears consistent with the connection
+failures observed during testing.
 
-Signed-off-by: YuPeng <yupeng@kylinos.cn>
----
-v2: Use ebt_check_inverse() instead of removing the check entirely,
-    as suggested by Florian Westphal.  No other changes.
+When the bucket count is reduced or when the table density is increased,
+early eviction succeeds reliably and permits legitimate inbound connections.
 
- extensions/ebt_string.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Proposed Improvements:
+I am interested in addressing this behavior upstream and would appreciate
+feedback on which direction would be most useful:
 
-diff --git a/extensions/ebt_string.c b/extensions/ebt_string.c
-index 97fbe19..cbbe103 100644
---- a/extensions/ebt_string.c
-+++ b/extensions/ebt_string.c
-@@ -174,7 +174,7 @@ static int parse(int c, char **argv, int argc, const stru=
-ct ebt_u_entry *entry,
- 		break;
- 	case STRING_ICASE:
- 		ebt_check_option2(flags, OPT_STRING_ICASE);
--		if (ebt_check_inverse2(optarg))
-+		if (ebt_check_inverse(optarg))
- 			ebt_print_error2("Unexpected `!' after --string-icase");
- 		info->u.v1.flags |=3D XT_STRING_FLAG_IGNORECASE;
- 		break;
---=20
-2.39.5
+1. Diagnostic:
+   Warn (e.g., via pr_warn_once()) when nf_conntrack_max is configured to be
+   significantly lower than nf_conntrack_buckets via sysctl, notifying the
+   operator that early_drop() heuristics may become ineffective under load.
 
+2. Documentation:
+   Update Documentation/networking/nf_conntrack-sysctl.rst to document the
+   tuning implications of sparse hash tables on early eviction.
+
+3. Algorithmic:
+   Investigate a bounded improvement to candidate selection in sparse tables
+   without introducing unacceptable CPU overhead on the drop path.
+
+I'm happy to prepare a patch or provide additional test measurements based
+on the discussion.
+
+Thanks,
+Vikash SS
