@@ -1,59 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793965248;
-	b=j1pB73WGIJS1tEVs4p9FONuvwPE8jTBiE0Z/Nnd5Iis5qvv1yc83SPgkIw1rv5GiK8kI
-	 jrnoZ+PfBZN3R1APth6xV+gsP60T8/KVFmYigVSoeO1u5sWHvMvPToKaxbxg5URmLZG9v
-	 53XcXY/NiRD1LJymML4py8yTY28I0sc7d40FJ8KUabC8PAfMlnKJLMWaQ47PqhSu6ohZL
-	 +/koCgdxW3jRn1zO7NF6UcmEn3W7S1U4/7pNqi8koKqIUocgPDKp2CtJikorTPojk6cNB
-	 BC6UtzxFz7lEMk/smHSexr0Lf75U2sS9iUDcKzfMlzrl8hJoUcLoAqNYfnEGPM7Dt8w==
+	t=1793965372;
+	b=mxfOZAEVxioFfzGinupYETesxWAt5DGzIgkzChnBSMwcAJzTP+DUwUgFXeKu1tqr9wzy
+	 7y0OuKazkm5Vd2zjJXn+g9XeP80khGGQC6kmI5O9madNthLQkidbKFJsMHlxUv0OGgXkL
+	 fCvtxKuRPo6muzWP60buT+Di/YU+bLTQp/AOst6s1YpJu6yot3RIu/rofZFdsJ2VEYGLt
+	 uxHDqhFuqrZOGOeK3+WJbwFkRz+QrGr9A1MnBWlHIs17qMvuLxpWCgDUKUeXn1az3Nowb
+	 GKQz37YE1AfOW507L7fPpJl4uxbDpGF+yafmpERnwSz3F9QpoNNLZh4c0tmcGn5rYRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793965248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793965372;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=5jjA6YtIdyvB1Tq3M7IJ9BpKzfkjMKdFlQjpHQXhINI=;
-	b=X1SqxcZ6IKFlqk8UjXCpdQiTJR830DiooRqS1lqvBLZTSk3b3YTgv57YQjoyCdlEO+Xf
-	 Av16L/41m0rpJL/Paf3hL1BA/XMqpVQRtGt5YUW+/J5DYjmvDAHYUxJHLW7cKl46IGNHk
-	 rQ41thUTJTXdmk9a7yVDrAoMJDes051hEa0eXeRhqFIiE4clTS2hBUseML/dlTsyIxLz5
-	 n6NsBCwwYzNp77HAb5sqJCSBnIbroPW9t4WDXHfDWjN8vOArWvu6bnJF88aUWo0dEy82g
-	 XkFJFZAjGl0ZtpKJl2Af73fGhI1A2G2mRSsdWBFN44SW8DEyM8v/Yc7QDbZ8ipKQPYg==
+	bh=fcCnOw+Qr+S5uQ+MRojJJQS8TzyKP9X9UMuKjYDlDwo=;
+	b=GVW6NCEmBScDlCQ17/sZAVfMPoZ78fV54A6RGoKVuuU6MQuxlgFOEHprtNTZ27pRy9W1
+	 2NFmFWI4XNtojHi0zBmlvj7YDRP5wPhwB+bL7MABwJN6NZZdDXj9dwtv43FwCVX+ZG1/G
+	 sClPE7H/tAtbg9lQUkDCI1byzJNX6MMfmpU+KHjn8+TvpCOrq5wpwnTEl4jUTRsDGoMQx
+	 mwP8XF6/oWXS2xsbpgR47urpI97mRtY7WEZamiDRGwZPadvoojttQdJosjq7VT8YU2XUH
+	 3fw8XDBkiwW7D/+Z5/iFcB1Qi60ppXDsnlupsCndyOEYGmD2N82+knXCOuAhuRmyqMw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=kn0X52A1;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=S+CB7DF7;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id BD64E606A329
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 11:40:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BD64E606A329
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id D4B04606A907;
+	Fri,  6 Nov 2026 11:42:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4B04606A907
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=kn0X52A1
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=S+CB7DF7
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793965245;
-	bh=5jjA6YtIdyvB1Tq3M7IJ9BpKzfkjMKdFlQjpHQXhINI=;
+	s=2025; t=1793965370;
+	bh=fcCnOw+Qr+S5uQ+MRojJJQS8TzyKP9X9UMuKjYDlDwo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kn0X52A1QI0gV7THsuGvG/VdQfFoR+/gLMYqEI/+97DmkMukrGz+aAe1HZNnjy8Au
-	 HvgALnbPGLdS22Ig0o3YOOCaUxGH7DSs3HNTE8yt7/WU30h4OV882R2TSS59Vhiu3s
-	 Zd4uMgPv3a5OdkExd+gBywCvxmwdkvi5x4UXVdSLpN6tmHJa5tib6Tf5R+S7qI9RbN
-	 x4xfFzSl1qx+4OcaHWZDkerRUbEicUMDc/DOIOSHXSlij9cxSiHsvgcvWvEoDTiwZ2
-	 8vIArc+ocUhRB5aqt0SD405QYnxsNS17sVygQX5eY2JyEOxVIPs3ixtUM8huV16ofV
-	 VUvj54mo5yOhg==
+	b=S+CB7DF7gGzH9g4SC/PkPjBLOug2oHYficD7j4snQI4Uzui3qrZN1yyqI6IVicsLH
+	 xBkKA66wKpHMHhThQETcndw7QaDFxErrYdOkBN8coKA41s8eHsbhkDJBJONENe06BT
+	 4RM2vJ2vxrMApSp14fzRFqQ//Cuels+X6tvsmHVOT9NP/+MwKyeL6+/K0T0H8Bf3BI
+	 wDEjc27CxB604CWQeX7Clr54pTcrOKW6Q+ATET0Yx6J74ZHNQuperS/gfd632qZ6BK
+	 VpwElfuhmPoobmYrJaGWHQxJ9eVDmjtik7H8RotPLS8+GJ8LmWW4JVcIsNVXKxQMN8
+	 CzyShYjSIclWw==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id EF2FD6007A;
-	Fri,  6 Nov 2026 12:40:44 +0100 (CET)
-Date: Fri, 6 Nov 2026 12:40:42 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id E50DA6005D;
+	Fri,  6 Nov 2026 12:42:49 +0100 (CET)
+Date: Fri, 6 Nov 2026 12:42:47 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: "S.S.Vikash" <arisivikash@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [RFC] netfilter: conntrack: early_drop eviction limitation under
- sparse table configurations (max << buckets)
-Message-ID: <au28uheXr_lsEhzY@chamomile>
-References: <CAPGrzGkjouOeqOcy4pXbBgx58DWvZpqK8ppuChPsDsXKvxp4RA@mail.gmail.com>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, pabeni@redhat.com, edumazet@kernel.org,
+	horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net,v4 00/12] Netfilter/IPVS fixes
+Message-ID: <au29N1V8ogEUKDyd@chamomile>
+References: <20261105124536.1009301-1-pablo@netfilter.org>
+ <20261105154808.48fa2a97@kernel.org>
+ <au26c2NFsX6gCCPo@chamomile>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,79 +68,63 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAPGrzGkjouOeqOcy4pXbBgx58DWvZpqK8ppuChPsDsXKvxp4RA@mail.gmail.com>
+In-Reply-To: <au26c2NFsX6gCCPo@chamomile>
 
-On Fri, Nov 06, 2026 at 04:23:08PM +0530, S.S.Vikash wrote:
-> Hi,
-> 
-> While investigating connection tracking exhaustion behavior under a spoofed
-> SYN flood, I observed that the effectiveness of early eviction in
-> net/netfilter/nf_conntrack_core.c:early_drop() degrades significantly when
-> nf_conntrack_max is configured to be substantially smaller than
-> nf_conntrack_buckets.
-> 
-> Setup & Reproduction:
-> - Host kernel: Linux 6.14 (Proxmox host)
-> - Workload: Conntrack table saturated with non-ASSURED, unreplied TCP
->   connections generated by spoofed SYN traffic.
-> - Test: Verifying whether an inbound, legitimate SSH connection can be
->   established while the table is at capacity.
-> 
-> Results observed:
-> 
-> nf_conntrack_max       |   nf_conntrack_buckets     |     New SSH Connection
-> ------------------------------+-----------------------------------+----------------------------------
->               4096              |              262144
-> |         Failed (drops)
->               4096              |              4096
->   |         Established
->               65536            |              262144
-> |         Established
->               262144          |              262144                  |
->         Established
-> 
-> Root Cause Analysis:
-> In early_drop(), the kernel examines at most NF_CT_EVICTION_RANGE (8)
-> consecutive hash buckets starting from the calculated hash index.
-> 
-> With nf_conntrack_max=4096 and nf_conntrack_buckets=262144,
+On Fri, Nov 06, 2026 at 12:30:59PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Nov 05, 2026 at 03:48:08PM -0800, Jakub Kicinski wrote:
+> > On Thu,  5 Nov 2026 13:45:24 +0100 Pablo Neira Ayuso wrote:
+> > > v4: - Drop "ipvs: do not create conns from packets with port 0".
+> > > 
+> > >       This PR was already reviewed in its v2 by netdev-ai-bots.
+> > >       I have dropped all the patches that LLM flagged as needing
+> > >       more work even since.
+> > > 
+> > >       But I really think v3 was good enough and a follow up for
+> > >       "ipvs: do not create conns from packets with port 0"
+> > >       was just fine to proceed.
+> > > 
+> > >       Maybe patchbot will ban this pull request again, v3 was
+> > >       blocklisted for not fulfulling the 24 hours rule, that is
+> > >       why it was not reviewed.
+> > > 
+> > >       But, as said, this was all reviewed in PR v2 already, this
+> > >       is just keeping back 3 patches included in PR v1 needing
+> > >       more work.
+> > 
+> > netdev CI keeps hitting a kmemleak since this morning, lines up with
+> > this series, tho TBH I have done 0 investigating...
 
-makes no sense to make to configure it in this way, there are well
-define rules aiming at maintaining O(1) in hashtables and this
-configuration is clearly suboptimal.
+To clarify further: I think it is just a coincidence, I don't see
+anything in this PR related to this.
 
-> the hash table
-> is sparsely populated. Since early_drop() examines only eight consecutive
-> buckets, it can fail to locate an eligible entry even when many non-ASSURED
-> connections remain in the table. This appears consistent with the connection
-> failures observed during testing.
-> 
-> When the bucket count is reduced or when the table density is increased,
-> early eviction succeeds reliably and permits legitimate inbound connections.
-> 
-> Proposed Improvements:
-> I am interested in addressing this behavior upstream and would appreciate
-> feedback on which direction would be most useful:
-> 
-> 1. Diagnostic:
->    Warn (e.g., via pr_warn_once()) when nf_conntrack_max is configured to be
->    significantly lower than nf_conntrack_buckets via sysctl, notifying the
->    operator that early_drop() heuristics may become ineffective under load.
-> 
-> 2. Documentation:
->    Update Documentation/networking/nf_conntrack-sysctl.rst to document the
->    tuning implications of sparse hash tables on early eviction.
+There is a known bug related to this in the pernetns exit path, I post
+a patch already but is flawed, I'm looking at improving the situation
+with a bug fix :-)
 
-Documentation is good to have, I would suggest you start with this.
-
-> 3. Algorithmic:
->    Investigate a bounded improvement to candidate selection in sparse tables
->    without introducing unacceptable CPU overhead on the drop path.
-
-You mean, to improve the situation for this suboptimal configuration?
-
-> I'm happy to prepare a patch or provide additional test measurements based
-> on the discussion.
+> > $ cat /sys/kernel/debug/kmemleak
+> > unreferenced object (percpu) 0xc0ffff86522458 (size 12):
+> >   comm "modprobe", pid 17854, jiffies 4295218150
+> >   hex dump (first 12 bytes on cpu 0):
+> >     00 00 00 00 00 00 00 00 00 00 00 00              ............
+> >   backtrace (crc 0):
+> >     pcpu_alloc_noprof+0x76b/0xd70
+> >     nf_flow_table_pernet_init+0x46/0x90 [nf_flow_table]
 > 
-> Thanks,
-> Vikash SS
+> This is not handled by this PR.
+> 
+> I will submit a patch for this asap.
+> 
+> >     ops_init+0x187/0x570
+> >     register_pernet_operations+0x395/0x8e0
+> >     register_pernet_subsys+0x28/0x40
+> >     nft_masq_dump+0x66/0x190 [nft_masq]
+> >     do_one_initcall+0x124/0x4f0
+> >     do_init_module+0x2ad/0x8a0
+> >     load_module+0x154b/0x1d60
+> >     init_module_from_file+0x11f/0x1a0
+> >     idempotent_init_module+0x37b/0x7c0
+> >     __x64_sys_finit_module+0xdf/0x190
+> >     do_syscall_64+0x10e/0x570
+> >     entry_SYSCALL_64_after_hwframe+0x4b/0x53
+> > 
+> 
