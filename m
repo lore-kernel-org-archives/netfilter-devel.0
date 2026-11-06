@@ -1,79 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793925519;
-	b=rpgO3x89p5eQtmLb6Inh5AH5rEDY2fUVhLl+SU4Xkr+K/cN6Fo6yYUYCmYxv2V67HFlp
-	 XpqDgdu3vuAVYy6IgKZ4AHm/zxuuWEMCg5EM46jA45Is/SnkKeb5t2k1l36wLjb6wf/Ah
-	 tL98sOJmceA+G0uNr4E6pmVkuiUhu0Spisej0CNv9j6o1S8jIp805gze0AtK4mbJQVsVH
-	 TEPA1FQEsXE2hJg/1CtFB4rsAZ0ik5TeNs8OsrEmT6eLyxSZv1nGk9qp0xDaDqexKra0W
-	 Eg7eSAO3ZvknDGL8KH17iwf9kY9Z++youHSd5yciPtwQ6sGO8I3yGmMUDvAX4fOQMEQ==
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
+	t=1793925522;
+	b=LgPB8VIa0aJm4JpX5D9MagBtqxisgOHId8rclz9K9XuNKppfZyPN0FIR7ZvInl+znLEm
+	 RwGJyHW8RndzLkjCaT3SNA0daEGbOYWCj7KOlCjxSx+1s11s/uJODIGOe55QqzKStEEab
+	 GBw0Ch9xd/1BjeXCjFqBM4AxuvmwiB4g2mCdOoCCtMUIkXp8UBiIbNyPbZ43RaC2m9VYx
+	 O9/Rhlmfg1bjChlmsUPgybx5uMiRbTmnwfpHMMdFJ/wbOFrh6NrMIDhmd95XBWQ5WKjvH
+	 2VasdaOUeL+0VUC15m4b6Oe7pYTqpWNLnCBiun421/Hg6AT9hP9JK0X917J0c0QK0tg==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793925519;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793925522;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=EoiKEimL8LAzUeiD8K7+zrkXPOCx9rbue0jNd1YRDoI=;
-	b=NahNSzNy/VVqXPFlLgdWO1wz3svNoFtYoDqhgaZTEMOytvipUXaFX9QK2AIUCNiAz2JX
-	 3oXOAqFX7opFi3N3zmjjzFDLzMUvH71XLbQmAyo/JaZlVCCzp2eibvXAbbEmdxjEFemzn
-	 1SD51DdCSViVWueQXBnCNMiXahSHwV1u5SQ+y5WRhn4MqqRsdT0MU6+yvPwfGXzEUKnNM
-	 OGwJB/s69kUN6C8Ilx2mbR4NOl4D29VfcDttKmEZYJ/MxtV96dGc8M3106OZiXXtpB2LA
-	 QKbGnEUki8+NytDqivb2PTnJJziQxvCQHcCB826W5ZCyH/qRxT1r6AHNyXXoEMM4f1g==
+	bh=wL8psLE8qLs1x+2Qa8764STPF37jbJWLL8iaourLfhA=;
+	b=rCEVoVagD/ZUtQS4ig50hTcUPcEBBaoFaw9dvLd4OgcXCfhAMgYtWpLZ7Eh33YzJp/oK
+	 QgKvNNOVQ7kD6cjZTq7aDQmQV6XpYrZuqd5WBiGWasnqS4dRMsrFS+kNyKMwShZE4sZ/0
+	 6aDnvKNnQQH+VT8JytOUJDqW8gEftcMWp7kwNePp/JErZZkX+WQCPWK3ZdYZxARn5mMcO
+	 wR7uaY4U2DtPW6OUSzcMtcMnGxT3PPCcuBSpdZG9Gnp0HTENRwZmSng4l0hFP6ay8W9rs
+	 vn1kgdIsQ0TLsFRH1lcGuZfBIVE8vNqVEYUW2IUCE0R5auhM28+vb+W20Tin5RIODWA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kQPCa1KH;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="EiT/8a9L";
+	arc=fail smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024C1606A32E;
-	Fri,  6 Nov 2026 00:38:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3359C606A32F;
+	Fri,  6 Nov 2026 00:38:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kQPCa1KH
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EiT/8a9L
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1793925518;
-	b=pWUv8jjHUEG6Z0/Kjbties+dVVJsJQuqgwDl2oRHJC7chWKsKe/Om0oGSDwfr2E42EZz
-	 Tr8eLuKlPT+AVP00GyFiKWak5ZHwiATi5T42usy86Q9ibd/mmhhOLJdIiH9QrTG3u2EUz
-	 g3wQ5AEnfNt4e/lQZJSVW4NX+celKLPaKd9+EEQ6pN+48Z1sXbWNa8AwNF5MZtjVMb7tR
-	 y+eyiFSeMWCm6wBFf2kqMrQEbV8sPZC5Kx5E/ghsJLzUdGcwc2s/FCZq428krjIsC/mov
-	 p/gEaiW8p6mXCg+6b8THN7cbukobEZ/MFM0D5OJ2gwE/ttFwa22G5AJcaAo4oGX3Gxg==
+	t=1793925520;
+	b=m/btAX3BWSgDhU76J/f7SBcaCIDlR9hjxHIzKsi6lRy3r6UzQADW4kfjHTz8QKBjxRGN
+	 GpSObOQ5EU/XY2oylNB+lSBbMjjtMwMgOIG4BiYG5NvBWY9sV1DBnQDFKfWn231d6HOv4
+	 8Us7b0lXqV9auS9HI0r6T9GvlVA9SDCgrgq2VO7dLnAukD0KP6oe6PQnkhJEXW6KsWpYE
+	 4KtCx3TjYHi2xD+8hIlDOSlZ6NghRWNJZZ2RLbbo3U94zcA2yz5BK3Z444s4G06avx3LZ
+	 V/me3L6k7FtH3URJvQ/rzfNAusRgx8InCNSh4oKO+UP7wcjLV/zwDsJehTDPylzL1ZQ==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1793925518;
+	c=relaxed/relaxed; t=1793925520;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=EoiKEimL8LAzUeiD8K7+zrkXPOCx9rbue0jNd1YRDoI=;
-	b=PKoevf3Qc9WXGHlBPFb06tQxvjCBnHxgRkveAI6DfTb8ugAKGQxds9OQ4eCevS+mTlsp
-	 WZZVIJKIMZy7/K0q71TrgkxsFIfVrZ8vfUs5IjiXeDwa/RiHWoOfFH+HjoJpWJb0dpHkL
-	 GqlZKsfQEsqcmtbsWNM7f19ahstZP9hOlvIX4tZldiqP/MuLs9hSijcPWDMktPYXkeCHB
-	 PUEDP4FrjQZjsDX2YAN/p0QBG2E7gjI8MpSA/fvHkY5czMzeI3onStnnTclpTLDNj7lL1
-	 T3Fy1ETmayeC1Rm82PRv7ahSlKW43L0gPXJhM/PYsw5E2epovayFb5zMvO3TMAO934Q==
+	bh=wL8psLE8qLs1x+2Qa8764STPF37jbJWLL8iaourLfhA=;
+	b=i4K3tvb1no17XwbC+AOUe7K1fHaBUqjnjUtBHQVwi/oQENz4eLBPLVpOQQCixT+2rBR8
+	 dNGg378rhKbgSs23nEhPOzll3mfZoneEECxDSjrFmqDrYJJA0zAA3sILKhLIA7xkfoHNL
+	 TCC6gRr8nKaLBhSpyxyB9n/FHgchQa6xHLi2CXzaEp6VP3u5dz6iW+PWPzqpI0EI75rKQ
+	 0KqBIC/Xz6bXXhHmoaQILFSo2lbnath3Nf5thszAuIqpwimiLhgN4vgu+XQElTbs9uz+L
+	 t3WHA9O6vf3Hhy9ZZb4Xst4xQW55Il/IMgqDWppM6Y27RcpSqmzVeLMM6v0bKwJ5m4Q==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 156101F008A1;
+	by smtp.kernel.org (Postfix) with ESMTPS id 153801F0089F;
 	Fri,  6 Nov 2026 00:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793925518;
-	bh=EoiKEimL8LAzUeiD8K7+zrkXPOCx9rbue0jNd1YRDoI=;
+	s=k20260515; t=1793925520;
+	bh=wL8psLE8qLs1x+2Qa8764STPF37jbJWLL8iaourLfhA=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=kQPCa1KH5DpGHt6NmSAZsp0wsf1UYQUaEqujZNC6OTRYt4A5h966iLeuWsOTRw9xR
-	 S2eI/OP8kL/12XWPVxRQ2+bX6Hqtc+MqxMmriwEvbrewCuDvdam2ejkBYBkXtCRzUM
-	 ynLOijvzjf1VCv3XmRtt+TgryCYmtiotGKADvfj2sSWfrmbS/IHOGGUlki7GsaablH
-	 p/KELVjmCutpFt+AeWnS//YGp2rj96WEhSmnWFzp753m2fxSXZ7R1uxYq3vU60JEsy
-	 1dN/GCQuga8HDqUN/EYQsGIdT5Hfu2/16hib0+oZdlTjKFxongvuIShzUva3S3CgIu
-	 iPbszgCx0ecYQ==
+	b=EiT/8a9LGv/xe7rUlag8DhHxdIlIRxMd303pIQ2lsb6zdRBG7GetdIyXbMKFgcbN+
+	 QBJn25IqmRVRkaNwtXrYd+4uv3BppfyreGrBF42Kv8FMkDG9w4rEZKdoT4zpXhhImv
+	 jDdf3Zsqs4LpLfeKXFI6cVA8oct9xFnB3vXbJa/iLJ1FZSLzW1uOfWP+ONG7dwFq/U
+	 tpMfHNIzh6sRbAzQOfVdovDspU/u+hysXGGmGzqIsLF3sE9QzoAAz4pfzq8K8VY/q2
+	 XO146PRNFoRqKjvdiO81t+FSJbG6ZPjT5dZagHy+s3QWRTJsmTYX06Y+3GddP0NnJt
+	 psp2/IzFiQ6Fg==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 771A945AF2;
+	by lkml.kernel.org (Postfix) with ESMTP id 95CDC45B22;
 	Fri,  6 Nov 2026 00:38:37 +0000 (UTC)
 From: Alireza Asgari via B4 Relay <devnull+alireza.asgari.net@kernel.org>
-Date: Fri, 06 Nov 2026 00:37:04 +0000
-Subject: [PATCH RFC net 1/3] netfilter: nfnetlink_queue: reject duplicate
- pending packet IDs
+Date: Fri, 06 Nov 2026 00:37:06 +0000
+Subject: [PATCH RFC net 3/3] netfilter: nfnetlink_queue: test packet ID
+ ordering and collisions
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -84,7 +84,7 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261106-nfqueue-review-v1-1-b6c933f44943@asgari.net>
+Message-Id: <20261106-nfqueue-review-v1-3-b6c933f44943@asgari.net>
 References: <20261106-nfqueue-review-v1-0-b6c933f44943@asgari.net>
 In-Reply-To: <20261106-nfqueue-review-v1-0-b6c933f44943@asgari.net>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, 
@@ -93,12 +93,12 @@ Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
  netdev@vger.kernel.org, kunit-dev@googlegroups.com, 
  Alireza Asgari <alireza@asgari.net>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793925516; l=1761;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793925516; l=29517;
  i=alireza@asgari.net; s=nfqueue-20261106-d5b860a0;
  h=from:subject:message-id;
- bh=H8ooWtA1mr2Wq7BiH1vRavQSsCcbnCRuf8kq87M4yUU=;
- b=84zUIRG+XE722zKxiEYoCLVl6WGYPK4vnkbl5+ISktq8p6Dji8ar1sNsaWAEdMESLei6jWSKk
- G0u+QkVt0z3CrggCgC8bJsnmpfMn31HqytmWM91Lae2aDyyoHlMleSb
+ bh=NjiS3Ntu3UKyw9NQIkIwMYU1TB7zgTeJp4YkatUQf0c=;
+ b=nrirz2Jm3AkUEXtD+qIdGoq2rW1RV5+ASbkxoTK4s4MaKYKfh02zZCEFsqrtzgbonN6drNGSF
+ Qzg4TnAkNL6BJ2DGgyElwpmA0sRUqARR3MBL+zCgRNynP/CkVK6j7Me
 X-Developer-Key: i=alireza@asgari.net; a=ed25519;
  pk=zQFqyM4zwBHzads8dtEOnNQiQQ1pktgndpKPB3TI+AE=
 X-Endpoint-Received: by B4 Relay for
@@ -109,46 +109,979 @@ Content-Transfer-Encoding: 7bit
 
 From: Alireza Asgari <alireza@asgari.net>
 
-A queued packet can outlive a complete 32-bit ID cycle while newer
-packets receive verdicts. rhashtable_insert_fast() permits equal keys,
-so the reused ID can identify two pending packets and verdict lookup
-can select the wrong entry.
+Add 45 bounded KUnit cases using synthetic queues and the actual batch
+handler, enqueue path and hash table. Cover ordinary prefixes, zero IDs,
+wraparound, half-range gaps, removed boundaries, ambiguous intervals,
+consumed IDs beyond the pending tail and recovery after head removal.
 
-Use rhashtable_lookup_insert_fast() under the queue lock to reject an
-incoming collision before list insertion or userspace notification.
-Preserve the pending packet and use the existing enqueue-failure path:
-drop the incoming packet by default, or accept it with FAIL_OPEN.
-The attempted ID is consumed and the next enqueue advances normally.
+Verify collision rejection, retained identity and later ID reuse for
+individual and batch verdicts. A local netlink receiver checks notification
+suppression and subsequent delivery; a recording continuation checks
+default and FAIL_OPEN disposal. Poison the entry ID fields before actual
+enqueue to verify production assignment across high epochs and rollover.
 
-This enforces uniqueness among pending entries. The unchanged 32-bit
-interface cannot distinguish stale verdicts after an ID is released
-and reused.
+Check release order, hash/list/count consistency, metadata, drop counters
+and unchanged queues on rejection. Seed sequence distances directly;
+no physical-network traffic or packet-ID control interface is required.
+Run each case in a private network namespace so hook teardown cannot
+flush unrelated queues. The suite requires built-in NFQUEUE and KUnit.
 
 Codex assisted with development, review and validation of this change.
 
-Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
 Signed-off-by: Alireza Asgari <alireza@asgari.net>
 ---
- net/netfilter/nfnetlink_queue.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/Kconfig                    |  12 +
+ net/netfilter/nfnetlink_queue.c          |   4 +
+ net/netfilter/nfnetlink_queue_gap_test.c | 906 +++++++++++++++++++++++++++++++
+ 3 files changed, 922 insertions(+)
 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 09874c26fd135..59975856628a5 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -59,6 +59,18 @@ config NETFILTER_NETLINK_QUEUE
+ 	  If this option is enabled, the kernel will include support
+ 	  for queueing packets via NFNETLINK.
+ 
++config NFNETLINK_QUEUE_KUNIT_TEST
++	bool "KUnit tests for NFQUEUE packet IDs"
++	depends on KUNIT=y
++	depends on NET_NS
++	depends on NETFILTER_NETLINK_QUEUE=y
++	help
++	  Exercise cumulative verdict selection and packet ID collisions,
++	  including wraparound and gaps across the signed half-range.
++	  Uses synthetic packets and local netlink messages in private
++	  network namespaces.
++	  If unsure, say N.
++
+ config NETFILTER_NETLINK_LOG
+ 	tristate "Netfilter LOG over NFNETLINK interface"
+ 	default m if NETFILTER_ADVANCED=n
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 90d887546f7db..c71f4fe890eee 100644
+index 23f9896930bb2..70d39f1370b9f 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -227,8 +227,10 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
- 	int err;
+@@ -2310,3 +2310,7 @@ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_QUEUE);
  
--	err = rhashtable_insert_fast(&queue->nfqnl_packet_map, &entry->hash_node,
--				     nfqnl_rhashtable_params);
-+	/* A wrapped ID must not alias a packet that is still queued. */
-+	err = rhashtable_lookup_insert_fast(&queue->nfqnl_packet_map,
-+					    &entry->hash_node,
-+					    nfqnl_rhashtable_params);
- 	if (unlikely(err))
- 		return err;
- 
+ module_init(nfnetlink_queue_init);
+ module_exit(nfnetlink_queue_fini);
++
++#if IS_ENABLED(CONFIG_NFNETLINK_QUEUE_KUNIT_TEST)
++#include "nfnetlink_queue_gap_test.c"
++#endif
+diff --git a/net/netfilter/nfnetlink_queue_gap_test.c b/net/netfilter/nfnetlink_queue_gap_test.c
+new file mode 100644
+index 0000000000000..044c5498fefbb
+--- /dev/null
++++ b/net/netfilter/nfnetlink_queue_gap_test.c
+@@ -0,0 +1,906 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Included by nfnetlink_queue.c for bounded packet-ID and batch tests. */
++#include <kunit/test.h>
++#include <linux/bits.h>
++#include <linux/err.h>
++#include <linux/net.h>
++#include <linux/sched.h>
++#include <linux/user_namespace.h>
++#include <net/net_namespace.h>
++
++#define NFQNL_TEST_QUEUE 65530
++#define NFQNL_TEST_PORTID 0x1234abcd
++#define NFQNL_TEST_MARK 0x12345678U
++#define NFQNL_TEST_PRIORITY 0x87654321
++#define NFQNL_TEST_MAX_ENTRIES 4
++#define NFQNL_TEST_DROPPED 7
++#define NFQNL_TEST_USER_DROPPED 11
++
++struct nfqnl_test_result {
++	u64 sequence;
++	u32 id;
++	u32 mark;
++	u32 priority;
++};
++
++struct nfqnl_test_ctx {
++	struct net *net;
++	struct nfqnl_instance *queue;
++	struct nfqnl_test_result freed[NFQNL_TEST_MAX_ENTRIES];
++	unsigned int freed_count;
++	struct socket *socket;
++	bool hook_registered;
++	unsigned int accepted_count;
++	u64 accepted_sequence;
++};
++
++struct nfqnl_test_skb_cb {
++	struct nfqnl_test_ctx *ctx;
++	u64 sequence;
++	u32 id;
++};
++
++struct nfqnl_batch_case {
++	const char *name;
++	u32 ids[NFQNL_TEST_MAX_ENTRIES];
++	u32 boundary;
++	unsigned int count;
++	unsigned int selected;
++	unsigned int remove_mask;
++	u64 sequence_offset;
++	u64 issued_advance;
++	int error;
++};
++
++static const struct nfqnl_batch_case nfqnl_batch_cases[] = {
++	{
++		.name = "empty",
++		.boundary = 42,
++	},
++	{
++		.name = "ordinary_prefix",
++		.ids = { 10, 11, 12 },
++		.boundary = 11,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "ordinary_wrap",
++		.ids = { 0xfffffffe, 0xffffffff, 0, 1 },
++		.boundary = 0,
++		.count = 4,
++		.selected = 3,
++	},
++	{
++		.name = "zero_boundary",
++		.ids = { 0, 1 },
++		.boundary = 0,
++		.count = 2,
++		.selected = 1,
++	},
++	{
++		.name = "small_gap",
++		.ids = { 10, 15, 18 },
++		.boundary = 15,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "removed_boundary",
++		.ids = { 10, 12, 14 },
++		.boundary = 13,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "removed_wrap_boundary",
++		.ids = { 0xfffffffe, 0, 2 },
++		.boundary = 1,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "before_all",
++		.ids = { 10, 12 },
++		.boundary = 9,
++		.count = 2,
++	},
++	{
++		.name = "after_all",
++		.ids = { 10, 12 },
++		.boundary = 13,
++		.count = 2,
++		.selected = 2,
++	},
++	{
++		.name = "old_head_below_half",
++		.ids = { 1, 0x80000000, 0x80000001 },
++		.boundary = 0x80000000,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "old_head_at_half",
++		.ids = { 1, 0x80000001, 0x80000002 },
++		.boundary = 0x80000001,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "old_head_over_half",
++		.ids = { 1, 0x80000002, 0x80000003 },
++		.boundary = 0x80000002,
++		.count = 3,
++		.selected = 2,
++	},
++	{
++		.name = "new_tail_below_half",
++		.ids = { 1, 0x80000000 },
++		.boundary = 1,
++		.count = 2,
++		.selected = 1,
++	},
++	{
++		.name = "new_tail_at_half",
++		.ids = { 1, 0x80000001 },
++		.boundary = 1,
++		.count = 2,
++		.selected = 1,
++	},
++	{
++		.name = "new_tail_over_half",
++		.ids = { 1, 0x80000002 },
++		.boundary = 1,
++		.count = 2,
++		.selected = 1,
++	},
++	{
++		.name = "removed_early_large_span",
++		.ids = { 1, 2, 0x80000003 },
++		.boundary = 2,
++		.count = 3,
++		.selected = 1,
++		.remove_mask = BIT(1),
++	},
++	{
++		.name = "removed_late_large_span",
++		.ids = { 1, 0x80000002, 0x80000003 },
++		.boundary = 0x80000002,
++		.count = 3,
++		.selected = 1,
++		.remove_mask = BIT(1),
++	},
++	{
++		.name = "missing_inside_large_span",
++		.ids = { 1, 0x80000003 },
++		.boundary = 0x80000001,
++		.count = 2,
++		.selected = 1,
++	},
++	{
++		.name = "missing_before_large_span",
++		.ids = { 1, 0x80000003 },
++		.boundary = 0,
++		.count = 2,
++		.error = -ERANGE,
++	},
++	{
++		.name = "missing_after_large_span",
++		.ids = { 1, 0x80000003 },
++		.boundary = 0x80000004,
++		.count = 2,
++		.error = -ERANGE,
++	},
++	{
++		.name = "missing_half_from_head",
++		.ids = { 1, 2 },
++		.boundary = 0x80000001,
++		.count = 2,
++		.error = -ERANGE,
++	},
++	{
++		.name = "missing_half_from_issued",
++		.ids = { 1, 2 },
++		.boundary = 0x80000002,
++		.count = 2,
++		.error = -ERANGE,
++	},
++	{
++		.name = "missing_future_below_half",
++		.ids = { 1, 2 },
++		.boundary = 0x80000000,
++		.count = 2,
++		.selected = 2,
++	},
++	{
++		.name = "missing_past_below_half",
++		.ids = { 1, 2 },
++		.boundary = 0x80000003,
++		.count = 2,
++	},
++	{
++		.name = "removed_wrap_large_span",
++		.ids = { 0xfffffffe, 1, 0x80000002 },
++		.boundary = 1,
++		.count = 3,
++		.selected = 1,
++		.remove_mask = BIT(1),
++	},
++	{
++		.name = "missing_full_cycle",
++		.ids = { 1, 0x80000002, 2 },
++		.boundary = 0,
++		.count = 3,
++		.error = -ERANGE,
++	},
++	{
++		.name = "present_full_cycle",
++		.ids = { 1, 0x80000002, 2 },
++		.boundary = 1,
++		.count = 3,
++		.selected = 1,
++	},
++	{
++		.name = "maximum_missing_window",
++		.ids = { 1, 3 },
++		.boundary = 0,
++		.count = 2,
++		.selected = 2,
++		.issued_advance = U32_MAX - 2,
++	},
++	{
++		.name = "assigned_ids_expire_window",
++		.ids = { 1, 2 },
++		.boundary = 3,
++		.count = 2,
++		.issued_advance = U32_MAX,
++		.error = -ERANGE,
++	},
++	{
++		.name = "assigned_ids_extend_window",
++		.ids = { 1, 2 },
++		.boundary = 0x80000001,
++		.count = 2,
++		.selected = 2,
++		.issued_advance = 0x80000000,
++	},
++	{
++		.name = "removal_restores_window",
++		.ids = { 1, 0x80000002, 2 },
++		.boundary = 0,
++		.count = 3,
++		.selected = 1,
++		.remove_mask = BIT(0),
++	},
++	{
++		.name = "counter_wrap_missing",
++		.ids = { 0xfffffffe, 0, 2 },
++		.boundary = 1,
++		.count = 3,
++		.selected = 2,
++		.sequence_offset = U64_MAX - U32_MAX,
++	},
++	{
++		.name = "removal_empties_aged_queue",
++		.ids = { 1, 2 },
++		.boundary = 3,
++		.count = 2,
++		.remove_mask = BIT(0) | BIT(1),
++		.issued_advance = U32_MAX,
++	},
++};
++
++static void nfqnl_batch_case_desc(const struct nfqnl_batch_case *param,
++				  char *desc)
++{
++	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(nfqnl_batch, nfqnl_batch_cases, nfqnl_batch_case_desc);
++
++static void nfqnl_test_skb_destructor(struct sk_buff *skb)
++{
++	struct nfqnl_test_skb_cb *cb = (void *)skb->cb;
++	struct nfqnl_test_ctx *ctx = cb->ctx;
++	unsigned int i = ctx->freed_count++;
++
++	if (i >= ARRAY_SIZE(ctx->freed))
++		return;
++	ctx->freed[i].sequence = cb->sequence;
++	ctx->freed[i].id = cb->id;
++	ctx->freed[i].mark = skb->mark;
++	ctx->freed[i].priority = skb->priority;
++}
++
++static struct nf_queue_entry *nfqnl_test_alloc(struct nfqnl_test_ctx *ctx,
++					       u64 sequence)
++{
++	struct nfqnl_test_skb_cb *cb;
++	struct nf_queue_entry *entry;
++
++	entry = kzalloc_obj(*entry);
++	if (!entry)
++		return NULL;
++	entry->skb = alloc_skb(0, GFP_KERNEL);
++	if (!entry->skb) {
++		kfree(entry);
++		return NULL;
++	}
++	entry->id = (u32)sequence;
++	entry->id_epoch = (u32)(sequence >> 32);
++	entry->size = sizeof(*entry);
++	entry->state.net = ctx->net;
++	entry->state.pf = AF_INET;
++	entry->state.hook = NF_INET_PRE_ROUTING;
++	entry->skb->mark = 10;
++	entry->skb->priority = 20;
++	cb = (void *)entry->skb->cb;
++	cb->ctx = ctx;
++	cb->sequence = sequence;
++	cb->id = entry->id;
++	entry->skb->destructor = nfqnl_test_skb_destructor;
++	return entry;
++}
++
++static int nfqnl_test_enqueue(struct nfqnl_test_ctx *ctx, u64 sequence)
++{
++	struct nf_queue_entry *entry = nfqnl_test_alloc(ctx, sequence);
++	int err;
++
++	if (!entry)
++		return -ENOMEM;
++	spin_lock_bh(&ctx->queue->lock);
++	ctx->queue->id_sequence = sequence;
++	err = __enqueue_entry(ctx->queue, entry);
++	spin_unlock_bh(&ctx->queue->lock);
++	if (err) {
++		kfree_skb(entry->skb);
++		nf_queue_entry_free(entry);
++	}
++	return err;
++}
++
++static int nfqnl_test_verdict(struct nfqnl_test_ctx *ctx, u32 boundary)
++{
++	struct nfqnl_msg_verdict_hdr vhdr = {
++		.verdict = htonl(NF_DROP),
++		.id = htonl(boundary),
++	};
++	struct nlattr *attrs[NFQA_MAX + 1];
++	struct nfnl_info info = { .net = ctx->net };
++	struct nlmsghdr *nlh;
++	struct sk_buff *skb;
++	u16 type;
++	int err;
++
++	skb = alloc_skb(256, GFP_KERNEL);
++	if (!skb)
++		return -ENOMEM;
++	type = nfnl_msg_type(NFNL_SUBSYS_QUEUE, NFQNL_MSG_VERDICT_BATCH);
++	nlh = nfnl_msg_put(skb, NFQNL_TEST_PORTID, 1, type, NLM_F_REQUEST,
++			   AF_INET, NFNETLINK_V0, htons(NFQNL_TEST_QUEUE));
++	if (!nlh || nla_put(skb, NFQA_VERDICT_HDR, sizeof(vhdr), &vhdr) ||
++	    nla_put_be32(skb, NFQA_MARK, htonl(NFQNL_TEST_MARK)) ||
++	    nla_put_be32(skb, NFQA_PRIORITY, htonl(NFQNL_TEST_PRIORITY))) {
++		err = -EMSGSIZE;
++		goto out;
++	}
++	nlmsg_end(skb, nlh);
++	err = nlmsg_parse_deprecated(nlh, sizeof(struct nfgenmsg), attrs,
++				     NFQA_MAX, nfqa_verdict_batch_policy, NULL);
++	if (err)
++		goto out;
++	NETLINK_CB(skb).portid = NFQNL_TEST_PORTID;
++	info.nlh = nlh;
++	info.nfmsg = nlmsg_data(nlh);
++	rcu_read_lock();
++	err = nfqnl_recv_verdict_batch(skb, &info,
++				       (const struct nlattr *const *)attrs);
++	rcu_read_unlock();
++out:
++	kfree_skb(skb);
++	return err;
++}
++
++static void nfqnl_test_expect_queue(struct kunit *test,
++				    const struct nfqnl_batch_case *param,
++				    unsigned int removed_mask, u64 sequence)
++{
++	struct nfqnl_test_result remaining[NFQNL_TEST_MAX_ENTRIES];
++	bool in_hash[NFQNL_TEST_MAX_ENTRIES];
++	struct nfqnl_test_ctx *ctx = test->priv;
++	struct nf_queue_entry *entry;
++	unsigned int i, expected = 0, count = 0, queue_total;
++	unsigned int dropped, user_dropped;
++	u64 actual_sequence;
++
++	rcu_read_lock();
++	spin_lock_bh(&ctx->queue->lock);
++	queue_total = ctx->queue->queue_total;
++	dropped = ctx->queue->queue_dropped;
++	user_dropped = ctx->queue->queue_user_dropped;
++	actual_sequence = ctx->queue->id_sequence;
++	list_for_each_entry(entry, &ctx->queue->queue_list, list) {
++		if (count == ARRAY_SIZE(remaining))
++			break;
++		remaining[count].id = entry->id;
++		remaining[count].mark = entry->skb->mark;
++		remaining[count].priority = entry->skb->priority;
++		count++;
++	}
++	for (i = 0; i < param->count; i++)
++		in_hash[i] =
++			rhashtable_lookup_fast(&ctx->queue->nfqnl_packet_map,
++					       &param->ids[i],
++					       nfqnl_rhashtable_params) != NULL;
++	spin_unlock_bh(&ctx->queue->lock);
++	rcu_read_unlock();
++
++	KUNIT_EXPECT_EQ(test, dropped, NFQNL_TEST_DROPPED);
++	KUNIT_EXPECT_EQ(test, user_dropped, NFQNL_TEST_USER_DROPPED);
++	KUNIT_EXPECT_EQ(test, actual_sequence, sequence);
++	for (i = 0; i < param->count; i++) {
++		bool present = !(removed_mask & BIT(i));
++
++		KUNIT_EXPECT_EQ(test, in_hash[i], present);
++		if (!present)
++			continue;
++		if (expected < count)
++			KUNIT_EXPECT_EQ(test, remaining[expected].id,
++					param->ids[i]);
++		expected++;
++	}
++	KUNIT_EXPECT_EQ(test, queue_total, expected);
++	KUNIT_EXPECT_EQ(test, count, expected);
++	for (i = 0; i < count; i++) {
++		KUNIT_EXPECT_EQ(test, remaining[i].mark, 10);
++		KUNIT_EXPECT_EQ(test, remaining[i].priority, 20);
++	}
++}
++
++static int nfqnl_test_remove(struct nfqnl_test_ctx *ctx, u32 id)
++{
++	struct nf_queue_entry *entry;
++	int err;
++
++	rcu_read_lock();
++	entry = find_dequeue_entry(ctx->queue, id);
++	err = entry ? 0 : -ENOENT;
++	/* find_dequeue_entry() releases the queue lock before reinjection. */
++	if (entry)
++		nfqnl_reinject(entry, NF_DROP);
++	rcu_read_unlock();
++	return err;
++}
++
++static void nfqnl_batch_selection_test(struct kunit *test)
++{
++	const struct nfqnl_batch_case *param = test->param_value;
++	struct nfqnl_test_ctx *ctx = test->priv;
++	unsigned int removed_mask = 0, removed_count = 0, selected = 0;
++	u64 sequence = param->sequence_offset;
++	unsigned int i;
++	int err;
++
++	/* Seed chronological positions without generating billions of packets. */
++	for (i = 0; i < param->count; i++) {
++		sequence += i ? (u32)(param->ids[i] - param->ids[i - 1]) :
++				param->ids[i];
++		err = nfqnl_test_enqueue(ctx, sequence);
++		KUNIT_ASSERT_EQ(test, err, 0);
++	}
++
++	/* Failed notifications can assign IDs without adding queued entries. */
++	sequence += param->issued_advance;
++	spin_lock_bh(&ctx->queue->lock);
++	ctx->queue->id_sequence = sequence;
++	spin_unlock_bh(&ctx->queue->lock);
++	nfqnl_test_expect_queue(test, param, removed_mask, sequence);
++
++	for (i = 0; i < param->count; i++) {
++		if (!(param->remove_mask & BIT(i)))
++			continue;
++		err = nfqnl_test_remove(ctx, param->ids[i]);
++		KUNIT_ASSERT_EQ(test, err, 0);
++		removed_mask |= BIT_U32(i);
++		KUNIT_ASSERT_EQ(test, ctx->freed_count, removed_count + 1);
++		KUNIT_EXPECT_EQ(test, ctx->freed[removed_count].id,
++				param->ids[i]);
++		KUNIT_EXPECT_EQ(test, ctx->freed[removed_count].mark, 10);
++		KUNIT_EXPECT_EQ(test, ctx->freed[removed_count].priority, 20);
++		removed_count++;
++		nfqnl_test_expect_queue(test, param, removed_mask, sequence);
++	}
++
++	err = nfqnl_test_verdict(ctx, param->boundary);
++	KUNIT_EXPECT_EQ(test, err,
++			param->error ?: (param->selected ? 0 : -ENOENT));
++	KUNIT_EXPECT_EQ(test, ctx->freed_count,
++			removed_count + param->selected);
++	for (i = 0; i < param->count && selected < param->selected; i++) {
++		unsigned int freed = removed_count + selected;
++
++		if (removed_mask & BIT(i))
++			continue;
++		removed_mask |= BIT_U32(i);
++		selected++;
++		if (freed >= ctx->freed_count)
++			continue;
++		KUNIT_EXPECT_EQ(test, ctx->freed[freed].id, param->ids[i]);
++		KUNIT_EXPECT_EQ(test, ctx->freed[freed].mark, NFQNL_TEST_MARK);
++		KUNIT_EXPECT_EQ(test, ctx->freed[freed].priority,
++				NFQNL_TEST_PRIORITY);
++	}
++	nfqnl_test_expect_queue(test, param, removed_mask, sequence);
++}
++
++static void nfqnl_test_expect_entries(struct kunit *test, const u64 *sequences,
++				      unsigned int expected, u64 issued,
++				      unsigned int expected_dropped)
++{
++	struct nfqnl_test_result remaining[NFQNL_TEST_MAX_ENTRIES];
++	bool in_hash[NFQNL_TEST_MAX_ENTRIES];
++	struct nfqnl_test_ctx *ctx = test->priv;
++	struct nf_queue_entry *entry, *found;
++	unsigned int count = 0, i, total, dropped, user_dropped;
++	u64 actual_issued;
++	int mapped;
++
++	rcu_read_lock();
++	spin_lock_bh(&ctx->queue->lock);
++	total = ctx->queue->queue_total;
++	mapped = atomic_read(&ctx->queue->nfqnl_packet_map.nelems);
++	dropped = ctx->queue->queue_dropped;
++	user_dropped = ctx->queue->queue_user_dropped;
++	actual_issued = ctx->queue->id_sequence;
++	list_for_each_entry(entry, &ctx->queue->queue_list, list) {
++		if (count == ARRAY_SIZE(remaining))
++			break;
++		remaining[count].sequence = ((u64)entry->id_epoch << 32) |
++					    entry->id;
++		remaining[count].id = entry->id;
++		remaining[count].mark = entry->skb->mark;
++		remaining[count].priority = entry->skb->priority;
++		found = rhashtable_lookup_fast(&ctx->queue->nfqnl_packet_map,
++					       &entry->id,
++					       nfqnl_rhashtable_params);
++		in_hash[count] = found == entry;
++		count++;
++	}
++	spin_unlock_bh(&ctx->queue->lock);
++	rcu_read_unlock();
++
++	KUNIT_EXPECT_EQ(test, total, expected);
++	KUNIT_EXPECT_EQ(test, mapped, (int)expected);
++	KUNIT_EXPECT_EQ(test, count, expected);
++	KUNIT_EXPECT_EQ(test, actual_issued, issued);
++	KUNIT_EXPECT_EQ(test, dropped, expected_dropped);
++	KUNIT_EXPECT_EQ(test, user_dropped, NFQNL_TEST_USER_DROPPED);
++	for (i = 0; i < min(count, expected); i++) {
++		KUNIT_EXPECT_EQ(test, remaining[i].sequence, sequences[i]);
++		KUNIT_EXPECT_EQ(test, remaining[i].id, (u32)sequences[i]);
++		KUNIT_EXPECT_EQ(test, remaining[i].mark, 10);
++		KUNIT_EXPECT_EQ(test, remaining[i].priority, 20);
++		KUNIT_EXPECT_TRUE(test, in_hash[i]);
++	}
++}
++
++static void nfqnl_test_expect_freed(struct kunit *test, unsigned int index,
++				    u64 sequence, bool batch)
++{
++	struct nfqnl_test_ctx *ctx = test->priv;
++
++	KUNIT_ASSERT_LT(test, index, ctx->freed_count);
++	KUNIT_EXPECT_EQ(test, ctx->freed[index].sequence, sequence);
++	KUNIT_EXPECT_EQ(test, ctx->freed[index].id, (u32)sequence);
++	KUNIT_EXPECT_EQ(test, ctx->freed[index].mark,
++			batch ? NFQNL_TEST_MARK : 10);
++	KUNIT_EXPECT_EQ(test, ctx->freed[index].priority,
++			batch ? NFQNL_TEST_PRIORITY : 20);
++}
++
++struct nfqnl_collision_case {
++	const char *name;
++	u32 id;
++	bool batch;
++};
++
++static const struct nfqnl_collision_case nfqnl_collision_cases[] = {
++	{ "individual", 1, false },
++	{ "batch", 1, true },
++	{ "individual_zero", 0, false },
++	{ "batch_zero", 0, true },
++};
++
++static void nfqnl_collision_case_desc(const struct nfqnl_collision_case *param,
++				      char *desc)
++{
++	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(nfqnl_collision, nfqnl_collision_cases,
++		  nfqnl_collision_case_desc);
++
++static void nfqnl_id_collision_test(struct kunit *test)
++{
++	const struct nfqnl_collision_case *param = test->param_value;
++	struct nfqnl_test_ctx *ctx = test->priv;
++	u64 old = param->id, collision = (1ULL << 32) + old;
++	u64 reused[] = { (2ULL << 32) + old, (2ULL << 32) + old + 1 };
++	int err;
++
++	err = nfqnl_test_enqueue(ctx, old);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	err = nfqnl_test_enqueue(ctx, collision);
++	KUNIT_ASSERT_EQ(test, err, -EEXIST);
++	KUNIT_ASSERT_EQ(test, ctx->freed_count, 1);
++	nfqnl_test_expect_freed(test, 0, collision, false);
++	nfqnl_test_expect_entries(test, &old, 1, collision, NFQNL_TEST_DROPPED);
++
++	/* Both verdict forms still identify the retained original object. */
++	err = param->batch ? nfqnl_test_verdict(ctx, param->id) :
++			     nfqnl_test_remove(ctx, param->id);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	KUNIT_ASSERT_EQ(test, ctx->freed_count, 2);
++	nfqnl_test_expect_freed(test, 1, old, param->batch);
++	nfqnl_test_expect_entries(test, NULL, 0, collision, NFQNL_TEST_DROPPED);
++
++	/* Freed IDs can be reused; the following distinct ID is admitted too. */
++	err = nfqnl_test_enqueue(ctx, reused[0]);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	err = nfqnl_test_enqueue(ctx, reused[1]);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	nfqnl_test_expect_entries(test, reused, 2, reused[1],
++				  NFQNL_TEST_DROPPED);
++	err = nfqnl_test_verdict(ctx, (u32)reused[1]);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	KUNIT_ASSERT_EQ(test, ctx->freed_count, 4);
++	nfqnl_test_expect_freed(test, 2, reused[0], true);
++	nfqnl_test_expect_freed(test, 3, reused[1], true);
++	nfqnl_test_expect_entries(test, NULL, 0, reused[1], NFQNL_TEST_DROPPED);
++}
++
++static unsigned int nfqnl_test_hook(void *priv, struct sk_buff *skb,
++				    const struct nf_hook_state *state)
++{
++	(void)priv;
++	(void)skb;
++	(void)state;
++	return NF_ACCEPT;
++}
++
++static const struct nf_hook_ops nfqnl_test_hook_ops = {
++	.hook = nfqnl_test_hook,
++	.pf = NFPROTO_IPV4,
++	.hooknum = NF_INET_PRE_ROUTING,
++	.priority = NF_IP_PRI_LAST,
++};
++
++static int nfqnl_test_accept(struct net *net, struct sock *sk,
++			     struct sk_buff *skb)
++{
++	struct nfqnl_test_skb_cb *cb = (void *)skb->cb;
++
++	(void)net;
++	(void)sk;
++	cb->ctx->accepted_count++;
++	cb->ctx->accepted_sequence = cb->sequence;
++	kfree_skb(skb);
++	return 0;
++}
++
++static int nfqnl_test_packet_enqueue(struct nfqnl_test_ctx *ctx, u64 sequence)
++{
++	struct nf_queue_entry *entry = nfqnl_test_alloc(ctx, sequence);
++	const struct nf_hook_entries *hooks;
++	struct sk_buff *skb;
++	unsigned int i;
++	int err;
++
++	if (!entry)
++		return -ENOMEM;
++	skb = entry->skb;
++	/* Verify production assignment, independently of fixture seeding. */
++	entry->id = ~(u32)sequence;
++	entry->id_epoch = ~(u32)(sequence >> 32);
++	entry->state.okfn = nfqnl_test_accept;
++	rcu_read_lock();
++	hooks = nf_hook_entries_head(ctx->net, NFPROTO_IPV4,
++				     NF_INET_PRE_ROUTING);
++	for (i = 0; hooks && i < hooks->num_hook_entries; i++) {
++		if (hooks->hooks[i].hook == nfqnl_test_hook)
++			break;
++	}
++	if (!hooks || i == hooks->num_hook_entries) {
++		err = -ENOENT;
++	} else {
++		entry->hook_index = i;
++		err = __nfqnl_enqueue_packet(ctx->net, ctx->queue, entry);
++	}
++	rcu_read_unlock();
++	/* Mirror the NFQUEUE caller's ownership on an enqueue error. */
++	if (err < 0) {
++		nf_queue_entry_free(entry);
++		kfree_skb(skb);
++	}
++	return err;
++}
++
++static void nfqnl_test_notification(struct kunit *test, bool expected, u32 id)
++{
++	struct nfqnl_test_ctx *ctx = test->priv;
++	struct nlattr *attrs[NFQA_MAX + 1];
++	struct nfqnl_msg_packet_hdr *phdr;
++	struct sk_buff *skb;
++	int err;
++
++	skb = skb_recv_datagram(ctx->socket->sk, MSG_DONTWAIT, &err);
++	if (!expected) {
++		KUNIT_EXPECT_PTR_EQ(test, skb, NULL);
++		KUNIT_EXPECT_EQ(test, err, -EAGAIN);
++		if (skb)
++			skb_free_datagram(ctx->socket->sk, skb);
++		return;
++	}
++	KUNIT_ASSERT_NOT_NULL(test, skb);
++	err = nlmsg_parse_deprecated(nlmsg_hdr(skb), sizeof(struct nfgenmsg),
++				     attrs, NFQA_MAX, NULL, NULL);
++	KUNIT_EXPECT_EQ(test, err, 0);
++	if (!err) {
++		KUNIT_EXPECT_NOT_NULL(test, attrs[NFQA_PACKET_HDR]);
++		if (attrs[NFQA_PACKET_HDR]) {
++			phdr = nla_data(attrs[NFQA_PACKET_HDR]);
++			KUNIT_EXPECT_EQ(test, ntohl(phdr->packet_id), id);
++		}
++	}
++	skb_free_datagram(ctx->socket->sk, skb);
++}
++
++struct nfqnl_enqueue_case {
++	const char *name;
++	bool failopen;
++	u64 offset;
++};
++
++static const struct nfqnl_enqueue_case nfqnl_enqueue_cases[] = {
++	{ "default", false, 0 },
++	{ "fail_open", true, 0 },
++	{ "high_epoch_default", false, 0x8000000000000000ULL },
++	{ "high_epoch_fail_open", true, 0x8000000000000000ULL },
++	{ "last_epoch_default", false, 0xfffffffe00000000ULL },
++	{ "last_epoch_fail_open", true, 0xfffffffe00000000ULL },
++	{ "counter_wrap_default", false, 0xffffffff00000000ULL },
++	{ "counter_wrap_fail_open", true, 0xffffffff00000000ULL },
++};
++
++static void nfqnl_enqueue_case_desc(const struct nfqnl_enqueue_case *param,
++				    char *desc)
++{
++	strscpy(desc, param->name, KUNIT_PARAM_DESC_SIZE);
++}
++
++KUNIT_ARRAY_PARAM(nfqnl_enqueue, nfqnl_enqueue_cases, nfqnl_enqueue_case_desc);
++
++static void nfqnl_collision_enqueue_test(struct kunit *test)
++{
++	struct nfqnl_test_ctx *ctx = test->priv;
++	const struct nfqnl_enqueue_case *param = test->param_value;
++	bool failopen = param->failopen;
++	u64 offset = param->offset;
++	struct sockaddr_nl addr = {
++		.nl_family = AF_NETLINK,
++		.nl_pid = NFQNL_TEST_PORTID,
++	};
++	u64 sequences[] = { offset + 1, offset + (1ULL << 32) + 2 };
++	u64 collision = offset + (1ULL << 32) + 1;
++	unsigned int dropped = NFQNL_TEST_DROPPED + !failopen;
++	int err;
++
++	err = sock_create_kern(ctx->net, AF_NETLINK, SOCK_RAW,
++			       NETLINK_NETFILTER, &ctx->socket);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	err = kernel_bind(ctx->socket, (struct sockaddr_unsized *)&addr,
++			  sizeof(addr));
++	KUNIT_ASSERT_EQ(test, err, 0);
++	err = nf_register_net_hook(ctx->net, &nfqnl_test_hook_ops);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	ctx->hook_registered = true;
++	ctx->queue->copy_mode = NFQNL_COPY_META;
++	ctx->queue->flags = failopen ? NFQA_CFG_F_FAIL_OPEN : 0;
++
++	spin_lock_bh(&ctx->queue->lock);
++	ctx->queue->id_sequence = offset;
++	spin_unlock_bh(&ctx->queue->lock);
++
++	/* Prove the local notification socket works before testing suppression. */
++	err = nfqnl_test_packet_enqueue(ctx, sequences[0]);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	nfqnl_test_notification(test, true, 1);
++	nfqnl_test_notification(test, false, 0);
++	nfqnl_test_expect_entries(test, sequences, 1, sequences[0],
++				  NFQNL_TEST_DROPPED);
++
++	spin_lock_bh(&ctx->queue->lock);
++	ctx->queue->id_sequence = offset + (1ULL << 32);
++	spin_unlock_bh(&ctx->queue->lock);
++	err = nfqnl_test_packet_enqueue(ctx, collision);
++	KUNIT_ASSERT_EQ(test, err, failopen ? 0 : -EEXIST);
++	KUNIT_ASSERT_EQ(test, ctx->freed_count, 1);
++	nfqnl_test_expect_freed(test, 0, collision, false);
++	KUNIT_EXPECT_EQ(test, ctx->accepted_count, failopen ? 1U : 0U);
++	if (failopen)
++		KUNIT_EXPECT_EQ(test, ctx->accepted_sequence, collision);
++	nfqnl_test_expect_entries(test, sequences, 1, collision, dropped);
++	nfqnl_test_notification(test, false, 0);
++
++	/* Collision refusal advances issuance; the next ID can be notified. */
++	err = nfqnl_test_packet_enqueue(ctx, sequences[1]);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	nfqnl_test_notification(test, true, 2);
++	nfqnl_test_notification(test, false, 0);
++	nfqnl_test_expect_entries(test, sequences, 2, sequences[1], dropped);
++	err = nfqnl_test_verdict(ctx, 2);
++	KUNIT_ASSERT_EQ(test, err, 0);
++	KUNIT_ASSERT_EQ(test, ctx->freed_count, 3);
++	nfqnl_test_expect_freed(test, 1, sequences[0], true);
++	nfqnl_test_expect_freed(test, 2, sequences[1], true);
++	nfqnl_test_expect_entries(test, NULL, 0, sequences[1], dropped);
++	KUNIT_EXPECT_EQ(test, ctx->accepted_count, failopen ? 1U : 0U);
++}
++
++static int nfqnl_batch_test_init(struct kunit *test)
++{
++	struct nfqnl_test_ctx *ctx;
++	int err;
++
++	ctx = kunit_kzalloc(test, sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++	/* Hook teardown must not flush queues outside this test. */
++	ctx->net = copy_net_ns(CLONE_NEWNET, &init_user_ns, &init_net);
++	if (IS_ERR(ctx->net))
++		return PTR_ERR(ctx->net);
++	ctx->queue = instance_create(nfnl_queue_pernet(ctx->net),
++				     NFQNL_TEST_QUEUE, NFQNL_TEST_PORTID);
++	err = PTR_ERR_OR_ZERO(ctx->queue);
++	if (err) {
++		put_net(ctx->net);
++		return err;
++	}
++	ctx->queue->queue_dropped = NFQNL_TEST_DROPPED;
++	ctx->queue->queue_user_dropped = NFQNL_TEST_USER_DROPPED;
++	test->priv = ctx;
++	return 0;
++}
++
++static void nfqnl_batch_test_exit(struct kunit *test)
++{
++	struct nfqnl_test_ctx *ctx = test->priv;
++
++	if (ctx->hook_registered)
++		nf_unregister_net_hook(ctx->net, &nfqnl_test_hook_ops);
++	instance_destroy(nfnl_queue_pernet(ctx->net), ctx->queue);
++	/* Drain queued-packet destructors before releasing the test context. */
++	rcu_barrier();
++	flush_workqueue(nfq_cleanup_wq);
++	if (ctx->socket)
++		sock_release(ctx->socket);
++	put_net(ctx->net);
++}
++
++static struct kunit_case nfqnl_batch_test_cases[] = {
++	KUNIT_CASE_PARAM(nfqnl_batch_selection_test, nfqnl_batch_gen_params),
++	KUNIT_CASE_PARAM(nfqnl_id_collision_test, nfqnl_collision_gen_params),
++	KUNIT_CASE_PARAM(nfqnl_collision_enqueue_test,
++			 nfqnl_enqueue_gen_params),
++	{}
++};
++
++static struct kunit_suite nfqnl_batch_test_suite = {
++	.name = "nfnetlink_queue_batch",
++	.init = nfqnl_batch_test_init,
++	.exit = nfqnl_batch_test_exit,
++	.test_cases = nfqnl_batch_test_cases,
++};
++
++kunit_test_suite(nfqnl_batch_test_suite);
 
 -- 
 2.43.0
