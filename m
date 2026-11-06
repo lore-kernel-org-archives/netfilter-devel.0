@@ -1,59 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793973731;
-	b=dEK9GKMfpWXMaG78UL6zY+fsfJFLlwpvVnpM7qT6haCSeGIOgs6yIMcDT6nwzLYs0iLf
-	 +5xlw+E6UNG6BSf9FfE3FgVlwx6HJaXkeWD/cdUv9xra9D6LwziJ0T1XDmRwZpgJCzfD2
-	 Ecs1zIZhKdgGH3NnyOUoaebUTKs0Py63B/yYho/0BkQM+CwmcLxbqp5s9X83aC4o/TzX0
-	 7w5Xfj/oFcHwjdRTNYkWRKL0Ej9xw8QBHqUSjja8l7eo5PcvE6fOs3mAP8zHhEINdWcc8
-	 P9QcKu8YIcNHg+qO9ZK6JoyUwD9VwpXBoJp7GZ5uJTHcl9cZ723TNpEwJxq16Xxq6kA==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793973731;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=GGw7qgCiVs4g/3TFeDD+QyFDg5vg6SQTVbdq0mgh2QE=;
-	b=Tij1keQONjRBFNuODLG/JRNaNoWBH9V1T7op4/Ffhqn/c3pnQqwJsg9E84nCtKjaF45g
-	 OTRxlT8nV/4mO718EhRB97GE2J68PXrVkSDCNoInMHqvnGJMaBiBMsZY+8FnCjUaem1pn
-	 mnLqL5kpFJE1uF7FEL+fzwz0Yc4mYVHWV9NekTtPNaXicFKoS9tPqpXGjYbDjw7fOLp/f
-	 LvUGdahxA0dKgbB0sZmEJI/GCUm2ZOuOZtOf2N1yMXhiBDWQbRMnRkRFcnB5JhyNV4we1
-	 XOCzFoCpMj4UurHcGECUAK3jArpXmD25ktphEQrmXBTazmDPTPA+dDQT9THZAXGNk5w==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Jrc8N4hf;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.174
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793973741;
+	b=duGbWR5XRHe/FO2N56daxd2QKDkGdghCC0/oITd6u5i/mbyB6h7WoNXuh+ln0SNgfBuP
+	 gd2RTzhcTL6ue1r2+xC+wHNKBWKm1v0F+HSHQEC9o/cpu245NjoOy5Y6GWFTm44xqmaDp
+	 VM8CH/eJ6+Cx8/+qnTTr9ZHvVsOZBgCak2hN/WeO0iZFYx6n+D/bdwnXJxACHUMo/rQ+N
+	 097SpALjpVdllofnbXwb2GAiuV7zDAuNQWPQLpC6As8NjF5lIhMQxoiocfbrzYsaAy1N9
+	 pWm3mcbmnSC6C4Rb3VKcMyDOASgskCTnqO+kj/zMJTDi/nLaxPCiEt7JfUr7sDVmh/g==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793973741;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=3gDlvZK/KSG16idOi9JjnT7Pe/XLQwbqGEv25TbSfLU=;
+	b=5Lf+Yi1DuBcRkTo5XJT169JoVneYGBBR+XUtKjwzknwerJwqSst3v6yWwPKtrx+1Vpgt
+	 fo56WACOGvREm/FOWTyGRWmEJzbrlKhniY+7YABQNLV3HwVe/Pc51BqdFTL+K1Y5WmDiC
+	 0EU2+OQ/yE4nc98UaLE1gkxP2Z7bdcnc41uNOUgv6VgVTG6NVqX53G/woUlnprK2izBaN
+	 XIpMbub/gINZsC7GhTdXYzywIXR5422HqucndFjs+T0gj+XeYqqOLJPWl29Ll4049qsX4
+	 ++ECuak6VV+XEbj5c5MYpnQV5S+7PKI1LV5O1ulRQfqevPgKNMeiTx5F4n2RgT1jQow==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IaSIxWx+;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.82.174
+Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com [74.125.82.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69FCE606EE8B
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 14:02:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 69FCE606EE8B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 792BD606EE9D
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 14:02:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 792BD606EE9D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Jrc8N4hf
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1793973728;
-	bh=GGw7qgCiVs4g/3TFeDD+QyFDg5vg6SQTVbdq0mgh2QE=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=Jrc8N4hfwL6KatAkkklSaQh7EG48jUz9NfsnUFBDVRe+LmVHLPiwZoO+QFR9+ZA51
-	 j5yUetcfX3FPOGLrkohBSOAgjhjxHOm6wez8lAHLqgXis7DndKJbKRIp12/g9y9mE7
-	 nowCao4+MXzbXKvF14xw11DMZoHdW7s5tnlSHo3IeRW7J86CgmclttA8aVuvv1stPi
-	 zujbRbACOhyErQ0003Tn49WLtu4V/6JcZhOITnSeERE5uM8DQ3GbA1QXtbauK1991p
-	 CKQcKsNiFbijAdF2YoKT4gOKjzTm8Oh3gBFfwk8XiaBRK8FVVh/MkBayeuKVphJO/x
-	 WezpRRN/prahQ==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8DD0A60076
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 15:02:08 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2 2/2] netfilter: flowtable: perform unbind callback on hook release
-Date: Fri,  6 Nov 2026 15:02:03 +0100
-Message-ID: <20261106140203.1359749-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261106140203.1359749-1-pablo@netfilter.org>
-References: <20261106140203.1359749-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=IaSIxWx+
+Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-3282db206d3so1384707eec.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2026 06:02:21 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1793973741; cv=none;
+        d=google.com; s=arc-20260327;
+        b=mP6KYlM53C0kqSY+rN/s5w7YA7qiKtUIoDr2fuzjGOCzCKO1kv4+lTZoudg2QEypG6
+         W/gMolrPbtUHkW5kZNc6sFrO8tTPMrLZtPtCId9y78ZRZynsqACAFk0CKCGqsJ6rVL0m
+         E6VGuInY6fAnPI/bQrHIxA9KYV7i0PiLNoy6mCeVxb3VJqi+4owJxWho8/JZMnmeU/BQ
+         C05K7VOjije6I3FslyWrRhRLNXPyMDF0O6C3tdd/6K2r26HArSXh3t6rC+QTfK/3XuJ5
+         w6vodQpkuwcmY8L++mgXHv63f7jVqPZ/lzThD23dR6Mui6b4tjx9pRJChckS+Maskfxb
+         q9lg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=3gDlvZK/KSG16idOi9JjnT7Pe/XLQwbqGEv25TbSfLU=;
+        fh=iCjVDsbW9GMWkouiosnpqntZ8wkDB0SG4Dkaz0NZRz4=;
+        b=feY4i7oh8GLA/r+W8M4v/poIwK6seRSzXHHWfQZzR/jwHpuzg6q23s5gAJGzqiS8ly
+         EFm5pe3jGM026nhMx5uDgDBO4OMcqrtJhaoXQui+c7GefZPmM6tRaFYm//NITKOFo+IT
+         O6cz38tMeSB9NnF3mCCYtxdM0KhaLVxs9JRviJNGLcuU+EsdSLPRD3kkyoD1nR93MP9o
+         xhdzinnbtwvpl5Yj2jDPLWc2C6DXASmRRfH6+1QnwsAMn2Hg3RdT6SJmYjYo9OL3LIow
+         J/SgOcZaUuaN46NuaoHbS0wyWSn9qlhYDbzLdb7s/v20MZ0jsdQuUw23War+bH/+xv7x
+         KZ5Q==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793973741; x=1794578541; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=3gDlvZK/KSG16idOi9JjnT7Pe/XLQwbqGEv25TbSfLU=;
+        b=IaSIxWx+W6s8dkUoGvweOlDos6V+EDwjKOzVI7lkCG5BEzPxtsq/dWTpWqlDAg7gA4
+         HLnE2cq779xXzCv67vCcGZPij0HutKvfNSxZfHYdbJj1vw9cVM0XUHYBWrNoOxViglDK
+         U9Ke5lvKp6UnjS9SnFoLVtW00sv33oYi6PjeZy4whDO8K5TybpTyryG1wky1QshlhlvD
+         CsvHRLmRbOgVtVlZUrWqxZ9iGqQwpSwvrXK0D7tz2L27SkCpYoelu1LAkKbfzcAT3wH8
+         RdKoerBeg0WqKqA7IhFkiiFPNdQRSiyYoulvKBkBO/6WhMweXGP6rEpb1FqwzDz2KFdZ
+         vUgg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793973741; x=1794578541;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=3gDlvZK/KSG16idOi9JjnT7Pe/XLQwbqGEv25TbSfLU=;
+        b=obQOmPXR2NVA05kLcp7qQ8mBZJTpSLcIPcjzvSjuYndzxgbELrKXREmtXMnwSE0IU8
+         b1SGt+23dlv30NKtbTVG5CDh6T8lcn0+oTzmhOlSkNZL2kWt4WqQ3PEemd91bJkY+Cfw
+         LNb6NzUIJosnpyRTGdg67pmKy1pxOcN0CQUgz9Hx2WkhpGSfcJPuX3FKW/vGkGD3Z+My
+         VmYiwYrOGOxmfYRjCCTwHQE22EMdp6xqliejAH8VXF6QIqDceUeTd/xsIcBaaktwMq2T
+         oA00pZ8ErhShamJNT7DRTVau7tTRG5okHl8IegroNtP7xgSOdvoDX2R5fE46pz2dOuhT
+         zmMQ==
+X-Gm-Message-State: APuU4Z9ZbMkOHrlEGvPYaXz9e76vFnde8mnFvVC3+jWXTSI2dATkpIpC
+	EhvpIdZRohXtBucPtoNw6vLssoAcf4TuHlnTJfPTs0MW4HLpEeRt+TT4vj8kS6U0Qrtl9+BKKfy
+	dRPO38RcgPIqI+r9Xn4n3TezPXh6ZbPgHr4l7RQ==
+X-Gm-Gg: AYBFou2PFobCHhkHrysTLRp//yoACkYyJ5R+X+4xLLi99+khfe3TL9GeNDCS60p20un
+	dpxoVNzyWbkjfJ9uwnLG6jViJ1vvxYgjcdoeqv8G9VkoUI6kpDsV/aXHo+SgxwkPMjK4lQrH7hI
+	VS3AJ5A6U00d6f7xXA3DTiBv4m1tuOxjncmy6zaF03DSP0hHbxCqCCpN4Of0QerByYUF5JCSTqF
+	f4IV1I5m1DIDbE2vIGhAOX/m83Th62ZFESNY311xfP+qKHHvP+q8zWC6wETXEBTHz8AsLK+U/kf
+	OM4DDGKNYDulDa0XnXCHGqZNOIA89GhYakiPT2TzCzcg8Ji7jYyZJJbCREF5GVncuuHuFr3Do+0
+	y8a67gKnlJ4OzDNu/EYQZC6V1EHsaflGXSnPwL4v27jH4YWN3XqW2kBg3zR89zJp3yGgrthSIYL
+	7/XpHZATXswxjplrqYWHSfiN0H8tCUcbXW0jUeMX3HsMgvrRQHl73iBWXVCEBueUnvbqJBROP2l
+	vTQ6D6QPuGkANGfg2Ou4SLwT8RezCqEsKwQ6RVYH5ptjUPrgkWQUilBF7dfdX1u0wv2pA==
+X-Received: by 2002:a05:7301:d80c:b0:36f:550f:bb0d with SMTP id
+ 5a478bee46e88-36f727d59ffmr3654501eec.5.1793973740423; Fri, 06 Nov 2026
+ 06:02:20 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,213 +105,152 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAPGrzGkjouOeqOcy4pXbBgx58DWvZpqK8ppuChPsDsXKvxp4RA@mail.gmail.com>
+ <au28uheXr_lsEhzY@chamomile> <CAPGrzGmyVKDYsQV1vyN-K5Y6FJ9U+T_DvkDXnR6Ju0W-5Bk=dQ@mail.gmail.com>
+ <au3cjRvFU0Iks-WW@chamomile>
+In-Reply-To: <au3cjRvFU0Iks-WW@chamomile>
+From: "S.S.Vikash" <arisivikash@gmail.com>
+Date: Fri, 6 Nov 2026 14:02:07 +0000
+X-Gm-Features: AclHuK_s9PYqC80hTXEcVUWZFT3GNyQkKfNssOv8iGgRTzbJGez26-OAfzd203o
+Message-ID: <CAPGrzGmHvNaLrHyrGx9nC53jahXraxNXUp=m6YYEtkLRbDwJQg@mail.gmail.com>
+Subject: Re: [RFC] netfilter: conntrack: early_drop eviction limitation under
+ sparse table configurations (max << buckets)
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
-binding") breaks hardware offload by unbinding the flow_block too early,
-this results in leaving entries in the hardware. Any pending offload
-work will be ignored because there is no flow_block anymore in place.
+Hi Pablo,
 
-This patch restores the strategy followed by commit 5acab91458ce
-("netfilter: nf_tables: unbind callbacks from flowtable destroy path")
-by performing the flow_block unbind command from the destroy path, right
-before the hook is released.
+Thanks for the suggestion. I've submitted a documentation patch
+describing the early eviction limitation with sparse hash tables.
 
-Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 82 +++++++++++++++++++++++------------
- 1 file changed, 55 insertions(+), 27 deletions(-)
+Patch: https://lore.kernel.org/netfilter-devel/20261106135816.391285-1-this=
+isforspotifyvikash@gmail.com/
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 34f766330838..f95f4da0f390 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -373,6 +373,23 @@ static void nft_netdev_hook_free_rcu(struct nft_hook *hook)
- 	call_rcu(&hook->rcu, __nft_netdev_hook_free_rcu);
- }
- 
-+static void nft_flowtable_hook_unlink_free_rcu(struct nft_flowtable *flowtable,
-+					       struct nft_hook *hook)
-+{
-+	struct nf_hook_ops *ops;
-+
-+	/* This unbind command needs to come this late, otherwise offload
-+	 * worker finds no flow_block and entries are not cleaned up from
-+	 * hardware.
-+	 */
-+	list_for_each_entry(ops, &hook->ops_list, list) {
-+		flowtable->data.type->setup(&flowtable->data, ops->dev,
-+					    FLOW_BLOCK_UNBIND);
-+	}
-+	list_del_rcu(&hook->list);
-+	nft_netdev_hook_free_rcu(hook);
-+}
-+
- static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
- {
- 	list_del_rcu(&hook->list);
-@@ -9025,12 +9042,9 @@ nft_flowtable_type_get(struct net *net, u8 family)
- 
- /* Only called from error and netdev event paths. */
- static void nft_unregister_flowtable_ops(struct net *net,
--					 struct nft_flowtable *flowtable,
- 					 struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hook(net, ops);
--	flowtable->data.type->setup(&flowtable->data, ops->dev,
--				    FLOW_BLOCK_UNBIND);
- }
- 
- static void __nft_unregister_flowtable_net_hooks(struct net *net,
-@@ -9042,7 +9056,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- 
- 	list_for_each_entry_safe(hook, next, hook_list, list) {
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 
- 		hook->flags |= NFT_HOOK_UNREGISTERED;
- 	}
-@@ -9113,14 +9127,23 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			if (i-- <= 0)
- 				break;
- 
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 		}
--		nft_netdev_hook_unlink_free_rcu(hook);
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
- 	}
- 
- 	return err;
- }
- 
-+static void nft_flowtable_hooks_destroy(struct nft_flowtable *flowtable,
-+					struct list_head *hook_list)
-+{
-+	struct nft_hook *hook, *next;
-+
-+	list_for_each_entry_safe(hook, next, hook_list, list)
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
-+}
-+
- static void nft_hooks_destroy(struct list_head *hook_list)
- {
- 	struct nft_hook *hook, *next;
-@@ -9130,20 +9153,16 @@ static void nft_hooks_destroy(struct list_head *hook_list)
- }
- 
- static void nft_flowtable_unregister_trans_hook(struct net *net,
--						struct nft_flowtable *flowtable,
- 						struct list_head *hook_list)
- {
--	struct nft_trans_hook *trans_hook, *next;
-+	struct nft_trans_hook *trans_hook;
- 	struct nf_hook_ops *ops;
- 	struct nft_hook *hook;
- 
--	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
-+	list_for_each_entry(trans_hook, hook_list, list) {
- 		hook = trans_hook->hook;
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
--
--		nft_netdev_hook_unlink_free_rcu(hook);
--		nft_trans_hook_destroy(trans_hook);
-+			nft_unregister_flowtable_ops(net, ops);
- 	}
- }
- 
-@@ -9229,10 +9248,9 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
- 		if (unregister) {
- 			list_for_each_entry(ops, &hook->ops_list, list)
--				nft_unregister_flowtable_ops(ctx->net,
--							     flowtable, ops);
-+				nft_unregister_flowtable_ops(ctx->net, ops);
- 		}
--		nft_netdev_hook_unlink_free_rcu(hook);
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
- 	}
- 
- 	return err;
-@@ -9358,7 +9376,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 	synchronize_rcu();
- 	nft_trans_destroy(trans);
- err_flowtable_trans:
--	nft_hooks_destroy(&flowtable->hook_list);
-+	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
- err_flowtable_parse_hooks:
- 	flowtable->data.type->free(&flowtable->data);
- err3:
-@@ -9754,7 +9772,7 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- {
- 	flowtable->data.type->free(&flowtable->data);
--	nft_hooks_destroy(&flowtable->hook_list);
-+	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
- 	kfree(flowtable->name);
- 	module_put(flowtable->data.type->owner);
- 	kfree(flowtable);
-@@ -9829,10 +9847,9 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
- 				continue;
- 
- 			/* flow_offload_netdev_event() cleans up entries for us. */
--			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
--				nft_unregister_flowtable_ops(dev_net(dev),
--							     flowtable, ops);
--			}
-+			if (!(hook->flags & NFT_HOOK_UNREGISTERED))
-+				nft_unregister_flowtable_ops(dev_net(dev), ops);
-+
- 			list_del_rcu(&ops->list);
- 			kfree_rcu(ops, rcu);
- 			break;
-@@ -10296,8 +10313,18 @@ static void nft_commit_release(struct nft_trans *trans)
- 		break;
- 	case NFT_MSG_DELFLOWTABLE:
- 	case NFT_MSG_DESTROYFLOWTABLE:
--		if (!nft_trans_flowtable_update(trans))
-+		if (nft_trans_flowtable_update(trans)) {
-+			struct nft_trans_hook *trans_hook, *next;
-+
-+			list_for_each_entry_safe(trans_hook, next,
-+						 &nft_trans_flowtable_hooks(trans), list) {
-+				nft_flowtable_hook_unlink_free_rcu(nft_trans_flowtable(trans),
-+								   trans_hook->hook);
-+				nft_trans_hook_destroy(trans_hook);
-+			}
-+		} else {
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
-+		}
- 		break;
- 	}
- 
-@@ -11234,7 +11261,6 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   &nft_trans_flowtable_hooks(trans),
- 							   trans->msg_type);
- 				nft_flowtable_unregister_trans_hook(net,
--								    nft_trans_flowtable(trans),
- 								    &nft_trans_flowtable_hooks(trans));
- 			} else {
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
-@@ -11307,10 +11333,12 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		nft_obj_destroy(&ctx, nft_trans_obj(trans));
- 		break;
- 	case NFT_MSG_NEWFLOWTABLE:
--		if (nft_trans_flowtable_update(trans))
--			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
--		else
-+		if (nft_trans_flowtable_update(trans)) {
-+			nft_flowtable_hooks_destroy(nft_trans_flowtable(trans),
-+						    &nft_trans_flowtable_hooks(trans));
-+		} else {
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
-+		}
- 		break;
- 	}
- 	kfree(trans);
--- 
-2.47.3
+Thanks,
+Vikash
 
+On Fri, Nov 6, 2026 at 1:56=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.o=
+rg> wrote:
+>
+> On Fri, Nov 06, 2026 at 11:52:47AM +0000, S.S.Vikash wrote:
+> > Hi Pablo,
+> >
+> > I understand your point about the suboptimal configuration.
+> >
+> > I came across this behavior while experimenting with conntrack and
+> > investigated the source to understand why it was happening.
+>
+> OK, looks like a LLM finding then.
+>
+> > I'm relatively new to kernel development, so I appreciate the guidance
+> > on what would be useful upstream.
+> >
+> > I'll start with the documentation improvement.
+>
+> Yes, thats sufficient. I don't see the need to improve the situation
+> for a suboptiomal configuration like the one described in this
+> scenario.
+>
+> Thanks.
+>
+> > Thanks for your time!
+> >
+> > On Fri, Nov 6, 2026 at 11:40=E2=80=AFAM Pablo Neira Ayuso <pablo@netfil=
+ter.org> wrote:
+> > >
+> > > On Fri, Nov 06, 2026 at 04:23:08PM +0530, S.S.Vikash wrote:
+> > > > Hi,
+> > > >
+> > > > While investigating connection tracking exhaustion behavior under a=
+ spoofed
+> > > > SYN flood, I observed that the effectiveness of early eviction in
+> > > > net/netfilter/nf_conntrack_core.c:early_drop() degrades significant=
+ly when
+> > > > nf_conntrack_max is configured to be substantially smaller than
+> > > > nf_conntrack_buckets.
+> > > >
+> > > > Setup & Reproduction:
+> > > > - Host kernel: Linux 6.14 (Proxmox host)
+> > > > - Workload: Conntrack table saturated with non-ASSURED, unreplied T=
+CP
+> > > >   connections generated by spoofed SYN traffic.
+> > > > - Test: Verifying whether an inbound, legitimate SSH connection can=
+ be
+> > > >   established while the table is at capacity.
+> > > >
+> > > > Results observed:
+> > > >
+> > > > nf_conntrack_max       |   nf_conntrack_buckets     |     New SSH C=
+onnection
+> > > > ------------------------------+-----------------------------------+=
+----------------------------------
+> > > >               4096              |              262144
+> > > > |         Failed (drops)
+> > > >               4096              |              4096
+> > > >   |         Established
+> > > >               65536            |              262144
+> > > > |         Established
+> > > >               262144          |              262144                =
+  |
+> > > >         Established
+> > > >
+> > > > Root Cause Analysis:
+> > > > In early_drop(), the kernel examines at most NF_CT_EVICTION_RANGE (=
+8)
+> > > > consecutive hash buckets starting from the calculated hash index.
+> > > >
+> > > > With nf_conntrack_max=3D4096 and nf_conntrack_buckets=3D262144,
+> > >
+> > > makes no sense to make to configure it in this way, there are well
+> > > define rules aiming at maintaining O(1) in hashtables and this
+> > > configuration is clearly suboptimal.
+> > >
+> > > > the hash table
+> > > > is sparsely populated. Since early_drop() examines only eight conse=
+cutive
+> > > > buckets, it can fail to locate an eligible entry even when many non=
+-ASSURED
+> > > > connections remain in the table. This appears consistent with the c=
+onnection
+> > > > failures observed during testing.
+> > > >
+> > > > When the bucket count is reduced or when the table density is incre=
+ased,
+> > > > early eviction succeeds reliably and permits legitimate inbound con=
+nections.
+> > > >
+> > > > Proposed Improvements:
+> > > > I am interested in addressing this behavior upstream and would appr=
+eciate
+> > > > feedback on which direction would be most useful:
+> > > >
+> > > > 1. Diagnostic:
+> > > >    Warn (e.g., via pr_warn_once()) when nf_conntrack_max is configu=
+red to be
+> > > >    significantly lower than nf_conntrack_buckets via sysctl, notify=
+ing the
+> > > >    operator that early_drop() heuristics may become ineffective und=
+er load.
+> > > >
+> > > > 2. Documentation:
+> > > >    Update Documentation/networking/nf_conntrack-sysctl.rst to docum=
+ent the
+> > > >    tuning implications of sparse hash tables on early eviction.
+> > >
+> > > Documentation is good to have, I would suggest you start with this.
+> > >
+> > > > 3. Algorithmic:
+> > > >    Investigate a bounded improvement to candidate selection in spar=
+se tables
+> > > >    without introducing unacceptable CPU overhead on the drop path.
+> > >
+> > > You mean, to improve the situation for this suboptimal configuration?
+> > >
+> > > > I'm happy to prepare a patch or provide additional test measurement=
+s based
+> > > > on the discussion.
+> > > >
+> > > > Thanks,
+> > > > Vikash SS
