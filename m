@@ -1,63 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.166.143.175
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.125.25.15
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793992754;
-	b=rupsQh4UUlmiFpt2Q/2NfVB36KuyuOw/xqp5bkonEFpvFO3oCrG/LmXLy9vDYMFIAt9C
-	 MzBgrx6bEFcmojbcMeWy9S8ALPh+1wAqEqQJlwWrXZ6QED8cU/MlsBz6Qg6oBW3bG6xVO
-	 yj5RntGyU/unZ6Kipx5xqPFqrFcrjHolYk0gYOl/X7FFa5U7t7te1yOp2Xv0Zn9fuf2Z7
-	 /SzpF5za25euA/EDLLoZyHQbKF5IXFDYjZDPrEuyKpCtQ/hmf2LDeXcamBsgaExIueVAE
-	 YPMU4O9D/gMgZde+6EDIc6ygFLZTUg+zCqWLyucNTB0A9+CLv0ZydaiE4oMQQwgfZ7A==
+	t=1793992752;
+	b=2m6CVxcRSGjbehwSULa4GO79so622faNyn518vSlJePqHdGk33Wqf/VJmWz8LRk4nBvM
+	 gvS+dEymqOBdwZRxSLFlhY4CqBCWNOGUNqBnsRPeG3olwrT6EZ5vqXJf2el93fiolH4xI
+	 H4GbCPkhfRh5PoJGon/MOmi1GPfUylBVVAZFKOHy5H6hRujVpm2AjT2TgHn8+Y7tBzcu4
+	 bpalAqjOOruGxWS9RfFU6PtYmIfVRwFvtosyz1rNr9BepT8JTmkIZyEFWoYhsUKu0cJuC
+	 opEUSdy/RS4dduoR7uH5sQi2lbYqjDCmUL77aYSDvzWLYmjEjowFbFkR55SHwv+wkhQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793992754;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793992752;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Infomaniak-Routing;
-	bh=HxmHfyMSwn6PhQMK4EppFIclDbwrTkrpc+VBBe29gOA=;
-	b=5lO1ambcOkhBEcfb/C/UPbeTseEdwJRAHj7qtWscEyFiofFvPb3yXDP8RVSHcRntSLxA
-	 4E/ZzuoOUgbtnq8U7sXfjHbqOP/Wd6Qhg7X0qTwl5kfPVQCR84jnPYWlWGKwSSmm4mDh1
-	 prCREVdwNVVtkLhn+InKSEHpmyLh+Bemz8FXp0JaKwM21W6K7g3NtSLZjoNNZdUCWE7xB
-	 jDkggLjmGilEbKmqjylXYbcqztggdlr1kgYOWC+7TXyZP3FSaO69KlvPTN2ijFvjKEkkT
-	 xDfVrPIdMzxfStBKPgpVchWq3h1pvpfYSQ27YP2a8F3l0D74ceNaq0dznvxsvCo+rvw==
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Infomaniak-Routing;
+	bh=j4X4UcJrCKMHbetOFASwsBfb0nlhEvLHQLADZ6u5e1g=;
+	b=NHicAtJedlOnie0baq6dZL4jdHng92OcIglN4sxI7Khb7l6xleFdNTwlzxwxMBQzlALn
+	 QZQ6swGaUDA5tpY7KilTrxHgR02orgmjhdq4aP/Otw2ZMqbk9JMQ5W9P26D28SKpHiyBK
+	 4zgF03rUJbwtt1qkw0an81Z2tpcH+AVYks/zvlJm47fEbVSk1N2EzVtDpofWxe57IR0ah
+	 UNAjimip71Lt5nl2QTsHqqm5q62Srw6wwu6YSWwZV7cr+2oz/NbTahaCCImnYcMsMIksj
+	 7V/VroljzlR4Lbo0TELfC3qa0RbbxGbGrOrHAC83/Z0UMoQ1QAL0QHUI7dCt1akX+iA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=harvester.fr;
 	spf=pass smtp.mailfrom=harvester.fr;
-	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=sazyEw5i;
-	arc=none smtp.remote-ip=83.166.143.175
-Received: from smtp-8faf.mail.infomaniak.ch (smtp-8faf.mail.infomaniak.ch [83.166.143.175])
+	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=DisP61kH;
+	arc=none smtp.remote-ip=185.125.25.15
+Received: from smtp-190f.mail.infomaniak.ch (smtp-190f.mail.infomaniak.ch [185.125.25.15])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BBE3606A337
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 19:19:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9BBE3606A337
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE834606A32C
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 19:19:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE834606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=sazyEw5i
+	dkim=pass (2048-bit key, unprotected) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=DisP61kH
 Received: from smtp-4-0000.mail.infomaniak.ch (smtp-4-0000.mail.infomaniak.ch [10.7.10.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jLprV2kKZzTLp;
-	Fri,  6 Nov 2026 20:19:06 +0100 (CET)
+	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jLprR0DgPzRnC;
+	Fri,  6 Nov 2026 20:19:03 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=harvester.fr;
-	s=20260519; t=1793992746;
-	bh=HxmHfyMSwn6PhQMK4EppFIclDbwrTkrpc+VBBe29gOA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=sazyEw5iqCpiXOVNG8aXZc2AFQE6Vh4c9lfwI32Ag3uIKT/kT7a5MHkPFFwKnXDlU
-	 ipY/ANRRGXho/IrMrdeO2qxqadgFrREhn43XfyL8CAYYv5CQOzuq3H9WgAVM4rZokn
-	 oKyTohF7R2HWSet3lOWe0+PofFwXDygVSAiTrow5Y70ITkNmj6Ko2bSKeVdyIKnmTU
-	 UEiiRh7GBk1nRcGSMwo/Vel9ak2zImR6B9Uw2ubM0KzZpzx9vmq4HH0im48MvK62i1
-	 lo1WN1hvxWy+KbJWBZeKVjNhskhfGwCwDR2cHXIYNTagrWBLD0XOny6nmNDc9o98gc
-	 zD+nUVf/LRwoA==
-Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jLprT459HzRyt;
-	Fri,  6 Nov 2026 20:19:05 +0100 (CET)
+	s=20260519; t=1793992742;
+	bh=j4X4UcJrCKMHbetOFASwsBfb0nlhEvLHQLADZ6u5e1g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=DisP61kHZ5By+H0cI4pwDrk4Fb4VDw/4MhJHiR+X+FBvVLFx4q44Al8lUOg/OCH9f
+	 BhfFUEEsbO7evV32oFPi2SAGncWObByv7OnD9IE/o7ML/Qej3d6bwBGQr8FBiv5jBI
+	 fkEXayQ/MEWBlMy7qsaqRlJufs6rERNGHEe5DFFgPlEft9Eq66Ifu1sp5iPw+yVif2
+	 pxgMErje4+LyfgrYGILqurvZInPt0D0SnybPAOsZ4fN6S2PI9yB6sjwPqLT2QiQFnQ
+	 +ytuQEh9IvXPFyuSC6StNlTrPIMrAAY8OT/u8Ffeubc9/tEfLhw7ZK9bHWHTthhl4A
+	 vL1gTSQSClxnQ==
+Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jLprQ0hJdzRsv;
+	Fri,  6 Nov 2026 20:19:02 +0100 (CET)
 From: Florian Stosse <florian.stosse@harvester.fr>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Stosse <florian.stosse@harvester.fr>
-Subject: [PATCH libmnl 5/5] callback: avoid signed overflow on INT_MIN error code
-Date: Fri,  6 Nov 2026 20:18:40 +0100
-Message-ID: <20261106191841.1645-6-florian.stosse@harvester.fr>
+Subject: [PATCH libmnl 0/5] libmnl: fix memory safety issues found by static analysis
+Date: Fri,  6 Nov 2026 20:18:35 +0100
+Message-ID: <20261106191841.1645-1-florian.stosse@harvester.fr>
 X-Mailer: git-send-email 2.56.0.windows.4
-In-Reply-To: <20261106191841.1645-1-florian.stosse@harvester.fr>
-References: <20261106191841.1645-1-florian.stosse@harvester.fr>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -70,40 +68,53 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Infomaniak-Routing: alpha
 
-mnl_cb_error() negates the error field of an NLMSG_ERROR message to get
-a positive errno. For INT_MIN the negation overflows, which is undefined
-behaviour. No errno has that value, so report the message as malformed
-with EBADMSG instead.
+Hi,
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-Signed-off-by: Florian Stosse <florian.stosse@harvester.fr>
----
+This series fixes five bugs found while analysing libmnl with Frama-C
+(Eva, WP and E-ACSL-instrumented fuzzing). Each one was then confirmed
+on current master with a small standalone program under ASan/UBSan.
+
+None of them can be triggered by netlink data received from the kernel
+through the usual parsing path. They all need a caller that uses the
+API in a less common, but valid or near-valid, way, so I am sending
+them as ordinary fixes.
+
+Patch 1 is the most relevant one. When the message that overflowed a
+batch is larger than the messages already in it, mnl_nlmsg_batch_reset()
+memcpy()s it onto an overlapping range and then reads nlmsg_len back
+from the overwritten location. With limit = 100, a 20-byte message
+followed by a 92-byte one leaves mnl_nlmsg_batch_size() returning
+0x97969594 on glibc/x86-64, and the next mnl_nlmsg_batch_next() uses
+b->buf + 0x97969594.
+
+Patches 2 and 3 fix out-of-bounds accesses on unusual input:
+- The *_check() builders compare the unaligned nlmsg_len against
+  buflen while the attribute is written at MNL_ALIGN(nlmsg_len), so
+  they can write up to 3 bytes past the buffer.
+- mnl_attr_get_payload_len() wraps for nla_len < 4, which makes
+  mnl_attr_parse_nested() read past the end of the nest.
+
+Patches 4 and 5 are minor:
+- mnl_nlmsg_fprintf() can read up to 3 bytes past an unaligned message.
+- mnl_cb_error() can compute -INT_MIN.
+
+I can send the reproducers if they are useful.
+
+Thanks,
+Florian
+
+Florian Stosse (5):
+  nlmsg: fix overlapping copy in mnl_nlmsg_batch_reset()
+  attr: account for alignment padding in the *_check() builders
+  attr: do not wrap mnl_attr_get_payload_len() for nla_len < 4
+  nlmsg: do not read past nlmsg_len in mnl_nlmsg_fprintf()
+  callback: avoid signed overflow on INT_MIN error code
+
+ src/attr.c     | 7 +++++--
  src/callback.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ src/nlmsg.c    | 8 +++++---
+ 3 files changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/src/callback.c b/src/callback.c
-index 703ae80..660c90a 100644
---- a/src/callback.c
-+++ b/src/callback.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <errno.h>
-+#include <limits.h>
- #include <libmnl/libmnl.h>
- #include "internal.h"
- 
-@@ -25,7 +26,9 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
- 		return MNL_CB_ERROR;
- 	}
- 	/* Netlink subsystems returns the errno value with different signess */
--	if (err->error < 0)
-+	if (err->error == INT_MIN)
-+		errno = EBADMSG;
-+	else if (err->error < 0)
- 		errno = -err->error;
- 	else
- 		errno = err->error;
 -- 
 2.56.0.windows.4
 
