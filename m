@@ -1,50 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793976968;
-	b=xW6VUMyhUaRQbazt9L8Qk2T44bqeUxVWYMh70dA74E3zj9XNieLplGOnn03u6hc1TkwS
-	 877Gc0gYpJQT+qlGGiQ3E3/tvoqjxF/5q9r+iOdJVuc6GTlngYQvpGjYzVq/QfNM+ENht
-	 ITFnmMNJPNDVNpkdMD9MQfqM1jnRXnE991ZkoufFIPC8eU0hQji2EGYEIl1hhYxJxCUsN
-	 H4+XwgdQCmgArU7NvUWTT50Mws4zxef8eu0OGKGm9YsHXx5B1fln3miPBKfCnAfsDUzDz
-	 20e1HJL1gzjMRvX+lo0pdt+rZFBtBuxoOJKM2uNSGMPyL/t4mZlcnGmjZ1+5R0Vo9hg==
+	t=1793979502;
+	b=aPtJz/vSUVUc72jburTIyoC/IXKFRHrvi1bMxqtLem59EHnQU4bW5yAM8wEzY9nTHq90
+	 RpK32tsH2mIWBKjDM+DcOmX514jrFzChv6unuxg6fRqBVSbk5Hf0XO4ZAgAhjflZO4dYZ
+	 MyJQrI2yZZJiIZVVnmDCzeTNJo5O9XIYJZTuwrpn/3b/ccmhsaubFWrq6ZJB9yoZnp8mO
+	 6OGoGDqHCzLIcbxcb8wYS8VQY66GV+Zb6dHkVteGkEme/Y7LPXxAQQGTsG96j08YlUhwd
+	 afKmNk8OeB+eg1tjHvemRbdf3eJ4vjS4sFgArr/kaoxM+6IcOHNAQHI55EtOkbJnjvA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793976968;
-	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:
-	 Content-Transfer-Encoding:In-Reply-To;
-	bh=44Kq5PAoWNdUJGo1lbLbuFxYrkrQuyX17K7NNzXNArw=;
-	b=kxAEkYCqiqX8fRPlPxxMJ7QDsyWGH3tPSRqgpe3VKPDNm5YZBYy5tH9kVUZtFqBOABkk
-	 5WZ3rhetKecSs19CHlBPCaBv97y7OhF65R+RVv7AoBPV20jKAnbXhgOGyO9KaiI3DNww2
-	 x2TIB82bQhz+iMRMfuqPWXO0TCoXvYALYHOn6ou46qquUuXR2N7pK9Lzca5QNCx81drgd
-	 2YySwME2C7gd/2NjqNWy1+PJue8/yGb8X/Th9nRKZFR1KDDiBQGJCtBA3ZdOz16DpuWwC
-	 GpHn5Tly3CljvN8UvgZTC1tTfNTLsyCuznqm2hSYPKZSr77LTPe40GnLTNh4Z26uupA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793979502;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=3zthRh5eb5tH9Hm4BmszFKqhI9imEV6YDUQt/8OTH38=;
+	b=139U9VDb2ysMVUIJpKL227eh+B5E07FCX9L3RRBKMXUCWqRWeQYfGT5npRXQZt4HygjN
+	 Fw8j1PUWDlrOaLhpwgAOU10uR2S+gWOXU7Alplb8A8tX5wAfGlehOtIWu3yVRz3vAEQHj
+	 3k1zwIf+/NN0FN9p/+3KrXXmuP8ARPafdVZCJDDcEbhm0dFxERbz9LKP1TkE+WqXphR+G
+	 8q55oX/8bM9IZIOD2hF/VdFStDYrbVXTvEz78Xfd4Y4Cf/ULt/becB9CpIUQ2ScF+up4v
+	 y/lm74+zyIXeU8tLpXrgCD38DEBTIlvqcdRq0V2lAQx0hXbMqp3iS2zEFPniZcifzoQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
-	spf=pass smtp.mailfrom=strlen.de;
+	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
 	arc=none smtp.remote-ip=91.216.245.30
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2805C606A326;
-	Fri,  6 Nov 2026 14:56:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2805C606A326
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE205606A326
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 15:38:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AE205606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9ECA36060B; Fri, 06 Nov 2026 15:55:58 +0100 (CET)
-Date: Fri, 6 Nov 2026 15:55:52 +0100
+	id 811846060B; Fri, 06 Nov 2026 16:38:19 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
-To: Alireza Asgari <alireza@asgari.net>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	kunit-dev <kunit-dev@googlegroups.com>
-Subject: Re: [PATCH RFC net 0/3] netfilter: nfnetlink_queue: handle packet ID
- reuse and large gaps
-Message-ID: <au3qeEf0LVzO84d3@strlen.de>
-References: <20261106-nfqueue-review-v1-0-b6c933f44943@asgari.net>
- <au1difVZWMSV78wV@strlen.de>
- <1a1b040da34.2a9c00de770859.6266910270967560587@asgari.net>
+To: <netfilter-devel@vger.kernel.org>
+Cc: herbert@gondor.apana.org.au,
+	kadlec@netfilter.org,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v7 0/6] ipset: replace internal hash table with rhashtable
+Date: Fri,  6 Nov 2026 16:38:02 +0100
+Message-ID: <20261106153808.25148-1-fw@strlen.de>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -54,47 +49,69 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1a1b040da34.2a9c00de770859.6266910270967560587@asgari.net>
 
-Alireza Asgari <alireza@asgari.net> wrote:
-> Thanks for the review.
-> 
-> I understand that batch verdicts are intended to be used in strict sequence. The scenarios motivating this RFC did not establish a failure under that usage model, and the evidence presented does not justify the additional epoch and missing-boundary handling.
-> 
-> I’ll drop the current series. I also understand that the proposed collision disposition being reasonable does not by itself establish a need for the duplicate-ID guard. I would revisit that separately only if I can provide a concrete use case.
-> 
-> Thanks for taking the time to review it.
+v7:
+- drop rhltable entirely, we need to insert at right location, not just
+  the head of the list
+- the initial rhashtable conversion now removes MULTI support,
+  re-added in extra patch that is new in this series.
+- re-target nf-next
 
-If you want to work on something else that is actually a problem, then
-you could investigate the mem exhaustion issue.
+See patches for details for changes since v6.
 
-The current limitation is queue length based, this is very old from
-a time when GSO/TSO aggregate skbs did not exist.
+I did extensive LLM reviews of this thing, but by now noise outweights the
+signal by far, with successive rounds often giving contradicting hints.
+This passes ipset tests, like previous versions of this patchset.
 
-Untested idea:
+1) Add rhashtable_flush_and_free, From Herbert Xu.
+The initial user of this function is added in patch 3.
 
-1. compute a memory size limit based off the old NFQA_CFG_QUEUE_MAXLEN:
-   sizeof(sk_buff shell structure) + 2048 (half a 4k page).
-2. store skb->truesize in the entry struct when queueing.
-3. charge the truesize to the queue entry (and uncharge on reinject).
-4. in addition to the queue length check, also check if the new
-   skb->truesize would bring us over the limit, refuse queueing if thats
-   the case.
-5. Make sure NFQA_CFG_QUEUE_MAXLEN updates continue to work.
+2) Add rhashtable boilerplate stubs to ipset. Implement its initialization
+and destruction logic.
 
-This leaves on major issue: userspace can request 64k queues, so these
-limits don't help.
+3) Replace ipset internal hash tables with rhashtables.
+This drops functionality, in particular, MULTI sets will not work
+correctly.  This is restored in patch 5.
 
-One possible solution:
-1. For init netns, no changes.
-2. For non-init netns:
-   at queue creation time resp. when limit is altered, pre-charge
-   the worst case occupancy to kmemcg.
+4) Report dynamic CIDR storage memory size to userspace.
 
-Refuse queue creation if that fails.
-Ideally this could be split into several patches to ease review.
+5) Reimplement hash:net,iface (IP_SET_HASH_WITH_MULTI) using a
+group-of-elements structure with explicit exact-over-wildcard match
+priority. Update gc, list, flush, and destroy paths for the extra group
+level.
 
-Thanks.
+6) Restore SET_WITH_FORCEADD eviction support to netfilter ipset. Add
+mtype_remove_random() helper to facilitate element eviction during
+additions.
+
+Florian Westphal (5):
+  netfilter: ipset: add rhashtable boilerplate stubs
+  netfilter: ipset: replace internal hash table with rhashtable
+  netfilter: ipset: also report mem size for cidr storage to userspace
+  netfilter: ipset: re-add IP_SET_HASH_WITH_MULTI support
+  netfilter: ipset: re-add forceadd support
+
+Herbert Xu (1):
+  rhashtable: Add rhashtable_flush_and_free helper
+
+ include/linux/rhashtable.h                   |   40 +-
+ lib/rhashtable.c                             |  186 +-
+ net/netfilter/ipset/ip_set_hash_gen.h        | 2138 ++++++++++--------
+ net/netfilter/ipset/ip_set_hash_ip.c         |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipmac.c      |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipmark.c     |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipport.c     |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipportip.c   |    6 +-
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  |    6 +-
+ net/netfilter/ipset/ip_set_hash_mac.c        |    3 +-
+ net/netfilter/ipset/ip_set_hash_net.c        |    6 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c   |   74 +-
+ net/netfilter/ipset/ip_set_hash_netnet.c     |    6 +-
+ net/netfilter/ipset/ip_set_hash_netport.c    |    6 +-
+ net/netfilter/ipset/ip_set_hash_netportnet.c |    6 +-
+ 15 files changed, 1440 insertions(+), 1061 deletions(-)
+
+-- 
+2.56.0
+
