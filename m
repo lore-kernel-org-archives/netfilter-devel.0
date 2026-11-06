@@ -1,61 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.125.25.15
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=84.16.66.170
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1793992752;
-	b=2m6CVxcRSGjbehwSULa4GO79so622faNyn518vSlJePqHdGk33Wqf/VJmWz8LRk4nBvM
-	 gvS+dEymqOBdwZRxSLFlhY4CqBCWNOGUNqBnsRPeG3olwrT6EZ5vqXJf2el93fiolH4xI
-	 H4GbCPkhfRh5PoJGon/MOmi1GPfUylBVVAZFKOHy5H6hRujVpm2AjT2TgHn8+Y7tBzcu4
-	 bpalAqjOOruGxWS9RfFU6PtYmIfVRwFvtosyz1rNr9BepT8JTmkIZyEFWoYhsUKu0cJuC
-	 opEUSdy/RS4dduoR7uH5sQi2lbYqjDCmUL77aYSDvzWLYmjEjowFbFkR55SHwv+wkhQ==
+	b=u+X6pR4flil0gHEIMIB5P+/l6FkrSzHD+zusOPZtChdeCiCTa75rpvlThxFXdeNHQ9Pu
+	 PoQXx9gbPLryK/Np9ym83YawsPlXs8aHPv0hv1n5ryME3gQ7N+8CAdOw9Pzw/kv1QWHL5
+	 PftNsvQJSnIJaZg8RGO0m2FeMLWgyQSv3NdWQ45C8NCVvLsggRZnfdebsl89RGH9uIbOq
+	 lC+VwMdlW9ZHQy651hILFsUZ2bQsOYnTCPaF+GIIDCdtOEeNW3SI9MoiKG+WANR3gWAnf
+	 nxMHxxD8NJeuOngMosjkjnpctb1hSrR7GbgaP/aGlBwO6zWSiQZ3KN9oyh1Uqn1YJYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1793992752;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Infomaniak-Routing;
-	bh=j4X4UcJrCKMHbetOFASwsBfb0nlhEvLHQLADZ6u5e1g=;
-	b=NHicAtJedlOnie0baq6dZL4jdHng92OcIglN4sxI7Khb7l6xleFdNTwlzxwxMBQzlALn
-	 QZQ6swGaUDA5tpY7KilTrxHgR02orgmjhdq4aP/Otw2ZMqbk9JMQ5W9P26D28SKpHiyBK
-	 4zgF03rUJbwtt1qkw0an81Z2tpcH+AVYks/zvlJm47fEbVSk1N2EzVtDpofWxe57IR0ah
-	 UNAjimip71Lt5nl2QTsHqqm5q62Srw6wwu6YSWwZV7cr+2oz/NbTahaCCImnYcMsMIksj
-	 7V/VroljzlR4Lbo0TELfC3qa0RbbxGbGrOrHAC83/Z0UMoQ1QAL0QHUI7dCt1akX+iA==
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Infomaniak-Routing;
+	bh=S8RDEJ4TxBGmmJllv14T6tnzjzSZc/tCNc7Y2LSWOLk=;
+	b=yn8APMTQmxjYJjRDhgE68oJIQ3hZTflwESF+r5neUs5YfK6rfbEVwXphSvpTgVJALGIF
+	 wZ5OMgr7dCsKSgSJbCQ7Pqv1lA9zjXhR+f463ZZquCAit1Pv/NvtBdipz1DY0DDM03eMs
+	 811ZoVdtWzRVi89EWKCFwdYm6dje7dCdvd/d2388BeuNZ+sNRqMHO07kmJ9mZ2AWqBagE
+	 Rgql9atbDXLnVnGGE3a3qcFvNp1bDQAoV60f0bBN1mSZMliaH6xbELRnTPq4IHtbIYQiI
+	 LgBFsgTWhcnq5ta5938yOgzltnqdaoXI3TfUpBIicN+wt3U12WvEaORdurSF/5Yy/hQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=harvester.fr;
 	spf=pass smtp.mailfrom=harvester.fr;
-	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=DisP61kH;
-	arc=none smtp.remote-ip=185.125.25.15
-Received: from smtp-190f.mail.infomaniak.ch (smtp-190f.mail.infomaniak.ch [185.125.25.15])
+	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=C0nVmfoc;
+	arc=none smtp.remote-ip=84.16.66.170
+Received: from smtp-42aa.mail.infomaniak.ch (smtp-42aa.mail.infomaniak.ch [84.16.66.170])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE834606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1E41606A326
 	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 19:19:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE834606A32C
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C1E41606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=DisP61kH
-Received: from smtp-4-0000.mail.infomaniak.ch (smtp-4-0000.mail.infomaniak.ch [10.7.10.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jLprR0DgPzRnC;
+	dkim=pass (2048-bit key, unprotected) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=C0nVmfoc
+Received: from smtp-4-0000.mail.infomaniak.ch (unknown [IPv6:2001:1600:7:10::a6b])
+	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jLprR4mkDzZ1g;
 	Fri,  6 Nov 2026 20:19:03 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=harvester.fr;
-	s=20260519; t=1793992742;
-	bh=j4X4UcJrCKMHbetOFASwsBfb0nlhEvLHQLADZ6u5e1g=;
-	h=From:To:Cc:Subject:Date:From;
-	b=DisP61kHZ5By+H0cI4pwDrk4Fb4VDw/4MhJHiR+X+FBvVLFx4q44Al8lUOg/OCH9f
-	 BhfFUEEsbO7evV32oFPi2SAGncWObByv7OnD9IE/o7ML/Qej3d6bwBGQr8FBiv5jBI
-	 fkEXayQ/MEWBlMy7qsaqRlJufs6rERNGHEe5DFFgPlEft9Eq66Ifu1sp5iPw+yVif2
-	 pxgMErje4+LyfgrYGILqurvZInPt0D0SnybPAOsZ4fN6S2PI9yB6sjwPqLT2QiQFnQ
-	 +ytuQEh9IvXPFyuSC6StNlTrPIMrAAY8OT/u8Ffeubc9/tEfLhw7ZK9bHWHTthhl4A
-	 vL1gTSQSClxnQ==
-Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jLprQ0hJdzRsv;
+	s=20260519; t=1793992743;
+	bh=S8RDEJ4TxBGmmJllv14T6tnzjzSZc/tCNc7Y2LSWOLk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=C0nVmfoc+gaA1em1eDzvJn1da56smVQVt8760GhcUlvSX6vacOSchy5vUoyg/jTms
+	 ZAVpevUpn4Hg4rRUeBNorp4sMf388u3hYy3+N67rbrIT/E4DotplXhkYUs3ntunBhk
+	 r2u5KJAQ8x9w8sVxp6SQdXRPvy4xVCP+jlcYpYWjc4CB4v+K0sjR7Nt8fz5G6x8t3O
+	 iOqgSDhpsbz098dPZNeny9BkGkMeVlvMf9dssYRw+kfGlWliS+Nx0kwrR3nnRwrvct
+	 wpvHuVkBlYmSNCveGHEbTYgaMxF7oZzi7qRPJk528ZM1OutPHzkeAn/Ij7qsGWgtxq
+	 f6+Ev7gtLVgEQ==
+Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jLprR07SwzQ9l;
 	Fri,  6 Nov 2026 20:19:02 +0100 (CET)
 From: Florian Stosse <florian.stosse@harvester.fr>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Stosse <florian.stosse@harvester.fr>
-Subject: [PATCH libmnl 0/5] libmnl: fix memory safety issues found by static analysis
-Date: Fri,  6 Nov 2026 20:18:35 +0100
-Message-ID: <20261106191841.1645-1-florian.stosse@harvester.fr>
+Subject: [PATCH libmnl 1/5] nlmsg: fix overlapping copy in mnl_nlmsg_batch_reset()
+Date: Fri,  6 Nov 2026 20:18:36 +0100
+Message-ID: <20261106191841.1645-2-florian.stosse@harvester.fr>
 X-Mailer: git-send-email 2.56.0.windows.4
+In-Reply-To: <20261106191841.1645-1-florian.stosse@harvester.fr>
+References: <20261106191841.1645-1-florian.stosse@harvester.fr>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -68,53 +70,38 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Infomaniak-Routing: alpha
 
-Hi,
+When the message that overflowed the batch is longer than the messages
+already batched, the source (b->cur = b->buf + b->buflen) and destination
+(b->buf) of the copy overlap, which is undefined for memcpy(). Moreover,
+nlmsg_len is read again from the old location after the copy has
+overwritten it, so b->buflen and b->cur are set from message payload bytes
+and the next mnl_nlmsg_batch_next() dereferences a wild pointer.
 
-This series fixes five bugs found while analysing libmnl with Frama-C
-(Eva, WP and E-ACSL-instrumented fuzzing). Each one was then confirmed
-on current master with a small standalone program under ASan/UBSan.
+Read the length before moving the message and use memmove().
 
-None of them can be triggered by netlink data received from the kernel
-through the usual parsing path. They all need a caller that uses the
-API in a less common, but valid or near-valid, way, so I am sending
-them as ordinary fixes.
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Signed-off-by: Florian Stosse <florian.stosse@harvester.fr>
+---
+ src/nlmsg.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Patch 1 is the most relevant one. When the message that overflowed a
-batch is larger than the messages already in it, mnl_nlmsg_batch_reset()
-memcpy()s it onto an overlapping range and then reads nlmsg_len back
-from the overwritten location. With limit = 100, a 20-byte message
-followed by a 92-byte one leaves mnl_nlmsg_batch_size() returning
-0x97969594 on glibc/x86-64, and the next mnl_nlmsg_batch_next() uses
-b->buf + 0x97969594.
-
-Patches 2 and 3 fix out-of-bounds accesses on unusual input:
-- The *_check() builders compare the unaligned nlmsg_len against
-  buflen while the attribute is written at MNL_ALIGN(nlmsg_len), so
-  they can write up to 3 bytes past the buffer.
-- mnl_attr_get_payload_len() wraps for nla_len < 4, which makes
-  mnl_attr_parse_nested() read past the end of the nest.
-
-Patches 4 and 5 are minor:
-- mnl_nlmsg_fprintf() can read up to 3 bytes past an unaligned message.
-- mnl_cb_error() can compute -INT_MIN.
-
-I can send the reproducers if they are useful.
-
-Thanks,
-Florian
-
-Florian Stosse (5):
-  nlmsg: fix overlapping copy in mnl_nlmsg_batch_reset()
-  attr: account for alignment padding in the *_check() builders
-  attr: do not wrap mnl_attr_get_payload_len() for nla_len < 4
-  nlmsg: do not read past nlmsg_len in mnl_nlmsg_fprintf()
-  callback: avoid signed overflow on INT_MIN error code
-
- src/attr.c     | 7 +++++--
- src/callback.c | 5 ++++-
- src/nlmsg.c    | 8 +++++---
- 3 files changed, 14 insertions(+), 6 deletions(-)
-
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index 30a7e63..f8eed79 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -531,8 +531,10 @@ EXPORT_SYMBOL void mnl_nlmsg_batch_reset(struct mnl_nlmsg_batch *b)
+ {
+ 	if (b->overflow) {
+ 		struct nlmsghdr *nlh = b->cur;
+-		memcpy(b->buf, b->cur, nlh->nlmsg_len);
+-		b->buflen = nlh->nlmsg_len;
++		size_t len = nlh->nlmsg_len;
++
++		memmove(b->buf, b->cur, len);
++		b->buflen = len;
+ 		b->cur = b->buf + b->buflen;
+ 		b->overflow = false;
+ 	} else {
 -- 
 2.56.0.windows.4
 
