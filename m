@@ -1,95 +1,50 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.199
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793975431;
-	b=PdThw8SoKRYBUgbK4VbCqvjwSqF7BEm/t5NCUVhROabzMsyy1yiFBYmcufkHU9I/Y5QQ
-	 uwuM513nmSrkm1hTgnvUi+Qhwln8toUwreg7kseKJoGwZpYSG9Uvhta31gGOcLxCC3sqE
-	 Jgn6tBKBJQHAnBAn5KvZJV+0DXFX6EeNbPd/tdZmrJo/YeAwBlaVqZN9Cu6IAeDCPSSGN
-	 KrBmqahp5GN+IoJaG0hO3hz8JX9xfEz+2fyIJcZYzj8rQwVPS2se8uYr/TVLwewbaotrK
-	 kAH3szmB2n7poaagjzltyjV5Veh3YiVV3/vXrYBIDtSnsgxKr0jL3v9c3YQxDq/6kbQ==
+	t=1793976968;
+	b=xW6VUMyhUaRQbazt9L8Qk2T44bqeUxVWYMh70dA74E3zj9XNieLplGOnn03u6hc1TkwS
+	 877Gc0gYpJQT+qlGGiQ3E3/tvoqjxF/5q9r+iOdJVuc6GTlngYQvpGjYzVq/QfNM+ENht
+	 ITFnmMNJPNDVNpkdMD9MQfqM1jnRXnE991ZkoufFIPC8eU0hQji2EGYEIl1hhYxJxCUsN
+	 H4+XwgdQCmgArU7NvUWTT50Mws4zxef8eu0OGKGm9YsHXx5B1fln3miPBKfCnAfsDUzDz
+	 20e1HJL1gzjMRvX+lo0pdt+rZFBtBuxoOJKM2uNSGMPyL/t4mZlcnGmjZ1+5R0Vo9hg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793975431;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=Icbrb5scngfWY2aFD/U0pe9nOlFPqhkX8KD+VMafQzQ=;
-	b=JUJLPxY1BSt+mPFP0rBLJYmRf8RoDTeaUwvUw42+pkvZmEwpnuIQ9Xgkq+GzOg8/JRyz
-	 GDSN17u2+iHq2vCARZLlsFHFmN8yJFFvGXG849AB9acwewLMTnytJkSpyYNXfXp6i9Tgf
-	 7H5MB/6Bt6Ly0qM7T9NQ9x6gDOc6MK9WG8yQ2HcQl2eppcnALVEIRlzV0lx2McdAmrZah
-	 IdGrXDIDB9Te6WS6YcG/MaZtHcrIzJ7JLzGJP3p5CW70D4g3Rsq2yWLPQK0w6tGV5Z4HA
-	 wGKVYK5moduxmIN6I2dFPgsRvwsJ7bDT+ndPjgylXg2VbWk8jH8STq6zFkKgcMIGwHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793976968;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=44Kq5PAoWNdUJGo1lbLbuFxYrkrQuyX17K7NNzXNArw=;
+	b=kxAEkYCqiqX8fRPlPxxMJ7QDsyWGH3tPSRqgpe3VKPDNm5YZBYy5tH9kVUZtFqBOABkk
+	 5WZ3rhetKecSs19CHlBPCaBv97y7OhF65R+RVv7AoBPV20jKAnbXhgOGyO9KaiI3DNww2
+	 x2TIB82bQhz+iMRMfuqPWXO0TCoXvYALYHOn6ou46qquUuXR2N7pK9Lzca5QNCx81drgd
+	 2YySwME2C7gd/2NjqNWy1+PJue8/yGb8X/Th9nRKZFR1KDDiBQGJCtBA3ZdOz16DpuWwC
+	 GpHn5Tly3CljvN8UvgZTC1tTfNTLsyCuznqm2hSYPKZSr77LTPe40GnLTNh4Z26uupA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qCB+gXEt;
-	arc=none smtp.remote-ip=74.125.227.199
-Received: from mail-pi2-f7.google.com (mail-pi2-f7.google.com [74.125.227.199])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=strlen.de;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F71606A32D
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2026 14:30:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E7F71606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=qCB+gXEt
-Received: by mail-pi2-f7.google.com with SMTP id 41be03b00d2f7-cd66d7e32baso152033a12.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2026 06:30:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793975430; x=1794580230; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Icbrb5scngfWY2aFD/U0pe9nOlFPqhkX8KD+VMafQzQ=;
-        b=qCB+gXEtl/HXLnDDkuxkOBFu8aV6oTrgkxcK6fT9IjAzCKZmg+o3QVBZcV9tU/CXQ4
-         l+Xt+SigmsN70fJIExTXEcn46MAwd3R4o9zRI6rmkpZzdNZRJVwGVg/pbUXXxq4rDZzd
-         GQRrJW1xtGXXpFHHZ/XaBg4ZBWoXOR1CjzZT6nsGkyRt9asrn+/fkzIZFfshJi4fii1h
-         4/qTmfblktYjHQP0EJK+lwlvy7mgES1X32dL8j05SzqaR5UsFj2xTD42nIjyFzQq7HFJ
-         TI8LyecU21B6YjRQTHMfdfltO7QAgAGxzMpktecvsBxiL8e730BGMXO9KRTnQ4AYf1Ko
-         IKvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793975430; x=1794580230;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Icbrb5scngfWY2aFD/U0pe9nOlFPqhkX8KD+VMafQzQ=;
-        b=Y94McADYKJXmdM+q+RH4gDvcmRXv/FZkRMHFGRfPJ9wYVOLHJa+WwPJjKdU0V87KXq
-         o5EZ4aKzUzXP/5O48Zrd4wxcXCTScdCXuFpjxoEgEsrTxQJQI8oXOTN54gbQm92SxRVR
-         YKruq+rg1snYkKaGgBUGHpqAPZjYHozPGCOmJbG9qlRusczHFWnhqERV59itZKBWMLdy
-         tk41u9BpiW/OAPAimP4kKD2Ykje7NiSLN4y0FFLKNhL/t/W5qLMOlBOpwbQXoel7N1AL
-         0NA9Kdd6cNcadxgQTanHi2eDwECViUunkZpAnEySEne4vlB/obMvsfo0eHYmVl559LIT
-         8KDA==
-X-Gm-Message-State: APuU4Z/7qjpxWdOQBL8bIk0IXmAuf1CCPiT8hiS9Q4n+ANKuH7k7R3Op
-	EHlcA61DmNFZjKm04jMfq/lLV3KoI3A/0gEuGptYqq4qRDRN6fPxcXgcOITW3m+p7Jw=
-X-Gm-Gg: AYBFou3K2ChoIjMYYMbBpg5OmpbaMnZfaH2721frPcZ87ngAGqdklZ32JXKXxjfASdt
-	p/qBKf3+lPm7YJfVta1AuaNJ6gR9dH+Y3sNvb8jLTtDcPTZuUkTJpLRf8wL6naoqpafRw4TEyeb
-	hzpziwVGh1pcSu7wku0CBbK49+zRQ9xzWQXOu/ErmIdp7X7aNQJgogP7aT1BzeSI1latvG8TF7X
-	CTXHVXvthtsPsBwL7gspskkhWpqTD6LaPjjlzjx4suai6DGPlFIYNkDys7X+GExbwtlwO9W5bkC
-	SvsK9ZHLB3rtUBbutqL+ZVbu0CvmhXn898xw7R+AGESHslhQC0REmI/tckQkq2DrMKzNtcirp0G
-	1/qMW7mwml33ATUYvJDMoZkY8KtXDlRLX+nUdhGfMYTKkE4mzw31WuSBjepISGzuKmUgVU2wuoE
-	p6hp6tFJUfX173j8Cqh+y4wLNhM+VO2lBYZ1WlNDmkpNzTbY3rVpKESQusFk4cyuED2LwgdA3eK
-	2YmXAQSHn9ubIkqITztf3skltPUFd8EGuJo5U5GquBfc+pKDtvEw4CVkufTMPepqvbLV6OGV+GC
-	A7YqQv2DpKG0U0C3OcKXz02TEEKSXwriSZUYvCqJipprVb68BaFE2M7T5YtBug==
-X-Received: by 2002:a05:6a21:7016:b0:3e8:b7fd:626c with SMTP id adf61e73a8af0-3ebb29703e1mr3102628637.20.1793975429990;
-        Fri, 06 Nov 2026 06:30:29 -0800 (PST)
-Received: from localhost.localdomain ([2405:201:e056:a8e3:ff2b:1543:5b95:16e2])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8b359dc7805sm649845b3a.40.2026.11.06.06.30.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Nov 2026 06:30:29 -0800 (PST)
-From: Vikash SS <thisisforspotifyvikash@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	linux-doc@vger.kernel.org,
-	corbet@lwn.net,
-	Vikash SS <thisisforspotifyvikash@gmail.com>
-Subject: [PATCH v2] netfilter: conntrack: document sparse hash table eviction
-Date: Fri,  6 Nov 2026 14:30:22 +0000
-Message-Id: <20261106143022.412406-1-thisisforspotifyvikash@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261106135816.391285-1-thisisforspotifyvikash@gmail.com>
-References: <20261106135816.391285-1-thisisforspotifyvikash@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2805C606A326;
+	Fri,  6 Nov 2026 14:56:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2805C606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9ECA36060B; Fri, 06 Nov 2026 15:55:58 +0100 (CET)
+Date: Fri, 6 Nov 2026 15:55:52 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Alireza Asgari <alireza@asgari.net>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	kunit-dev <kunit-dev@googlegroups.com>
+Subject: Re: [PATCH RFC net 0/3] netfilter: nfnetlink_queue: handle packet ID
+ reuse and large gaps
+Message-ID: <au3qeEf0LVzO84d3@strlen.de>
+References: <20261106-nfqueue-review-v1-0-b6c933f44943@asgari.net>
+ <au1difVZWMSV78wV@strlen.de>
+ <1a1b040da34.2a9c00de770859.6266910270967560587@asgari.net>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -99,43 +54,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1a1b040da34.2a9c00de770859.6266910270967560587@asgari.net>
 
-When nf_conntrack_max is significantly smaller than
-nf_conntrack_buckets, the hash table can become sparsely populated.
+Alireza Asgari <alireza@asgari.net> wrote:
+> Thanks for the review.
+> 
+> I understand that batch verdicts are intended to be used in strict sequence. The scenarios motivating this RFC did not establish a failure under that usage model, and the evidence presented does not justify the additional epoch and missing-boundary handling.
+> 
+> I’ll drop the current series. I also understand that the proposed collision disposition being reasonable does not by itself establish a need for the duplicate-ID guard. I would revisit that separately only if I can provide a concrete use case.
+> 
+> Thanks for taking the time to review it.
 
-The early_drop() path examines at most 8 consecutive hash buckets
-when searching for eviction candidates. Under table exhaustion,
-this bounded search may fail to find an eligible entry even when
-evictable connections exist elsewhere in the table.
+If you want to work on something else that is actually a problem, then
+you could investigate the mem exhaustion issue.
 
-Document this limitation to clarify the implications of configuring
-nf_conntrack_max significantly below nf_conntrack_buckets.
+The current limitation is queue length based, this is very old from
+a time when GSO/TSO aggregate skbs did not exist.
 
-Signed-off-by: Vikash SS <thisisforspotifyvikash@gmail.com>
----
- Changes in v2:
- - Reword documentation to provide configuration guidance,
-   as suggested by Pablo Neira Ayuso.
+Untested idea:
 
- Documentation/networking/nf_conntrack-sysctl.rst | 4 ++++
- 1 file changed, 4 insertions(+)
+1. compute a memory size limit based off the old NFQA_CFG_QUEUE_MAXLEN:
+   sizeof(sk_buff shell structure) + 2048 (half a 4k page).
+2. store skb->truesize in the entry struct when queueing.
+3. charge the truesize to the queue entry (and uncharge on reinject).
+4. in addition to the queue length check, also check if the new
+   skb->truesize would bring us over the limit, refuse queueing if thats
+   the case.
+5. Make sure NFQA_CFG_QUEUE_MAXLEN updates continue to work.
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 4426cce2a..c7e9016ac 100644
---- a/Documentation/networking/nf_conntrack-sysctl.rst
-+++ b/Documentation/networking/nf_conntrack-sysctl.rst
-@@ -99,6 +99,10 @@ nf_conntrack_max - INTEGER
-         the reversed address). This means that with default settings a maxed-out
-         table will have a average hash chain length of 2, not 1.
- 
-+        Make sure nf_conntrack_max is equal to or larger than
-+        nf_conntrack_buckets, otherwise early drop may fail to evict
-+        entries when it gets full.
-+
- nf_conntrack_tcp_be_liberal - BOOLEAN
- 	- 0 - disabled (default)
- 	- not 0 - enabled
--- 
-2.34.1
+This leaves on major issue: userspace can request 64k queues, so these
+limits don't help.
 
+One possible solution:
+1. For init netns, no changes.
+2. For non-init netns:
+   at queue creation time resp. when limit is altered, pre-charge
+   the worst case occupancy to kmemcg.
+
+Refuse queue creation if that fails.
+Ideally this could be split into several patches to ease review.
+
+Thanks.
