@@ -1,57 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=109.224.244.119
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794067531;
-	b=q8IAnSKMeyY4iuYplfX1VRz2koVp1BLKz8kID5DE34FXXJWwQ7Ic20eHHBMfH67CAF0R
-	 mdNlwlxRo3MQakgWRXCapTIbBS7FxQAnBkgUJNrHKYZ+YKNvmFb1mDn6+nNE4lJawlXTE
-	 zasBDT6Mz40FBNmfwGR5vgWR5aUeNI3uPkLIEcBSgGEsvb/s362gUfVpndnNdmKPk6q/t
-	 U8o0LGJpllBNU+Crsd7jLU4xCpT2ay2ZWbLkWISgWKMsPCjUmFHqjF8YBawHnDu8ZLmsl
-	 3K0AXG4wBYuF2PWepgsZO6U9oTniH9dGNnd7r4K2kwuOQkFcvec3eESpe9N1RxlXHag==
+	t=1794067831;
+	b=bNxXRcSiB2KxYU6KuGyhC9en7XoDmWzzcR388479PW0tmUdI+RXMzPpDqNWFuhT2sKxn
+	 dLWq5pmZUZ7k+aOtnIgKFa8BY0Ssf8PImSyremihV8AQ4F/jw71e0X3ttZCKWdaRyB0e7
+	 24xda3EoCCMQbDkJ9Iw7drLUImHu1HFDSL58DQq+XezsZ8JM3zDgmR3k8o2biH6kmfLFl
+	 YaUhTWbRCXr+r98GwPddMaTCs+1S1C70pTsY2s4chuqac9GVuCAhtm+txweFz8saksCgs
+	 6ODSdgMtA2tO481B0bGMzf23loTkjhxfwdXLTRUHNGBgyT1eX9bzxyjL6CWG9rpwGVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794067531;
-	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
-	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794067831;
+	h=Received:DKIM-Signature:Date:From:To:CC:Subject:User-Agent:
+	 In-Reply-To:References:Message-ID:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=UIBeA9+89SLk9E6HL07jeiFdHykYYpcD39rqXpl+ZY8=;
-	b=AqxX41vl5/3YRuu7dg3ekKB/tC6tSiJ62ywgmCLJ/CYY2l5AobAVTEyYrtxgs185F2Ht
-	 2V4guA7YmGF7SAEpUpmCfYoJbcY4tBQgqhFVo1JQWunrCfZmYMRUivQ3c9rFWlHTyS9GR
-	 XH5yD8IzNuU8bnO+pHTT4IeLoeo/nxUewUbrhP/USukVEskS6pnyqqMSLYreebLn12TKo
-	 mqAOPc9sVBGjYnBrKPKzaLdOPqlaSPQA75strHnt7e/iSKJJ347dOVL9HK/+rfZ5f84M0
-	 ws0l+qQSHehB9HmT3Zqb+LsD1MUA+dzg3H0BCbwSaXFdIg1OWbfZY0srfiGsvn7sACQ==
+	bh=yrl1fDgvB8SejpyA+O0u1vRjlm41/COeTHtKBCR1yZ8=;
+	b=d47J0q+aIryhgPNg1v3RSp7XlziOAmnEFxpZGzixZr2xD77Okt9aKdWK7/U2EAw6Sxnd
+	 gnVNkM6Ip3sqMV0NVxuRMglW5I3reCGX+RaBtzSHox0h37bC4Szlf+119hQPDqt7grncw
+	 x4edcJjoLTU85MLqkeORDmWw3CSUjLgw1oD6p0hmhwwWSZLcoAvWsnITKhmfjmCkbrNmH
+	 VkNzq88oXosfg6unlxHTOYHHQs4VoPyc0Vq0UWvkdyeEhtPDnDVyZEo/O9UUjjgV+zU28
+	 2i7i0mUGA4YrXpwMUoPpM3WC8+qaDgMzwrY/U6APzyriQz5YvrhLoLlXJsx2N/4dUsQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=000ty.net;
-	spf=pass smtp.mailfrom=000ty.net;
-	dkim=pass header.d=000ty.net header.i=@000ty.net header.a=rsa-sha256 header.s=protonmail2 header.b=Ois+nNzn;
-	arc=none smtp.remote-ip=109.224.244.119
-Received: from mail-244119.protonmail.ch (mail-244119.protonmail.ch [109.224.244.119])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DudqRbSQ;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC1F606A32D
-	for <netfilter-devel@vger.kernel.org>; Sat,  7 Nov 2026 16:05:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9FC1F606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=000ty.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=000ty.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E27606A32C;
+	Sat,  7 Nov 2026 16:10:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=000ty.net header.i=@000ty.net header.a=rsa-sha256 header.s=protonmail2 header.b=Ois+nNzn
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=000ty.net;
-	s=protonmail2; t=1794067528; x=1794326728;
-	bh=UIBeA9+89SLk9E6HL07jeiFdHykYYpcD39rqXpl+ZY8=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=Ois+nNznv1jX8pRApCQNkYEoQtNdcBHZyW5dYXFfI/VdBQeDYiWcnTqVf3edjOQ4M
-	 QGMK8FQVkPvFFtLiQeNTu0nI+USB3y/XBAk6ua4kaS4S/ucDbu+VJ0Bqel+ibBA+6S
-	 wVxzwDJxI77k79wX0DPO5BRCnC4YBugoeUDLDlsXHLFamf/Qhv603GxWT3mFArhyDK
-	 6ruWjXqKofmbkcnz5eoqa7H6fjIv9NDdkYzf6QGCPh6ZslZYfqIuMS23tAFx2VgUQ7
-	 TK8MiVpjcWl6pHLBY9pB6EPBABpePFycOrqIoywONKQUWwXEM+ldP0n5bGNbNwkqmP
-	 YdiWV2UT0zeQA==
-Date: Sat, 07 Nov 2026 16:05:23 +0000
-To: netfilter-devel@vger.kernel.org
-From: Tamaki Yanagawa <ty@000ty.net>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, coreteam@netfilter.org, linux-kernel@vger.kernel.org, ty@000ty.net
-Subject: [PATCH nf] netfilter: nfnetlink_queue: unclone skb before writing NFQA_L2HDR
-Message-ID: <20261107160517.726-1-ty@000ty.net>
-Feedback-ID: 168296199:user:proton
-X-Pm-Message-ID: 854d1b169310b54152d09383e0e9522acb59b98b
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=DudqRbSQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1758C1F0089F;
+	Sat,  7 Nov 2026 16:10:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794067830;
+	bh=yrl1fDgvB8SejpyA+O0u1vRjlm41/COeTHtKBCR1yZ8=;
+	h=Date:From:To:CC:Subject:In-Reply-To:References;
+	b=DudqRbSQXCpr6NhdcgkB28/OJ09fv/xb+ZGVAY2ZZcm0NtXYxKjH24XfLPv1YVH+1
+	 N2Smc+eQQaJmUtmHSjIuIOHPbXtdHkwnaUWqwn18l1Zgme7MhVjd/tmwPXx2sHiZmJ
+	 bVG7HcpDVP0TwBfdMqAH6zxIyHwUkaCeHOVhR2aYppt91bZLwCTiFYtodZA1aRzQhT
+	 JFzXQc4CJvaSMHUeBSzyyst4sJaPobtuTL08pUib1PO2/6JKi1TR0Oc7vVJSOMiTRg
+	 di9pOtOgBcjQKNqN/zgV0r2ojSo7IUXfYme+kVAZvSpJolvZJtmmOXjKLjiXPaiu1m
+	 qPutBKIcKy2tg==
+Date: Sat, 07 Nov 2026 08:10:28 -0800
+From: Kees Cook <kees@kernel.org>
+To: Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org
+CC: Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>,
+ Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>,
+ Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>,
+ Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>,
+ Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>,
+ Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>,
+ Joel Granados <joel.granados@kernel.org>, Jan Kara <jack@suse.cz>,
+ Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org,
+ linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ netdev@vger.kernel.org, ntfs3@lists.linux.dev,
+ platform-driver-x86@vger.kernel.org, coreteam@netfilter.org,
+ kexec@lists.infradead.org, linux-pci@vger.kernel.org,
+ linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
+ jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
+ linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org,
+ linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
+ samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
+ linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
+ linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
+ Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org,
+ linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org,
+ "Christian Brauner (Amutable)" <brauner@kernel.org>,
+ Chuck Lever <cel@kernel.org>
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH_RESEND_v2_07/23=5D_proc=3A_let_pr?=
+ =?US-ASCII?Q?ocfs_own_the_seq=5Ffile_of_seq=5Ffile_entries?=
+User-Agent: K-9 Mail for Android
+In-Reply-To: <20261104-work-procfs-core-v2-7-76ace653a773@kernel.org>
+References: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org> <20261104-work-procfs-core-v2-7-76ace653a773@kernel.org>
+Message-ID: <8A21EE2A-F392-40B7-9152-CBC440FDDA70@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -61,51 +87,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain;
+ charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-nfqa_parse_bridge() copies the NFQA_L2HDR attribute over the mac header
-of the queued skb in place. Bridge flooding queues clones that share
-their data with the copies sent to the other ports, so the rewritten
-header also shows up on frames that never went through the queue, and
-is changed while those may already be in transmission. Unclone the skb
-before the copy, as nfqnl_mangle() does for NFQA_PAYLOAD via
-skb_ensure_writable().
 
-Fixes: 8d45ff22f1b4 ("netfilter: bridge: nf queue verdict to use NFQA_VLAN =
-and NFQA_L2HDR")
-Signed-off-by: Tamaki Yanagawa <ty@000ty.net>
-Assisted-by: Claude:claude-opus-5-5
----
- net/netfilter/nfnetlink_queue.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queu=
-e.c
-index 90d887546f..146211fd03 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1819,10 +1819,15 @@ static int nfqa_parse_bridge(struct nf_queue_entry =
-*entry,
-=20
- =09=09if (mac_header_len !=3D nla_len(nfqa[NFQA_L2HDR]))
- =09=09=09return -EINVAL;
--=09=09else if (mac_header_len > 0)
-+
-+=09=09if (mac_header_len > 0) {
-+=09=09=09if (skb_unclone(entry->skb, GFP_ATOMIC))
-+=09=09=09=09return -ENOMEM;
-+
- =09=09=09memcpy(skb_mac_header(entry->skb),
- =09=09=09       nla_data(nfqa[NFQA_L2HDR]),
- =09=09=09       mac_header_len);
-+=09=09}
- =09}
-=20
- =09return 0;
+On November 4, 2026 11:30:58 AM PST, Christian Brauner <brauner@kernel=2Eo=
+rg> wrote:
+> [=2E=2E=2E]
+>+static int pde_init_seq_direct(struct proc_dir_entry *pde)
+>+{
+>+	struct seq_operations *ops;
+>+
+>+	if (!pde_is_seq_file(pde))
+>+		return 0;
+>+	ops =3D kmalloc(sizeof(*ops), GFP_KERNEL);
 
-base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+Please use the new style typed allocation calls for objects:
+
+ops =3D kmalloc_obj(*ops);
+
+(This happened to jump out at me, but please check the other patches for t=
+his pattern=2E)
+
+> 		dp->open =3D kzalloc(sizeof(*dp->open), GFP_KERNEL);
+
+Same, etc=2E
+
 --=20
-2.52.0
-
-
+Kees Cook
