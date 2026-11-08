@@ -1,57 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=109.224.244.17
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.70.43.22
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794177144;
-	b=HuYTNcC9+1klhPlJTsJTsxBJjuvv3RYuHLz4sixuQPeeyxu4Q6Fu3YZoNddMGcpLfCT0
-	 HMnSf5+YJnGj4OTRgK6eDu/mwlb3If8UcGSfuvmGRSHLjaPsWj+CFUZEXER51vQihTk5i
-	 VaRQE/mN9igvPZmvlpI5rqq8GfWcg8XoG1PRA4qYcFmm2JpZYuN2Ym6o/5Xukqiux4b+5
-	 Zo9ght8O4nDrH7KmvYXx00QaOFKyS8OiaIUAJRJyphbWMqV8fEH1wbUXz6ZcXLcQID+GU
-	 eCTmGSbppeZ7UqQQjNzYYqG7BY44RHxDgW/z+pBh5Tj7SNPsSBrZel0G4LFy9XSgncw==
+	t=1794177218;
+	b=2tCRCFvTZjScjmQVgGkZsMOtEZ+1S5vI6BgGnm7kxJDCdh2gAZLK9YezyGcAERnZZzGl
+	 fqdfLuFzUBuaPhyM6emwAFfjXsRv5WGSRSovIaDqpl0UbNAOrNRroeH59HhTqD6sLplXG
+	 54IjvmL3OZkpCShEn98TjrZ4i4vgTdSZWG4UttjIjS1WOjsXRxILgVbT9lZDQ4XT4B53Q
+	 e4Ileev33YD+MJtlxG61M89CLXUqJ7aPRZtohPveM4+MnzweL/oPyc+j+5uwjfJ7jR707
+	 osulojGdVr35X4c+Rfi7stZwu8PxZ4W7jZCG4gYrnmAo1pnYVfliWkdrZ/d7+5wcTOg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794177144;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794177218;
 	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
 	 Feedback-ID:X-Pm-Message-ID:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=9L6q0YkJhINETobLEedWRcicqFSMNtT+abPs/Uh3YjQ=;
-	b=0ihEUy/0Fk5RRCnxV4JAgmUgDr3ZcoCiOX8B9XKdgnMIDJcuNjjW30RCIsg82jJqU2Tb
-	 8LhVbU3Qid9z41vnm3qY2CuNUwraVpIM07ameMVdnoKcc9tq9b1yJbSma/OpykDbhtIQq
-	 848Zf6gdwWnLg54AA+7dbt5ammKKnJL/KRQlRF5ZCsBE5shyoXL8RXDEfhWD/b4NVi+EZ
-	 3PAFfC4Rpek4xVF+AQUclGTYU9lOfjLLjpXB913nQ6aRDKRlDpjUIjXgKzi4Xhvp21LUn
-	 dHNu6l0nOiofQAJ0nX4sgy0v6FaoZPqHKbg8SQGJWrBu0jqz473W+twlucK8Vhxfs9g==
+	bh=gvbSaS7GyP0cnYD5s+wxI51RSPVN+a6vxoEzW8zoP3A=;
+	b=O4VK95Ar/3jc2hPXyrpRKR48Uk+UC5GXkiLsVpHRHr0Dt6ifk0aZEd6d8XFDt+m33zwW
+	 JpS1lThq8CMdqo77ZYRCw6M4L7LQ6b0eV4DiSmVgGFDHJdE6YgvvzVvZ4KihhHf3Xq5w2
+	 9VrhZU5BJKRAePDzm2iYe+bmFG7uTgCGkVrwWIgGxsdBHimgYiS/oPw7R7f+NQnG0pXWz
+	 N1RZZcfH9HJXtsUw/604hSWuimw0040oc/FMoR0HAeTUOJ4r6c+RprwS3sYCyxmTP1PTt
+	 5nU3eACNwgF9TcGoHLT4qSrpdrq4O6lwnZ+GquN7u0zV/qWrx3CVIf6LjY3ylMmftOA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=proton.me;
 	spf=pass smtp.mailfrom=proton.me;
-	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=MgYJMhsc;
-	arc=none smtp.remote-ip=109.224.244.17
-Received: from mail-24417.protonmail.ch (mail-24417.protonmail.ch [109.224.244.17])
+	dkim=pass header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=4vvxxerpwbagjmsxqnscve37cq.protonmail2 header.b=BWz0BAFE;
+	arc=none smtp.remote-ip=185.70.43.22
+Received: from mail-4322.protonmail.ch (mail-4322.protonmail.ch [185.70.43.22])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6353606A325;
-	Sun,  8 Nov 2026 22:32:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E6353606A325
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 815C2606A325;
+	Sun,  8 Nov 2026 22:33:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 815C2606A325
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=proton.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proton.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=protonmail2 header.b=MgYJMhsc
+	dkim=pass (2048-bit key, unprotected) header.d=proton.me header.i=@proton.me header.a=rsa-sha256 header.s=4vvxxerpwbagjmsxqnscve37cq.protonmail2 header.b=BWz0BAFE
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=proton.me;
-	s=protonmail2; t=1794177140; x=1794436340;
-	bh=9L6q0YkJhINETobLEedWRcicqFSMNtT+abPs/Uh3YjQ=;
+	s=4vvxxerpwbagjmsxqnscve37cq.protonmail2; t=1794177214;
+	x=1794436414; bh=gvbSaS7GyP0cnYD5s+wxI51RSPVN+a6vxoEzW8zoP3A=;
 	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
 	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=MgYJMhscuxKa5ltauC/4NPylXLPFqh+Aw+jKviKjQCQggaymPYTCvXkUA/c900lzM
-	 rQFE6nfYKuLJewo7YAMy9lvgCqUvrawlDRRSttktpFvMyXZDdVIpDN7JBOrPUysU7k
-	 JFII5XAZu6MP8rNwVS26707DqGywS+dOhqrMb6tthM43WUuXw6CVizr73ZZdApH1fY
-	 UPEyOKVhcZl+S/zKOfOO4C8cqXzOKvoQnwsvqKaYaTonKAbJIp6A5w9g77ac4Z+lrS
-	 tCFu7/lT8yX3WwsLgsETA+nEcFesC+SsB4XXsmLHMSxcIvydSdDSiVkorBzVZwRsSv
-	 /mdgYX4BxEzvg==
-Date: Sun, 08 Nov 2026 22:32:17 +0000
+	b=BWz0BAFEu2MuRTV+Vzqi32XqValaWjwnY/XLc+TJBrozYmhwz2J/LSk0Y8s8MiZ6v
+	 xSeixP3zJ+6guxb7NCy0pcSWNjfxDEtUFxQEV/JJkukqKmzUZPK75Uyc1Qq5e8E6iy
+	 H4YWS0KxZaShQ5V2XjfFgf3ThUhXOoKgt6IzVYchsiN5XcLAPG9rbLt8u9K6oqHQ74
+	 inUMN2MgIXijXqjGH5H982jRHVlleNOrMLgjZkiNcpjUOoCgvHYDX3mKzP7I+q8lx9
+	 /TChEJluhB34Eo3pFmb5pnzHvif+Ehn/95pGG48ZEgBxGFS7SauHRHB6dJqQvI802M
+	 J1WeWdh1ZhdkA==
+Date: Sun, 08 Nov 2026 22:33:29 +0000
 To: "pablo@netfilter.org" <pablo@netfilter.org>, "fw@strlen.de" <fw@strlen.de>, "kadlec@netfilter.org" <kadlec@netfilter.org>
 From: Noah Weinberger <NoahWeinberger2003@proton.me>
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [PATCH] netfilter: nft_dynset: reject DELETE op when set lacks ->delete
-Message-ID: <5aybqcVfq3WxYdpbT0Ea6bEWamp-4x10J9FF_5La7SSXJ57a4j176x_t3zUW8Ii2r84MsPX8xx_vNashO2PRWvuO9yNsaxS8YV_4TLc-QHU=@proton.me>
+Subject: [PATCH] netfilter: ip_tables: propagate compat_table_info() error
+Message-ID: <YEo_4lnonRc0-_Jotuzk7hOaWl3QockF3xDwJ4cE5v8uBvy1KW27Eku0fWDJycuoZ9AgGFxsxgtSWI6SE2kNJ38eVnLx-HtApOhBw0wxXGg=@proton.me>
 Feedback-ID: 186545857:user:proton
-X-Pm-Message-ID: b3d9ccead2c59e7b876970e6da36d7e95a6fdbeb
+X-Pm-Message-ID: cad6e748cbba3426e6e2549fa89e6176241586dd
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,20 +66,20 @@ Content-Transfer-Encoding: quoted-printable
 
 Hello,
 
-nft_dynset_init() checks that the referenced set implements ->update,
-but for NFT_DYNSET_OP_DELETE the packet path calls set->ops->delete
-unconditionally. Today the only set type with ->update (nft_set_hash)
-also implements ->delete, so the call is always valid - but any future
-set type implementing ->update without ->delete turns a rule evaluation
-into a NULL function call.
-
-Reject the DELETE op at init time when ->delete is missing, next to the
-existing ->update check.
+In the IPT_SO_GET_INFO compat path, the return value of
+compat_table_info() is ignored: on failure (vmalloc ENOMEM in
+xt_compat_init_offsets()), private =3D &tmp is used anyway, and ret is
+overwritten with 0 after a successful copy_to_user - so a 32-bit caller
+gets stale or partially adjusted 64-bit-layout size/hook_entry/underflow
+values instead of an error. The follow-up GET_ENTRIES then fails with
+-EAGAIN. tmp is fully initialized, so there is no disclosure; this is a
+robustness fix. The same pattern exists in ip6_tables.c; both are
+patched.
 
 Affected version/commit: mainline fa4ad798f6f681031775266044ba1b0cf3c670bd =
-(v7.4-rc1, 2026-11-07), net/netfilter/nft_dynset.c:98-101 (eval), 209-217 (=
-init).
-Longstanding asymmetry.
+(v7.4-rc1, 2026-11-07), net/ipv4/netfilter/ip_tables.c:968-987, net/ipv6/ne=
+tfilter/ip6_tables.c:989-1008.
+Longstanding code.
 
 This was found during an assisted (AI-supported) static source review of
 mainline fa4ad798f6f681031775266044ba1b0cf3c670bd (v7.4-rc1, 2026-11-07); e=
@@ -91,18 +91,53 @@ verification rather than a battle-tested fix.
 
 Reported-by: Noah Weinberger <noahweinberger2003@proton.me>
 ---
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index fa4da69..5e2bbd0 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -216,6 +216,9 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- =09if (priv->op > NFT_DYNSET_OP_DELETE)
- =09=09return -EOPNOTSUPP;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.=
+c
+index 809441c..e11a5af 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -968,6 +968,8 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ =09=09if (in_compat_syscall()) {
+ =09=09=09ret =3D compat_table_info(private, &tmp);
+ =09=09=09xt_compat_flush_offsets(AF_INET);
++=09=09=09if (ret)
++=09=09=09=09goto unlock;
+ =09=09=09private =3D &tmp;
+ =09=09}
+ #endif
+@@ -986,6 +988,7 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ =09=09else
+ =09=09=09ret =3D 0;
 =20
-+=09=09if (priv->op =3D=3D NFT_DYNSET_OP_DELETE && !set->ops->delete)
-+=09=09=09return -EOPNOTSUPP;
-+
- =09timeout =3D 0;
- =09if (tb[NFTA_DYNSET_TIMEOUT] !=3D NULL) {
- =09=09if (!(set->flags & NFT_SET_TIMEOUT))
++unlock:
+ =09=09xt_table_unlock(t);
+ =09=09module_put(t->me);
+ =09} else
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_table=
+s.c
+index 313c4aa..1d5749e 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -989,6 +989,8 @@ static int get_info(struct net *net, void __user *user,=
+ const int *len)
+ =09=09if (in_compat_syscall()) {
+ =09=09=09ret =3D compat_table_info(private, &tmp);
+ =09=09=09xt_compat_flush_offsets(AF_INET6);
++=09=09=09if (ret)
++=09=09=09=09goto unlock;
+ =09=09=09private =3D &tmp;
+ =09=09}
+ #endif
+@@ -1007,6 +1009,7 @@ static int get_info(struct net *net, void __user *use=
+r, const int *len)
+ =09=09else
+ =09=09=09ret =3D 0;
+=20
++unlock:
+ =09=09xt_table_unlock(t);
+ =09=09module_put(t->me);
+ =09} else
 
