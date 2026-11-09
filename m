@@ -1,101 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.43
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794207198;
-	b=RKeJl8o0LziM11evQANZ7z2RzVR1+O11Jy55wsqCzvN5C5mzyrMHcwrnnaeWA1bLUr4t
-	 Y+pkmxK8NH/NKN0aTjC99o+SWsZQRjqK1LaEzPgwMdLFNE39GGiIW26GdlgyaFoNvEAJm
-	 Aa7c614xH4LTcrizFeJIY7HwP5LzmqkFYBcsz7Ez1eGx3vRGtxF9VTZqfcT4B5BiEWiXA
-	 FKBXMpZgKQ9GiZyuAImau6EX9AEDCyOJraNURjpL3RIDxBNvLkti2j3ZfBxJuaoSK8UvC
-	 DZqw53m3F7RMjNwmxLVf5Vx16dasUl1TDiLrwzJVPVp+j4YPdvJI4ptkBIjHI/ovM7A==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794207198;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=kdfSMn5qmUAvXVccrNmls1DypVGRaJ++jbiwGI14+kg=;
-	b=Dp5I71fM6O0m8lafMVfc9McXAJ0NB+LfxfNjuh9egeiYNXcuWmv+wGD6iMeLZ5y36mR4
-	 PSMcC6s55O+3yfns4mSysr7LI+frBVqZTzQDm1pjjaF/HuZvN+jB/V+z6pzYZ/ULs+m9l
-	 rrwZBS3eHbi4R8ePeJ4m9oFw5uhfZZ3Hrirfl0a/dWVibxjyTaWb2VZiq7pEYnJlxGmMv
-	 Txk2yaS8ebJc37tw9xao7sg0/HuLuPVdzw0phDQTETfxUEKA3QZLB7x3qYuxYnOKjGaWD
-	 61SgZG1152Tmv2vtcB/dYW0tb6ZVLvIg0nPUAa9pP+TlueVLdrXXNri3e04bx7rDDpA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sgWujCEB;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.43
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794209269;
+	b=eI02Qmgi5z4CxdhKH4uosNNzt3h2FTI3deWSTaQDBiYnY4djvtoHNwOklNOVwOuom4Ed
+	 tIjhbIyK/xYEfZOU/zqDBxn60axFNFneR2U9t3PdKuiz0rv3xTMSo3e+u06C1euqGXbwu
+	 D/i1U80q8VHHWKF7YS9U6otpfbig1Ux4hsMUKpsjBKTHenREQhe9PMQ3ivMWklkhT4APm
+	 iaeMTrvO4MbAFmoOr5LVeGZvsORqF9BGbUhiBLk6XitLxhTwu1xV8tL/ub6u5UV+ZpqpN
+	 vQNV8WJDsCRzYDaE+SnlE0z3BKCPe2eGGC+TRQ7MJFBhFqUPclDzTdtTFSZjbZ56EDg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794209269;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=Swcf0DnhAtIl8EvIgkGj2uhJo8mAoXKQQhHzUI9iGIY=;
+	b=p8ZoqMEaePGj3StC2AW74mgHZWJhnmrdqCVLKG8iABz0dN4xmpK3W27e8d7XMhVhLIYB
+	 cNPg6c0qEyKgMpC8LJjAmf0PBCwXC86nZZwVVgudOc9bnx4B7/vhC/IZAFr6P6Wavdgfk
+	 6AEFln341sXGoQ38XIMgDCoGAqStRlf7pt+KLMspsGrlOT6POLtBtvE/wHdN8cLfFaE1L
+	 z8mbyRRwNMTWUrV/6vH37HfUEfhF6xTIRK4waWE0U3eUX4+QG6pw59ME/yXEC5WRAJ14D
+	 ZYgeFtmsi6N3xgADCxVK7YrYq0ble4eYMgOgBWRdU+suWVM+PFLe25yj0UC0chOKYMA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ec6Y0l0a;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C8C1606A332
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 06:53:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5C8C1606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C2ED606A31C;
+	Mon,  9 Nov 2026 07:27:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sgWujCEB
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5c0a520df2eso354282e87.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Nov 2026 22:53:18 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794207196; cv=none;
-        d=google.com; s=arc-20260327;
-        b=bSggqVeREe5UHxvMsFQ1dhyfQioc3nhItdsfssQ82ywrxOxZkYaQq2HbRnVQpKlvCN
-         uhHpUnax7QOB7H8kqNEAqw8/Dea0zmF9gYMJ1Q14nH/MRQJ7ZBbaDSpS+/X69+f7oi9E
-         febeMUJ3MWazFH+fBHgl+KUpLcCkCuWxAI1AOQiHI9+rGVVq/j+HVmBqHdJQPPAT840U
-         WL7WG9vrzYJ47Pc1WzALn8bx59UTcMCUMQ9VngEzMLvcqocj8wclyvA6RVOJhJUQF/6z
-         IjX//aK8W3ORD21YXF8bGxNW05TRpo6rIPIcAfeVNjpMJZnC3bMpjKNzCzZtzyaIsWw5
-         5j7Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=kdfSMn5qmUAvXVccrNmls1DypVGRaJ++jbiwGI14+kg=;
-        fh=/NeSHJW4n0NLH7Q5OsLDvEgndUj1Rxr2X4Z+i6p4Xi8=;
-        b=PR0HJtsixNszb6W71YYXl6Q8vA7Vxlv7sGO/FTDQiLoGS/ikMHqvEVY+t8O5R91tCy
-         oRyiDiE7GswhjgJebtKVNNsmzZo+efS+Qjssy6sKai0tR202WBlFvcs6mI6pOL3OwBqf
-         0PY8nsDLzybgcPF2nrYv8C0peyi6oF5Va90fb6vschDemnuYlgpjqvC+CETbZYJsg0Gu
-         LfCSptLsOQVjHYvSHybz2SmRFQFVSxrovrQ0D5WloxkzFB0RrWShx7DNfNnLKNcnfZtO
-         A1Tfhvnj07qz3dzgWakDEvxsBdVwNsV3vdS0a3jYN0OjVperI1qEMlolqZFwOW4smWVF
-         yhhw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794207196; x=1794811996; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=kdfSMn5qmUAvXVccrNmls1DypVGRaJ++jbiwGI14+kg=;
-        b=sgWujCEBcLnI2rCZx2+HrV0hdHuKHGWZkbP/T95hfWdHOsdro1qJU1Fvk+8OO9MdfB
-         0BqsBZTh492PGUlz+uiD5cFVvZc+vlVmSZhYzi+w/tlD80Sl6tEzuWFCWZhv/N6pbH35
-         rLWt1UHkkGkHK24Z/h6vBhtLRJVzr1jbqDl3LlT+eJtmAmj2BiR6ABZnJcxKkIEwjeuj
-         rKb8qVeksOei/N1ZYTOxCXuIYcRzPS0XXno11fSFmwYvkRxmBZ3+yYmHEczZNKiPx5RZ
-         oHt9g8LUVuNFkbZtPXFWBtwsCaMo3xAJFO6XAxUED9WmEkoDJbCWdP6YC+ZT/ijPGBxT
-         E53A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794207196; x=1794811996;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=kdfSMn5qmUAvXVccrNmls1DypVGRaJ++jbiwGI14+kg=;
-        b=RmJBcW4MkjO7Od2Q3PBytjgoVOa3Yc7Q2yNJEnONBUjUyAEvvNkdLyD4amkT4hwj2H
-         FPaUrE3/rqyV3imH33ZG8Yjfu+SayjJGcXaWGkcqL9fKPtILipjn0PCmtW0mi9LKjnzF
-         3+jEDhtxhf6WL4pB9s2WKRtK6dRwb9x2zP2Tl8c5zftTz/Ynrs+8EZbRdm+d1v2HOrAX
-         ob/qb/qOlUvgB/uIuB6mZee1PbdytLE1R+B+WvceXkNPKFDupk/EvPkVxdYCzqVlqtLN
-         5PrW1rXLWeEqNtwGePOA84LQGpLFi/6PEc43EIPII0LaaczhUSAYw/LernOArUdjgB91
-         iUuQ==
-X-Forwarded-Encrypted: i=1; AL+hErECH+A+u+goYHG3RuvxFYjsmPMWpg7bG+SHY3hfJ1H7UqYBUdbmDNJCOKaL4qpR5MeAvwZImTSPiObbfSUGMEc=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9FEBIKLNLPfVEOMPKVY9yM+s+Vadgxg9m/jXNVSoY0BHw5L8uH
-	apUfEZ8GFuuHgCm1OOp4I1UWNTdEqpdKNrxCWYLMmyjoCMDifeU+NALsuyGZUKcwkm056+FQPmW
-	kKwKqrFqWkwF7FmKGMSLXcCePk1V5wkZXcA==
-X-Gm-Gg: AYBFou3W33tLwnvLjkHfGnWz0/vNOEdbFVyCG0AwJvuFQvmH+ATB2FOaqYxj2rSuf5m
-	pECMs2m8rm70s2aRxTJClpvnsPMgT/iKTbWrvplt3SgLevPvfv9fp0JkIGVLudbQhGx/P16Sqv8
-	3IYosu2jXDujWEzXqb61cpnoAmgLUYqaBNHOqPka/pHrt24z/3m1Ahs9zbT5WTEpLO+c6pYxHtv
-	pPCwNQTC0fT/nsHiJrk+Q+qtV0c6MqWHtXO55/Dct7Fz+T9oIPyUSnPRV5xoL+dmBjOXPI/3cRa
-	7faTaJ7QrH8zP8r81aVFeQeMQ1+t8aGFKMNRvNXLn358BnzYdOUIetFsuJslW4xiZXaDSeViZmC
-	eVcGpifEywcHG1Tw6DUXIctwKVbH8Qn5GIh4ajQacjHqHrFsKD0054BJyDvlnFxxIXQttZUvbv3
-	EhFbsNyBYtdoG9uqoWybpzHcvW5fLL3ugYvNNK90PBsxWtJth+FUw=
-X-Received: by 2002:a05:6512:3e1c:b0:5c1:4a48:c2db with SMTP id
- 2adb3069b0e04-5c14c01f805mr810751e87.43.1794207196170; Sun, 08 Nov 2026
- 22:53:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ec6Y0l0a
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C1031F0089F;
+	Mon,  9 Nov 2026 07:27:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794209268;
+	bh=Swcf0DnhAtIl8EvIgkGj2uhJo8mAoXKQQhHzUI9iGIY=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=ec6Y0l0a0Pu06bsmUhIrFlg/+tW+dqzq4tBH4x0aAlMf7xVfKs5Pz8uqKjn900s93
+	 1Vq0nP08rbhq6kKE0t1NhKQnB8Ail0HlGDHkTYWB9XnbyhVP0HGnbhJdqZk9Aifix6
+	 zll237N5XC42JyKzqpEdVc2tkJ7PYBy9219C17Kalc7LXFSOzNIH1VATakb7uvI5ol
+	 vzYBlAo2qakZ6QqEo7XsSvYh/PRzAg8E9ttQJsKLDToQ9kNoZwzm6vo1PMmiB4/J3k
+	 e63EAos85FQUkR28ZP0xfjQFskinLh3SSmwqyIdZYqZ6D0GQ7vugTUwsUiUkM884un
+	 jXxllez+lXZWg==
+Subject: Re: [PATCH net] netfilter: nf_flow_table: defer pernet stats release
+ to last flowtable teardown
+From: netdev-bot+sashiko@kernel.org
+To: q.h.hack.winter@gmail.com
+Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, vladbu@nvidia.com,
+ ozsh@nvidia.com, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+ kuba@kernel.org
+Date: Mon, 09 Nov 2026 07:27:47 +0000
+Message-ID: <179420926753.994134.7270811903271795956@kernel.org>
+In-Reply-To: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
+References: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -105,95 +64,231 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
- <CAL+tcoDvFNAZubOjw9+Z1eyaVeiBzt_Xg3KMNucY879bg-ZLow@mail.gmail.com> <dbdb9385-89cd-4e4f-bfb8-b72510e8801b@linux.dev>
-In-Reply-To: <dbdb9385-89cd-4e4f-bfb8-b72510e8801b@linux.dev>
-From: Jason Xing <kerneljasonxing@gmail.com>
-Date: Mon, 9 Nov 2026 14:52:37 +0800
-X-Gm-Features: AclHuK9hO_h4FFhel_M7AacjBweA615sygy6vgIfEMNG5ukVHhzyCYoysXzMOxw
-Message-ID: <CAL+tcoA6_gROiprd7YgxvwbaiuzEUPfuWTNMjKu6vDkbUJ5KPw@mail.gmail.com>
-Subject: Re: [PATCH net-next 00/14] net: annotate data-races around sysctl knobs
-To: Jiayuan Chen <jiayuan.chen@linux.dev>
-Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>, 
-	Ido Schimmel <idosch@nvidia.com>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-	Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>, Paul Moore <paul@paul-moore.com>, 
-	Matthieu Baerts <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>, 
-	Geliang Tang <geliang@kernel.org>, Julian Anastasov <ja@ssi.bg>, Allison Henderson <achender@kernel.org>, 
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>, Xin Long <lucien.xin@gmail.com>, 
-	"D. Wythe" <alibuda@linux.alibaba.com>, Dust Li <dust.li@linux.alibaba.com>, 
-	Sidraya Jayagond <sidraya@linux.ibm.com>, Mahanta Jambigi <mjambigi@linux.ibm.com>, 
-	Tony Lu <tonylu@linux.alibaba.com>, Wen Gu <guwen@linux.alibaba.com>, 
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, bridge@lists.linux.dev, 
-	linux-security-module@vger.kernel.org, mptcp@lists.linux.dev, 
-	lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org, 
-	rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org, 
-	linux-s390@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 9, 2026 at 11:33=E2=80=AFAM Jiayuan Chen <jiayuan.chen@linux.de=
-v> wrote:
->
->
-> On 11/9/26 11:11 AM, Jason Xing wrote:
-> > On Mon, Nov 9, 2026 at 10:55=E2=80=AFAM Jiayuan Chen <jiayuan.chen@linu=
-x.dev> wrote:
-> >> While testing the recent sysctl range fixes I noticed that a lot of ou=
-r
-> >> sysctl knobs are read with plain loads while the handlers update them
-> >> with WRITE_ONCE() and no lock, so KCSAN reports them as data races. I
-> >> then used an LLM to go through every ctl_table under net/ and list the
-> >> readers that were left behind. This series annotates them with
-> >> READ_ONCE(), and adds WRITE_ONCE() to a few custom handlers and netlin=
-k
-> >> paths that store to the same fields with plain writes. Most of it is a
-> >> plain READ_ONCE() at each read; where a function reads the same knob
-> >> twice to make one decision, it now reads it once into a local, so the
-> >> comparison and the value it acts on cannot come from two different
-> >> writes.
-> >>
-> >> There are no Fixes tags. Done one knob per patch this would be well ov=
-er
-> >> a hundred commits, so I grouped them by subsystem and feature instead =
-to
-> >> keep the review manageable. If maintainers prefer, I can split it up
-> >> further with a Fixes tag on each one, as several smaller series.
-> > Over the last year, I've been thinking about the annotation stuff
-> > especially around sysctls, which, I suppose, shouldn't actually affect
-> > the real workload but does affect the outcome of the syzbot.
-> >
-> > Out of sheer curiosity, my question would be what is the point of
-> > trying to change all of them? Or what kind of benefits can we get from
-> > the big series?
->
->
-> Three things:
->
-> 1. A plain load may be emitted twice by the compiler. ip_error() compares
-> peer->rate_tokens against ip_rt_error_cost and then subtracts it again;
-> if the sysctl changes in between, the u32 wraps. A few readers have that
-> shape and now read the knob once into a local.
->
-> 2. Tearing is not involved here, all the fields are at most word sized.
->
-> 3. The rest is the memory model: a lockless read of a field written with
-> WRITE_ONCE() is a data race unless it is marked
-> (tools/memory-model/Documentation/access-marking.txt). That is what KCSAN
-> reports, and why most of the series is plain READ_ONCE().
->
->
-> I think the benefit is doing it in one pass.
->
->
+Thank you for your contribution! Sashiko AI review found 4 potential
+issue(s) to consider.
 
-I was curious about the REAL impact. If this thing really matters, we
-have a lot of work to do even not only in the networking subsystem.
-Sorry, I still think none of those points are convincing enough, but
-that doesn't mean I object to this series. Anyway, it's just my
-2-cents.
+Critical: 0 · High: 3 · Medium: 1 · Low: 0
 
-Thanks,
-Jason
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] In nf_flow_table_free() (net/netfilter/nf_flow_table_core.c),
+  the line `release = net->ft.exiting && !--net->ft.nr_ft;` only…
+- [High] The deferred-release scheme keeps its state (ft.lock, ft.nr_ft,
+  ft.exiting, ft.stat) inside struct net and expects the last…
+- [High] nf_flow_table_fini_net() sets net->ft.exiting = true, but
+  nf_flow_table_init_net() never resets exiting or nr_ft.
+- [Medium] The commit message gets the failure mechanism wrong and does
+  not mention a behaviour change.
+
+--
+
+netfilter: nf_flow_table: defer pernet stats release to last flowtable teardown
+
+This commit counts flowtables per netns and adds an exiting flag, so
+that the free_percpu() of net->ft.stat moves from netns exit to the
+last nf_flow_table_free() of a dismantled netns. It also adds
+nf_flow_table_offload_drain(), which flushes all three offload
+workqueues on every nf_flow_table_free().
+
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 0d72dc8ae47a1..de0a9f0e4f7b9 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+
+[ ... ]
+
+> @@ -781,19 +791,51 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
+>  	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
+>  	nf_flow_table_gc_run(flow_table);
+>  	nf_flow_table_offload_flush_cleanup(flow_table);
+> +
+> +	/* The gc pass above can still queue offload works whose handlers
+> +	 * decrement the pernet statistics.  Drain them all.
+> +	 */
+> +	nf_flow_table_offload_drain();
+
+[Severity: Medium]
+Does the commit message describe the failure correctly? It says:
+
+  "The flushes in nf_flow_table_free() only drain those workqueues when
+  hardware offload is in use, so after free_percpu() the stray workers
+  still this_cpu_inc()/this_cpu_dec() into freed percpu memory."
+
+As far as I can see, offload works are only queued for hardware offload
+flowtables. flow_offload_add() calls nf_flow_offload_add() only when
+nf_flowtable_hw_offload() is true. nf_flow_offload_gc_step() only queues
+del/stats works for flows that have NF_FLOW_HW set:
+
+    if (test_bit(NF_FLOW_HW, &flow->flags)) {
+
+NFT_FLOWTABLE_HW_OFFLOAD also can't be toggled on update. So the flushes
+that only run for hw offload don't seem to be the actual gap.
+
+When fini_net runs before the flowtable is freed, the stats access
+appears to come from the synchronous gc pass inside nf_flow_table_free()
+itself, not only from stray workers:
+
+  nf_flow_table_gc_run()
+    flow_offload_queue_work()
+      NF_FLOW_TABLE_STAT_INC_ATOMIC
+
+Also, nf_flow_table_offload_drain() is called unconditionally here. That
+includes software-only flowtables in live namespaces. It flushes
+nf_flow_offload_add_wq, nf_flow_offload_del_wq and
+nf_flow_offload_stats_wq. As a result, every flowtable deletion waits for
+all pending hardware offload work in the system, driver callbacks
+included.
+
+The commit message presents the drain as part of the final release for a
+dismantled netns. With Cc: stable, could the message also mention this
+latency change?
+
+>  	rhashtable_destroy(&flow_table->rhashtable);
+> +
+> +	net = read_pnet(&flow_table->net);
+> +	if (net) {
+> +		bool release;
+> +
+> +		spin_lock(&net->ft.lock);
+> +		release = net->ft.exiting && !--net->ft.nr_ft;
+
+[Severity: High]
+Can this leak net->ft.stat for any netns that freed a flowtable before it
+exited?
+
+While the netns is alive, net->ft.exiting is false. The && then
+short-circuits, so --net->ft.nr_ft never runs.
+
+nf_flow_table_init() still increments nr_ft for every flowtable.
+nf_tables_newflowtable() and tcf_ct_flow_table_get() both call
+write_pnet() before nf_flow_table_init(), so net is always set there.
+
+Take this sequence:
+
+  create netns
+  add an nft flowtable                      nr_ft = 1
+  delete it
+    nf_tables_flowtable_destroy()
+      nf_flow_table_free()                  exiting == false, nr_ft stays 1
+  destroy netns
+    nf_flow_table_fini_net()
+      release = !net->ft.nr_ft;             false
+
+After this, nothing calls free_percpu(net->ft.stat).
+
+Removing a tc ct action through tcf_ct_flow_table_cleanup_work() does the
+same. So does the nf_tables_newflowtable() error path after a successful
+init.
+
+Should nr_ft be decremented unconditionally, with only the release
+decision depending on exiting?
+
+> +		spin_unlock(&net->ft.lock);
+> +
+> +		/* Released by the last flowtable teardown, see
+> +		 * nf_flow_table_fini_net().
+> +		 */
+> +		if (release)
+> +			free_percpu(net->ft.stat);
+> +	}
+
+[Severity: High]
+Can this block run after struct net has already been freed?
+
+The hand-off state (ft.lock, ft.nr_ft, ft.exiting, ft.stat) lives in
+struct net. act_ct doesn't hold a netns reference on its flowtable.
+tcf_ct_flow_table_get() does:
+
+    write_pnet(&ct_ft->nf_ft.net, net);
+
+with no get_net() or net_passive_inc(). Teardown then goes:
+
+  tcf_ct_cleanup()
+    call_rcu(tcf_ct_params_free_rcu)
+      tcf_ct_flow_table_put()
+        queue_rcu_work(act_ct_wq, &ct_ft->rwork)
+          tcf_ct_flow_table_cleanup_work()
+            nf_flow_table_free()
+
+cleanup_net() runs the pernet exits, then rcu_barrier(), then
+net_passive_dec(). A later cleanup_net() frees the net through
+net_complete_free().
+
+rcu_barrier() waits for the RCU callback that queues the work. It does
+not wait for the work to run on act_ct_wq. Nothing in act_ct's pernet
+exit flushes act_ct_wq, since ct_exit_net() only calls
+tc_action_net_exit().
+
+This is the case the patch targets: fini_net sees nr_ft > 0 and sets
+exiting. If the deferred nf_flow_table_free() runs after struct net is
+freed, it takes spin_lock(&net->ft.lock) and decrements nr_ft. It may
+also call free_percpu() on a pointer read from freed or reused memory.
+
+act_ct_wq is ordered. Each cleanup item now does
+cancel_delayed_work_sync() plus three global flush_workqueue() calls, so
+a backlog of ct_ft cleanups makes this window wider.
+
+Would act_ct need to pin the netns, or should the stats live outside
+struct net?
+
+>  }
+>  EXPORT_SYMBOL_GPL(nf_flow_table_free);
+>  
+>  static int nf_flow_table_init_net(struct net *net)
+>  {
+> +	spin_lock_init(&net->ft.lock);
+>  	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
+>  	return net->ft.stat ? 0 : -ENOMEM;
+>  }
+>  
+>  static void nf_flow_table_fini_net(struct net *net)
+>  {
+> -	free_percpu(net->ft.stat);
+> +	bool release;
+> +
+> +	spin_lock(&net->ft.lock);
+> +	net->ft.exiting = true;
+
+[Severity: High]
+Is net->ft.exiting ever cleared again?
+
+nf_flow_table_init_net() only calls spin_lock_init() and alloc_percpu().
+struct netns_ft is embedded in struct net, so exiting and nr_ft survive a
+module unload and reload. That holds for every existing netns, including
+init_net.
+
+Take this sequence:
+
+  rmmod nf_flow_table
+    nf_flow_table_module_exit()
+      unregister_pernet_subsys(&nf_flow_table_net_ops)
+        nf_flow_table_fini_net()
+          exiting = true, stat freed if nr_ft == 0
+  modprobe nf_flow_table
+    nf_flow_table_init_net()
+      stat re-allocated, exiting still true
+  create and delete a flowtable
+    nf_flow_table_free()
+      release = net->ft.exiting && !--net->ft.nr_ft;   true
+      free_percpu(net->ft.stat)                        netns still alive
+
+>From then on, flow_offload_queue_work() and the work handlers update
+freed percpu memory, and the procfs stats read it. At netns exit,
+nf_flow_table_fini_net() sees nr_ft == 0 and frees the same pointer a
+second time.
+
+The out_proc error path in nf_flow_table_pernet_init() leaves the same
+stale flag. So does the register_pernet_subsys() unwind when module init
+fails, on namespaces that stay alive.
+
+Should nf_flow_table_init_net() reset exiting and nr_ft?
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261105065509.94627-1-q.h.hack.winter%40gmail.com
