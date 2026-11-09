@@ -1,127 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.44
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794260762;
-	b=e6PNVIlYUmpV4BshNOGnORVLP7zUcMPzEpasraCb7V8hKV2ccNkIPJkgF6NPYB776Mcf
-	 TxXiyps0NStNaSR7COE7/kqURKVp5NwSS2fOyJxjHzWbf+XpLJA7yePgEQ5nhfHAwrSOJ
-	 be6dYZwxK5waNfSSqmKitj4+ClMcDkVpUmKWO3UMYTPrwV/KMoAzVQGBQtEyoC8v9nCXU
-	 bEwJvk+uJrbbIpGijZqX4DkxaT7bvGvhMJlNZshwO3wi+KkVfvqt19SpdHA3JP1h86imL
-	 QZGrkxFEjaj9XjtcsCvCDGgKzSxmhPn0Qd5eX6wnZTu3CXXnvOfQEpehB+tssdiQ/aQ==
+	t=1794268567;
+	b=H7OQb75DJqD0a1XwUmdsJahsMqmsJHFfhkQmQSpsZfZAISqjAqcQqlVT9+ugqKlRqGoY
+	 myVg7btbcsvt+YRqrzZn/jlO7wBZ/LHqd48+I6NKCFCw7zDjwy+Sbq3ubEIbG5tZ+YSMe
+	 Tna96hzSG9PV8ugvfx5JMurBERI09Ikr9Cm9y/Nv4B4I1fmMYYoVBo71g1bL0/yzhd6wy
+	 UI9uuQRiey7QGKEvK0vYODoVZQs7MrulZOUwtixeYfSMk+TAJs1wbOFOry2eurkXEDTs8
+	 /SyYjyCy1X4W0lEv6uQXEwqv3Um7FwrnrUkjbeSutdi+5kblGwv3ynHenMfficfUtkA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794260762;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794268567;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=874yjmK9ypxK94+nKOJ/uR1d6HpqK0owgIThZQA8ZUA=;
-	b=CnUPg+qiZ/e3iZiygb8offaHIvlATdmQPh7dO1/rm7x8i2Uha7p3/gMPcK8jzBmzzRFn
-	 5f79bezoSQKf8L993B3a2OBz2bpAGhEkuMjNzdxa1TJ5fpfuYzsurZiaiJt01nHspzxdW
-	 d5AchkWsp2KB/lXn8MEUxRbLhto5C01ZnIXcnXHV/zqQNnR9WH77NCit6sySMx1wabRCV
-	 //1gMV2H4X8XF5wMZtMvksgBgT44cvhVtIjceqopFKpryzSZKFxq7bSiGMYYEdgYHLVdD
-	 F4rlz/G8uZxJkS+e68BmLTqqVy4lrzJ2bRksa2Hrc+hPNUEY2HcKg8h6pAW2YpZe5pg==
+	 Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-Mailer:From:To:Cc:Subject:References:In-Reply-To;
+	bh=nlqOFSAQ9H7dnLsW36/WDhDu5EY2v33GDHCwxLLecp0=;
+	b=ACxXm6kVNZvtm9W5qJZTBfAuy3Kpvc+hyis82Ix9G4hocVjrheAWkAWDdxLasJZpOsp8
+	 Xf64kBntQePGe3YVdeQs4peUYL6jjw4mcYhj5njaBkz+lKDq3ZnUs3QI02u/a8Iz4IrwS
+	 c9fyfGsf8ohzV+zJSox7LVj6xcH66X2IPk8eAzEGBiWs2d8eWCRYeGWVxXw/BSVwhFm4M
+	 afZIV5IzC4krQomunW0nIUgnMVHaVfsNqPllDxOydrxYlZljBhJ2ETgmCpAtDb8gZS8Ig
+	 C2DHe9zmhSe5GI7y2odpZIXaW8QJfy+XQPUsWqVZMymrAL8dcNEG9Q6HCNyaQ2SfI8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LaZ0qPv5;
-	arc=none smtp.remote-ip=209.85.221.44
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	dmarc=pass header.from=paul-moore.com;
+	spf=pass smtp.mailfrom=paul-moore.com;
+	dkim=pass header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=Qz1X22J3;
+	arc=none smtp.remote-ip=209.85.219.50
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 908F1606A325
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 21:46:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 908F1606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9699606A321
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 23:56:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B9699606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=LaZ0qPv5
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-48e47347279so893313f8f.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Nov 2026 13:46:02 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.a=rsa-sha256 header.s=google header.b=Qz1X22J3
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-91eb53957cbso19921886d6.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Nov 2026 15:56:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794260761; x=1794865561; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=874yjmK9ypxK94+nKOJ/uR1d6HpqK0owgIThZQA8ZUA=;
-        b=LaZ0qPv5+whTFQHjIA7oYo021SUS2QeXnWN8ii9Y4im7Ue68o46nz2xh/hHMwIUfQ/
-         ICad5fyoXePYl6/8nNVhZk6UxBKiDwJbHcHq6QklDSJskt7Ox2MaUqpcgklbAASOb1WD
-         7U13gt1MK2zXHTSuMFiAfjmE40I4QhfpTIR2Mc6nMOBQW6Dg/mqe6U/h69Hyf/QnrKae
-         CyKIviPRPYc2tnG0IM8qOylYYY2PKnrUJzf833wY0ZcFYDbyZdAS7ekVESO+FaUUNtdA
-         WzN6sPDUCv7pE3hPSGmxzNcqgZM1jmpktE+mpPCXGo9ukB9qCsiBySNit7DIM51G+Ivt
-         K68Q==
+        d=paul-moore.com; s=google; t=1794268565; x=1794873365; darn=vger.kernel.org;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=nlqOFSAQ9H7dnLsW36/WDhDu5EY2v33GDHCwxLLecp0=;
+        b=Qz1X22J308Z0pwN4ph/SpbaqCDLhrYfm2/s985T7MYAxMwFI6+WtTal8ogRpJXmDZc
+         YizbP4AaoI7JqwqSum0kIuNYtmrj9bYTw2Z4ZqOUJEMWH8IxZPx8V600M1H4wTQzMG0n
+         dBeqV+zBkY9z6aFUUiYf4j/EHTQUhnR4vW9XpyU5tFEPwjOYWSVYr5d9zhk8GaHU04IN
+         kagJuSxM6qk+XMD87K/Pfrwb+4tZHOEClPvbMnUi+Tx1OoA3pYl5nNvkBfepcZArxHiz
+         yYOoFFVg1IqBYd+IJerZXSrI8KZgtwv9AVnQbWhlmi/VwLbWbKLyLAtQSSaws5TqG/zS
+         p2ZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794260761; x=1794865561;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1794268565; x=1794873365;
+        h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
+         :content-type:mime-version:message-id:date:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=874yjmK9ypxK94+nKOJ/uR1d6HpqK0owgIThZQA8ZUA=;
-        b=JDl/Hr+udB8Aki0dmuvVxLgXQWdceftZQL60aKD2TLalyXuyn5+bglAmTU9BN+QN+g
-         77ZeEH+Y0Wj5TUKlr2Bp6rtFlfgrCcMXcfLTzOIS3ApJgx1AqeyfLN4PhHBNlvE/GP22
-         0v3yMrNxagNQWviBiHoKHELl/OR2nZt24VS/0VVDkSUfUvsgpwO0NKt/ferSslkuE7oe
-         mEUJJfP90VHmyHxAH4OWwshzGsvwt6gZ40E8GGeZOFOG2sUQl6o1mjzGJHGqoWrBNRKa
-         B3p9jdCWsU4mZBocst7HwZJ5g6r1PH1MPOB30z1FsE4Az1IUwju3Pc6tMg9krQyZkbhi
-         XiRQ==
-X-Forwarded-Encrypted: i=1; AL+hErEQibztVuPrtKQ2tHC36D0P+FFh/sh6N/28kjaaHvxdlKZ92cNw+XLr1J4nb6eBHmnMS2jJWndE2x5vJiohaAc=@vger.kernel.org
-X-Gm-Message-State: APuU4Z8HwcPj6vMEOwrT6EwKW/RYq0B9YqldtD6AH4D0h7ChznGapPhc
-	yJ4G3gHe4uuBXMdgcwqCgY1xjtx0aZzYVO1hboWdpkSrSLrBf/U2VQeE
-X-Gm-Gg: AYBFou0/e3pEb+nvPSWCKtxAkPZSKxLj1ETT8UD+S0USkOsiMajBZi4S8SnWa8yLn0p
-	M0D1xK2UNATrQok+TMz5QlCODb6MaHJOn8uCYlHMWSPmtWQ1+R8glZJnMppw0GaZTPStCAqDruB
-	rnC8RjeNuC3RLP952VzJDreKYuqngIkKJA9I7iTffuz2RTJCGrsedPkHQgGXs7xAczGDaPk2+zk
-	adVwuZGx3mSAuTkszBgS2eLQQyO5G8JmlPKAmmXR6uIVi35aIL5dC1odl9/8OM2uhO9o72m6TGL
-	r/zd6zZEZaqjRwz4+EuzbLx22wvLBr8FymOgEAUuGYRaSwUiZ3tFja7VFVrQg2hzXr6MwrAlYjy
-	sJL9IW98yMrIIbW8cuzUjFvNYyovkKF0yHWsWwlxse/7639jBaxgI93AWE4mV0KFML3PuZuxW3s
-	Fdtuf6WKdwnbLWwZIG5oKVAr9LygFZlZHMJ2hSttORhio76K7VcxkXHakkzuBFOFyGbaYk96vPN
-	Z5kZziF4vuHqmlgywosJbNvIQ7BQ/X3WiugsL9ojW5oKDbfUPoWELLaq1s0IXGvq85LnCljS5fF
-	VhNtnUXxlbOJHzS2KLERsTZG2z1H5UDsh6QPzRLCgbAg1kHZmXo2LFPsmN8zdvV4Jg==
-X-Received: by 2002:a05:6000:288d:b0:48e:25e1:5eb8 with SMTP id ffacd0b85a97d-4982b28aa42mr1487213f8f.3.1794260760763;
-        Mon, 09 Nov 2026 13:46:00 -0800 (PST)
-Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4983585c4fdsm1213644f8f.10.2026.11.09.13.45.59
+        bh=nlqOFSAQ9H7dnLsW36/WDhDu5EY2v33GDHCwxLLecp0=;
+        b=gz0ei7uoeY1KGEeKanxHlnPxbPaov8Clx0+LZvD/u0CEO1MGoEV3TQFk/KcBQmwjsf
+         7jjob64/988Yq3Hf7dxU/ndmBoyblgPsWgQ73kicxhdlfn2Edg281TL6PJP6fksvhdUH
+         tUjruJf8LPT/QjgvW5qSU1NP0upsKVgXPii6B9rEJXOygU+1yIcDSHOKzzN3rKk3y4AG
+         Vb4JwMLXsWvw5XY4DwS0Ydymx3f04+bP1OjbYSYmrhoM6q8JV8uKZrXe9oLf2BkIZEMZ
+         leojLR+fChgH4fMzDBPNFf5woj6u/6Zv0YlE4HzHd1TrgGjXS3aNtZ29EbasYggUuiRT
+         kzpQ==
+X-Forwarded-Encrypted: i=1; AL+hErFIqS0HubdP2ARHMcPV0Z8Fj431ZA9Ci0tvA2aEGKrpIvid2N7Fn8c6g6/LfQbOIsTnzISO2nQKLeI12PKlMfc=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9pg2Rqc2C2GNxqQCnBpT8UIV0eONi9hpuGeuIpVYWjSyB6t3q1
+	o8rNDU5Up24PV4yrXbvWKDVjIK2zHm2yCA9WgNKvus1uCTqB4kEzNnhgHUAwHB2lPg==
+X-Gm-Gg: AYBFou0g1i8QzXw+hRpK+y/pHt+gYitI4fKQhlqP3zF/FM1ejIYZz2p2lVGF+tb5Q4J
+	BKIkQeX99vdzmFEG438VTTNfJK1nEogl8Pl01IpazoyzKBVxkSCyrshkzI2z/HzEgDPETdzcb2J
+	U46sIPozZtrEmIU2qy4jBHYJwrw/hhdTe7diTfo5MYbYUFiPrc/KJdrKeuWL+qwdi4TEmkCZhd5
+	IuBYfcWE0b7t7AoLkNBJP7tk6IUg3URy5fBILmt/PfXYdy+Tjc2XSMTQfarcD8GSOs3DAAKS4tl
+	EIBb/lVdrA9dNMDITrhryk6XtO1fp2p090pDIm9C6y/mBXgc9qFsTQ+6EI+6Zun+CDZvqOtShJ6
+	0PQ0z+CTj4ahxGMbdi5HvoiC7zJPHL1HZUJh6nAdzNib8nPl8dFmK2KhDpATQON4UFYO2ic1ZxI
+	J0tgvwO1lLNUayLlS/RXhweUhFYnF6YttwIuzbNKXT2mkJcq5rmwTAmRNoucJenqa+9N6w0t1C/
+	qfoqGEJdfAQyCkvW1U8Lr6eWMcKolmvvTvMF2VMU2kmusaPA9rioGVbiUxHux4DuxUwCREzfv87
+	N+sSE2qLKcWIRfvcz76rRZq7tjajHps6r4j52BYUCIRCB5iFd2A55wZ3BNGy0418QqDeVyTbC0B
+	sKw7Iot55ogGGOO8VjSgTm0Bgllaqi8U=
+X-Received: by 2002:a05:6214:54c8:b0:91b:5d39:e13c with SMTP id 6a1803df08f44-91eef8650e9mr21004816d6.49.1794268565495;
+        Mon, 09 Nov 2026 15:56:05 -0800 (PST)
+Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91ef04ae351sm7869386d6.12.2026.11.09.15.56.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Nov 2026 13:46:00 -0800 (PST)
-Date: Mon, 9 Nov 2026 21:45:58 +0000
-From: David Laight <david.laight.linux@gmail.com>
-To: "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc: Christian Brauner <brauner@kernel.org>, Geert Uytterhoeven
- <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, Linus Torvalds
- <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik
- <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, Jeff Layton
- <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet
- <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, Al Viro
- <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph
- Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados
- <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara
- <jack@suse.cz>, Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org,
- linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org,
- linux-scsi@vger.kernel.org, linux-um@lists.infradead.org,
- linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- netdev@vger.kernel.org, ntfs3@lists.linux.dev,
- platform-driver-x86@vger.kernel.org, coreteam@netfilter.org,
- kexec@lists.infradead.org, linux-pci@vger.kernel.org,
- linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org,
- dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net,
- jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org,
- linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org,
- linux-mm@kvack.org, linux-sh@vger.kernel.org, linux-usb@vger.kernel.org,
- samba-technical@lists.samba.org, sparclinux@vger.kernel.org,
- linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org,
- linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net,
- Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org,
- linux-raid@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, Chuck Lever
- <cel@kernel.org>
-Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
- pinning the entry
-Message-ID: <20261109214558.0d9d5228@pumpkin>
-In-Reply-To: <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk>
-References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org>
-	<CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com>
-	<20261107-akteur-gemieden-eckdaten-21304d085e35@brauner>
-	<20261108185953.28054fb3@pumpkin>
-	<alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk>
-X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
+        Mon, 09 Nov 2026 15:56:04 -0800 (PST)
+Date: Mon, 09 Nov 2026 18:56:04 -0500
+Message-ID: <a8542108f56e8cac5c6e65977ee01ffd@paul-moore.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -130,35 +90,62 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0 
+Content-Type: text/plain; charset=UTF-8 
+Content-Transfer-Encoding: 8bit 
+X-Mailer: pstg-pwork:20261109_1829/pstg-lib:20261109_1442/pstg-pwork:20261109_1829
+From: Paul Moore <paul@paul-moore.com>
+To: Joas Antonio dos Santos <joasantonio108@gmail.com>, Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Ondrej Mosnacek <omosnacek@gmail.com>, Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, selinux@vger.kernel.org, linux-security-module@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] selinux: don't label bridged packets in  selinux_ip_forward()
+References: <179216146138.25460.7866279004288174372@gmail.com>
+In-Reply-To: <179216146138.25460.7866279004288174372@gmail.com>
 
-On Mon, 9 Nov 2026 05:05:57 +0000 (GMT)
-"Maciej W. Rozycki" <macro@orcam.me.uk> wrote:
-
-> On Sun, 8 Nov 2026, David Laight wrote:
+On Oct 16, 2026 Joas Antonio dos Santos <joasantonio108@gmail.com> wrote:
 > 
-> > > > While at it, I think it would be good to use this conversion as an
-> > > > opportunity to replace "char *" by "void *", which will probably let
-> > > > you drop several casts from users.    
-> > > 
-> > > So I tried that too. The thing is it drops exactly one u8 * cast in
-> > > ntfs3's label write.   
-> > 
-> > Since char is now unsigned that one isn't even needed...  
+> With br_netfilter and bridge-nf-call-ip{,6}tables enabled, bridged IP
+> packets go through the NF_INET_FORWARD hook, where selinux_ip_forward()
+> calls selinux_netlbl_skbuff_setsid() and NetLabel may add or remove a
+> CIPSO or CALIPSO option.  cipso_v4_skbuff_setattr(),
+> calipso_skbuff_setattr() and calipso_skbuff_delattr() move the IP
+> header and reset the network header, but the Ethernet header stays
+> where it was; when the bridge pushes it back in front of the packet it
+> picks up stale bytes and the frame goes out with a garbage destination
+> MAC and EtherType.
 > 
->  Please excuse me missing the context, but what circumstances does your 
-> claim refer to?
-
-Just that the cast would have to be:
-	u8 *foo = (u8 *)bar;
-where 'bar' is 'char *', and I don't think you need a cast there when
-char is unsigned.
-
-David
- 
+> Labeling a bridged packet based on its IP addresses is not what we want
+> here anyway, so leave bridged packets alone.  Add a stub of
+> nf_bridge_info_exists() for CONFIG_BRIDGE_NETFILTER=n.
 > 
->   Maciej
+> Tested with QEMU, two veths enslaved to a bridge with br_netfilter in
+> the middle, SELinux and a NetLabel DOI 16 configuration, 5 UDP packets
+> per case:
 > 
+>   case                                        before        after
+>   CALIPSO packet, unlabeled destination       MAC garbage   5/5
+>   unlabeled IPv6, CALIPSO destination         MAC garbage   5/5
+>   unlabeled IPv4, CIPSO destination           MAC garbage   5/5
+> 
+> Routed packets are still labeled (an unlabeled packet forwarded towards
+> a CALIPSO destination gets the option, 5/5).
+> 
+> Fixes: 948bf85c1bc9 ("netlabel: Add functionality to set the security attributes of a packet")
+> Link: https://lore.kernel.org/netdev/CAHC9VhS+bdL_YnLQtd0sPmKKfy9BvS-LWV_6EhAuu4qfUFe_mw@mail.gmail.com/
+> Suggested-by: Paul Moore <paul@paul-moore.com>
+> Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+> Assisted-by: Claude:claude-opus-5-5
+> Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
+> ---
+>  include/linux/netfilter_bridge.h |  5 +++++
+>  security/selinux/hooks.c         | 13 ++++++++-----
+>  2 files changed, 13 insertions(+), 5 deletions(-)
 
+This looks good to me, thanks for all the work you put into this!  It's
+been several weeks with no objections from the netdev folks about the
+nf_bridge_info_exists() dummy function so I'm going to assume they are
+okay with that; if that's not the case, please speak up soon :)
+
+Merged into selinux/dev.
+
+--
+paul-moore.com
