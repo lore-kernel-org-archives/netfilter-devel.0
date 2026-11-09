@@ -1,58 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794209269;
-	b=eI02Qmgi5z4CxdhKH4uosNNzt3h2FTI3deWSTaQDBiYnY4djvtoHNwOklNOVwOuom4Ed
-	 tIjhbIyK/xYEfZOU/zqDBxn60axFNFneR2U9t3PdKuiz0rv3xTMSo3e+u06C1euqGXbwu
-	 D/i1U80q8VHHWKF7YS9U6otpfbig1Ux4hsMUKpsjBKTHenREQhe9PMQ3ivMWklkhT4APm
-	 iaeMTrvO4MbAFmoOr5LVeGZvsORqF9BGbUhiBLk6XitLxhTwu1xV8tL/ub6u5UV+ZpqpN
-	 vQNV8WJDsCRzYDaE+SnlE0z3BKCPe2eGGC+TRQ7MJFBhFqUPclDzTdtTFSZjbZ56EDg==
+	t=1794213233;
+	b=nvrji3ywaE7C3Z3dDUDRtDjm0LMIj/P9THyWYjQM/hLswigUJESNwFWEA5PqWwb/u6jM
+	 iHWa/lt4yGzAKpJfJDlN+THGYjyBhhHohc4+1TmYLhVedw8MMFc/TrkVt22gVZ+N/tW93
+	 CrwPgpFWCayURNfPg135XKJKQY0b3zKDWYebHgbWFchVXkATuVgirHuWh+dWPk+vJgkFz
+	 WiHNuOv1hHTpA/kHrWpkmz+Q4RoXH8mXSpml2xudl95lux2d3P0s7BszEUlJZyQqTv3ik
+	 XHeMud0//dPDid+mmnmKjHmBuXC1HKtlqzwqzG1m6pAnE2r6s8JT/0vqzfjwXcHFVpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794209269;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794213233;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=Swcf0DnhAtIl8EvIgkGj2uhJo8mAoXKQQhHzUI9iGIY=;
-	b=p8ZoqMEaePGj3StC2AW74mgHZWJhnmrdqCVLKG8iABz0dN4xmpK3W27e8d7XMhVhLIYB
-	 cNPg6c0qEyKgMpC8LJjAmf0PBCwXC86nZZwVVgudOc9bnx4B7/vhC/IZAFr6P6Wavdgfk
-	 6AEFln341sXGoQ38XIMgDCoGAqStRlf7pt+KLMspsGrlOT6POLtBtvE/wHdN8cLfFaE1L
-	 z8mbyRRwNMTWUrV/6vH37HfUEfhF6xTIRK4waWE0U3eUX4+QG6pw59ME/yXEC5WRAJ14D
-	 ZYgeFtmsi6N3xgADCxVK7YrYq0ble4eYMgOgBWRdU+suWVM+PFLe25yj0UC0chOKYMA==
+	bh=UDd0Zg6CUretoFYA67K2u0vOJ5JoLZIvq3TwMbsLA/g=;
+	b=IofmZfaJIVSyNjDGdpFRL0tTbm6euUFWIajIPtBYk/pNCCEzt5JNOqj1FXPMs5gNdWYt
+	 TGIwCDvY+xLJ8OBufMxni5x3dIE1W0jmtNLrVHnEN+nd4E+R2DZFGW0zYw08TphEpxRe1
+	 uwAiZRPB4dF/m7KSoKE7O0s6nYkB6YEYXorIbdJToYWFBciMsBCcF//eiVaC/QKJ8LGGV
+	 JzyU+y7KXhOr6LjmAe3I+5tzQJktW+DezPJffaFD9wrZ2Anpku6CXaZPWz5TjrbTW7PwS
+	 IrU+x07ehhGepIFGak5HkbVeSllZa7ctJNRUX28tsQagbhzaRzkYnO60pick3QQTM3A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ec6Y0l0a;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="cE/8KthE";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C2ED606A31C;
-	Mon,  9 Nov 2026 07:27:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F4C606A326;
+	Mon,  9 Nov 2026 08:33:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ec6Y0l0a
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C1031F0089F;
-	Mon,  9 Nov 2026 07:27:48 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=cE/8KthE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB881F0089F;
+	Mon,  9 Nov 2026 08:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794209268;
-	bh=Swcf0DnhAtIl8EvIgkGj2uhJo8mAoXKQQhHzUI9iGIY=;
+	s=k20260515; t=1794213233;
+	bh=UDd0Zg6CUretoFYA67K2u0vOJ5JoLZIvq3TwMbsLA/g=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ec6Y0l0a0Pu06bsmUhIrFlg/+tW+dqzq4tBH4x0aAlMf7xVfKs5Pz8uqKjn900s93
-	 1Vq0nP08rbhq6kKE0t1NhKQnB8Ail0HlGDHkTYWB9XnbyhVP0HGnbhJdqZk9Aifix6
-	 zll237N5XC42JyKzqpEdVc2tkJ7PYBy9219C17Kalc7LXFSOzNIH1VATakb7uvI5ol
-	 vzYBlAo2qakZ6QqEo7XsSvYh/PRzAg8E9ttQJsKLDToQ9kNoZwzm6vo1PMmiB4/J3k
-	 e63EAos85FQUkR28ZP0xfjQFskinLh3SSmwqyIdZYqZ6D0GQ7vugTUwsUiUkM884un
-	 jXxllez+lXZWg==
-Subject: Re: [PATCH net] netfilter: nf_flow_table: defer pernet stats release
- to last flowtable teardown
+	b=cE/8KthEUJtk0LewDEGnN0ewmMPUVYUelvP+s0qv4QA7UIjX4h/v/r0ez56cA3r7i
+	 SBFUNy0NosBcg5c9LquPAbY+nTEsp5Ur3v3JJjrcuf2OpKBtPkiLNiLoQAlGIn7RoX
+	 nmyq0AH3oKDZ8GboW9SFOIWdgs6mqXR2JztyPdf4Dptt/hwB6twsS7sXF4xe1Bw5dE
+	 Szmokk+6tyoLsW4K4sDgO16F9Q2+3au8Y9qc1Rty0At7GEXyewFbfy6M3fPj2NM4yG
+	 gZP94gmXyHnZo8Z+xp5OYEnHiS5yFDh2N1VyJayDgUIqtwjtCPdLLpfHHw2qMK4WYB
+	 rJgw8OesaKwMQ==
+Subject: Re: [PATCH net] netfilter: xt_dccp: reject short option lengths
 From: netdev-bot+sashiko@kernel.org
-To: q.h.hack.winter@gmail.com
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, vladbu@nvidia.com,
- ozsh@nvidia.com, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- netdev@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org,
- kuba@kernel.org
-Date: Mon, 09 Nov 2026 07:27:47 +0000
-Message-ID: <179420926753.994134.7270811903271795956@kernel.org>
-In-Reply-To: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
-References: <20261105065509.94627-1-q.h.hack.winter@gmail.com>
-X-sashiko-severity: High
+To: shawnq1@163.com
+Cc: pablo@netfilter.org, tjdqudcks0424@naver.com, fw@strlen.de, phil@nwl.cc,
+ davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, edumazet@kernel.org,
+ horms@kernel.org, coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 09 Nov 2026 08:33:51 +0000
+Message-ID: <179421323164.994134.2385901971109672793@kernel.org>
+In-Reply-To: <20261105081735.749379-1-shawnq1@163.com>
+References: <20261105081735.749379-1-shawnq1@163.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -65,10 +64,10 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 4 potential
+Thank you for your contribution! Sashiko AI review found 3 potential
 issue(s) to consider.
 
-Critical: 0 · High: 3 · Medium: 1 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 2
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -76,219 +75,139 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] In nf_flow_table_free() (net/netfilter/nf_flow_table_core.c),
-  the line `release = net->ft.exiting && !--net->ft.nr_ft;` only…
-- [High] The deferred-release scheme keeps its state (ft.lock, ft.nr_ft,
-  ft.exiting, ft.stat) inside struct net and expects the last…
-- [High] nf_flow_table_fini_net() sets net->ft.exiting = true, but
-  nf_flow_table_init_net() never resets exiting or nr_ft.
-- [Medium] The commit message gets the failure mechanism wrong and does
-  not mention a behaviour change.
+- [Medium] The patch turns option lengths 0 and 1 into a hotdrop instead
+  of a no-match, and the commit message does not say so.
+- [Low] The commit body is an email cover letter pasted into the
+  permanent changelog.
+- [Low] Whether xt_dccp drops a malformed option TLV now depends on which
+  malformed form it is and on option order.
 
 --
 
-netfilter: nf_flow_table: defer pernet stats release to last flowtable teardown
+netfilter: xt_dccp: reject short option lengths
 
-This commit counts flowtables per netns and adds an exiting flag, so
-that the free_percpu() of net->ft.stat moves from netns exit to the
-last nf_flow_table_free() of a dismantled netns. It also adds
-nf_flow_table_offload_drain(), which flushes all three offload
-workqueues on every nf_flow_table_free().
+This patch changes dccp_find_option() in net/netfilter/xt_dccp.c so that
+a multi-byte DCCP option with a length byte of 0 or 1 is treated as
+invalid. The walker previously advanced by one byte and could read the
+length byte as the next option type. With this patch it sets hotdrop and
+stops.
 
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index 0d72dc8ae47a1..de0a9f0e4f7b9 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
+Link: https://lists.openwall.net/netdev/2026/10/20/477
 
-[ ... ]
+> Hello,
 
-> @@ -781,19 +791,51 @@ void nf_flow_table_free(struct nf_flowtable *flow_table)
->  	nf_flow_table_iterate(flow_table, nf_flow_table_do_cleanup, NULL);
->  	nf_flow_table_gc_run(flow_table);
->  	nf_flow_table_offload_flush_cleanup(flow_table);
-> +
-> +	/* The gc pass above can still queue offload works whose handlers
-> +	 * decrement the pernet statistics.  Drain them all.
-> +	 */
-> +	nf_flow_table_offload_drain();
+[Severity: Low]
+This isn't a bug, but the changelog reads like an email cover letter that
+was pasted in as the commit body. It opens with "Hello,".
+
+It also includes reproduction notes that would usually go below the ---
+line: QEMU and gcc versions, gist URLs, tested SHAs, and build and boot
+steps.
+
+The technical explanation ends mid-sentence:
+
+> The option walker should reject a TLV length below two before advancing:
+>
+> Fixes: 1d3de414eb20 ("[NETFILTER]: New iptables DCCP protocol header match")
+
+Nothing follows the colon. The message also doesn't say what the code now
+does with a length of 0 or 1, which is to hotdrop the packet.
+
+> diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+> index 23a4e3e8df7de..e0d7f43749588 100644
+> --- a/net/netfilter/xt_dccp.c
+> +++ b/net/netfilter/xt_dccp.c
+> @@ -62,10 +62,15 @@ dccp_find_option(u_int8_t option,
+>  			return true;
+>  		}
+>  
+> -		if (op[i] <= DCCPO_MAX_RESERVED || i == optlen - 1)
+> +		if (op[i] <= DCCPO_MAX_RESERVED || i == optlen - 1) {
+>  			i++;
+> -		else
+> -			i += op[i + 1] ? : 1;
+> +		} else {
+> +			if (op[i + 1] < 2) {
+> +				spin_unlock_bh(&dccp_buflock);
+> +				goto invalid;
+> +			}
 
 [Severity: Medium]
-Does the commit message describe the failure correctly? It says:
+Is the change from a no-match to a hotdrop intended here?
 
-  "The flushes in nf_flow_table_free() only drain those workqueues when
-  hardware offload is in use, so after free_percpu() the stray workers
-  still this_cpu_inc()/this_cpu_dec() into freed percpu memory."
+The goto invalid path sets *hotdrop = true. dccp_mt() passes &par->hotdrop
+down through match_option(), and ipt_do_table() then stops rule traversal
+and drops the packet, whatever the target or chain policy:
 
-As far as I can see, offload works are only queued for hardware offload
-flowtables. flow_offload_add() calls nf_flow_offload_add() only when
-nf_flowtable_hw_offload() is true. nf_flow_offload_gc_step() only queues
-del/stats works for flows that have NF_FLOW_HW set:
+net/ipv4/netfilter/ip_tables.c:ipt_do_table() {
+    ...
+	} while (!acpar.hotdrop);
+    ...
+	if (acpar.hotdrop)
+		return NF_DROP;
+    ...
+}
 
-    if (test_bit(NF_FLOW_HW, &flow->flags)) {
+Before this patch, a packet with options {32, 1} just failed the match and
+kept going. With this patch it looks like the packet is also dropped in
+setups such as these:
 
-NFT_FLOWTABLE_HW_OFFLOAD also can't be toggled on update. So the flushes
-that only run for hw offload don't seem to be the actual gap.
+- an ACCEPT policy chain with a non-terminal --dccp-option N rule, for
+  example LOG or MARK, or a rule in the mangle or raw table
 
-When fini_net runs before the flowtable is freed, the stats access
-appears to come from the synchronous gc pass inside nf_flow_table_free()
-itself, not only from stray workers:
+- an inverted rule such as "! --dccp-option 5 -j ACCEPT", which used to
+  match {32, 1} or {32, 0} because option 5 is absent
 
-  nf_flow_table_gc_run()
-    flow_offload_queue_work()
-      NF_FLOW_TABLE_STAT_INC_ATOMIC
+The commit message only describes the DROP policy allow-list case. In that
+case hotdrop and no-match give the same result.
 
-Also, nf_flow_table_offload_drain() is called unconditionally here. That
-includes software-only flowtables in live namespaces. It flushes
-nf_flow_offload_add_wq, nf_flow_offload_del_wq and
-nf_flow_offload_stats_wq. As a result, every flowtable deletion waits for
-all pending hardware offload work in the system, driver callbacks
-included.
+nft_exthdr_dccp_eval() handles the same malformed TLV as "option not
+present" and does not drop the packet:
 
-The commit message presents the drain as part of the final release for a
-dismantled netns. With Cc: stable, could the message also mention this
-latency change?
+net/netfilter/nft_exthdr.c:nft_exthdr_dccp_eval() {
+    ...
+		if (len < 2)
+			goto err;
+    ...
+err:
+	*dest = 0;
+}
 
->  	rhashtable_destroy(&flow_table->rhashtable);
-> +
-> +	net = read_pnet(&flow_table->net);
-> +	if (net) {
-> +		bool release;
-> +
-> +		spin_lock(&net->ft.lock);
-> +		release = net->ft.exiting && !--net->ft.nr_ft;
+xt_dccp already hotdrops when doff is shorter than the header, so hotdrop
+may be the intended policy. Could the changelog say why hotdrop was chosen
+over returning false? Could it also note that the iptables and nftables
+DCCP option matches now give different results for these packets?
 
-[Severity: High]
-Can this leak net->ft.stat for any netns that freed a flowtable before it
-exited?
+> +			i += op[i + 1];
+> +		}
+>  	}
 
-While the netns is alive, net->ft.exiting is false. The && then
-short-circuits, so --net->ft.nr_ft never runs.
+[Severity: Low]
+With the new hotdrop, dccp_find_option() now handles malformed TLVs in
+different ways. The hotdrop only fires for a length of 0 or 1, and only if
+the walker reaches that option before it finds the requested type.
 
-nf_flow_table_init() still increments nr_ft for every flowtable.
-nf_tables_newflowtable() and tcf_ct_flow_table_get() both call
-write_pnet() before nf_flow_table_init(), so net is always set there.
+Other malformed forms still end as a plain no-match:
 
-Take this sequence:
+- a length larger than the remaining option area, where
+  i += op[i + 1] runs past optlen and the function returns false
 
-  create netns
-  add an nft flowtable                      nr_ft = 1
-  delete it
-    nf_tables_flowtable_destroy()
-      nf_flow_table_free()                  exiting == false, nr_ft stays 1
-  destroy netns
-    nf_flow_table_fini_net()
-      release = !net->ft.nr_ft;             false
+- a multi-byte type (above DCCPO_MAX_RESERVED) in the last byte, which
+  the i == optlen - 1 branch skips as if it were a single-byte option
 
-After this, nothing calls free_percpu(net->ft.stat).
+Also, the op[i] == option check returns true before any length is checked.
+So {32, 1} still matches --dccp-option 32, and {1, 32, 1} matches
+--dccp-option 1 without the bad trailing TLV being examined.
 
-Removing a tc ct action through tcf_ct_flow_table_cleanup_work() does the
-same. So does the nf_tables_newflowtable() error path after a successful
-init.
+Take an inverted rule like "! --dccp-option 5 -j ACCEPT". It would accept
+{32, 0xff} and a trailing {..., 32}, but hotdrop {32, 1}, even though all
+three are malformed. nft_exthdr_dccp_eval() treats every one of these as
+"not present".
 
-Should nr_ft be decremented unconditionally, with only the release
-decision depending on exiting?
+None of these cases brings back the false match this patch fixes. Once
+lengths are at least 2, the walk stays on TLV boundaries.
 
-> +		spin_unlock(&net->ft.lock);
-> +
-> +		/* Released by the last flowtable teardown, see
-> +		 * nf_flow_table_fini_net().
-> +		 */
-> +		if (release)
-> +			free_percpu(net->ft.stat);
-> +	}
-
-[Severity: High]
-Can this block run after struct net has already been freed?
-
-The hand-off state (ft.lock, ft.nr_ft, ft.exiting, ft.stat) lives in
-struct net. act_ct doesn't hold a netns reference on its flowtable.
-tcf_ct_flow_table_get() does:
-
-    write_pnet(&ct_ft->nf_ft.net, net);
-
-with no get_net() or net_passive_inc(). Teardown then goes:
-
-  tcf_ct_cleanup()
-    call_rcu(tcf_ct_params_free_rcu)
-      tcf_ct_flow_table_put()
-        queue_rcu_work(act_ct_wq, &ct_ft->rwork)
-          tcf_ct_flow_table_cleanup_work()
-            nf_flow_table_free()
-
-cleanup_net() runs the pernet exits, then rcu_barrier(), then
-net_passive_dec(). A later cleanup_net() frees the net through
-net_complete_free().
-
-rcu_barrier() waits for the RCU callback that queues the work. It does
-not wait for the work to run on act_ct_wq. Nothing in act_ct's pernet
-exit flushes act_ct_wq, since ct_exit_net() only calls
-tc_action_net_exit().
-
-This is the case the patch targets: fini_net sees nr_ft > 0 and sets
-exiting. If the deferred nf_flow_table_free() runs after struct net is
-freed, it takes spin_lock(&net->ft.lock) and decrements nr_ft. It may
-also call free_percpu() on a pointer read from freed or reused memory.
-
-act_ct_wq is ordered. Each cleanup item now does
-cancel_delayed_work_sync() plus three global flush_workqueue() calls, so
-a backlog of ct_ft cleanups makes this window wider.
-
-Would act_ct need to pin the netns, or should the stats live outside
-struct net?
-
->  }
->  EXPORT_SYMBOL_GPL(nf_flow_table_free);
->  
->  static int nf_flow_table_init_net(struct net *net)
->  {
-> +	spin_lock_init(&net->ft.lock);
->  	net->ft.stat = alloc_percpu(struct nf_flow_table_stat);
->  	return net->ft.stat ? 0 : -ENOMEM;
->  }
->  
->  static void nf_flow_table_fini_net(struct net *net)
->  {
-> -	free_percpu(net->ft.stat);
-> +	bool release;
-> +
-> +	spin_lock(&net->ft.lock);
-> +	net->ft.exiting = true;
-
-[Severity: High]
-Is net->ft.exiting ever cleared again?
-
-nf_flow_table_init_net() only calls spin_lock_init() and alloc_percpu().
-struct netns_ft is embedded in struct net, so exiting and nr_ft survive a
-module unload and reload. That holds for every existing netns, including
-init_net.
-
-Take this sequence:
-
-  rmmod nf_flow_table
-    nf_flow_table_module_exit()
-      unregister_pernet_subsys(&nf_flow_table_net_ops)
-        nf_flow_table_fini_net()
-          exiting = true, stat freed if nr_ft == 0
-  modprobe nf_flow_table
-    nf_flow_table_init_net()
-      stat re-allocated, exiting still true
-  create and delete a flowtable
-    nf_flow_table_free()
-      release = net->ft.exiting && !--net->ft.nr_ft;   true
-      free_percpu(net->ft.stat)                        netns still alive
-
->From then on, flow_offload_queue_work() and the work handlers update
-freed percpu memory, and the procfs stats read it. At netns exit,
-nf_flow_table_fini_net() sees nr_ft == 0 and frees the same pointer a
-second time.
-
-The out_proc error path in nf_flow_table_pernet_init() leaves the same
-stale flag. So does the register_pernet_subsys() unwind when module init
-fails, on namespaces that stay alive.
-
-Should nf_flow_table_init_net() reset exiting and nr_ft?
-
-[ ... ]
+Should these malformed forms all be handled the same way?
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261105065509.94627-1-q.h.hack.winter%40gmail.com
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261105081735.749379-1-shawnq1%40163.com
