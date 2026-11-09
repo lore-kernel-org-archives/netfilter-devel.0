@@ -1,51 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.228
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.250
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794193195;
-	b=fyNxJYM5Do61W7pFaom/gs3jK/8kd0Lh+KuJZUv6aD66dRotcPk7WW7QY5/3ij1s3zH2
-	 u5d8YfqeX3tj8MQD1LlsRaz1f0wtWvNp5TlsB8CloTrHdgzxU3sIttvXT6a6I8BZGfHJh
-	 gkALPDOeyo+QOTT+1GIbK+L2g0cEW/DhfPUMOmTlMW5cptnZHVHnAXjq5BTf5jO7v1gDf
-	 c/a7gyuMdqz19E7hjqGHmIzW0/Wp9dDNH5jabKZmvRvX0hiHbDEiSMWr673frJMWDJ8FL
-	 Vrd0RlG5SJbp2iEUU/gTE6JaHxtqZ+Y9B2CPuwJLALUEO/ysHz72U2Zb9CR4VdWsrSw==
+	t=1794193222;
+	b=UNKCZoosheisLZ7XwUpH/1J6WK0r3Imp1rArvxcuC7+rsC91hFjJi+y8KslEC31FO8Bs
+	 /JYLEO8z2hN6oTU3LQITLj7xNNch5lEzn5+mVlzqt/NoCfY7EcpcXPshjZWqAfHGGfUyg
+	 Qcciqbm0p6cmss4Z55l7fvjZVJYYzR2h6WAUiCqNnWO+d9tRDOCZABGbCofKSlSj7FOtd
+	 Nqzkgd8d1JEBnngdbd/WA1nGfhi2IdiNIZQmceB8VKJrsa+8OXeRW4ELNvSdWD8B+4r7L
+	 fFelf6gjQTDS3FBZLD6GwDUzv6sFdUGu0JYKU5FNZGQYPmeklJHxNukEmOyKMW9E1EQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794193195;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794193222;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=UezxR/RVhvOuKMLfKYFtEXdNaCdMZDx1R+ftmuecF3o=;
-	b=PUp4kE7iamS0foauAsvaOG4qoSOx/FU0bzgzcKdukyig29B8v1mUenRBYdsxI/Y3TQWb
-	 iiyBFmn90MC2N+jU6px9WVs6JJ+yO/zqj/3i3qbeMrsbwhIo0k40uDuXOF5gMIffKyN5f
-	 gpV6Az9OfC++NTLQPD+9vPb3FNSdSELGH5f+dgE+9zxJQLcicnnNIyOYllcD2cbW4TLOB
-	 8sd5bQkF7JUi3iAm5L2xSAENC+N8BjxWC4CE9hV9DQwIAqJfovu4yAVL5SNP8mcpCXo5O
-	 OYX/TgiAFZtgu/BiI826yRXiDFptT1bLxyN5NhejKa1zslrYcUk2f1RUoyi+F8knGrA==
+	bh=XKiQIorj2y2/pH/PLJmaYrty47uTj0nmh8YMBi+fHS0=;
+	b=PGDrkTKvbwkMhOKmDPZHZL8iM147oQzTzUNT2BI/pZQY5T6YM2eh0N6nn2saTeGW+jfH
+	 8ZNGjKHvFgA0fGSpXbRjBNIOyUmyP8Uq0JlnB6WZBB28PPbNOGfbD1zCdXiel2S8CONdU
+	 sYRC7rVc+RDvfVlY5esoo3T+dLUJimb7NdWpSNsxuGwIJ6HUilZuspkjdQmNRO8ZxiR8N
+	 f5NzVI49xtxkRx0mw5weanXDkFXGZWPJW73Vi0ctczR03e70nDIXtQ2Mp5N0UWT3xRIOS
+	 10+6FAZxxq5i6YFO9TfdePLXDG1bLZlLLbKurfd7IB9jGyJIA7aQkahBf/4e3yaxjbQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=MoPa0baO;
-	arc=none smtp.remote-ip=91.218.175.228
-Received: from mta0.migadu.com (out-228.mta0.migadu.com [91.218.175.228])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Vm66UpuO;
+	arc=none smtp.remote-ip=91.218.175.250
+Received: from mta0.migadu.com (out-250.mta0.migadu.com [91.218.175.250])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34F65606A323
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 02:59:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 34F65606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5EA4606A322
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 03:00:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E5EA4606A322
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=MoPa0baO
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=Vm66UpuO
 X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=wx43d8n0K+8YSmZ04mpxkSU8au8Gzn0GNnkK1AtjfNw=;
+DKIM-Signature: a=rsa-sha256; bh=KReNeCFx0VtyfDXYfamQGFIfQ6CxDn+RBqDsMYJq/6g=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794193192; v=1; x=1794797992;
- b=MoPa0baOVxNIrfh9CrrfPmCMAMIBoUMHjj7mObHSlKRGquE4KgSzpsPSSjycYUCbHcn2S2LK
- lVK/v/fc2+Pul9bBumA+D660lPoX4LNd1zXWsOTFxjSHIrpC0JFdH4FiWSWr5NdMiGowJToXxHe
- vU0xfxL3UXua3ZBHCwjt3CJA=
+ t=1794193220; v=1; x=1794798020;
+ b=Vm66UpuO8E4fNpKfGlG+KdV2TDMSHY6uNxBIiJqjGJ0Z/4bh/UD1aAhvzQCe2C4u/xBJ5Xd1
+ pjJsjxghuD8dr3E/bVBdwQUdo8k/7VMiqi++RoAxWdkClMrnB2TO0zrtwDqPAygirjSbHmKWTqk
+ dByB/8uUCTPMhxZbM9m1Aawk=
 X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id e327f1cd4dbd98e8;
-	Mon, 09 Nov 2026 02:59:51 +0000
-X-Mizu-Trace-ID: e327f1cd4dbd98e8
+Received: by smtp.migadu.com with ESMTPS id a14b75727c5eeb5f;
+	Mon, 09 Nov 2026 03:00:15 +0000
+X-Mizu-Trace-ID: a14b75727c5eeb5f
 X-Migadu-Flow: FLOW_OUT
 From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netdev@vger.kernel.org
@@ -86,9 +86,9 @@ Cc: Jiayuan Chen <jiayuan.chen@linux.dev>,
 	rds-devel@oss.oracle.com,
 	linux-sctp@vger.kernel.org,
 	linux-s390@vger.kernel.org
-Subject: [PATCH net-next 11/14] ipvs: annotate data-races around lblc_expiration and lblcr_expiration
-Date: Mon,  9 Nov 2026 10:52:10 +0800
-Message-ID: <20261109025425.328445-12-jiayuan.chen@linux.dev>
+Subject: [PATCH net-next 12/14] net/smc: annotate data-races around smc sysctls
+Date: Mon,  9 Nov 2026 10:52:11 +0800
+Message-ID: <20261109025425.328445-13-jiayuan.chen@linux.dev>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261109025425.328445-1-jiayuan.chen@linux.dev>
 References: <20261109025425.328445-1-jiayuan.chen@linux.dev>
@@ -103,42 +103,114 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-sysctl_lblc_expiration and sysctl_lblcr_expiration are read without any
-lock while their sysctl handlers update them with WRITE_ONCE(). Add
-READ_ONCE() to the readers.
+autocorking_size, smcr_buf_type, smcr_max_links_per_lgr,
+smcr_max_conns_per_lgr and limit_smc_hs are read without any lock while
+their sysctl handlers update them with WRITE_ONCE(), and the SMC netlink
+handlers toggle limit_smc_hs with plain writes. Add READ_ONCE() to the
+readers and WRITE_ONCE() to those handlers.
 
 Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 ---
- net/netfilter/ipvs/ip_vs_lblc.c  | 2 +-
- net/netfilter/ipvs/ip_vs_lblcr.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/smc/af_smc.c   | 8 ++++----
+ net/smc/smc_clc.c  | 8 ++++----
+ net/smc/smc_core.c | 2 +-
+ net/smc/smc_tx.c   | 2 +-
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_lblc.c b/net/netfilter/ipvs/ip_vs_lblc.c
-index e1111c3b27211..21bb820e02914 100644
---- a/net/netfilter/ipvs/ip_vs_lblc.c
-+++ b/net/netfilter/ipvs/ip_vs_lblc.c
-@@ -249,7 +249,7 @@ static void ip_vs_lblc_flush(struct ip_vs_service *svc)
- static int sysctl_lblc_expiration(struct ip_vs_service *svc)
+diff --git a/net/smc/af_smc.c b/net/smc/af_smc.c
+index d10244af5bd29..9a657172be8f9 100644
+--- a/net/smc/af_smc.c
++++ b/net/smc/af_smc.c
+@@ -88,7 +88,7 @@ int smc_nl_dump_hs_limitation(struct sk_buff *skb, struct netlink_callback *cb)
+ 		return -ENOMEM;
+ 
+ 	if (nla_put_u8(skb, SMC_NLA_HS_LIMITATION_ENABLED,
+-		       sock_net(skb->sk)->smc.limit_smc_hs))
++		       READ_ONCE(sock_net(skb->sk)->smc.limit_smc_hs)))
+ 		goto err;
+ 
+ 	genlmsg_end(skb, hdr);
+@@ -102,13 +102,13 @@ int smc_nl_dump_hs_limitation(struct sk_buff *skb, struct netlink_callback *cb)
+ 
+ int smc_nl_enable_hs_limitation(struct sk_buff *skb, struct genl_info *info)
  {
- #ifdef CONFIG_SYSCTL
--	return svc->ipvs->sysctl_lblc_expiration;
-+	return READ_ONCE(svc->ipvs->sysctl_lblc_expiration);
- #else
- 	return DEFAULT_EXPIRATION;
- #endif
-diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
-index dfb5bf83750db..33d6e30968a95 100644
---- a/net/netfilter/ipvs/ip_vs_lblcr.c
-+++ b/net/netfilter/ipvs/ip_vs_lblcr.c
-@@ -413,7 +413,7 @@ static void ip_vs_lblcr_flush(struct ip_vs_service *svc)
- static int sysctl_lblcr_expiration(struct ip_vs_service *svc)
+-	sock_net(skb->sk)->smc.limit_smc_hs = true;
++	WRITE_ONCE(sock_net(skb->sk)->smc.limit_smc_hs, true);
+ 	return 0;
+ }
+ 
+ int smc_nl_disable_hs_limitation(struct sk_buff *skb, struct genl_info *info)
  {
- #ifdef CONFIG_SYSCTL
--	return svc->ipvs->sysctl_lblcr_expiration;
-+	return READ_ONCE(svc->ipvs->sysctl_lblcr_expiration);
- #else
- 	return DEFAULT_EXPIRATION;
- #endif
+-	sock_net(skb->sk)->smc.limit_smc_hs = false;
++	WRITE_ONCE(sock_net(skb->sk)->smc.limit_smc_hs, false);
+ 	return 0;
+ }
+ 
+@@ -411,7 +411,7 @@ void smc_sk_init(struct net *net, struct sock *sk, int protocol)
+ 	spin_lock_init(&smc->conn.send_lock);
+ 	mutex_init(&smc->clcsock_release_lock);
+ 	smc_init_saved_callbacks(smc);
+-	smc->limit_smc_hs = net->smc.limit_smc_hs;
++	smc->limit_smc_hs = READ_ONCE(net->smc.limit_smc_hs);
+ 	smc->use_fallback = false; /* assume rdma capability first */
+ 	smc->fallback_rsn = 0;
+ 	smc_close_init(smc);
+diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
+index 014d527d5462d..df0afeef67cbd 100644
+--- a/net/smc/smc_clc.c
++++ b/net/smc/smc_clc.c
+@@ -990,8 +990,8 @@ int smc_clc_send_proposal(struct smc_sock *smc, struct smc_init_info *ini)
+ 	}
+ 	if (smcr_indicated(ini->smc_type_v2)) {
+ 		memcpy(v2_ext->roce, ini->smcrv2.ib_gid_v2, SMC_GID_SIZE);
+-		v2_ext->max_conns = net->smc.sysctl_max_conns_per_lgr;
+-		v2_ext->max_links = net->smc.sysctl_max_links_per_lgr;
++		v2_ext->max_conns = READ_ONCE(net->smc.sysctl_max_conns_per_lgr);
++		v2_ext->max_links = READ_ONCE(net->smc.sysctl_max_links_per_lgr);
+ 	}
+ 
+ 	pclc_base->hdr.length = htons(plen);
+@@ -1272,12 +1272,12 @@ int smc_clc_srv_v2x_features_validate(struct smc_sock *smc,
+ 
+ 	if (ini->smcr_version & SMC_V2) {
+ 		ini->max_conns = min_t(u8, pclc_v2_ext->max_conns,
+-				       net->smc.sysctl_max_conns_per_lgr);
++				       READ_ONCE(net->smc.sysctl_max_conns_per_lgr));
+ 		if (ini->max_conns < SMC_CONN_PER_LGR_MIN)
+ 			return SMC_CLC_DECL_MAXCONNERR;
+ 
+ 		ini->max_links = min_t(u8, pclc_v2_ext->max_links,
+-				       net->smc.sysctl_max_links_per_lgr);
++				       READ_ONCE(net->smc.sysctl_max_links_per_lgr));
+ 		if (ini->max_links < SMC_LINKS_ADD_LNK_MIN)
+ 			return SMC_CLC_DECL_MAXLINKERR;
+ 	}
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 6021322253e93..3d338019a1b8b 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -990,7 +990,7 @@ static int smc_lgr_create(struct smc_sock *smc, struct smc_init_info *ini)
+ 		lgr->net = smc_ib_net(lnk->smcibdev);
+ 		lgr_list = &smc_lgr_list.list;
+ 		lgr_lock = &smc_lgr_list.lock;
+-		lgr->buf_type = lgr->net->smc.sysctl_smcr_buf_type;
++		lgr->buf_type = READ_ONCE(lgr->net->smc.sysctl_smcr_buf_type);
+ 		atomic_inc(&lgr_cnt);
+ 	}
+ 	smc->conn.lgr = lgr;
+diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
+index 0f0c6df3bf2ce..30bffe79d06a3 100644
+--- a/net/smc/smc_tx.c
++++ b/net/smc/smc_tx.c
+@@ -148,7 +148,7 @@ static bool smc_should_autocork(struct smc_sock *smc)
+ 	int corking_size;
+ 
+ 	corking_size = min_t(unsigned int, conn->sndbuf_desc->len >> 1,
+-			     sock_net(&smc->sk)->smc.sysctl_autocorking_size);
++			     READ_ONCE(sock_net(&smc->sk)->smc.sysctl_autocorking_size));
+ 
+ 	if (atomic_read(&conn->cdc_pend_tx_wr) == 0 ||
+ 	    smc_tx_prepared_sends(conn) > corking_size)
 -- 
 2.43.0
 
