@@ -1,64 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.53
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794219113;
-	b=SKv6x7AwZwD4JL+KM+L9cAXaJYJMWK9rR+8dUivmx7tB1nIcMnBCVRAZ5sR5HQVNyx3y
-	 NJFP/alYrRnTmK23YEhL2GxnRd6JPlARhwz5b2SMAxVYaJKJh8Zqj1lz/SJrbbImGeiIr
-	 GyhnOj1o5h6Tg3yXQffkGJGLfZwhL50RnW+N0BMknm7KTlCqaBNcOqirdP9ibdKy3e21D
-	 9Jy7NomDxwmSihsv+U0V1e7Bt5rwCUDWaD28hx85yrwLL/YPrAlt5jvL0AiLLnTGK6fZB
-	 whmDZNjcNfrhXjB1o97xqEk0sINlj3MGPDH7hjxn619y6UOJePsglpbwRm/W4SWsqYg==
+	t=1794220511;
+	b=W4bqDB/CWU6wHrODRCYd6CpIbyz9dWJyK3Px4yeCJWIE/ARpF9BNLZtXkgUmqx/AUrws
+	 lc8RI5A9sS+mFK9n7DOx/eQgOkxbbx44tZH4GXM0n8y/5RFFwHXV+SDkeY4osNohlI3U9
+	 2Nitq4TWdDMOfI/vF5wAerw7G5P35yZBX4OAiyGcnuYJlOcP9hKPvF3sIHnysfMUrtmBr
+	 Su0Xcr3xxOZje1vMQLATrnm4nKmIW3SEH7eqeSbgmxcc14+b58Ly/zfZJdq3VO6OvU82C
+	 LzyuXHIw9MWu1baHQnsRTqUDPWdao2a4ucxISNNgh+bHwFLRMr2mCOcnCIFLI7wsRag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794219113;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=6LczOBrrxXlOmcr0hIxa5uA7k5jQ+bcXpGN4rjE6NVY=;
-	b=G4JZEW4Wii/rtW7YY8/W8SErd/BrE8A/7vD11AytXcBZiWI8QlbNJVE4pC118vQC6BAY
-	 JHDNC9LWmLtyMeypYvExPLBr5WrfRt+ozNo3ODL73YHAdJzHYPpeb3VunkZ3MF+bJA2Z4
-	 s2k5VGlwM2FG5zNEjrUOuME9lSL5RkxJJMmCs7uHLx12OpTTkjMtxOXJyeBslAlDg8kRv
-	 3rCKmzbjcZk8FbMSdaYJ/Z1divLsuwLa4Iqe9L+prGUZi5deDZf7leBHuwByZemCVMdPX
-	 WIW1JFv9HI/Nw5xNRTxZtmqxbGipa5PvDBEf0quT4RD83l9xMKiagtJdW6TJ1rRG0bg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794220511;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=8Hb0sYmcLHQnhtWzS9j1woOF2kw5P/sRWChZAP1XD0M=;
+	b=KNbHCVKve2FKeI5PKQ+xz4nrhznH4Fu+gbAgoOARENJkkpPM1RxP+aMabaWf9xEfDWYf
+	 S9GrbssIVpeHF2KW+vGtyTtK1HLMcwuQNE/L7rOoekdDyZcEAMLXZR/q/AwxhU3tMbSwX
+	 F/Ybr4fe6bp9zXQ6SCiqsmI0WCAnbvGiUK4Mbr3iE9lYNvASjbqrfL5o4nU/hd+mbIMTe
+	 JwMbxp5HSL0KmWXQGvFTUB6FzHJDC/GeOjL1IQ5MA77QBERCyX4g5/h/M5N9chmHDcXGV
+	 9YqMQSQo598lD/8Dr4pySjuqbC56+rrp5I26rfERxPXnyMMaZZbQ6mHG6V/FWnR9tIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="r6za/DKl";
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b="g49MWb5/";
+	arc=none smtp.remote-ip=209.85.216.53
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id E98A8606A31C;
-	Mon,  9 Nov 2026 10:11:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E98A8606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC803606A31C
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 10:35:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DC803606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=r6za/DKl
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794219103;
-	bh=6LczOBrrxXlOmcr0hIxa5uA7k5jQ+bcXpGN4rjE6NVY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=r6za/DKlZJfeVReiOxBIakEH5iQQVQsY/8UCwP8ikCxBrNty97VV1gDKhOI3gGUZX
-	 biGXRwPN9b5RhQkQnniFja97drqPTCavgrlwG1OOF7VgOG9A6r5ihayy6DJRyxImar
-	 MT7s0eo9VP7i1M65ZqtvTLsmaQaPO02rIceBZOzvl4ydBfjzxwUQJYL9A8HGI0Zt+0
-	 TZI2F+/PVe5+okf0kLps9a22WBw9KuPcI/GXj95E3XwnFWKUbDwuU7l5uBYuGZ6eo1
-	 4DI4Tevl9QimOxCbCK+dJFGf4RuZAOcNDbYw7hGpbzu/lzQru20/F8ok8zMiBqSRTs
-	 LY8xK/dg1w2LA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CD47F60056;
-	Mon,  9 Nov 2026 11:11:43 +0100 (CET)
-Date: Mon, 9 Nov 2026 11:11:41 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Noah Weinberger <NoahWeinberger2003@proton.me>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] netfilter: nft_dynset: reject DELETE op when set lacks
- ->delete
-Message-ID: <avGcXYd1ii96m8L0@chamomile>
-References: <5aybqcVfq3WxYdpbT0Ea6bEWamp-4x10J9FF_5La7SSXJ57a4j176x_t3zUW8Ii2r84MsPX8xx_vNashO2PRWvuO9yNsaxS8YV_4TLc-QHU=@proton.me>
- <avExLOsc3ZWRF5hh@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=g49MWb5/
+Received: by mail-pj1-f53.google.com with SMTP id 98e67ed59e1d1-3ada8bc2380so316080a91.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Nov 2026 02:35:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794220510; x=1794825310; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=8Hb0sYmcLHQnhtWzS9j1woOF2kw5P/sRWChZAP1XD0M=;
+        b=g49MWb5/yifGNXK9v3uJRzMXvdGfHYwVnDsvkvqEbUJ6QN0jlYqr1ebA6azfClAOT/
+         RK/UbwGDRf1IqGGk6TL2Kwi5PkpKUg9C6hmiS1LVRsH41VSiAS/nlk7H4cp+5AJtbbC8
+         GSnqjaXUhNuWEVSqFtLKFOu6cE/WcQjuIWQRH2P92DD+wRfV4wAR2aVxlEVHt2SgG/pJ
+         srvU7WjvoR/jsUrFzj+vQ8Yl48XoC7MhyKTF1Rap8WKCzascASo+RhvYPclJepG/G00W
+         7VgpYVYilAtvFTbNuW/FfaxsImmKv8evAU/LZm2cwA0Xxmi5Lv4IJeerouQbo+5r+rWa
+         gWfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794220510; x=1794825310;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=8Hb0sYmcLHQnhtWzS9j1woOF2kw5P/sRWChZAP1XD0M=;
+        b=jeARBM7myxyk5XceHWkzJYNJW36++8Y1EPwEbaLtWxH1wsZsLQI7tZpOLZSHFE4SoU
+         XPaTl2/AOOCcCTYlMeq6/iHJn+pdDFdtdsqPBHbKn73OO2WoArsAzrnomUgucK8XITlx
+         Pu5MfmmgYZ3idyroptb8j1ricmlDopaJ8mzdcbZVAamT0zrLNdnJFr22MJUbPPKJ2rT6
+         z96G2eZsQza3X9WjVu2YHIV0Dd8TEtyJDJKtmZX52Cz7Oo92Kn3zypx9I7XgaQ+fS8VY
+         O/EUJW1TH2qU6FkXNInwJMuGXgq5EJmmYXDBPVQVzd1ldKILqxjtKM9RF3kOdzBKXzJ8
+         XHAA==
+X-Forwarded-Encrypted: i=1; AL+hErGUCawMik2em9JcIqdQkXidmbpG+fz0aPrnWa09rZaPvsGnb/tOiV596rdF7QOtNmJdu4l8y0D5jOuvmZt0cUk=@vger.kernel.org
+X-Gm-Message-State: APuU4Z+k+PvG5idsXzjsNm10yYhrU/6mYHoIrxGycqVNBX1ix+d8sntF
+	432tg14VZoE4CXj907WXg7PVg8yYI0lsbQ+7v4TyUzXPdYiB9VR5qB7T
+X-Gm-Gg: AYBFou2jDux+rsY8DkYkVAOmPzU6/pqYf7oKOWhz6bKHE0AIxWMlRfkIML7dqFaIaOU
+	9VrKerxukAGPMJQTvbJ0nswRr3NClhgeB25hLbLve9A4IExwfTBUPkPhKMDL5HSxO8mSwpl6xsQ
+	Hh1u/lqkL+QC1Zhgorx47t5lM3xIp5d/PsrM48CiR4pCXupfYcJzukPd96Yw4c7rHdbhn5QeS/L
+	ZryBgzKFIvVtHcf5B3lqj4feY169336e4nLQokVC1eKMd3uHc8+4quTgP+KqdFfJLNHTzyCeP+8
+	N0vmsuq/l7O8KtQT57J7IxerqYM04zbH/JQZKt+T4C4f3WCjsSzlgb6BRA/bFxlzj0GxnUCkOpw
+	dGADyM906LhqpV+Ksb13TvzcNjel9LOBSaX/ys95CXLG5LdtizvREtodEGXUayIjKBfjMHdLXwL
+	FWCGEDc4vjl3+IYhiO5nlhTdQG6fx49bopc4LRK33bLDonxo+bloRqt65DEjkdoFn+taqsp02Va
+	D9isle4HM/YZiLjoaI+9IimrmsfRCc3ZnHMZ0S4LAhIYjXD9+y2rbgx+mIMkLOJ325wqPAN4WMV
+	BOsbtywO3CAYoX8zuDspAl2cILoyhhwPL/3X12/d5uiavKILuCmeHsnT4xeAOvEqAmx613r74iD
+	V
+X-Received: by 2002:a17:90b:530c:b0:3a5:c08:4c41 with SMTP id 98e67ed59e1d1-3b12d49b258mr2971323a91.50.1794220509924;
+        Mon, 09 Nov 2026 02:35:09 -0800 (PST)
+Received: from LDYT9Q2G2M ([2a09:bac1:7680:450::1c:35f])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b1058d3310sm10379457a91.15.2026.11.09.02.35.02
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 09 Nov 2026 02:35:09 -0800 (PST)
+From: Zhiqi Zhang <zhiqizhangg@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org,
+	kunit-dev@googlegroups.com,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Finke Lennart <lfinke@student.ethz.ch>,
+	netfilter-devel@vger.kernel.org,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Jiri Pirko <jiri@resnulli.us>,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] lib/ts_fsm: preserve patterns across tc dump and restore
+Date: Mon,  9 Nov 2026 18:34:54 +0800
+Message-ID: <20261109103454.50617-1-zhiqizhangg@gmail.com>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20261101081736.51803-1-zhiqizhangg@gmail.com>
+References: <20261101081736.51803-1-zhiqizhangg@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -68,50 +104,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <avExLOsc3ZWRF5hh@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 09, 2026 at 03:34:20AM +0100, Florian Westphal wrote:
-> Noah Weinberger <NoahWeinberger2003@proton.me> wrote:
-> > Hello,
-> > 
-> > nft_dynset_init() checks that the referenced set implements ->update,
-> > but for NFT_DYNSET_OP_DELETE the packet path calls set->ops->delete
-> > unconditionally. Today the only set type with ->update (nft_set_hash)
-> > also implements ->delete, so the call is always valid - but any future
-> > set type implementing ->update without ->delete turns a rule evaluation
-> > into a NULL function call.
-> > 
-> > Reject the DELETE op at init time when ->delete is missing, next to the
-> > existing ->update check.
-> > 
-> > Affected version/commit: mainline fa4ad798f6f681031775266044ba1b0cf3c670bd (v7.4-rc1, 2026-11-07), net/netfilter/nft_dynset.c:98-101 (eval), 209-217 (init).
-> > Longstanding asymmetry.
-> > 
-> > This was found during an assisted (AI-supported) static source review of
-> > mainline fa4ad798f6f681031775266044ba1b0cf3c670bd (v7.4-rc1, 2026-11-07); every code path cited below was re-verified by the
-> > reporter against that tree. The patch below has NOT been compiled and has
-> > NOT been runtime tested, and no reproducer was produced - the triggering
-> > conditions are described above instead. Please treat this as a report for
-> > verification rather than a battle-tested fix.
-> 
-> This would have been fine 1 year ago but we no longer have resources
-> and time to reproduce and verify such "fixes".
-> 
-> Ask your LLM for a reproducer, run it, show a minimal backtrace.
-> We have LLMs too and we can use them to create enough usless and
-> time-consuming tasks as-is.
-> 
-> I have a db of +1k reports just like this one.
+Hi Andrew and all,
 
-Right.
+A gentle ping on this series, sent on November 1:
 
-The reporter has to proof this is not theoretical.
+https://lore.kernel.org/all/20261101081736.51803-1-zhiqizhangg@gmail.com/
 
-LLM might no "understand" that only sets with dynamic backends are
-eligible.
+v2 describes the tc dump/restore impact, adds the exported-pattern
+equality assertion, and splits the fix from the KUnit tests, with
+Cc: stable on the fix.
 
-And this patch points to the /dev/null tree: Submitter has to specify
-if this is for nf.git (unlikely) or nf-next.git (maybe, just for
-hardening).
+Could you please advise whether this series should go through Andrew's
+tree, or whether another tree should handle it?
+
+The netdev CI also flagged the new lib/tests/textsearch_fsm_kunit.c file
+as lacking specific MAINTAINERS coverage. How should that file be
+covered, in light of the dedicated textsearch entry discussed in the
+v1 review? I would appreciate guidance on the intended maintainer and
+coverage before preparing an update.
+
+Please let me know if any further changes are needed.
+
+Thanks,
+Zhiqi
