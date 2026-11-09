@@ -1,59 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794222171;
-	b=1TEkeiIYnIhSBlNPO6oiDouCuhrX+TnW8I3XBXCZzoZicINg8xagrVesgNBrEFJd7TeR
-	 h0JEJxahNSIR77Kun2WpVgFqosJTmA4xsvCwyJYJLHjxqgg54az7qPifrpgb6x/JDelKb
-	 oaxNWdV0lU1hqvwX3SVfjq33V6nnp5K8iL2ysgxOqakIAhSphVVSettgelIMoTPQg2aHs
-	 64RCo0Txa4spbH3Hfrcz3frpZu6hh/sKZfEcVrrZshV/TqQ/ciC4O44CubnLPmLEVljvH
-	 7JT80zYeamLZFJgZxvnJ42QsEPWzWIWdTrloEIsOal2F2D5GsbbndeLMapqSwreRyFw==
+	t=1794223657;
+	b=spEtiLHs1vykCb7mu18k+fj5gS7BEkKaMdlKxXuZJw3m5VVuJjpOfkW4LAMFYy+Mly6E
+	 VZKQbyZF2edVcC2p8IWqFFLV1YOlSllKdKV/KNi86+yQ9vWNWc9G9wgPMVVGLrMpuOU3s
+	 g01geXp53SmaWi3iH5M0YLchwGkOSqRtXngI8Gy+F8sRhrqFmOTJr1/xm7/7x8/Zn/SS+
+	 T+y62K9SOKsPGV5pY8CNL3u2US196cooTgHmR6ypd+jSSRn/H5IN5QHvbvg4V3ubmStst
+	 PYejedaFY/tIGx9zQ5yBtUVV0s8UZkV9Lp0tO+as/awA/wK8fpPtrRtwfN7L4q+M7yQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794222171;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=uS7zngYGu52tla0GB1ur+GzC40CUKW3c4HDJCWDUomc=;
-	b=UCuriHjtFQJf6tnfSrSbCBfHoV62HCfkju+RlCklB6uqqXFJbudafFqWS5azomiQoSZZ
-	 dXuG4UieC18PURqUKc8gHOLDZrex1cHyM0Ixi+vNQ7HWEERhPqNugYqsT0bg6d9RdDZXR
-	 7i5dJDyObjwuBHkIiJK4SzkgKQY6iVqjKY59oOI5hJtcpHWt16/WsweXgHh/Ww+zt2KsW
-	 xhFiTzTzuAtX8x3+l2H67fHYbEgus6lWlp7y1eB3DXmXLUR9WNgewfain6VWhQOiczTbq
-	 nMoYmNy0XI/dbeF4JiMIzsz3TE7pMSxts9gGqNRw30bc+7rQDaC7prFGECGEo6pt2Dw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794223657;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=GTe3rVqqBFubJwfvXPNDDRZX+sidHXepwnZzWomDy5A=;
+	b=NfU9kT2bZiORXw5zCXCda/QL8aJYOgH2BUdYtc79k8w+H+He5VhdNu9Cnf2/2IcxBuZu
+	 whoIpQKrD35eFow0FLSeMsppAHs7T/JowXmdaEvnahhYKBHCrBHaeXZYVCvXSKNKTWszk
+	 Bu8qi6oDSgI1VXT2Gz0/7R+qYdNY941e6XcKfGF8hCMO9ChGo+afDYbgil6zPxFQW8Ini
+	 zhqGLTzGo1Higv2QnpkZm+THa5sLuSQ314SC+lkWoKCvQA7uNE01oHPo+7+uf7W7pI2vb
+	 YaXO+uRyI3C57qCB2gf8wMWl5rPrj/0D0L6RxC02HaZZJotqm2D1dRWZD7LMkPwW/AA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=PetCxAj7;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iU5O51DC;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6321B606A323
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 11:02:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6321B606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E54B7606A31C;
+	Mon,  9 Nov 2026 11:27:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=PetCxAj7
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794222168;
-	bh=uS7zngYGu52tla0GB1ur+GzC40CUKW3c4HDJCWDUomc=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=PetCxAj7pVzBMmEdcSPzlXpgG+44g5kepQ1slt17tM9Ml0OOVNdR1k4EfyGKcKIwO
-	 J+HZ2maN1BCruayW27nmevC4Jdv9K6daRyrYS+TZa9dUTu1BjDyRrSuIO3LHjfE1MV
-	 XzaJWFHnlYfwdG3kdec1wO+qXhrnOtAJIFZOO6gDZaDJVuDPOEvcqwuWjdO1C87e/S
-	 pQ3RTvs+fVmgNqvoF+LZHhbbzlOsDDPlRoiJiU35lYUFnUbwKG5Mpt8lW8Es0T3x8e
-	 yEfC3mmBrm5w23aKjkf5K0sJRH8x3fo8nWIIKHaOJwYt+/57yZrZQAWAkImOsT9weO
-	 2xRPxC7b4RB2A==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3E30060079
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 12:02:48 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 2/2] netfilter: nf_tables: perform unbind callback on hook release
-Date: Mon,  9 Nov 2026 12:02:42 +0100
-Message-ID: <20261109110242.1649817-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261109110242.1649817-1-pablo@netfilter.org>
-References: <20261109110242.1649817-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iU5O51DC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96EA41F0089F;
+	Mon,  9 Nov 2026 11:27:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794223656;
+	bh=GTe3rVqqBFubJwfvXPNDDRZX+sidHXepwnZzWomDy5A=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=iU5O51DC6zVVQKzDHuys9tIxjfbSOhYw8z0UcE86pb//wkXavh32S2N8S2PUurU2A
+	 o1E3RopKG7W94xtmWo25LA834OkIsoplK5Zc5sWRxNqoMBKXFQxzncUeAVAHVqzYUN
+	 x0xzl99BebTVjgItzYyFM18S+rvSgi3xMyTZJ/jJZ69X0Gf56Vq2vszIAP9EEsAUq5
+	 YP1A5SHoyPmQVAQUq/DaV61yYmuj4yVaaeC+HIcZMJhadQiWUxN4AW86j7fp4xdZK/
+	 SKtdAofdOgM6AVAC0cEZ3+8Z/6By8LpM/kvwzBv9E4RtCHAt3TdDxZIlKuxADBPb0I
+	 863RWmyUQ6DWA==
+Date: Mon, 9 Nov 2026 12:27:22 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Kees Cook <kees@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, 
+	linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, linux-um@lists.infradead.org, 
+	linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, 
+	ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
+	kexec@lists.infradead.org, linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 07/23] proc: let procfs own the seq_file of
+ seq_file entries
+Message-ID: <20261109-atemberaubend-begabung-bedienen-85aade0f99b4@brauner>
+References: <20261104-work-procfs-core-v2-0-76ace653a773@kernel.org>
+ <20261104-work-procfs-core-v2-7-76ace653a773@kernel.org>
+ <8A21EE2A-F392-40B7-9152-CBC440FDDA70@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,162 +79,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <8A21EE2A-F392-40B7-9152-CBC440FDDA70@kernel.org>
 
-Commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
-binding") breaks hardware offload by unbinding the flow_block too early,
-this results in leaving entries in the hardware. Any pending offload
-work will be ignored because there is no flow_block anymore in place.
+On Sat, Nov 07, 2026 at 08:10:28AM -0800, Kees Cook wrote:
+> Please use the new style typed allocation calls for objects:
+> 
+> ops = kmalloc_obj(*ops);
+> 
+> (This happened to jump out at me, but please check the other patches for this pattern.)
 
-This patch restores the strategy followed by commit 5acab91458ce
-("netfilter: nf_tables: unbind callbacks from flowtable destroy path")
-by performing the flow_block unbind command from the destroy path, right
-before the hook is released.
+Done, there are 5 of them in total:
 
-Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 63 +++++++++++++++++++++++++----------
- 1 file changed, 45 insertions(+), 18 deletions(-)
+proc: resume readdir after the last name it returned
+-		cursor = kmalloc(sizeof(*cursor), GFP_KERNEL_ACCOUNT);
++		cursor = kmalloc_obj(*cursor, GFP_KERNEL_ACCOUNT);
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d3c04a71c924..0d50540fb04c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -380,6 +380,22 @@ static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
- 	nft_netdev_hook_free_rcu(hook);
- }
- 
-+static void nft_flowtable_hook_unlink_free_rcu(struct nft_flowtable *flowtable,
-+					       struct nft_hook *hook)
-+{
-+	struct nf_hook_ops *ops;
-+
-+	/* This unbind command needs to come this late, otherwise offload
-+	 * worker finds no flow_block and entries are not cleaned up from
-+	 * hardware.
-+	 */
-+	list_for_each_entry(ops, &hook->ops_list, list) {
-+		flowtable->data.type->setup(&flowtable->data, ops->dev,
-+					    FLOW_BLOCK_UNBIND);
-+	}
-+	nft_netdev_hook_unlink_free_rcu(hook);
-+}
-+
- static void nft_trans_hook_destroy(struct nft_trans_hook *trans_hook)
- {
- 	list_del(&trans_hook->list);
-@@ -9026,12 +9042,9 @@ nft_flowtable_type_get(struct net *net, u8 family)
- 
- /* Only called from error and netdev event paths. */
- static void nft_unregister_flowtable_ops(struct net *net,
--					 struct nft_flowtable *flowtable,
- 					 struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hook(net, ops);
--	flowtable->data.type->setup(&flowtable->data, ops->dev,
--				    FLOW_BLOCK_UNBIND);
- }
- 
- static void __nft_unregister_flowtable_net_hooks(struct net *net,
-@@ -9043,7 +9056,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- 
- 	list_for_each_entry_safe(hook, next, hook_list, list) {
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 
- 		hook->flags |= NFT_HOOK_UNREGISTERED;
- 	}
-@@ -9114,7 +9127,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			if (i-- <= 0)
- 				break;
- 
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
-+			flowtable->data.type->setup(&flowtable->data, ops->dev,
-+						    FLOW_BLOCK_UNBIND);
- 		}
- 		nft_netdev_hook_unlink_free_rcu(hook);
- 	}
-@@ -9141,9 +9156,9 @@ static void nft_flowtable_unregister_trans_hook(struct net *net,
- 	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
- 		hook = trans_hook->hook;
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 
--		nft_netdev_hook_unlink_free_rcu(hook);
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, trans_hook->hook);
- 		nft_trans_hook_destroy(trans_hook);
- 	}
- }
-@@ -9229,9 +9244,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- err_flowtable_update_hook:
- 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
- 		if (unregister) {
--			list_for_each_entry(ops, &hook->ops_list, list)
--				nft_unregister_flowtable_ops(ctx->net,
--							     flowtable, ops);
-+			list_for_each_entry(ops, &hook->ops_list, list) {
-+				nft_unregister_flowtable_ops(ctx->net, ops);
-+				flowtable->data.type->setup(&flowtable->data, ops->dev,
-+							    FLOW_BLOCK_UNBIND);
-+			}
- 		}
- 		nft_netdev_hook_unlink_free_rcu(hook);
- 	}
-@@ -9752,10 +9769,19 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- 	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
-+static void nft_flowtable_hooks_destroy(struct nft_flowtable *flowtable,
-+					struct list_head *hook_list)
-+{
-+	struct nft_hook *hook, *next;
-+
-+	list_for_each_entry_safe(hook, next, hook_list, list)
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
-+}
-+
- static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- {
- 	flowtable->data.type->free(&flowtable->data);
--	nft_hooks_destroy(&flowtable->hook_list);
-+	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
- 	kfree(flowtable->name);
- 	module_put(flowtable->data.type->owner);
- 	kfree(flowtable);
-@@ -9830,10 +9856,9 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
- 				continue;
- 
- 			/* flow_offload_netdev_event() cleans up entries for us. */
--			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
--				nft_unregister_flowtable_ops(dev_net(dev),
--							     flowtable, ops);
--			}
-+			if (!(hook->flags & NFT_HOOK_UNREGISTERED))
-+				nft_unregister_flowtable_ops(dev_net(dev), ops);
-+
- 			list_del_rcu(&ops->list);
- 			kfree_rcu(ops, rcu);
- 			break;
-@@ -11311,10 +11336,12 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		nft_obj_destroy(&ctx, nft_trans_obj(trans));
- 		break;
- 	case NFT_MSG_NEWFLOWTABLE:
--		if (nft_trans_flowtable_update(trans))
--			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
--		else
-+		if (nft_trans_flowtable_update(trans)) {
-+			nft_flowtable_hooks_destroy(nft_trans_flowtable(trans),
-+						    &nft_trans_flowtable_hooks(trans));
-+		} else {
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
-+		}
- 		break;
- 	}
- 	kfree(trans);
+proc: sysctl: resume readdir after the last name it returned
+-		cursor = kmalloc(sizeof(*cursor), GFP_KERNEL_ACCOUNT);
++		cursor = kmalloc_obj(*cursor, GFP_KERNEL_ACCOUNT);
+
+proc: keep the open files of an entry in an open node
+-		dp->open = kzalloc(sizeof(*dp->open), GFP_KERNEL);
++		dp->open = kzalloc_obj(*dp->open);
+
+proc: own the wait queue of an entry with a ->proc_poll()
+-	on = kzalloc(sizeof(*on), GFP_KERNEL);
++	on = kzalloc_obj(*on);
+
+proc: let procfs own the seq_file of seq_file entries
+-	ops = kmalloc(sizeof(*ops), GFP_KERNEL);
++	ops = kmalloc_obj(*ops);
+
 -- 
-2.47.3
-
