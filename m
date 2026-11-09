@@ -1,47 +1,94 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.21
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794192192;
-	b=X7di1LzQwjx/r4zw1XltUaPPy5NBPeI4HJwvkZg4TLrghHMBnlqt+Dye8CpddkPY+XzD
-	 N7jt9hFJ2MRUV1NTvfAZU7hRRp++ugifgszlmrvtUGa1dIlHBeejQNJ3PoSDFWTUofQCM
-	 89DycRE8ShvZfkC28uxg/PwejW+6bLFkvk9QCfhk8XeBjoBr2cXbnWXSPKyKy9y13Fugw
-	 +8EbbshcTUfLEGZ9q5lO9djS3/zGmQ/H2trqQ2PKpcpXsshjmmnxiUor56lvT06dj+ocx
-	 TDSfydL5pAYc92XK3ibI6lQw2rdW4fmNDvm+YVlWhZSTF9GCDngh2xnIcKrMbXQx4dQ==
+	t=1794192897;
+	b=Huyw8JKu8xV8E8IQErfvCZH4t9iWmgnT4DcbPGpCq4lfM4lGLnl4qA2sLDzIjaVazrbS
+	 j+YnRMpHuIhlIaF2ovb8kxj/Y2+erqubU0jxuBcebeYaCCc+YG4CSU7Yi5VsUtPAYavSo
+	 BmAazIOHdBv3jQJPnub+Sphs8uCDmySDrHIXaEFj6odiYJO3iq6SA1zmv9l29as2lNjtF
+	 d31I9Yc83VVlxcKKN0Cndi/FT4abAvr++AGQfQyIaKdHhsInasbZrRmvxxLQG3eSEzTLY
+	 q4Fw8KaY/APt8gFwv4pwXO0mDXiPonwLDhxlefMTUgPgDQcCLGr+nwpU4iX1TYSBpbg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794192192;
-	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=NiHIrQhN1EZBJeOzVcCEIjXlI/nm5F+3CXiAQu+5P7k=;
-	b=OPd0Hvt/66blieMZ6kUzgSn+obd8kJzZl88Wam4lkUxVUL9UWelqSDT79XtiNED8I20n
-	 Rhv5web8tBKG/3dy0cuqf3lPXWApKhIp8XlzKWMda8FipxExQ2/FTGctgWb6NNcY9rjff
-	 YbkzeBZLMbHywkA8sLHuIqKOBugz3gOy9Hyx44twTa9fDW42uq/55M/KV1q5cdC8Ll6LX
-	 jdQ66LxC04z+YGwPOOzBueIyP/EejibrPo+KM2Gyoz/DXU6oDMp9jhETFbnbZxEu86kGp
-	 whHyb3FUmFJ0C8rmEZt20OibhDK2ZTvke1Cz9PPTkxoyS2IqDrBpD059Fb3xNeTG2aQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794192897;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=hYrJTFeeaJTcrWxyWoGWMilmtuo78RKW5cGiyhOt/fM=;
+	b=f0BZaKtAkkBh/R04qhVE9SGQVV37IlmaHYbBgDKFcSHmESvQbTSh6K1qgluCvw9/bLuj
+	 +Fw7idOC+I+tb6SnfkS22uROoSCo/ZjABKHzVHGwjCNivoYhGeq9aocRHtS6OXPCmCtHb
+	 IQ40Uuw5ZkGN/kOIU8Bd/VHULjk+TQdmGZWUMJ5zMI4VoGf2GJj/ErP9w7kORvtl2mggB
+	 LF8OFSk9Pn6OIWgSC8nOxyHGAZwvt6XM41Bp1doS8zKIdkpy/CWelyxwK9wuhelwmu7Ne
+	 DKweJQjKX/gYe1FQOD2LnM5CIOERTKOJhZHATPw49j3+h3wL8tmdjokips1gQisu0cA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=strlen.de;
-	spf=pass smtp.mailfrom=strlen.de;
-	arc=none smtp.remote-ip=91.216.245.30
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=o8byScok;
+	arc=none smtp.remote-ip=91.218.175.21
+Received: from mta0.migadu.com (out-21.mta0.migadu.com [91.218.175.21])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF369606A334;
-	Mon,  9 Nov 2026 02:43:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AF369606A334
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3D46A60490; Mon, 09 Nov 2026 03:43:09 +0100 (CET)
-Date: Mon, 9 Nov 2026 03:43:08 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Noah Weinberger <NoahWeinberger2003@proton.me>
-Cc: "pablo@netfilter.org" <pablo@netfilter.org>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] netfilter: ip_tables: propagate compat_table_info() error
-Message-ID: <avEzPLSvi6meDDXv@strlen.de>
-References: <YEo_4lnonRc0-_Jotuzk7hOaWl3QockF3xDwJ4cE5v8uBvy1KW27Eku0fWDJycuoZ9AgGFxsxgtSWI6SE2kNJ38eVnLx-HtApOhBw0wxXGg=@proton.me>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A994F606A32A
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Nov 2026 02:54:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A994F606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=o8byScok
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=AklJRutHnCjXFhvSqdKi7qHVk0KLDVHRQgdOQp8cMPo=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794192894; v=1; x=1794797694;
+ b=o8byScokjp+ULsxsEcyZI40PKGlyJqSpGRqP4vcSIwCXSrrhBoDONhExVlJxSlTTdikAeYQC
+ xhln6Y4vnRwQLa49NRuuEVKNyJk2DmR/vJ6tJYRvyuPAOT298kMqpfrXh9/kkeOtD8X8m+nGLFc
+ sabLDu4xDbC2LSZYG4cZKbsA=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 89474d14179b70cf;
+	Mon, 09 Nov 2026 02:54:54 +0000
+X-Mizu-Trace-ID: 89474d14179b70cf
+X-Migadu-Flow: FLOW_OUT
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+To: netdev@vger.kernel.org
+Cc: Jiayuan Chen <jiayuan.chen@linux.dev>,
+	David Ahern <dsahern@kernel.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Paul Moore <paul@paul-moore.com>,
+	Matthieu Baerts <matttbe@kernel.org>,
+	Mat Martineau <martineau@kernel.org>,
+	Geliang Tang <geliang@kernel.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Allison Henderson <achender@kernel.org>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+	Xin Long <lucien.xin@gmail.com>,
+	"D. Wythe" <alibuda@linux.alibaba.com>,
+	Dust Li <dust.li@linux.alibaba.com>,
+	Sidraya Jayagond <sidraya@linux.ibm.com>,
+	Mahanta Jambigi <mjambigi@linux.ibm.com>,
+	Tony Lu <tonylu@linux.alibaba.com>,
+	Wen Gu <guwen@linux.alibaba.com>,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	linux-security-module@vger.kernel.org,
+	mptcp@lists.linux.dev,
+	lvs-devel@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	rds-devel@oss.oracle.com,
+	linux-sctp@vger.kernel.org,
+	linux-s390@vger.kernel.org
+Subject: [PATCH net-next 00/14] net: annotate data-races around sysctl knobs
+Date: Mon,  9 Nov 2026 10:51:59 +0800
+Message-ID: <20261109025425.328445-1-jiayuan.chen@linux.dev>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -51,35 +98,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YEo_4lnonRc0-_Jotuzk7hOaWl3QockF3xDwJ4cE5v8uBvy1KW27Eku0fWDJycuoZ9AgGFxsxgtSWI6SE2kNJ38eVnLx-HtApOhBw0wxXGg=@proton.me>
+Content-Transfer-Encoding: 8bit
 
-Noah Weinberger <NoahWeinberger2003@proton.me> wrote:
-> In the IPT_SO_GET_INFO compat path, the return value of
-> compat_table_info() is ignored: on failure (vmalloc ENOMEM in
-> xt_compat_init_offsets()), private = &tmp is used anyway, and ret is
-> overwritten with 0 after a successful copy_to_user - so a 32-bit caller
-> gets stale or partially adjusted 64-bit-layout size/hook_entry/underflow
-> values instead of an error. The follow-up GET_ENTRIES then fails with
-> -EAGAIN. tmp is fully initialized, so there is no disclosure; this is a
-> robustness fix. The same pattern exists in ip6_tables.c; both are
-> patched.
-> 
-> Affected version/commit: mainline fa4ad798f6f681031775266044ba1b0cf3c670bd (v7.4-rc1, 2026-11-07), net/ipv4/netfilter/ip_tables.c:968-987, net/ipv6/netfilter/ip6_tables.c:989-1008.
-> Longstanding code.
-> 
-> This was found during an assisted (AI-supported) static source review of
-> mainline fa4ad798f6f681031775266044ba1b0cf3c670bd (v7.4-rc1, 2026-11-07); every code path cited below was re-verified by the
-> reporter against that tree. The patch below has NOT been compiled and has
-> NOT been runtime tested, and no reproducer was produced - the triggering
-> conditions are described above instead. Please treat this as a report for
-> verification rather than a battle-tested fix.
+While testing the recent sysctl range fixes I noticed that a lot of our
+sysctl knobs are read with plain loads while the handlers update them
+with WRITE_ONCE() and no lock, so KCSAN reports them as data races. I
+then used an LLM to go through every ctl_table under net/ and list the
+readers that were left behind. This series annotates them with
+READ_ONCE(), and adds WRITE_ONCE() to a few custom handlers and netlink
+paths that store to the same fields with plain writes. Most of it is a
+plain READ_ONCE() at each read; where a function reads the same knob
+twice to make one decision, it now reads it once into a local, so the
+comparison and the value it acts on cannot come from two different
+writes.
 
-8-(
+There are no Fixes tags. Done one knob per patch this would be well over
+a hundred commits, so I grouped them by subsystem and feature instead to
+keep the review manageable. If maintainers prefer, I can split it up
+further with a Fixes tag on each one, as several smaller series.
 
-net/ipv4/netfilter/ip_tables.c: In function 'get_info':
-net/ipv4/netfilter/ip_tables.c:992:1: error: label 'unlock' defined but not used [-Werror=unused-label]
-  992 | unlock:
+No functional change. KCSAN does hit these, e.g. toggling
+net.ipv6.icmp.echo_ignore_all while receiving ICMPv6 echo requests:
 
-8-(
+  BUG: KCSAN: data-race in icmpv6_rcv / proc_dou8vec_minmax
+
+  write (marked) to 0xffffffff8ee2940d of 1 bytes by task 504 on cpu 0:
+   proc_dou8vec_minmax+0x1ab/0x1f0
+   proc_sys_call_handler+0x282/0x3a0
+   proc_sys_write+0x13/0x20
+   ...
+
+  read to 0xffffffff8ee2940d of 1 bytes by interrupt on cpu 3:
+   icmpv6_rcv+0x99d/0xd40
+   ip6_protocol_deliver_rcu+0x787/0x9a0
+   ip6_input_finish+0xb0/0x1b0
+   ip6_input+0xa8/0x250
+   ipv6_rcv+0x14b/0x1c0
+   ...
+
+  value changed: 0x01 -> 0x00
+
+Jiayuan Chen (14):
+  ipv4: annotate data-races around ip_rt_* sysctls
+  inet: frags: annotate data-races around fqdir->timeout and
+    fqdir->max_dist
+  ipv6: annotate data-races around addrconf sysctls
+  ipv6: annotate data-races around icmpv6 reply sysctls
+  calipso: annotate data-races around cache sysctls
+  sctp: annotate data-races around sctp sysctls
+  mptcp: annotate data-races around pernet sysctls
+  rds: annotate data-races around core rds sysctls
+  netfilter: conntrack: annotate data-races around conntrack sysctls
+  netfilter: bridge: annotate data-races around br_netfilter and nf_log
+    sysctls
+  ipvs: annotate data-races around lblc_expiration and lblcr_expiration
+  net/smc: annotate data-races around smc sysctls
+  netfilter: conntrack: annotate data-races around timeout and tcp
+    sysctls
+  netfilter: cttimeout: annotate data-races around the default timeouts
+
+ include/net/ipv6.h                            |   2 +-
+ include/net/netfilter/nf_conntrack_acct.h     |   6 +-
+ .../net/netfilter/nf_conntrack_timestamp.h    |   2 +-
+ net/bridge/br_netfilter_hooks.c               |  20 ++--
+ net/bridge/netfilter/ebt_log.c                |   2 +-
+ net/ipv4/inet_fragment.c                      |   2 +-
+ net/ipv4/ip_fragment.c                        |   6 +-
+ net/ipv4/route.c                              |  34 +++---
+ net/ipv6/addrconf.c                           |  22 ++--
+ net/ipv6/calipso.c                            |   6 +-
+ net/ipv6/icmp.c                               |  10 +-
+ net/ipv6/ndisc.c                              |   2 +-
+ net/ipv6/route.c                              |   8 +-
+ net/mptcp/ctrl.c                              |  18 +--
+ net/netfilter/ipvs/ip_vs_lblc.c               |   2 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c              |   2 +-
+ net/netfilter/nf_conntrack_core.c             |   8 +-
+ net/netfilter/nf_conntrack_ecache.c           |   2 +-
+ net/netfilter/nf_conntrack_expect.c           |   2 +-
+ net/netfilter/nf_conntrack_netlink.c          |   2 +-
+ net/netfilter/nf_conntrack_proto.c            |   6 +-
+ net/netfilter/nf_conntrack_proto_generic.c    |   8 +-
+ net/netfilter/nf_conntrack_proto_gre.c        |  20 ++--
+ net/netfilter/nf_conntrack_proto_icmp.c       |  12 +-
+ net/netfilter/nf_conntrack_proto_icmpv6.c     |  12 +-
+ net/netfilter/nf_conntrack_proto_sctp.c       |  13 ++-
+ net/netfilter/nf_conntrack_proto_tcp.c        | 110 +++++++++---------
+ net/netfilter/nf_conntrack_proto_udp.c        |  24 ++--
+ net/netfilter/nf_flow_table_core.c            |   4 +-
+ net/netfilter/nf_log_syslog.c                 |   2 +-
+ net/rds/recv.c                                |   2 +-
+ net/rds/send.c                                |   8 +-
+ net/rds/threads.c                             |   4 +-
+ net/sctp/associola.c                          |   2 +-
+ net/sctp/bind_addr.c                          |   2 +-
+ net/sctp/endpointola.c                        |  14 +--
+ net/sctp/input.c                              |   2 +-
+ net/sctp/sm_make_chunk.c                      |   6 +-
+ net/sctp/sm_sideeffect.c                      |   2 +-
+ net/sctp/sm_statefuns.c                       |   6 +-
+ net/sctp/socket.c                             |  46 ++++----
+ net/sctp/sysctl.c                             |  16 +--
+ net/sctp/transport.c                          |   6 +-
+ net/smc/af_smc.c                              |   8 +-
+ net/smc/smc_clc.c                             |   8 +-
+ net/smc/smc_core.c                            |   2 +-
+ net/smc/smc_tx.c                              |   2 +-
+ 47 files changed, 259 insertions(+), 246 deletions(-)
+
+-- 
+2.43.0
+
