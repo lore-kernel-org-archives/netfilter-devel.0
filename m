@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794290008;
-	b=V/ywvs0bnnB49hKlvYTIHXkgboXviHdXCoN8bPqwboZGuwdKqTxWQm7J+FDkWbtPc8K7
-	 o42xENOChONHyDMncHrIbjYUyAINLU1EIsj1PyRnqwGT0+Qtorys/Ezwh8vr28floUss6
-	 XkuzZ9VA3OR3r8srVmrboPebsNT2nUmwFprsDf84Te65E3/SwGSz7LUpRqp1xBaqHPXye
-	 p9xBMSe/oBgtYFmefhQPqdeD2E1sclbjKSuaZJu8R20Ki+34mEru4W2tobcV+YxM8gztf
-	 rRxIV1F9/4iCu5WAUMahrXS6mtzvYGjGOn0t9kJVL7ZNazzLFiOOrJrGIYYXlsBEbxQ==
+	t=1794290005;
+	b=qOr9y5Y6E9Yxgd01PkjJPz/2O0Rz2E3USy4PiCmW2S1QVKfUKtjWPft5o3CzJZO9ZnVA
+	 /JVwi4a/G8RLs0HwWfW/J0I09FZ0oK7dih224q/j4z2VTgfn3r5Z8L/7rsMN/2nvQUxel
+	 VDg5nU/MgJEIE6PK+7+VOIqTRirea6CvZb8/L9XK4D6t2VmQOdMbaz5O/JPJ6V7Nmj8KU
+	 TxYAxCJDSYv6by+Q8WQ3vibNPYDRyvTa9PDw0do+Xfo25NMNiEvC4pmp+Chik0p3NwnNa
+	 SyA9ubFoQOK9ceJjPJFwkml30l8juwO0Wt4PV7dZ2l/rAAlr4b+vWwUpAOEW0xmFBWA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794290008;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794290005;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=GHNBMVG3Wf/WNwxgQrYTHsnSyslBuFe0XVBpTIsm01s=;
-	b=qp9LuGEPXGvsW7zMDldOGxe62ulViijhs6i4MViMoZAy1JA4+SkMfVL3nPOS2a4O+CRo
-	 OQAZFEVBN5CfG9hB+emSQnrj/zBe0CeB6o03MXUmudfrgquX5O0m1If04fI9UUN1Diij3
-	 Hb3wywQFJGneAUkT52vA4KGrOl7wRxEIMhx7yjg84F/ccfTWWHph9xjennc5ctChj4Awe
-	 LYY2rHMi1DhG9rHiGsNRa5rpNPEVjJEKTMnKR786t4Bjq9nrtNx7gyXb0VO2fk/NYgUf3
-	 yOqCQYFlW79GNG8502id2ApTajn0tnhYfKZyETL18MEAoKcIeP+ZkuTKIq21br+p5tA==
+	bh=IEvI2+HGRQSQwwXEoUXz61hyv+7ERi7ROzclaXDj8MY=;
+	b=kExT4zhN+mKwF25OXi8P9FKwNOeAfd6mkV++5AiIRlcZNtJo+sNJAPh+5zEP5v8TW7p6
+	 T2vS63TY5n8CF78HPHHsyj3FCCnmBw3gHKIXF9DpEYDRfbWQ3p2s1B88UWGaFfv7Tby8I
+	 QzZebI2HdagCiHDYlc8EyfVLPHBzThH1rcmaV2h2PKLvh2NZjGxkI1jp66l1UJlXMuAzk
+	 U0I802fwVLbS+N5w5YW4t8lGnGNLjZhIENo/FnRpkUeoErqdZ859RPDF5U8hV0OBvOdNw
+	 csWkFVfbNgQY+nujMYX3bBm1RHcsgEK2M5QrpVMU3E7GDdSGkvFvPNHfqSekCXVGi5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8Mg+NTa;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CoUQzSEQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A1A606A31C;
-	Tue, 10 Nov 2026 05:53:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8Mg+NTa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDE721F0089F;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6681606A335;
 	Tue, 10 Nov 2026 05:53:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CoUQzSEQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 778821F008A7;
+	Tue, 10 Nov 2026 05:53:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794290007;
-	bh=GHNBMVG3Wf/WNwxgQrYTHsnSyslBuFe0XVBpTIsm01s=;
+	s=k20260515; t=1794290004;
+	bh=IEvI2+HGRQSQwwXEoUXz61hyv+7ERi7ROzclaXDj8MY=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=h8Mg+NTa37D5sdsh5liH4Yogs8ckRV+RW7upQt2VHZvCYyYv+9qAJcvXBkoY9miQk
-	 4VRpacdVnuWymYG5w3HQR3fLyZWS1L1UqOGnAmvmP7DHKMkNG3goXHVJ97V3r5qNxJ
-	 jrHqgSvgTmBsBJvZFFQnjyupEH4XClD6UcVhLNkb9ss0OY49eFgLMotJdQqXknluT9
-	 eFrOF94okwOvhE6RCDe38HY3fSpsdUqwRdKEMOtQfl0tQJCx1cH7hFC/Rj0UnFmIHE
-	 6UQSX4Qxv4zoEVIzWMhMqaj7+wk5IEzRFnNdWAKpvHCpURB2k2iPCkFttVabkBwxIN
-	 706BHK23tOwsw==
-Subject: Re: [PATCH net-next 10/14] netfilter: bridge: annotate data-races
- around br_netfilter and nf_log sysctls
+	b=CoUQzSEQTFsiUFEBrAu/IGmQWrGWSXQdQx6L/DIXwh6UsasCpoFiwKCJ1CMZsCwPN
+	 iZV5M9wDhTuxQaWHfH9/RM3cElzIof2L5D7wNDrVeKmH4se53TNqXby7JG3WchTGuf
+	 p2R2u3kphTsDbhYbkr9uMI03M/qt5jUQP6WeRgYhS23RGWXexWptFzhwPT0VZlIpSi
+	 gMhcCjEL7UcgYtpYn9DIU2QRQLq2xHJht5PhVgUix2seAdqnRbzH03M9aVASDDr/BN
+	 zuq02UKTINXLwCMu/NIPbTFwFM+kCT4bACV/MmuLHzOolDFtpSHzGyrMfa+AjnnSUj
+	 BvsDVcv2VnzmQ==
+Subject:
+ Re: [PATCH net-next 06/14] sctp: annotate data-races around sctp sysctls
 From: netdev-bot+sashiko@kernel.org
 To: jiayuan.chen@linux.dev
 Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
@@ -58,11 +58,11 @@ Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
  lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
  rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
  linux-s390@vger.kernel.org
-Date: Tue, 10 Nov 2026 05:53:24 +0000
-Message-ID: <179429000449.994134.17609039165328178770@kernel.org>
-In-Reply-To: <20261109025425.328445-11-jiayuan.chen@linux.dev>
-References: <20261109025425.328445-11-jiayuan.chen@linux.dev>
-X-sashiko-severity: Low
+Date: Tue, 10 Nov 2026 05:53:22 +0000
+Message-ID: <179429000207.994134.10637780638316929795@kernel.org>
+In-Reply-To: <20261109025425.328445-7-jiayuan.chen@linux.dev>
+References: <20261109025425.328445-7-jiayuan.chen@linux.dev>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -75,66 +75,111 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
-- [Low] brnf_sysctl_call_tables() in net/bridge/br_netfilter_hooks.c is
-  only half annotated.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The fix is incomplete inside the same sysctl handlers it
+  changes.
 
 --
 
-netfilter: bridge: annotate data-races around br_netfilter and nf_log sysctls
+sctp: annotate data-races around sctp sysctls
 
-This patch adds READ_ONCE() annotations in the packet path for the
-bridge-nf-* sysctls and for sysctl_nf_log_all_netns. It also adds a
-WRITE_ONCE() to the normalization store in brnf_sysctl_call_tables().
-The goal is to silence KCSAN data-race reports that show up when these
-sysctls change while packets are being bridged.
+This commit adds READ_ONCE() to readers of many per-netns sctp sysctl
+fields. It also converts the plain stores in the rto_min, rto_max,
+udp_port, probe_interval, auth_enable and cookie_hmac_alg handlers to
+WRITE_ONCE().
 
-> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-> index e15355ff215a7..8a47fe4e8eb61 100644
-> --- a/net/bridge/br_netfilter_hooks.c
-> +++ b/net/bridge/br_netfilter_hooks.c
-
-[ ... ]
-
-> @@ -1178,7 +1178,7 @@ int brnf_sysctl_call_tables(const struct ctl_table *ctl, int write,
->  	ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
+> diff --git a/net/sctp/sysctl.c b/net/sctp/sysctl.c
+> index 2b94c211427de..8a84ae3272d24 100644
+> --- a/net/sctp/sysctl.c
+> +++ b/net/sctp/sysctl.c
+> @@ -402,11 +402,11 @@ static int proc_sctp_do_hmac_alg(const struct ctl_table *ctl, int write,
+>  		if (ret)
+>  			return ret;
+>  		if (!strcmp(tmp, "sha256")) {
+> -			net->sctp.cookie_auth_enable = 1;
+> +			WRITE_ONCE(net->sctp.cookie_auth_enable, 1);
+>  			return 0;
+>  		}
+>  		if (!strcmp(tmp, "none")) {
+> -			net->sctp.cookie_auth_enable = 0;
+> +			WRITE_ONCE(net->sctp.cookie_auth_enable, 0);
+>  			return 0;
+>  		}
+>  		return -EINVAL;
+> @@ -441,7 +441,7 @@ static int proc_sctp_do_rto_min(const struct ctl_table *ctl, int write,
+>  		if (new_value > max || new_value < min)
+>  			return -EINVAL;
 >  
->  	if (write && *(int *)(ctl->data))
-                     ^^^^^^^^^^^^^^^^^^^
-> -		*(int *)(ctl->data) = 1;
-> +		WRITE_ONCE(*(int *)(ctl->data), 1);
-
-[Severity: Low]
-This isn't a bug, but should the load in the condition also be annotated?
-
-The store is now WRITE_ONCE(), but the check just before it is still a
-plain read of *(int *)(ctl->data).
-
-proc_sys_call_handler() in fs/proc/proc_sysctl.c calls
-table->proc_handler() without taking any lock. Two concurrent writes to
-the same knob (bridge-nf-call-iptables, for example) can therefore run
-brnf_sysctl_call_tables() in parallel. In that case one handler's plain
-read can race with the other writer's marked store in do_proc_int_conv(),
-or with its WRITE_ONCE(..., 1).
-
-That is the same plain-read-vs-marked-write pattern as the splat in the
-commit message, so KCSAN would report it as a race between
-brnf_sysctl_call_tables and do_proc_int_conv.
-
-There is no functional effect here. The final value is always 0 or 1,
-and any non-zero value is treated as true. This only affects how
-complete the annotation is.
-
-Would it make sense to use READ_ONCE() for the check? Another option is
-to parse into a local value and publish it with a single WRITE_ONCE().
-
+> -		net->sctp.rto_min = new_value;
+> +		WRITE_ONCE(net->sctp.rto_min, new_value);
+>  	}
+>  
 >  	return ret;
->  }
+> @@ -469,7 +469,7 @@ static int proc_sctp_do_rto_max(const struct ctl_table *ctl, int write,
+>  		if (new_value > max || new_value < min)
+>  			return -EINVAL;
+>  
+> -		net->sctp.rto_max = new_value;
+> +		WRITE_ONCE(net->sctp.rto_max, new_value);
+>  	}
+>  
+>  	return ret;
+
+[Severity: High]
+Do the handlers this patch edits still contain plain loads of these same
+fields?
+
+proc_sctp_do_rto_min() reads rto_max through extra2 to bound the new
+value. proc_sctp_do_rto_max() reads rto_min through extra1 in the same
+way:
+
+net/sctp/sysctl.c:proc_sctp_do_rto_min() {
+	...
+	unsigned int min = *(unsigned int *) ctl->extra1;
+	unsigned int max = *(unsigned int *) ctl->extra2;
+	...
+}
+
+sctp_sysctl_net_register() points these at the live per-netns fields. The
+static sctp_net_table does the same for init_net:
+
+	table[SCTP_RTO_MIN_IDX].extra2 = &net->sctp.rto_max;
+	table[SCTP_RTO_MAX_IDX].extra1 = &net->sctp.rto_min;
+
+So when writes to /proc/sys/net/sctp/rto_min and rto_max run at the same
+time, proc_sctp_do_rto_min() does a plain read of rto_max while
+proc_sctp_do_rto_max() does WRITE_ONCE(net->sctp.rto_max, ...). The same
+thing happens in the other direction for rto_min. Nothing serializes
+these two handlers against each other.
+
+The read branch of proc_sctp_do_hmac_alg() also still loads
+cookie_auth_enable without READ_ONCE():
+
+	if (net->sctp.cookie_auth_enable)
+		tbl.data = (char *)"sha256";
+	else
+		tbl.data = (char *)"none";
+
+This can race with the WRITE_ONCE() stores above when cookie_hmac_alg is
+read and written at the same time.
+
+The commit message lists rto_min, rto_max and the cookie_hmac_alg handler
+among the races being closed. The readers of these fields in
+sctp_init_sock() now use READ_ONCE().
+
+Should these three loads in the handlers use READ_ONCE() too? Otherwise
+KCSAN can still report a marked write racing with a plain read on these
+fields.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109025425.328445-1-jiayuan.chen%40linux.dev
