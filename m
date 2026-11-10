@@ -1,98 +1,100 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.131
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794320380;
-	b=JFR6l95J84YQccGdU/PiN56TOizfEGjL6OGyWW4N4fQYz9K9ueON70SZf5TdSAsfO519
-	 APfPVUP7Z+b1v2flshQ+twfwQgSIC4YL6VUKYitqktG2RRBY1pqDBvZadUpL7m5jn2VP4
-	 72CU3ooklhptgzyCgD3g7B/e0nwTa/oEATvh2m5QQlWYEAnjULuymULD2lv8aYYXXNdhO
-	 6u76Aa1q78MBltLcr21nz1zm/ZmIfS1cv3GrJBDVacloWS76m3Cu27rw5sS5UxHBvAN2u
-	 KqBj9GF3oaB4dRJcLDkwMkOFe++fiY+KlKa/7reHYmz4pUIG5C9+0s6DMmsuWiXTXlA==
+	t=1794320486;
+	b=qvsQ59ds9iF7DW+0iS3e30WvU1opNee4W3bwOPDJpsqWzpfpaVbxzefj5rEpkyrSU/vt
+	 qafLNIZUu4rieZh5oFNBUNqDmcTta4xwyRAgE1aQ+B/tdPT0w5mhYTtyfXFeptiguOhYI
+	 UpxcJgZAioj39E4Rx12ZJ/l4OeiwNUqSAVqeEcsN/Puc8/g59oKEBz2vh9qyCy3e64PJn
+	 gdfEe2wH978Pn2W0F9stBTatjC8G1nOnkwu0rFqKe0lM1irbkiEgmrAYtlRtL1F4Xq5qv
+	 XRqc434Jye6BbP0SF7Siu36yaC4+j3pNT2iN0h2TOYk94441ermxAMhdNsD2dPMMR+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794320380;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794320486;
 	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
 	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Flag:X-Spam-Level:X-Spamd-Result:X-Spam-Score;
-	bh=ey86SkVvx7i9NDOgarxUx2o/w+Rx/Wx0u51qrIOGmpM=;
-	b=bkc2xvu/oS7jkyiRl13UQfET4/JhxuqXfaoJZnlX0jhiEiuXLTTJZBocmDCZLU20JWgW
-	 0Y5XX2Pxhlz2L2u2pzOi4mPcmaRm6vi6cPFmMFZ++ZVbWnaLZKq2HocH93dHhA8OT65uz
-	 YFBN0+zjpGDeMhQC8/FhclE97QM/pjzHbTy0Uq7qkzbHkcP0pJCU23I8B5SG6VxxHp8Xd
-	 Rrhgq38p2j35945InRprycPWMj34DiX7nFOi5or35e1yyQabCRR2h7FRqtrd+uMjLVpti
-	 USvVGo40zcs/J9UBc2uvuw10tXLLRKDGVfUHM3o6/Sdh26qtzQRooyeB1bgkyBsnSfQ==
+	 In-Reply-To:X-Rspamd-Queue-Id:X-Spam-Level:X-Rspamd-Server:
+	 X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:X-Spam-Score;
+	bh=BAgS5IG5Q6cmw/IjXmlog3zuTwHd5kSy1jWUQMAUfKY=;
+	b=ibMhozCS0TZx9aZRcfsw3D2umRHe/DUx5z1rMgYP8ycGhlR61yJIe2uIAQl/YURZJC6k
+	 +zd7Lu4bBPIE7Mp+0ALnDLX5T06VlI2ejepA1YWfuop+n9NGq6lZcgtrhp1s1zTKj6FpS
+	 f+2/KoE4HXnbq9Ccz+8LReTXmm8beQReUH41JrISk9P+fE2drmLRAKGCjfvLKfEnLdGGN
+	 riFKaU8dxg9KWx/nLB1DtfT7fu6BzYbe+2BzArfjZzF7h79JH+svVEn/TBlkLnfS7VkNr
+	 nX5xp6i752+Z/mZ0P/pHrh3E3djiRiMOXUXyySedLqQoQ6/dP4iPjAem5LhDK9Pc+dQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=suse.cz;
 	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=ZVPXUmC4;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Hlc3f2E7;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=24m00Mxy;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=gWL5bCh6;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=dfqcbUnK;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=I8IcNdZF;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OFZt5G3N;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=lARv1EHw;
 	arc=none smtp.remote-ip=195.135.223.131
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DD7660A2600;
-	Tue, 10 Nov 2026 14:19:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5DD7660A2600
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98996606A326;
+	Tue, 10 Nov 2026 14:21:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 98996606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=ZVPXUmC4;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=Hlc3f2E7;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=24m00Mxy;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=gWL5bCh6
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=dfqcbUnK;
+	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=I8IcNdZF;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=OFZt5G3N;
+	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=lARv1EHw
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A6CE81F769;
-	Tue, 10 Nov 2026 14:19:37 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 98D081F769;
+	Tue, 10 Nov 2026 14:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794320378; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1794320482; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ey86SkVvx7i9NDOgarxUx2o/w+Rx/Wx0u51qrIOGmpM=;
-	b=ZVPXUmC4mGewMANDq+XWqMfufiC34pXna6eT0w/isfdeZ5z4jQWmJ3C5blgfM/blFxbxRi
-	GXx2I6Zj1FEb7O7GZyCw3PQ9vVoHcaTlnyF2iDNG/b95INh8IAF4Heax/yxvfkvdjUes86
-	ZeBBBpN/JMM61PPOsv+BlSE1bUf86L0=
+	bh=BAgS5IG5Q6cmw/IjXmlog3zuTwHd5kSy1jWUQMAUfKY=;
+	b=dfqcbUnKWeMMrbbtQxI4HQM7qrIh4AZ0rdet9B/6ElOBIqFSiDGiuE+1U00ut3ACwyb91k
+	r11g0ukmfmgZpAkPLIoBt7FBxKQ00ygdxuqdgmhj2u4V8/naZ4cHPSCZhNnU3P0rUj/quR
+	5maXirFkXXk4Lg3EkYDJXPDsbTG0ICY=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794320378;
+	s=susede2_ed25519; t=1794320482;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ey86SkVvx7i9NDOgarxUx2o/w+Rx/Wx0u51qrIOGmpM=;
-	b=Hlc3f2E73UolHpexWZ0OEqOYGnAZGJUiTOZcmRyhsLWloTpsXT3IbdvFQy181tx+6xfr/R
-	LZMnMJkUpESuzgBg==
+	bh=BAgS5IG5Q6cmw/IjXmlog3zuTwHd5kSy1jWUQMAUfKY=;
+	b=I8IcNdZFZSFtUgRgMf53UkGbuTtSJb1zzUPCSb1BODWP/tylJEZx0BmLFYU3bDgA6b05ut
+	5Oej5bk5j+xTBnDA==
 Authentication-Results: smtp-out2.suse.de;
-	none
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=OFZt5G3N;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=lARv1EHw
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794320377; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1794320481; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ey86SkVvx7i9NDOgarxUx2o/w+Rx/Wx0u51qrIOGmpM=;
-	b=24m00MxyS14C4kCTYYtxKWJP25EBVNVIxLRshWhDnl2XZwRpRipDNZJw4Avu/J2svsqCMy
-	VTYT/SHAlqxbP0FIU7B9V7eV3/1rBXkEe/Lcm9f8ja9SENmigoj1MKRmnopRtQWBaY3OFh
-	eux20BDfQ6AJqBojuMAzQiJJg3QKDxU=
+	bh=BAgS5IG5Q6cmw/IjXmlog3zuTwHd5kSy1jWUQMAUfKY=;
+	b=OFZt5G3NjcxxJh9jY6RWrC7bvaHuyGavEEbdiAXuJUz/f1dYZmor5n2FYPrRYiQoiCED+w
+	1FijM1hEbGwM1P7v2pYubJuTrAUHD24tVDcOF18S7gaHWryxvKiASS6IebdlsiiUolZCHc
+	0QuxJjJxTEoiCmYYKfGjg6OEvasGjOc=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794320377;
+	s=susede2_ed25519; t=1794320481;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ey86SkVvx7i9NDOgarxUx2o/w+Rx/Wx0u51qrIOGmpM=;
-	b=gWL5bCh6bmxfDaClyKTxrGr/cthAMhYHhVBSAgTvyrROUNgpSm1do5CLIUVQzQAzFJlTzk
-	zIhImlSyPcZvZwDQ==
+	bh=BAgS5IG5Q6cmw/IjXmlog3zuTwHd5kSy1jWUQMAUfKY=;
+	b=lARv1EHwNdS7tCNwBSn9srQwOl9Kg5/ztnfBrMPMFrjJm7RNq+r333D6UmkiyHiKi5q76w
+	+hVROod2CCZjqIBw==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7A2B2134F4;
-	Tue, 10 Nov 2026 14:19:37 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 653AD13479;
+	Tue, 10 Nov 2026 14:21:21 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id nYVvEPkn82qNGgAAD6G6ig
-	(envelope-from <jack@suse.cz>); Tue, 10 Nov 2026 14:19:37 +0000
+	id H5UxD2Eo82oxHAAAD6G6ig
+	(envelope-from <jack@suse.cz>); Tue, 10 Nov 2026 14:21:21 +0000
 Received: by quack.suse.cz (Postfix, from userid 1000)
-	id D0CEC22536; Tue, 10 Nov 2026 15:19:36 +0100 (CET)
-Date: Tue, 10 Nov 2026 15:19:36 +0100
+	id D4BBB22538; Tue, 10 Nov 2026 15:21:16 +0100 (CET)
+Date: Tue, 10 Nov 2026 15:21:16 +0100
 From: Jan Kara <jack@suse.cz>
 To: Christian Brauner <brauner@kernel.org>
 Cc: linux-fsdevel@vger.kernel.org, 
@@ -116,12 +118,12 @@ Cc: linux-fsdevel@vger.kernel.org,
 	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
 	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
 	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
-	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH v2 29/51] proc: don't walk through a non-directory when
- resolving a name
-Message-ID: <okuebbxuf5q6xy452dlnxaqwainsafs5waulvn54j3vqxg2dhx@hh6ql7sg3pte>
+	Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH v2 07/51] lockd: don't hand out the terminator of
+ nlm_end_grace
+Message-ID: <4isxnxlzjedh4t3hq73g5wjuwdtiudxx6llf6do2noyrno5lsb@6xwb4gw7wi7b>
 References: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
- <20261104-work-procfs-bugfixes-v2-29-bbf7d5546809@kernel.org>
+ <20261104-work-procfs-bugfixes-v2-7-bbf7d5546809@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -133,98 +135,71 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-29-bbf7d5546809@kernel.org>
-X-Spam-Flag: NO
+In-Reply-To: <20261104-work-procfs-bugfixes-v2-7-bbf7d5546809@kernel.org>
+X-Rspamd-Queue-Id: 98D081F769
 X-Spam-Level: 
-X-Spamd-Result: default: False [-11.30 / 50.00];
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-11.51 / 50.00];
 	SUSE_INTERNAL_BYPASS(-9.00)[];
 	BAYES_HAM(-3.00)[100.00%];
 	SUSPICIOUS_RECIPS(1.50)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_RHS_NOT_FQDN(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
+	MX_GOOD(-0.01)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
 	ARC_NA(0.00)[];
-	FROM_HAS_DN(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.cz:dkim,suse.cz:email,suse.com:email];
 	RCVD_COUNT_THREE(0.00)[3];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
 	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
 	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[60];
+	RCPT_COUNT_GT_50(0.00)[59];
 	RCVD_TLS_LAST(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.cz:email,imap1.dmz-prg2.suse.org:helo,suse.com:email]
-X-Spam-Score: -11.30
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.cz:+]
+X-Spam-Score: -11.51
 
-On Wed 04-11-26 18:47:15, Christian Brauner wrote:
-> __xlate_proc_name() walks the components of a name like "a/b/c" and
-> takes whatever it finds for "a" and "b" as the directory to go on in.
-> It never checks that they actually are directories. So
-> proc_create("file/x") hangs x into the subdir tree of the regular file
-> "file". Nobody can look x up there, but remove_proc_subtree() on the
-> file removes and frees x along with it, behind the back of whoever
-> registered x.
+On Wed 04-11-26 18:27:24, Christian Brauner wrote:
+> nlm_end_grace_read() answers with "Y\n" or "N\n" from a three byte
+> buffer and hands out all three bytes, the terminating NUL included.
+> Leave the NUL out.
 > 
-> pktgen passes the name the writer of "add_device" picks to
-> proc_create_data(), and only the part in front of the '@' has to name
-> a network device:
-> 
->   echo "add_device lo@"   > /proc/net/pktgen/kpktgend_0
->   echo "add_device lo@/x" > /proc/net/pktgen/kpktgend_1
->   echo "rem_device_all"   > /proc/net/pktgen/kpktgend_0
->   echo "rem_device_all"   > /proc/net/pktgen/kpktgend_1
-> 
-> The third write frees both entries and the fourth one makes kpktgend_1
-> call proc_remove() on the freed second one:
-> 
->   BUG: KASAN: slab-use-after-free in proc_remove+0x8f/0xa0
->   Read of size 8 at addr ff110001134c8e70 by task kpktgend_1/243
->   Call Trace:
->    proc_remove+0x8f/0xa0
->    pktgen_remove_device.isra.0+0x118/0x500
->    pktgen_rem_all_ifs+0xeb/0x1a0
->    pktgen_thread_worker+0x1b42/0x7280
-> 
-> The files of a network namespace belong to the root of its user
-> namespace and these writes don't require a capability. So once pktgen
-> is loaded an unprivileged user can do this in namespaces of its own.
-> 
-> Treat a component that isn't a directory like one that doesn't exist.
-> All names with a '/' that the tree passes in as literals only walk
-> through directories. pktgen is fixed separately to not pass such names
-> in the first place.
-> 
-> Reported-by: Chris Mason <mason@kernel.org>
-> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-> Cc: stable@vger.kernel.org
+> Fixes: d68e3c4aa416 ("lockd: add a /proc/fs/lockd/nlm_end_grace file")
 > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Looks good. Feel free to add:
+Makes sense. Feel free to add:
 
 Reviewed-by: Jan Kara <jack@suse.cz>
 
 								Honza
 
 > ---
->  fs/proc/generic.c | 2 +-
+>  fs/lockd/procfs.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-> index 4c3fcaf68ef4..6ac9c4c13897 100644
-> --- a/fs/proc/generic.c
-> +++ b/fs/proc/generic.c
-> @@ -170,7 +170,7 @@ static int __xlate_proc_name(const char *name, struct proc_dir_entry **ret,
->  	de = *ret ?: &proc_root;
->  	while ((next = strchr(cp, '/')) != NULL) {
->  		de = pde_subdir_find(de, cp, next - cp);
-> -		if (!de) {
-> +		if (!de || !S_ISDIR(de->mode)) {
->  			WARN(1, "name '%s'\n", name);
->  			return -ENOENT;
->  		}
+> diff --git a/fs/lockd/procfs.c b/fs/lockd/procfs.c
+> index a01f08c8c2f3..74f7ab77535a 100644
+> --- a/fs/lockd/procfs.c
+> +++ b/fs/lockd/procfs.c
+> @@ -57,7 +57,7 @@ nlm_end_grace_read(struct file *file, char __user *buf, size_t size,
+>  	resp[1] = '\n';
+>  	resp[2] = '\0';
+>  
+> -	return simple_read_from_buffer(buf, size, pos, resp, sizeof(resp));
+> +	return simple_read_from_buffer(buf, size, pos, resp, sizeof(resp) - 1);
+>  }
+>  
+>  static const struct proc_ops lockd_end_grace_proc_ops = {
 > 
 > -- 
 > 2.53.0
