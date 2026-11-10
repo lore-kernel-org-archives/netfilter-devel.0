@@ -1,59 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794271159;
-	b=5NbGhud7Ond75YQh/FJMuRbKC6u7mZXBhtMqJAoogzLVOR4SeOtoafitvfBdXpkV6a4g
-	 roxnZhWHz1px1c1ybtKrj1bSareOirZEvuW9C+iGY4Q/K4tcvVB74el2N0xjVsejlIEHk
-	 kV7p7vF35VNYb3YvSsHotPm0FZ1qI73oo84ueDD0fyHOIEH4bKXkNBgZ9cuLzbRumAkR0
-	 MvXn9jTk2C4vhxUtBEzrzZEOrmXU1c5qD/uOotJmzLscztsrnBIbFnhmPm0gb7Y5tiM+i
-	 fWFz+nCU9qi2tOmCCFtHc/4u/ElpaQLxYwIUml+vCb98Jxs0bJgW1TM/DxNZlz64mWg==
+	t=1794271456;
+	b=QUgjTPKGmJ5KTOUzaXmcvcRB05vtkqGESNl+J4zLF5QaNQwkdrnmmGJOntJyJYcYMrtK
+	 xQERhoWyWs6DJ2xL1BrWJVQ2d3OPDWh3IkRNfkCuIosjJKbVysyW5Q/xIqNvgG7Km1Fhy
+	 7AxZmip3XVvZXtd7ulQf3EA+VY1J+jqTb0HqB9KUp12KuSGpPWpTLv87rFS8pNlv/GYkA
+	 duh/dhIUM/cxnObPz2iPgwIqqYemyyFWfzN1ntEEOZzg6pBqJ3RD4sLYTJl6QfaX0EEph
+	 jaxoUFnCPKR4Y/eqXHvty5kD6bWBZoQjeVpzVjaTZl5jJ13nFD/LdoW2BxkHfZNByIQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794271159;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=dl5N38gQaRt2SIblVWUQ5RhrtI6Cef2bcki+TajoirQ=;
-	b=prQVji6v+Ff+qQXUeGviMUujfS7QRK44slfLn/GW9KpgqO+A824MXpMPv9OKlJJrqcxy
-	 ZcGwzd5n2YQMjASHmmOCH2ja8KiY69OdI0CzrBCKYz/8DCEZcd7rBabP9PEeIPaxjlMp6
-	 uiMnYV3NDoZdYOF+DH/bfytZ8n30mzYVj7izdoWwpZXS+BMeV7eFAIaCVsy6hj50ruOMa
-	 /sdgkXbS8q5uRS8FHACCGUOhL2S/1ejsIRe5PWoTNlAPe04Klt/mpgxP3M52rLJIRWwQS
-	 UBcuCM53p5/1O8tcRhIh4AHBuDTxIODIpr8Vl0G3lV55WLJGy89XLhDDPP1I10WC0bA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794271456;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=X7vRBwY1YVP+YsmylbzJovNrvWSg1Yr0Awx7ynFxjKQ=;
+	b=1ZEksR90+6DwhBHDVMuYxF98RRLAXuF83y3tMSF35r+gBb0xK6zLodtdPF0ZzKL+P2Md
+	 okVPDH0dPq8jiki2sUNHgWAyHpviJi4Gvs2bihgt5ZkiK9W6gX+mE3fqJbkJvq9c45lDd
+	 rOG0ZWqlp2FAAA4czfflN1fXNe1B2V+2WalXZSi/+c2LGdry8MYCiKvg99aOiEFABejiE
+	 zZOC9l0cxbYLnsgAhCQoFPCR9Irl2e+DEPzW72QZ8itipVDwwxYXsHGKVDE02HltyOaPf
+	 d37E9bMKc+fa7jD9ZHv2HIvtQljuDguUkSiBxY73dbD2t6hncQ4ef7jVip6FYYeaF5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=cTRxMGKs;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fYwpeXq7;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9ED606A31C
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 00:39:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7E9ED606A31C
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 61D2F606A321;
+	Tue, 10 Nov 2026 00:44:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 61D2F606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=cTRxMGKs
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fYwpeXq7
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794271156;
-	bh=dl5N38gQaRt2SIblVWUQ5RhrtI6Cef2bcki+TajoirQ=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=cTRxMGKsIS019q/FOEFNOm3EnTy1L09ceZcncbH1jviERiPk4NSMS3awaFw8KKZ8I
-	 kAwHgfdd8SAVgSEl82w7R4YEBelVUD8blRh9Mm8XGmvBUHy6Zmp07I+10SVc2XspY4
-	 C3IKPbWX0IaXrozSEgy9ThWWcCsNr3AdGD9wPu3vXTwPGlheNQO5YcQWNlnjEz7yIO
-	 EuyuLf6hObKSS8YkQCyUUE6L8vHZJckbdQ8YZO0OadB3SThGGQGW/sdBYqv6uqSghf
-	 JsHgIvwbS6im0Cy8UodEBUP3VENcw2sznktRhOqcbl/5Yc9A1/Iko0PMv7WbSQpIGy
-	 y0vVEp9ULftFg==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9AAED6005D
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 01:39:16 +0100 (CET)
+	s=2025; t=1794271452;
+	bh=X7vRBwY1YVP+YsmylbzJovNrvWSg1Yr0Awx7ynFxjKQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=fYwpeXq7MHbhkmAE9/6mASGiHNWLPD/BBzKdUdgs9L3DoLl0WjwoHaZbj8eAEaHLm
+	 XsnyBydw8vrqKuBZhsw1PDe/bHSEx3TBEMpsTidQNOhVokFfsaXflQLcadPGkLPN8y
+	 PtJIw9HfU9XFf+T6dUYT+Q/zBTB0nhXPoUVOOBcx63KN7qn2w2gVr34KYdFgiyP0b6
+	 gYaTDBwjSVSQqUFRFyQk7yIiLfo9yQu+K5v8jK5luV+UWOn3uu6vnXkswbTy3mmmX2
+	 wW39nDuHHBrmFT/rpD6yI6gcAwrqbH1mP3Pg3K7nk+EX2DL6HoiDg+eqmZRpQCzlEd
+	 VVqcpw5wSQ5gw==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A9F3A60058;
+	Tue, 10 Nov 2026 01:44:12 +0100 (CET)
+Date: Tue, 10 Nov 2026 01:44:10 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v4 4/4] netfilter: nfnetlink_queue: restrict NFQA_EXP to userspace helpers
-Date: Tue, 10 Nov 2026 01:39:09 +0100
-Message-ID: <20261110003909.1740094-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261110003909.1740094-1-pablo@netfilter.org>
-References: <20261110003909.1740094-1-pablo@netfilter.org>
+To: Laveesh Bansal <laveeshb@laveeshbansal.com>
+Cc: Florian Westphal <fw@strlen.de>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	syzbot+a8ba738fe2db6b4bb27f@syzkaller.appspotmail.com,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/2] netfilter: bridge: refragment packets with a
+ vlan tag moved by the bridge
+Message-ID: <avJo2nhgnulY776l@chamomile>
+References: <20261109191842.57359-1-laveeshb@laveeshbansal.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,90 +68,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261109191842.57359-1-laveeshb@laveeshbansal.com>
 
-Adding expectations to unconfirmed conntracks are problematic because of
-reallocations of the ct extension area can happen while expectations are
-placed in the ct extension expectation list.
+Hi,
 
-NFQA_EXP was added with the purpose of supporting userspace conntrack
-helpers, which create expectations in confirmation hook.
+On Mon, Nov 09, 2026 at 11:18:40AM -0800, Laveesh Bansal wrote:
+> Fragmented packets are dropped on a vlan filtering bridge with bridge
+> conntrack when the protocol of their vlan tag differs from the bridge's
+> vlan_protocol, an 802.1Q tag on an 802.1ad bridge for instance. Patch 1
+> handles the tag when refragmenting. Patch 2 adds a selftest.
+> 
+> As discussed with Pablo in the first posting
+> (https://lore.kernel.org/r/atck-NoWvemxIsF6@chamomile), the
+> DEBUG_NET_WARN_ON_ONCE() change went to nf on its own and is now in the net
+> tree as 683ff28ab18a. This series is based on that commit and is meant
+> for nf-next, which does not have it yet.
+> 
+> Changes since the first posting
+> (https://lore.kernel.org/r/20261020000308.37362-1-laveeshb@laveeshbansal.com):
+> patch 1 keeps the tag together with the ethernet header instead of in
+> separate fields, and the selftest runs its checks even if the kernel had
+> warned before.
+> 
+> I used an LLM tool for the analysis, the code and the test runs.
 
-On packet reinjection, hook updates could result in a stale hook_index
-that point to different hooks, but this is not an issue because, in such
-rare case, expectation will not be created, else it could be created on
-the confirmation hook, which is the only hook where userspace helpers
-are possible.
+Do you have a usecase for this?
 
-Use NF_HOOK_OP_CONNTRACK to check this is a conntrack hook, where the
-expectation creation for userspace helpers is allowed.
-
-Fixes: bd0779370588 ("netfilter: nfnetlink_queue: allow to attach expectations to conntracks")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v4: use ops->hook_ops_type == NF_HOOK_OP_CONNTRACK check to identify if
-    this is a conntrack hook.
-
- net/netfilter/nfnetlink_queue.c | 39 +++++++++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 09af8faf8675..25a0c55899ca 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1800,6 +1800,18 @@ static int nfqnl_recv_verdict_batch(struct sk_buff *skb,
- 	return 0;
- }
- 
-+static bool nfqnl_hook_exp_support(struct nf_hook_ops *ops)
-+{
-+	return (ops->hook_ops_type == NF_HOOK_OP_CONNTRACK &&
-+		(((ops->pf == NFPROTO_IPV4 ||
-+		   ops->pf == NFPROTO_IPV6) &&
-+		  (ops->hooknum == NF_INET_LOCAL_IN ||
-+		   ops->hooknum == NF_INET_POST_ROUTING)) ||
-+		 (ops->pf == NFPROTO_BRIDGE &&
-+		  (ops->hooknum == NF_BR_LOCAL_IN ||
-+		   ops->hooknum == NF_BR_POST_ROUTING))));
-+}
-+
- static struct nf_conn *nfqnl_ct_parse(const struct nfnl_ct_hook *nfnl_ct,
- 				      const struct nlmsghdr *nlh,
- 				      const struct nlattr * const nfqa[],
-@@ -1816,10 +1828,29 @@ static struct nf_conn *nfqnl_ct_parse(const struct nfnl_ct_hook *nfnl_ct,
- 	if (nfnl_ct->parse(nfqa[NFQA_CT], ct) < 0)
- 		return NULL;
- 
--	if (nfqa[NFQA_EXP])
--		nfnl_ct->attach_expect(nfqa[NFQA_EXP], ct,
--				      NETLINK_CB(entry->skb).portid,
--				      nlmsg_report(nlh));
-+	if (nfqa[NFQA_EXP]) {
-+		const struct nf_hook_entries *hooks;
-+		struct nf_hook_ops **ops;
-+		unsigned int i;
-+
-+		hooks = nf_queue_hook_entries(entry);
-+		if (!hooks)
-+			return NULL;
-+
-+		ops = nf_hook_entries_get_hook_ops(hooks);
-+		if (!ops)
-+			return NULL;
-+
-+		i = entry->hook_index;
-+		if (i >= hooks->num_hook_entries)
-+			return NULL;
-+
-+		if (nfqnl_hook_exp_support(ops[i])) {
-+			nfnl_ct->attach_expect(nfqa[NFQA_EXP], ct,
-+					       NETLINK_CB(entry->skb).portid,
-+					       nlmsg_report(nlh));
-+		}
-+	}
- 	return ct;
- #else
- 	return NULL;
--- 
-2.47.3
-
+> I tested the series on arm64 and x86_64, with and without KASAN, lockdep
+> and kmemleak. The selftest fails without patch 1.
+> 
+> Laveesh Bansal (2):
+>   netfilter: bridge: refragment packets with a vlan tag moved by the
+>     bridge
+>   selftests: netfilter: add bridge conntrack test for vlan protocol
+>     mismatch
+> 
+>  include/linux/netfilter_bridge.h              |   4 +-
+>  net/bridge/netfilter/nf_conntrack_bridge.c    |  46 +++-
+>  .../testing/selftests/net/netfilter/Makefile  |   1 +
+>  .../net/netfilter/bridge_ct_vlan_proto.sh     | 198 ++++++++++++++++++
+>  tools/testing/selftests/net/netfilter/config  |   1 +
+>  5 files changed, 241 insertions(+), 9 deletions(-)
+>  create mode 100755 tools/testing/selftests/net/netfilter/bridge_ct_vlan_proto.sh
+> 
+> 
+> base-commit: 683ff28ab18accb25268741a724645eee839d41a
+> -- 
+> 2.43.0
+> 
