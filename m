@@ -1,72 +1,44 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794316719;
-	b=zbhtV8QMO3cwgzaMTWVBDiYv+WPeHXPIsLidowcAZKNew4UapYxZ9wR/2zOdX3e2KlWZ
-	 ZUADwAaWDHylnzXjepZtAEwGab4CR/z5WVIE1mUtxMuraKYxOLxgZdhOIajcLYwUCG7ij
-	 lsn2ecix8M/2YO996hiMq/tVnEMM7YZcDhXxUsVianZIZMTcGJBz6IxIDfiUA6f98Kce0
-	 N9WRSnELFkHu8ZyJTjP7Rttp+WC3Kzr11hXmgDTPltmE/CYrcP20E/MaLEhHUAjixyoVn
-	 Cpg6hdDYfQpOkoYmPT0/cL8EHEsF7V8HDEz9d2sy3OaZi5dNGyqo1XZk+HPM6SrkuIg==
+	t=1794317697;
+	b=Ov3zhIU7QUR8a+VaUAPr3GP+qz79y1zJne/1nWw/72uiTWH7SV28C9F++fbTZqEQrHNl
+	 p5a61qgWwYe61dAx6YtZy+OcGZsFApvGVZ6mZsTkAl2TdgVPStlFEj8uAEHTNYlnE7+CU
+	 ScLdRblpno+VXcQGVbbcTKGIQkKpIcCqvur5+GRCUD+zxO9SOw6DwyV+tv0Xl4tVA7yFr
+	 pfyLqNEXcGXcuIAexAnefebXLLcROvCSvc2Hhc8NBJ3bGytV3ULB6z3Yo4dK1hqfFStoq
+	 hA9O85HuT04HTOVPnbW6VwyeZKHLnmqTMPG/nXT7PiWSSEiHZD1K4mda0eQ72/xXFNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794316719;
-	h=DMARC-Filter:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
-	 DKIM-Signature;
-	bh=1C/fnf89cUNx1UL0oOgTgDMQKEaqlsJP/h5JbLgPiys=;
-	b=fyesk8FC8yg1SJ95cLWCe0kNHux+cuBgRCBakEoJ+4K/kzxR4I9nNhusyL4b5GdssP2N
-	 sMu92AXfHaWZ0kGoFq6YegqqInZmmcWhbFJPKu2RvP0qMyCfEH9oc0TLg2i9poRgCeUa9
-	 CZetAV6uSqy6EjuQCJp+Cxfts5+CEGu5x7dKoYjGWx0fWkNsMp6THHBJniMXPr8rrKCBf
-	 GRIKBYBFNoYGuOo5Hh3K5xV9m1MUU4pvr5/XMjP2j7Mf2/e0L3kfpGlcybarahztPQXAZ
-	 A4nifUf30P0f49L3jiWffav12Biw0SFWixzYl87nkcQ+THcY2gDk3PVzWiTs6+EaoJg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794317697;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=xoWrDLZje56b4oqasj2yvMig6Biue8/jHjs00Wc5S/s=;
+	b=nu0b6ZUbs0lMQvK2MGDpBChipJkA+JcR4X949lcUm8Hm/RmTi+1/3LEmOqABYCNI9wiA
+	 DN4h6V1nyP2+PClZtcAudsZugNWc/3BCgXvnJjOEVi1Rr48DnYMLK2UCU5pX5z/3B0Khd
+	 RAsJt0gWLuyPgdezU8GOtCQAAty0Do8ZXFQfrpWyRd66GinwqfBYiZHCUOYXK7lSWQ0Dg
+	 fqK1KV0uaq+ixvZXdKtF8LVVaiUO7bm+tcm9vfUMlp37MaDgXxXllfgS7ZBg7xx/uFjnD
+	 qlWlkeLvEJ9TNqZe+Z0aoWMmmnAbM/o5IShZvvB5vRUZFB2RNgt+stBNbHXJ+iAaXSQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lausen.nl;
-	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=bKyDX1oT;
-	arc=none smtp.remote-ip=95.143.172.20
-Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BD05606B6DC
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 13:18:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2BD05606B6DC
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=bKyDX1oT
-Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 7DC1060D3F
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 14:18:37 +0100 (CET)
-Received: (qmail 19616 invoked by uid 990); 10 Nov 2026 13:18:37 -0000
-Authentication-Results: devico.uberspace.de;
-	auth=pass (plain)
-Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 10 Nov 2026 14:18:37 +0100
-From: Leonard Lausen <leonard@lausen.nl>
-To: netdev@vger.kernel.org
-Cc: leonard@lausen.nl,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net 2/2] selftests: netfilter: cover IPv6 FIB rule suppression
-Date: Tue, 10 Nov 2026 13:16:40 +0000
-Message-ID: <20261110131638.15004-7-leonard@lausen.nl>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261110131638.15004-3-leonard@lausen.nl>
-References: <20261110131638.15004-3-leonard@lausen.nl>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97C6A606A33B
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 13:34:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97C6A606A33B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 000FF60342; Tue, 10 Nov 2026 14:34:48 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Daehyeon Ko <4ncienth@gmail.com>
+Subject: [PATCH nf v2] netfilter: nf_conntrack: limit expectation master chain depth
+Date: Tue, 10 Nov 2026 14:34:43 +0100
+Message-ID: <20261110133443.21073-1-fw@strlen.de>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -77,131 +49,173 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -----
-X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.999956) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -5.599956
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-	d=lausen.nl; s=uberspace;
-	h=from:to:cc:subject:date;
-	bh=qynhRgY2JpWjstGEijv7L+7dlXnlYftKDMuVeub5Zm0=;
-	b=bKyDX1oTz4UOAJyRZB6msfxVRrBhxcHE0BVxbONt5m4kSfr6ExGzHDREjq7nTvWK1EBWoONwJU
-	tbARIvsUdy2iMqizWCLogE/Y9BT5vb8tmNvtwYopYo8v7M115R9+oq3BFh5YGDv5iXwrZRuEcrCh
-	5S4gnbeBY/RljYlEUUY4YuXlApHK6mmcxy6SZsmnELwqj+25cu3eu8sl9hbkgI0CPUkvE+scRBXD
-	MSoAHOSpqMyKN5KstMYBNQY+eDQ77gGjSEPbSq4MxNzAF/uNwzW2SOIQmVkq2SGAATearHsgDKbP
-	2yJOD0S5aT5dZ3bW7Rh7oE88g8IA7elCVyEt8BPjqU1Suym8CJzPI4o2n45gANO2v93bbc8N12TZ
-	9Rwx+P/ji80WvVs7SzGjlGXvzlwV4RbmSHVseJOk7s/RDaECPHa8tX8NiKD8HBqekHTS9ckpOlBL
-	NS3q4FB6Bo3QIdxly8j9SwJsVZ9bU/b7DbKA7DTR8sPvRZWhd19hmBmR1rfAEdwHAXFasvbMNKob
-	GL4NlKUuZ7gNfFcQC/l4KTHWh044GT2fZFLg1xzYZSu4FxZ5KCOEnRsn/KCBsT0JBfuqX8xVDRfP
-	1bPpsozXaZHILkDJ2zNTKOJydV/w6PhKaYyrpKI4HGEJLgCGUsCw8A2evqqY/uPC9dbfijVrLpJB
-	8=
 
-Extend nft_fib.sh using its existing namespaces, interfaces and counter
-helper to exercise suppress_prefixlength and suppress_ifgroup.
+A conntrack can point to a master conntrack, which itself may point to
+another master, and so on.  There is currently no bound on how deep this
+chain can grow.
 
-Check that a default route and a route through a matching interface group
-are suppressed, while a non-default route and a nonmatching group remain
-usable. Also check that blackhole, unreachable and prohibit routes remain
-terminal under either suppression attribute despite a usable route in a
-later table.
+Force a max depth in nf_ct_expect_alloc(): walk the master chain and
+reject allocation if it would exceed 8 levels of nesting.
 
-Count an arriving probe only when the nftables FIB result matches the
-expected output interface or reject type. Compare this with an ordinary
-route lookup, which must select the expected device or fail for a reject
-route. Requiring a positive counter avoids treating a missing packet as
-proof of correct suppression.
+Also add ctnetlink_find_get_master and use it so that ctnetlink create
+paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
+and returning a misleading -ENOMEM.
 
-Assisted-by: LLM
-Signed-off-by: Leonard Lausen <leonard@lausen.nl>
+This prevents unbounded ct->master->master->... chains.
+
+This also restricts the number of call forward/redirects that h323 and sip
+helpers will follow.
+
+Reported-by: Daehyeon Ko <4ncienth@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nft_fib.sh        | 68 +++++++++++++++++++
- 1 file changed, 68 insertions(+)
+ v2: increase cap to 8, no other changes.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 04544905c216..02b625794669 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -202,6 +202,38 @@ check_fib_counter() {
- 	return 0
+ include/net/netfilter/nf_conntrack_helper.h | 15 +++++++++
+ net/netfilter/nf_conntrack_expect.c         | 15 +++++++--
+ net/netfilter/nf_conntrack_netlink.c        | 36 +++++++++++++++------
+ 3 files changed, 53 insertions(+), 13 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 335b8c43694f..53a8eda848dc 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
+ 
+ #define NF_CT_HELPER_NAME_LEN	16
+ 
++#define NF_CT_MAX_EXPECT_CHAIN_LEN	8
++
+ /* Must be kept in sync with the classes defined by helpers */
+ #define NF_CT_MAX_EXPECT_CLASSES	4
+ 
+@@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
+ 		kfree_rcu(helper, rcu);
  }
  
-+# Count and drop probes before the existing RPF rules can log expected failures.
-+test_fib_suppress() {
-+	local label="$1" expected="$2"
-+	local result="${3:-oifname}" err=0
++static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
++{
++	unsigned int depth = 0;
 +
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF || return 1
-+flush table ip6 filter
-+table ip6 filter {
-+	chain prerouting {
-+		type filter hook prerouting priority -1;
-+		ip6 saddr dead:1::99 icmpv6 type echo-request \
-+			fib saddr . mark $result "$expected" counter drop
++	while (m->master) {
++		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
++			return false;
++		m = m->master;
 +	}
-+}
-+EOF
-+	ip netns exec "$ns1" ping -6 -c 1 -W 0.1 -q dead:1::1 > /dev/null 2>&1
-+	if [ "$result" = type ]; then
-+		ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 > /dev/null 2>&1 && err=1
-+	else
-+		ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 |
-+			grep -q "dev $expected " || err=1
-+	fi
-+	if check_fib_type_counter_family ip6 1 "$nsrouter" prerouting "$result" "$label" &&
-+	   [ "$err" -eq 0 ]; then
-+		echo "PASS: $label"
-+	else
-+		echo "FAIL: $label"
-+		ret=1
-+		return 1
-+	fi
++
++	return true;
 +}
 +
- load_ruleset "$nsrouter"
- load_ruleset "$ns1"
- load_ruleset "$ns2"
-@@ -724,6 +756,42 @@ test_fib_vrf()
- 	check_fib_veth_vrf_type "fib expression address types match (iif in vrf)"
+ int nf_conntrack_helper_init(void);
+ void nf_conntrack_helper_fini(void);
+ 
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 06242c86e1dc..62e434cd57c9 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -299,13 +299,22 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
+ 
+-/* We don't increase the master conntrack refcount for non-fulfilled
+- * conntracks. During the conntrack destruction, the expectations are
+- * always killed before the conntrack itself */
++/**
++ * nf_ct_expect_alloc - allocate a new conntrack expectation
++ * @me: The conntrack to be used as master.
++ *
++ * The master conntrack refcount is not incremented; expectations
++ * are always killed before the master conntrack is destroyed.
++ *
++ * Return: a new expectation on success or NULL on failure.
++ */
+ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
+ {
+ 	struct nf_conntrack_expect *new;
+ 
++	if (!nf_ct_master_acceptable(me))
++		return NULL;
++
+ 	new = kmem_cache_zalloc(nf_ct_expect_cachep, GFP_ATOMIC);
+ 	if (!new)
+ 		return NULL;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 1f8d94a05240..30428d520e43 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2231,6 +2231,26 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
+ 	return 0;
  }
  
-+# Test both suppression attributes before the other policy-routing tests.
-+# The non-default route and nonmatching group must remain usable.
-+ip -net "$nsrouter" -6 route add table 128 default dev veth1 || exit 1
-+ip -net "$nsrouter" -6 route add table 129 dead:1::/64 dev veth0 || exit 1
-+ip -net "$nsrouter" link set veth1 group 42 || exit 1
-+ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 suppress_prefixlength 0 || exit 1
-+ip -net "$nsrouter" -6 rule add pref 101 to dead:1::99 table 129 || exit 1
-+ip netns exec "$nsrouter" nft add table ip6 filter || exit 1
++static struct nf_conn *
++ctnetlink_find_get_master(struct net *net, const struct nf_conntrack_zone *zone,
++			  const struct nf_conntrack_tuple *tuple)
++{
++	struct nf_conntrack_tuple_hash *master_h;
++	struct nf_conn *master_ct;
 +
-+test_fib_suppress "suppress default route" veth0 || ret=1
-+ip -net "$nsrouter" -6 route add table 128 dead:1::/64 dev veth1 || exit 1
-+test_fib_suppress "retain non-default route" veth1 || ret=1
-+ip -net "$nsrouter" -6 rule del pref 100
-+ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 suppress_ifgroup 42 || exit 1
-+test_fib_suppress "suppress matching interface group" veth0 || ret=1
-+ip -net "$nsrouter" link set veth1 group 43 || exit 1
-+test_fib_suppress "retain nonmatching interface group" veth1 || ret=1
++	master_h = nf_conntrack_find_get(net, zone, tuple);
++	if (!master_h)
++		return ERR_PTR(-ENOENT);
 +
-+# Reject routes use loopback (group 0) and must remain terminal.
-+ip -net "$nsrouter" -6 route flush table 128
-+for suppress in suppress_prefixlength suppress_ifgroup; do
-+	ip -net "$nsrouter" -6 rule del pref 100
-+	ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 "$suppress" 0 || exit 1
-+	for type in blackhole unreachable prohibit; do
-+		ip -net "$nsrouter" -6 route replace "$type" default table 128 || exit 1
-+		test_fib_suppress "retain $type ($suppress)" "$type" type || ret=1
-+	done
-+done
++	master_ct = nf_ct_tuplehash_to_ctrack(master_h);
++	if (!nf_ct_master_acceptable(master_ct)) {
++		nf_ct_put(master_ct);
++		return ERR_PTR(-EMLINK);
++	}
 +
-+ip -net "$nsrouter" -6 rule del pref 100
-+ip -net "$nsrouter" -6 rule del pref 101
-+ip -net "$nsrouter" -6 route flush table 128
-+ip -net "$nsrouter" -6 route flush table 129
-+ip -net "$nsrouter" link set veth1 group 0
-+ip netns exec "$nsrouter" nft delete table ip6 filter
++	return master_ct;
++}
 +
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+ static struct nf_conn *
+ ctnetlink_create_conntrack(struct net *net,
+ 			   const struct nf_conntrack_zone *zone,
+@@ -2356,7 +2376,6 @@ ctnetlink_create_conntrack(struct net *net,
+ 	/* setup master conntrack: this is a confirmed expectation */
+ 	if (cda[CTA_TUPLE_MASTER]) {
+ 		struct nf_conntrack_tuple master;
+-		struct nf_conntrack_tuple_hash *master_h;
+ 		struct nf_conn *master_ct;
+ 
+ 		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER,
+@@ -2364,12 +2383,11 @@ ctnetlink_create_conntrack(struct net *net,
+ 		if (err < 0)
+ 			goto err2;
+ 
+-		master_h = nf_conntrack_find_get(net, zone, &master);
+-		if (master_h == NULL) {
+-			err = -ENOENT;
++		master_ct = ctnetlink_find_get_master(net, zone, &master);
++		if (IS_ERR(master_ct)) {
++			err = PTR_ERR(master_ct);
+ 			goto err2;
+ 		}
+-		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
+ 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+ 		ct->master = master_ct;
+ 	}
+@@ -3613,7 +3631,6 @@ ctnetlink_create_expect(struct net *net,
+ 			u_int8_t u3, u32 portid, int report)
+ {
+ 	struct nf_conntrack_tuple tuple, mask, master_tuple;
+-	struct nf_conntrack_tuple_hash *h = NULL;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conn *ct;
+ 	int err;
+@@ -3633,10 +3650,9 @@ ctnetlink_create_expect(struct net *net,
+ 		return err;
+ 
+ 	/* Look for master conntrack of this expectation */
+-	h = nf_conntrack_find_get(net, zone, &master_tuple);
+-	if (!h)
+-		return -ENOENT;
+-	ct = nf_ct_tuplehash_to_ctrack(h);
++	ct = ctnetlink_find_get_master(net, zone, &master_tuple);
++	if (IS_ERR(ct))
++		return PTR_ERR(ct);
+ 
+ 	rcu_read_lock();
+ 	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
 -- 
-2.55.0
+2.56.0
 
