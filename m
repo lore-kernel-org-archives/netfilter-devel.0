@@ -1,59 +1,44 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794347693;
-	b=LuwWTLVhXpl5H91OEjODeCYPMyZl1/LCEPDpgL5fFH2r2tKzJulYFC7feviJt7fExnjt
-	 y2kzgAQaaNvlijQ7TAi9qTyZvhQl5y1p7h8VbY+dSyjCc0MU/UsPDYXtqcdp85a8vL1w/
-	 gyB+8jTiZp0Wmc6CCDgGNcjpTA7F4YaXzvizEQD+AgG5RhIJHS8Di6vI7+D8yhVr3Wvjh
-	 7dNQSOLfo/tNxJNR7T0+vVDX6LPJViJ/gfP4rQxU+bnw7kxk8ROoMIyZ6Xto7aom6ty3s
-	 h2qgmV5H2JBe1zr9lj5oVr44TVtmIBYdLeQKlcIP2eGevnXxByN86iWttFfbSBGklZg==
+	t=1794354725;
+	b=rcuU1XVGu0nb+/oHXr1Apqky65f+4/ea0NncAxqbK7jzfByVv2C2H7vU2EOq3ALrV52M
+	 ntz6B9m0p4D+fz7DEKCd1zo8C783AlcLBLb8km7RarzYr3AK5n2Cf/ybYTgZntEQk9dX1
+	 8IMR2qljg06JV+dTiStAC6sOGPWVPHWvBKj63wH4zwvOByFFP1bkBUx4YvZyHZB7NfWj9
+	 clTaw4GApGBfNZZr97O0ULSwCr9KSDaFyNpVxv+WJxirju+P+sHU7sbyYKnnDbz7NUuak
+	 aph9kMgfWSCtOVlSemX7nmBVfMCompnimpKRg3M0G9MBbEUvqBefDrh3rWlZ4l4Fslw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794347693;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=wMiKeNGdUJtFOBw3Zhiu176ZK6HZDS4UsftiYBTCU0I=;
-	b=uK9WgPL0X/SHdj4ukvakFIDRYVTxJX8q1OgzmuGBH1Py78sO8uZV9/86MEBPkbX10jfJ
-	 4UijgG9RBd0DEz6JvkolyYL2ueltkf2DwLreAAH8LJJTBdR8l8OilROLi6zf2WWx4RVSv
-	 kBfTCU3bpeZjYUFOgwlm11q7UYNjktGvL0R6CJsu1oH+OTjxta39SDGSEAx1lRgBLxXUu
-	 b3KtaA+G8Vlh0/dYgUm0bh/RcIWOkK7VMP7y9RVtEevUc66ziQRCwy7ikBHP2/en6aoa/
-	 L0iPkfZM1RBJaE0xD/unRiTPeucc/eg1wg88Lz+6Du7OYevSU8GaFXB2mgk182bTfrg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794354725;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=wLvjTcHuWGV0crOVNMpif5xO3sGZrQZ6Vusy8iaG6Zc=;
+	b=5abarj0B4O+Zd/gm6mjM1TnoaBs1/iYz3eRikN3O/l/ZG0xfQvznfMMIbUdba29c5QUM
+	 qxfqXQ6GOIVmbfm2zO4xs0Poxz8QxAiW1lapkcz6Qx8ya29DFwhVty3YYx5gZPYsNQIcA
+	 SxK57DLoMbyhy6V15/h/6GjECYuRqH0dy1RXU/hrXxC43I6kW3NBiZu/ND14uX7MN9mcg
+	 ts8PUEx/HXZs2O6DN2uTijP18HB4PrZOhcGRpCJNC/tHGSmV80FN1tHVAt8PuIv2KIRNV
+	 OHWZdv8tW5KxSlbCJnWwAoaBT/vTNewVdOecRqBy0Vqieup+tEMkLTi/coxOkqt5j6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=uYkooTsz;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=strlen.de;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD1C6606A320
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 21:54:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AD1C6606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=uYkooTsz
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794347690;
-	bh=wMiKeNGdUJtFOBw3Zhiu176ZK6HZDS4UsftiYBTCU0I=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=uYkooTszfPyu0rSHq7MqnE+0Sco50fOcsMbagwGP3LR0efrJGpX4+1Pl7H11aHsbG
-	 M6wcDHduZuKjrcR6EGlG39iAUHIaOaQgvxAu4BZMzmkT0cxxHE/nl4Ld61/zrm4iyt
-	 wC5dbC1R3WLzmXQ8nPr7mlRVnqEr4k0SxC7YQuOaIpAJQ0yd3DBDQDUlZGzREbxjUH
-	 Qza35dxevaurQmncEwmmeuzd/8djfCq0rV2IpxlmXGScjSM6Xxguqw4C7cKvqeTrx5
-	 iND3dxWMXbsuqdSDKJV3CveKjaKN73zhCuZuzRzgG/OO8y9JPwVvqQ5CROPA0etNw0
-	 Ztz3XfjT0q3Ng==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B323E60306
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 22:54:50 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v6 7/7] netfilter: nfnetlink_queue: do not skip ct confirmation with userspace ct helpers
-Date: Tue, 10 Nov 2026 22:54:39 +0100
-Message-ID: <20261110215439.1958120-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261110215439.1958120-1-pablo@netfilter.org>
-References: <20261110215439.1958120-1-pablo@netfilter.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6FB9606A31C
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 23:52:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E6FB9606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 4159F60509; Wed, 11 Nov 2026 00:52:01 +0100 (CET)
+Date: Wed, 11 Nov 2026 00:51:59 +0100
+From: Florian Westphal <fw@strlen.de>
+To: jpeska <jpeska@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, fwestpha@redhat.com
+Subject: Re: [PATCH nf-next] selftests: netfilter: add UDP flowtable offload
+ test
+Message-ID: <avOuH_ayOgr5x6DJ@strlen.de>
+References: <20261109135137.1770507-1-jpeska@redhat.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,107 +48,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261109135137.1770507-1-jpeska@redhat.com>
 
-There are a two more issues with the existing userspace ct helpers:
+jpeska <jpeska@redhat.com> wrote:
+> nft_flowtable.sh offloads only TCP, so the UDP flowtable paths never
+> run: the UDP tuple lookup, the UDP checksum update, IPv6 source NAT,
+> and nf_ct_acct_update behind the flowtable counter flag.
+> 
+> Add an echo test for IPv4 and IPv6, with and without masquerade. The
+> payload must come back intact, the forward chain must see only the
+> handshake, and conntrack must mark the flow OFFLOAD and account every
+> datagram.
 
-- Disallow re-queueing packets in userspace ct helpers, none of the
-  existing helper in userspace use this feature.
+In case you did not see it yet:
 
-- nf_conntrack_update() should only be called if this is the confirmation
-  hook, there is a new helper function to check this, use it.
+https://sashiko.dev/#/patchset/20261109135137.1770507-1-jpeska%40redhat.com
 
-While at this, nfqnl_reinject() is already called from a rcu read lock
-section, remove the redundant rcu_read_{un,lock}().
+Wrt. the various CONFIG_* comments:
 
-Fixes: ee04805ff54a ("netfilter: conntrack: make conntrack userspace helpers work again")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v7: - disable NF_REPEAT and NF_QUEUE with userspace helpers from confirm hook.
+The kfselftests CAN assume that the kernel has the options defined
+in selftests/net/netfilter/config , so there is no need to go above and
+beyond and tolerate all kinds of stuff being absent.
 
- net/netfilter/nfnetlink_queue.c | 46 +++++++++++++++++++++++----------
- 1 file changed, 33 insertions(+), 13 deletions(-)
+exit $ksft_skip instead of exit 1 when its clearly a missing
+config option is fine, but if its not easy to tell why something
+is failing (e.g. nft -f foo.txt when run on kernel that lacks a
+particular nftables module but that module is listed in the config
+file -- exit 1, no need to start guessing.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 3f6b38776ff8..9c4f10b7525f 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -526,35 +526,51 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
- 			     const struct nf_hook_entries *hooks,
- 			     unsigned int verdict)
- {
--	const struct nf_ct_hook *ct_hook;
-+	unsigned int verdict_mask = verdict & NF_VERDICT_MASK;
- 
- 	if (!nf_bridge_ports_valid(entry))
--		verdict = NF_DROP;
-+		goto drop;
- 
--	if (verdict == NF_ACCEPT ||
--	    verdict == NF_REPEAT ||
--	    verdict == NF_STOP) {
--		unsigned int ct_verdict = verdict;
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	if (verdict_mask == NF_ACCEPT ||
-+	    verdict_mask == NF_REPEAT ||
-+	    verdict_mask == NF_STOP ||
-+	    verdict_mask == NF_QUEUE) {
-+		const struct nf_ct_hook *ct_hook;
-+		struct nf_hook_ops **ops;
-+		unsigned int i;
-+
-+		ops = nf_hook_entries_get_hook_ops(hooks);
-+
-+		i = entry->hook_index;
-+		if (i >= hooks->num_hook_entries)
-+			goto drop;
- 
--		rcu_read_lock();
- 		ct_hook = rcu_dereference(nf_ct_hook);
--		if (ct_hook)
--			ct_verdict = ct_hook->update(entry->state.net, entry->skb);
--		rcu_read_unlock();
-+		if (ct_hook && nfqnl_hook_exp_support(ops[i])) {
-+			if (verdict_mask == NF_QUEUE ||
-+			    verdict_mask == NF_REPEAT)
-+				goto drop;
-+
-+			verdict_mask = ct_hook->update(entry->state.net, entry->skb);
-+		}
- 
--		switch (ct_verdict & NF_VERDICT_MASK) {
-+		switch (verdict_mask) {
- 		case NF_ACCEPT:
- 			/* follow userspace verdict, could be REPEAT */
- 			break;
- 		case NF_STOLEN:
- 			nf_queue_entry_free(entry);
- 			return;
-+		case NF_QUEUE:
-+			/* follow userspace verdict too */
-+			break;
- 		default:
--			verdict = ct_verdict & NF_VERDICT_MASK;
-+			verdict = verdict_mask;
- 			break;
- 		}
- 	}
--
-+#endif
- 	if (verdict != NF_DROP && entry->nf_ct_is_unconfirmed) {
- 		/* If first queued segment was already reinjected then
- 		 * there is a good chance the ct entry is now confirmed.
-@@ -572,6 +588,10 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
- 			verdict = NF_DROP;
- 	}
- 	nf_reinject(entry, hooks, verdict);
-+	return;
-+drop:
-+	kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
-+	nf_queue_entry_free(entry);
- }
- 
- static void nfqnl_reinject(struct nf_queue_entry *entry,
--- 
-2.47.3
+$ksft_skip is only ok if there is no doubt whatsoever that the
+failure is because of a missing option/feature.
 
+Wrt to NETIF_F_HW_CSUM comment, I think one could start playing
+with ethtool and the checksum features (ethtool -k) to check
+different combinations.
+
+Might make sense to integrate this script with nft_flowtable.sh
+so that tcp can be easily covered too.  Also nft_flowtable.sh
+re-runs itself with random mtu sizes, this is also helpful to spot
+any MTU (defrag/refrag) problems.
+
+But up to you.
