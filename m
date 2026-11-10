@@ -1,59 +1,90 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794273400;
-	b=Ha80w9ZdaKWrfaMU9oiblJLjfJWY8AwFnT7rrU5qwyuraIHKP3kdx2K9vjH0UxJ0z8mq
-	 5IieKID8muuSqLcM9TJr6H+6P/fHvz/6TL0C/xDPrUnXXYj23yJEo1GTPmIdq0l7B379i
-	 1BnWl4QnHY3tvrQHfvIxZUAgpam7jXXP2ANINDxJPUuwVVkmdLL1Mt6KJn0t9K4gvzNKN
-	 Kfkj7VRF6aLV6gIqGp4lHAgV7/G8HMOgu+oSZQa0aDPEAsTkTtHWVIxoQdpVgpWNy21Fa
-	 aCv/qnE0C2t8NrfoaGpQknEXT3ERO55wFYF8KcFblp8KxQZGqLjFbyBWdxiCUoYwHxg==
+	t=1794273647;
+	b=h9MY1EH/tDTJyJ3Vdl7dvNQ65zP7D2MPln73IhGRIfalOA4wEt69MGneNfOdY4yRoMJ8
+	 yfmxcWgCDW0u2TXyXm89WR/MB7YmbIvj78+0eoTc87bYRjkWz081lRuaKalmrZ4b7VRcN
+	 WW+gCGt27cm/lQKfSEJ4j9MAkWJhndJgeYGlRSZvH8dl1bSM4Oi234mvzYmiloVGV77c4
+	 GdYZGeT0Q9903qB1GEcP3nCptgI40xnBXsKZaCJD/pzyqlt7d22x0nYGV2XLRwoo0+z48
+	 8f/y/fQy9q/uLRBOdAiAMNc8BBLV7v0et2xXayzaW4Ueyt4IiHQ0RUrizT7rXTWrfqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794273400;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=YcUfhOIcpg650Hvcj/zlkedg1l4tly63KyQy0kdeMI4=;
-	b=MyY1V07BuZBj2UqNTIbADKzYXUEB6mQa5OAmxPXee4IZrDBcwcZv1FbN5FGdKfsKcgJf
-	 kavZU5D7yueogaOlmfNITDJclE3EsMBTrqs1WDoZbg+qGGEPIWd8F15YbDBqszmv+8+9w
-	 KrQTSckNFr0sgaiQN9LAZDo+1kApa0DyxQw9vfWTHQO/OW3gHFG6AswpuJY1o8/EEXeUC
-	 e6TLceHf35B9b6VneJZRPUP3Ok8aZvwBVCKyhsuCTgq7xy7ko6kqL9giOx0JgfwUvEBDF
-	 dc1zbNdbQQGkltRPX+bDX7u4E3FRwexSlzePHTfKV2mG/+AVj1hW8MW2YAzcEZ3nvhA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794273647;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Received:X-Forwarded-Encrypted:X-Received:MIME-Version:References:
+	 In-Reply-To:From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type;
+	bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
+	b=eiIQbOil8oonDg7zzUKvUM7UvVv//xyaXfc3BQW29eE6zRUKleXJbfwWmtDubblU+D90
+	 4yoCzByoFzm41Ht77xPlx/bPMgjaWEKb56NSFC/6z2xPjsjLkW6FYUiCbOJr8V+RA7mn9
+	 tG0tbWp8+j6onbq/Q5tay6aiK59BNlJvHEtzAu9uvEydwKgOflGCuw1EtINCDY0A4TJfT
+	 +ngEqqsEdytURqoNFlEeVrdwbc/RMqD3AFdThGIG0xVEcnZMsJaofVB2Eq0nDml3VdZa3
+	 Jc+GK/XNYZJGz3vAH0zI+cxg5+1izoTNE6j6tDTBaPsxXigRrzZyxj0GaxNa4bWPHkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=cPk2XdNX;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=linux-foundation.org;
+	spf=pass smtp.mailfrom=linuxfoundation.org;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=WcZYEEU4;
+	arc=none smtp.remote-ip=209.85.218.54
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id CAB71606A31C
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 01:16:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CAB71606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFE04606A331
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 01:20:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EFE04606A331
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=cPk2XdNX
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794273397;
-	bh=YcUfhOIcpg650Hvcj/zlkedg1l4tly63KyQy0kdeMI4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cPk2XdNX6csL2vf2GYW1a55kwhIQigjQApl0P7G6tpLPaKqRfTls0PomeoG/HSiSi
-	 x1lxGXHzMNscdC6Lu6OKwmYhsD3zGMqqngI/aJd/OladHUmYarcB9+KC0B7FgB0AME
-	 6/boz51zXCxYhTNBXZxjeBShYqJ3gfWcvp9vh6lVzVDnFnP4CBntVo0i3cI92BKolI
-	 8qcPJ9WQnAMfxrnZzEJvV/Jve7spTpbBDy5AS/BiNJQNfFOPuNovNlH6xx8BdHcbFS
-	 bm76TKWCtYzsezkROXrMaoiCneHSybMJIMwW7rNb/EruRc+FD8FvYd+UIlWcUGv14V
-	 3JlUK09DHNtgQ==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5D23560077;
-	Tue, 10 Nov 2026 02:16:37 +0100 (CET)
-Date: Tue, 10 Nov 2026 02:16:35 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] netfilter: nf_conntrack: limit expectation master
- chain depth
-Message-ID: <avJwc2cVpp6-4wln@chamomile>
-References: <20261103131849.25702-1-fw@strlen.de>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=google header.b=WcZYEEU4
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c4cdc606b47so217192266b.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Nov 2026 17:20:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1794273645; x=1794878445; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
+        b=WcZYEEU4iAE0CrQQrlGTG3NXjWQK2iHWpKNkc8XblYnv5ARhqp8wtPN7mpurR9y8lK
+         0bpCo0ugX/RcW4FpLiJwuKZNQP6fj2LU4jueN7/TbZJ1UONAIfOnwcU7EheUbt7jCjBS
+         x4hWrpH74phWV/BXueHaYHSS2ArflePZIRhpY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794273645; x=1794878445;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=m2qXctBTC0OPADf0V2KkMb6r2GA0JgabIuFAMe6ERzQ=;
+        b=bW+CYrhKOfF/QWLOHK75qFT9quRzMJG3VXOEDwduQxYboInVZZsPzdulI90hLiecqd
+         lyyUusjgAw44DD+Cb7Ij574ydfvEP7vHRucdZ0FbLazOBZ4vsWFmnctdZIZE1v952Neb
+         hu6lQLfcFW8Yycx0FCDTj9HP+/0Kl6G1t2VEWh2+HfG/cswBORuv31l1UisnTBv8VRPs
+         9sR/Ls+p2QNM0YvHEMZ7AkiEoUED0LLByQauodflSz0Q/QVH0ElcMCazr6h3CuwbAAaO
+         1eytvvqzR+yZhus9TbMwhgee9houP0+JThk6Jrx4W7M1YOXSrxGBDpQ6JUkjPcPziycp
+         Brug==
+X-Forwarded-Encrypted: i=1; AL+hErHpqQ+abV802YIYhWwYxV5sqBc/s1AOkKREj/aOHnMkkRsM1VOHLYtmEZXCEBQTAy08Q2VJxcR+wxQlLt3A4ug=@vger.kernel.org
+X-Gm-Message-State: APuU4Z+aE4E1UeUTNEp2wR1iH8664NvqbZ1MeRGDvtIlY3+ZT9KGhHtr
+	GnlvU1PsJL+gP2FVc+Tcd9AdVz97SgEYbwkhk1IdUczZ9NlXwv/d0X8o+G+z5OgzwBQfYC9L+ls
+	f654C7Tdnig==
+X-Gm-Gg: AYBFou3UOvgSmRxEe/bJcMSjkRataX85+rcDxUWbv56sPKgQ53xhDZwgMecsF4zuFwy
+	Jz6o3ND5nCxqU2hPlogDai54sTJRyGyj1Yep5p8py6+tUWZMdMJv1XRJLxbboUsisPnx2iJeUmq
+	GFtXHIT83dlaes9q2dj//hm+IkV7tHnaYbWoTQyI7M2QvvwxQtF/L+aJ9YKSdgb3dHcW/rAjt2y
+	T1inmMfc5B4dvbUwaZ9Y/Bq/CqgHNoBRKd17XJSssqnsZxak3UuONbfOEGSH0Oa+p3as6CxKxwl
+	I+RqoOWYKaO/e983wclWQIYSntPK71LGMgpqdVDWcTCloagcmL7KncMg9neS13pT98Nj9MtXxFr
+	o5FEy8VFUOxNr2nOd6o/hWJath23MYxWGnN7UuEmqhGu1AAYtZxRn63aH1FJ8OYE+cwoi7YB9F/
+	ocrgfyuhnVRLM+thdf3tsFjG0HHM3Dfb+XaJ2Xu+S3unrtf9pfHiQG4Bzf91F5EbRZazlJjOTBC
+	Gly2dwR+S7tqG2VweHka7QNa9TTjSGH+SOMIGqW/mSkI6AMZoxnDZMkpZLZIBNTC240INqHmTpd
+	gaEUD5wQh0GMTL2MjW9tp1nk2LGQUi2p7YqjDlLAgtjQHtTeJ+APWLdsxGj/7pxAyqfLzUuehYt
+	+gg==
+X-Received: by 2002:a17:907:8993:b0:c41:960c:8c62 with SMTP id a640c23a62f3a-c50496a41d2mr74930566b.30.1794273645295;
+        Mon, 09 Nov 2026 17:20:45 -0800 (PST)
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com. [209.85.218.45])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c504a64f888sm40776366b.66.2026.11.09.17.20.45
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 09 Nov 2026 17:20:45 -0800 (PST)
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c4cdc606b47so217191566b.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Nov 2026 17:20:45 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGDyCjLf9JgjW2FmufrX01HhAvTImr4CZSaz/MjpX1R5ZMcyczWROHzIwl7MvF9TluxYmkhNpxQYyqmITRnR1s=@vger.kernel.org
+X-Received: by 2002:a17:907:9451:b0:c41:1750:59a2 with SMTP id
+ a640c23a62f3a-c50495dfbd5mr87253466b.12.1794273275844; Mon, 09 Nov 2026
+ 17:14:35 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,181 +94,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20261103131849.25702-1-fw@strlen.de>
+References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org>
+ <CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com>
+ <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner> <20261108185953.28054fb3@pumpkin>
+ <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk> <20261109214558.0d9d5228@pumpkin>
+In-Reply-To: <20261109214558.0d9d5228@pumpkin>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 9 Nov 2026 17:14:19 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+X-Gm-Features: AclHuK-x8jcOOQUqd2amGoGEAKER9jIFGaeL4LxxWAd0cGV7dz_RR64PtDogpPU
+Message-ID: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
+ pinning the entry
+To: David Laight <david.laight.linux@gmail.com>
+Cc: "Maciej W. Rozycki" <macro@orcam.me.uk>, Christian Brauner <brauner@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, 
+	Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, Chris Mason <mason@kernel.org>, 
+	Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+	Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman <gregkh@suse.de>, 
+	Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Jan Kara <jack@suse.com>, linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+	linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, ntfs3@lists.linux.dev, 
+	platform-driver-x86@vger.kernel.org, coreteam@netfilter.org, 
+	kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	dri-devel@lists.freedesktop.org, ibm-acpi-devel@lists.sourceforge.net, 
+	jfs-discussion@lists.sourceforge.net, linux-alpha@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, 
+	samba-technical@lists.samba.org, sparclinux@vger.kernel.org, 
+	linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+	linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Florian,
+On Mon, 9 Nov 2026 at 13:46, David Laight <david.laight.linux@gmail.com> wrote:
+>
+> Just that the cast would have to be:
+>         u8 *foo = (u8 *)bar;
+> where 'bar' is 'char *', and I don't think you need a cast there when
+> char is unsigned.
 
-On Tue, Nov 03, 2026 at 02:18:49PM +0100, Florian Westphal wrote:
-> A conntrack can point to a master conntrack, which itself may point to
-> another master, and so on.  There is currently no bound on how deep this
-> chain can grow.
-> 
-> Force a max depth in nf_ct_expect_alloc(): walk the master chain and
-> reject allocation if it would exceed 2 levels of nesting.
-> 
-> Also add ctnetlink_find_get_master and use it so that ctnetlink create
-> paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
-> and returning a misleading -ENOMEM.
-> 
-> This prevents unbounded ct->master->master->... chains.
+.. and just to clarify: 'char' is always unsigned in the kernel on all
+architectures since commit 3bc753c06dd0 ("kbuild: treat char as always
+unsigned") back four years ago...
 
-Would you post a v3 so there is a chance to pick it up again?
-
-Thanks!
-
-> Reported-by: Daehyeon Ko <4ncienth@gmail.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  V2: add a ":" in kdoc comment
-> 
->  include/net/netfilter/nf_conntrack_helper.h | 15 +++++++++
->  net/netfilter/nf_conntrack_expect.c         | 15 +++++++--
->  net/netfilter/nf_conntrack_netlink.c        | 36 +++++++++++++++------
->  3 files changed, 53 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> index 335b8c43694f..617178fd4d8b 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
->  
->  #define NF_CT_HELPER_NAME_LEN	16
->  
-> +#define NF_CT_MAX_EXPECT_CHAIN_LEN	2
-> +
->  /* Must be kept in sync with the classes defined by helpers */
->  #define NF_CT_MAX_EXPECT_CLASSES	4
->  
-> @@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
->  		kfree_rcu(helper, rcu);
->  }
->  
-> +static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
-> +{
-> +	unsigned int depth = 0;
-> +
-> +	while (m->master) {
-> +		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
-> +			return false;
-> +		m = m->master;
-> +	}
-> +
-> +	return true;
-> +}
-> +
->  int nf_conntrack_helper_init(void);
->  void nf_conntrack_helper_fini(void);
->  
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index 06242c86e1dc..62e434cd57c9 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -299,13 +299,22 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
->  
-> -/* We don't increase the master conntrack refcount for non-fulfilled
-> - * conntracks. During the conntrack destruction, the expectations are
-> - * always killed before the conntrack itself */
-> +/**
-> + * nf_ct_expect_alloc - allocate a new conntrack expectation
-> + * @me: The conntrack to be used as master.
-> + *
-> + * The master conntrack refcount is not incremented; expectations
-> + * are always killed before the master conntrack is destroyed.
-> + *
-> + * Return: a new expectation on success or NULL on failure.
-> + */
->  struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
->  {
->  	struct nf_conntrack_expect *new;
->  
-> +	if (!nf_ct_master_acceptable(me))
-> +		return NULL;
-> +
->  	new = kmem_cache_zalloc(nf_ct_expect_cachep, GFP_ATOMIC);
->  	if (!new)
->  		return NULL;
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 1f8d94a05240..30428d520e43 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -2231,6 +2231,26 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
->  	return 0;
->  }
->  
-> +static struct nf_conn *
-> +ctnetlink_find_get_master(struct net *net, const struct nf_conntrack_zone *zone,
-> +			  const struct nf_conntrack_tuple *tuple)
-> +{
-> +	struct nf_conntrack_tuple_hash *master_h;
-> +	struct nf_conn *master_ct;
-> +
-> +	master_h = nf_conntrack_find_get(net, zone, tuple);
-> +	if (!master_h)
-> +		return ERR_PTR(-ENOENT);
-> +
-> +	master_ct = nf_ct_tuplehash_to_ctrack(master_h);
-> +	if (!nf_ct_master_acceptable(master_ct)) {
-> +		nf_ct_put(master_ct);
-> +		return ERR_PTR(-EMLINK);
-> +	}
-> +
-> +	return master_ct;
-> +}
-> +
->  static struct nf_conn *
->  ctnetlink_create_conntrack(struct net *net,
->  			   const struct nf_conntrack_zone *zone,
-> @@ -2356,7 +2376,6 @@ ctnetlink_create_conntrack(struct net *net,
->  	/* setup master conntrack: this is a confirmed expectation */
->  	if (cda[CTA_TUPLE_MASTER]) {
->  		struct nf_conntrack_tuple master;
-> -		struct nf_conntrack_tuple_hash *master_h;
->  		struct nf_conn *master_ct;
->  
->  		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER,
-> @@ -2364,12 +2383,11 @@ ctnetlink_create_conntrack(struct net *net,
->  		if (err < 0)
->  			goto err2;
->  
-> -		master_h = nf_conntrack_find_get(net, zone, &master);
-> -		if (master_h == NULL) {
-> -			err = -ENOENT;
-> +		master_ct = ctnetlink_find_get_master(net, zone, &master);
-> +		if (IS_ERR(master_ct)) {
-> +			err = PTR_ERR(master_ct);
->  			goto err2;
->  		}
-> -		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
->  		__set_bit(IPS_EXPECTED_BIT, &ct->status);
->  		ct->master = master_ct;
->  	}
-> @@ -3613,7 +3631,6 @@ ctnetlink_create_expect(struct net *net,
->  			u_int8_t u3, u32 portid, int report)
->  {
->  	struct nf_conntrack_tuple tuple, mask, master_tuple;
-> -	struct nf_conntrack_tuple_hash *h = NULL;
->  	struct nf_conntrack_expect *exp;
->  	struct nf_conn *ct;
->  	int err;
-> @@ -3633,10 +3650,9 @@ ctnetlink_create_expect(struct net *net,
->  		return err;
->  
->  	/* Look for master conntrack of this expectation */
-> -	h = nf_conntrack_find_get(net, zone, &master_tuple);
-> -	if (!h)
-> -		return -ENOENT;
-> -	ct = nf_ct_tuplehash_to_ctrack(h);
-> +	ct = ctnetlink_find_get_master(net, zone, &master_tuple);
-> +	if (IS_ERR(ct))
-> +		return PTR_ERR(ct);
->  
->  	rcu_read_lock();
->  	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
-> -- 
-> 2.56.0
-> 
-> 
+            Linus
