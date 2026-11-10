@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794290002;
-	b=ruFyiVAorYR8G3eUoKoV4RGY/9jnXZQzl0qopjQ/TXhvf43EKfa/PmCtdOIVWE9K2gPC
-	 NXo2NpP/Hx4hmn+6F5lcSxhfqUofzM5361EGCkG+0u60Bf7e3YwGPY5E7trJsUQNkhIOV
-	 B9qB8EMU2Vn3Wl+ZTXKKCiE74FOxR/u2pNEwz5woKGr/+xD0X6vyLd+yU88r+hrEcC0V4
-	 jy3Gdgi4sfcDPqJ6pBIiY2xNF+LI1gRA14vYmKi4i2ZuEitmMU6pT4ZnqIrb5ou4P9qzP
-	 szc1mMDi1NZEGjRrbplMZ4C+uqyNkMHpoZxMIucXu29fEyRm+b+AhzgjqE8CWRZBMKA==
+	t=1794290008;
+	b=V/ywvs0bnnB49hKlvYTIHXkgboXviHdXCoN8bPqwboZGuwdKqTxWQm7J+FDkWbtPc8K7
+	 o42xENOChONHyDMncHrIbjYUyAINLU1EIsj1PyRnqwGT0+Qtorys/Ezwh8vr28floUss6
+	 XkuzZ9VA3OR3r8srVmrboPebsNT2nUmwFprsDf84Te65E3/SwGSz7LUpRqp1xBaqHPXye
+	 p9xBMSe/oBgtYFmefhQPqdeD2E1sclbjKSuaZJu8R20Ki+34mEru4W2tobcV+YxM8gztf
+	 rRxIV1F9/4iCu5WAUMahrXS6mtzvYGjGOn0t9kJVL7ZNazzLFiOOrJrGIYYXlsBEbxQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794290002;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794290008;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=DgnkblPUAdInAdDfF7a0qcWBWPo4AF1IpWWinoSNKRs=;
-	b=TIb55+KFeFLF/YWvuLUX8w0+DgvCR8HrCGoUQrRhPRNUsnJmJUmwxekC24EKKTJWZQPB
-	 rjeFtaikQaXwuue/s7IASpIkfgrh4Of5fZaX3jTIRFYaiJJZAB+peFLazw1OXI0MqKSSg
-	 ixgTVASba3GYp22CSqezqAI1oaairnZsMgWlRxgU1mvg7cT1LiTf750SvfDv3RWWwKvms
-	 3PaIJJ04nGeP/3RQU9wvgci+wUSejOPSHCQiNTZh72J+Qgb/+QysmcCvKCs4jeff1sY4l
-	 DCRa/bpjcJUZLj6yY1bGobBYAMINsccuSltPWN8XhapjdYuTz98PSCP9Jra5L1t6/Gw==
+	bh=GHNBMVG3Wf/WNwxgQrYTHsnSyslBuFe0XVBpTIsm01s=;
+	b=qp9LuGEPXGvsW7zMDldOGxe62ulViijhs6i4MViMoZAy1JA4+SkMfVL3nPOS2a4O+CRo
+	 OQAZFEVBN5CfG9hB+emSQnrj/zBe0CeB6o03MXUmudfrgquX5O0m1If04fI9UUN1Diij3
+	 Hb3wywQFJGneAUkT52vA4KGrOl7wRxEIMhx7yjg84F/ccfTWWHph9xjennc5ctChj4Awe
+	 LYY2rHMi1DhG9rHiGsNRa5rpNPEVjJEKTMnKR786t4Bjq9nrtNx7gyXb0VO2fk/NYgUf3
+	 yOqCQYFlW79GNG8502id2ApTajn0tnhYfKZyETL18MEAoKcIeP+ZkuTKIq21br+p5tA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=L+RlZw02;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8Mg+NTa;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ABC960A2625;
-	Tue, 10 Nov 2026 05:53:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A1A606A31C;
+	Tue, 10 Nov 2026 05:53:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=L+RlZw02
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CCAE1F008AB;
-	Tue, 10 Nov 2026 05:53:20 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=h8Mg+NTa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDE721F0089F;
+	Tue, 10 Nov 2026 05:53:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794290001;
-	bh=DgnkblPUAdInAdDfF7a0qcWBWPo4AF1IpWWinoSNKRs=;
+	s=k20260515; t=1794290007;
+	bh=GHNBMVG3Wf/WNwxgQrYTHsnSyslBuFe0XVBpTIsm01s=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=L+RlZw02s2tHFAgXUOo1ss6RtAiJpPDuX9q8gR5V998lg0k3k5SS5iGahU2lrFJE2
-	 O+cEseoTjA5Q9aWojMoej8Cg4AP9ifW5b0H6ydx/d8ePG4phkKbg7/4NPXaxM+nX6R
-	 lmp+Uhk3UUh40h2YtVzxwM6olY7kLKLOgL7auqscC3Uo//AGRJvqbmqFQHgJJzqwsy
-	 xHTjE1P6aqiaAzO2XFI1ER2j90PfLE/TrscxzpmtS+9VOfSR2snxctquRNg/hUhJmS
-	 OiYSkcQwtdydZ/PKfv88EfzkrQvwk2QmIujH2CqXk7jS6UGE4sD/9o0i7AegLRGmOq
-	 Bpr5kcQStMkJQ==
-Subject:
- Re: [PATCH net-next 05/14] calipso: annotate data-races around cache sysctls
+	b=h8Mg+NTa37D5sdsh5liH4Yogs8ckRV+RW7upQt2VHZvCYyYv+9qAJcvXBkoY9miQk
+	 4VRpacdVnuWymYG5w3HQR3fLyZWS1L1UqOGnAmvmP7DHKMkNG3goXHVJ97V3r5qNxJ
+	 jrHqgSvgTmBsBJvZFFQnjyupEH4XClD6UcVhLNkb9ss0OY49eFgLMotJdQqXknluT9
+	 eFrOF94okwOvhE6RCDe38HY3fSpsdUqwRdKEMOtQfl0tQJCx1cH7hFC/Rj0UnFmIHE
+	 6UQSX4Qxv4zoEVIzWMhMqaj7+wk5IEzRFnNdWAKpvHCpURB2k2iPCkFttVabkBwxIN
+	 706BHK23tOwsw==
+Subject: Re: [PATCH net-next 10/14] netfilter: bridge: annotate data-races
+ around br_netfilter and nf_log sysctls
 From: netdev-bot+sashiko@kernel.org
 To: jiayuan.chen@linux.dev
 Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
@@ -58,11 +58,11 @@ Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
  lvs-devel@vger.kernel.org, linux-rdma@vger.kernel.org,
  rds-devel@oss.oracle.com, linux-sctp@vger.kernel.org,
  linux-s390@vger.kernel.org
-Date: Tue, 10 Nov 2026 05:53:19 +0000
-Message-ID: <179428999963.994134.16904544500890053668@kernel.org>
-In-Reply-To: <20261109025425.328445-6-jiayuan.chen@linux.dev>
-References: <20261109025425.328445-6-jiayuan.chen@linux.dev>
-X-sashiko-severity: High
+Date: Tue, 10 Nov 2026 05:53:24 +0000
+Message-ID: <179429000449.994134.17609039165328178770@kernel.org>
+In-Reply-To: <20261109025425.328445-11-jiayuan.chen@linux.dev>
+References: <20261109025425.328445-11-jiayuan.chen@linux.dev>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -75,113 +75,66 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 1 · Medium: 0 · Low: 0
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [High] calipso_cache_add() in net/ipv6/calipso.c still reads
-  calipso_cache_bucketsize twice, and the two reads can disagree.
+- [Low] brnf_sysctl_call_tables() in net/bridge/br_netfilter_hooks.c is
+  only half annotated.
 
 --
 
-calipso: annotate data-races around cache sysctls
+netfilter: bridge: annotate data-races around br_netfilter and nf_log sysctls
 
-This commit adds READ_ONCE() to the lockless readers of
-calipso_cache_enabled and calipso_cache_bucketsize in net/ipv6/calipso.c.
-The sysctl handlers update these variables with WRITE_ONCE().
+This patch adds READ_ONCE() annotations in the packet path for the
+bridge-nf-* sysctls and for sysctl_nf_log_all_netns. It also adds a
+WRITE_ONCE() to the normalization store in brnf_sysctl_call_tables().
+The goal is to silence KCSAN data-race reports that show up when these
+sysctls change while packets are being bridged.
 
-> diff --git a/net/ipv6/calipso.c b/net/ipv6/calipso.c
-> index e399a42e30839..5e63212b60163 100644
-> --- a/net/ipv6/calipso.c
-> +++ b/net/ipv6/calipso.c
+> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+> index e15355ff215a7..8a47fe4e8eb61 100644
+> --- a/net/bridge/br_netfilter_hooks.c
+> +++ b/net/bridge/br_netfilter_hooks.c
 
 [ ... ]
 
-> @@ -269,7 +269,7 @@ static int calipso_cache_add(const unsigned char *calipso_ptr,
->  	struct calipso_map_cache_entry *old_entry = NULL;
->  	u32 calipso_ptr_len;
+> @@ -1178,7 +1178,7 @@ int brnf_sysctl_call_tables(const struct ctl_table *ctl, int write,
+>  	ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
 >  
-> -	if (!calipso_cache_enabled || calipso_cache_bucketsize <= 0)
-> +	if (!READ_ONCE(calipso_cache_enabled) || READ_ONCE(calipso_cache_bucketsize) <= 0)
->  		return 0;
->  
->  	calipso_ptr_len = calipso_ptr[1];
-> @@ -289,7 +289,7 @@ static int calipso_cache_add(const unsigned char *calipso_ptr,
->  
->  	bkt = entry->hash & (CALIPSO_CACHE_BUCKETS - 1);
->  	spin_lock_bh(&calipso_cache[bkt].lock);
-> -	if (calipso_cache[bkt].size < calipso_cache_bucketsize) {
-> +	if (calipso_cache[bkt].size < READ_ONCE(calipso_cache_bucketsize)) {
->  		list_add(&entry->list, &calipso_cache[bkt].list);
->  		calipso_cache[bkt].size += 1;
->  	} else {
+>  	if (write && *(int *)(ctl->data))
+                     ^^^^^^^^^^^^^^^^^^^
+> -		*(int *)(ctl->data) = 1;
+> +		WRITE_ONCE(*(int *)(ctl->data), 1);
 
-[Severity: High]
-Can these two separate READ_ONCE() loads of calipso_cache_bucketsize in
-calipso_cache_add() return different values?
+[Severity: Low]
+This isn't a bug, but should the load in the condition also be annotated?
 
-The first load is unlocked and only guards the early return. The second
-load comes later, under the bucket spinlock, after the GFP_ATOMIC
-allocations, jhash() and refcount_inc().
+The store is now WRITE_ONCE(), but the check just before it is still a
+plain read of *(int *)(ctl->data).
 
-The bucket lock does not cover the sysctl. Also, calipso_cache_bucket_size
-in net/ipv6/sysctl_net_ipv6.c uses plain proc_dointvec with no
-extra1/extra2 bounds, so 0 or a negative value can be written during that
-window.
+proc_sys_call_handler() in fs/proc/proc_sysctl.c calls
+table->proc_handler() without taking any lock. Two concurrent writes to
+the same knob (bridge-nf-call-iptables, for example) can therefore run
+brnf_sysctl_call_tables() in parallel. In that case one handler's plain
+read can race with the other writer's marked store in do_proc_int_conv(),
+or with its WRITE_ONCE(..., 1).
 
-Suppose three things happen together:
+That is the same plain-read-vs-marked-write pattern as the splat in the
+commit message, so KCSAN would report it as a race between
+brnf_sysctl_call_tables and do_proc_int_conv.
 
-  - the first load sees a positive value
-  - a concurrent write of 0 lands before the second load
-  - the hashed bucket is empty (size == 0)
+There is no functional effect here. The final value is always 0 or 1,
+and any non-zero value is treated as true. This only affects how
+complete the annotation is.
 
-Then the size check is false, and the eviction branch runs on an empty
-list:
+Would it make sense to use READ_ONCE() for the check? Another option is
+to parse into a local value and publish it with a single WRITE_ONCE().
 
-    old_entry = list_entry(calipso_cache[bkt].list.prev,
-                           struct calipso_map_cache_entry, list);
-    list_del(&old_entry->list);
-    list_add(&entry->list, &calipso_cache[bkt].list);
-    calipso_cache_entry_free(old_entry);
-
-Here old_entry is container_of() applied to the bucket's own list head.
-list_del() poisons the head, and list_add() then dereferences
-LIST_POISON1.
-
-Wouldn't that oops in softirq context with the bucket lock held?
-
-If execution got past that point, calipso_cache_entry_free() would free
-whatever sits at the key and lsm_data offsets of the fake entry. Those
-offsets overlap neighbouring buckets. It would then kfree() a pointer into
-the middle of the calipso_cache array.
-
-Separately, if only the second load sees a negative value, it is
-converted to a huge u32 limit and the bucket size cap is skipped.
-
-This window existed before this patch, since spin_lock_bh() already forced
-a reload. However, this commit is meant to fix the racy reads of this
-exact variable. Could it take a single snapshot instead? That is what
-cipso_v4_cache_add() has done since commit dd44f04b9214ad ("cipso: Fix
-data-races around sysctl."):
-
-net/ipv4/cipso_ipv4.c:cipso_v4_cache_add() {
-	int bkt_size = READ_ONCE(cipso_v4_cache_bucketsize);
-	...
-	if (!READ_ONCE(cipso_v4_cache_enabled) || bkt_size <= 0)
-		return 0;
-	...
-	if (cipso_v4_cache[bkt].size < bkt_size) {
-	...
-}
-
-No later patch in the series changes net/ipv6/calipso.c.
+>  	return ret;
+>  }
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261109025425.328445-1-jiayuan.chen%40linux.dev
