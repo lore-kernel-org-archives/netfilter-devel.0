@@ -1,129 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.186
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794321776;
-	b=hgY+n8SexAwfddsyN6hJXLmtjXGUb/SxERJl17pZbET2bgZ1clKkce8YF+d/y16kYzU6
-	 OHTTV9Jt76XzyrjB0KsggV8bF7DY8tYyxR2ciXnI4OOMgTsd+72whUjsbD6GfQqnN6Lcm
-	 cabH3ZsAWypI8uHG+ruGZnkhQb8uH8/0ASUXIq6fam+gmEmBvtqsgjzcF182AI+/cdse2
-	 yNbuzxYs5NOrfmQqD0oWSELcmYHXjBwuTgNBQAPAfZzszSQvc2el9OtOC4o56XT/Ff3w8
-	 wvCLoni4xNZ5Nyy21IjBHlYXFsCNrs0RpujmUokZiPhwyU29oyNX1uFT3nWJjMKSfnQ==
+	t=1794325926;
+	b=z7nVhHsORaU/ExJkDaZ/iFy4C78PNFhochyppv1NQ3CLfktbDAA0GhdFASm7icm7x9WT
+	 2CvvE2dlNnaomNXW6vcN1zlg9DRapNt9t6C+tmhj2ziNqJ7yKQigrDvpwzjDcxn0bYVGx
+	 qTuCuYAo+RKO52nlJoNPGxclMDNI8oKyByt/PFL6Z/G9eK7L04UsBTLcgrt7VUIbazSay
+	 /B7Yys0PlPaZqMLn5GfSbxIZD0S2quVJHQmYmBBC6EJcdHipQyj9520G3kJcFOuui91ys
+	 iv2MPAAuR2BIZEk2o+E/Af11lTf8OgPoM8/JQjPMNt80CNxPFCnVqyNFKFe5OQl/j0w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794321776;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spamd-Result:X-Rspamd-Server:X-Rspamd-Action:
-	 X-Spam-Flag:X-Spam-Score:X-Spam-Level:X-Rspamd-Queue-Id;
-	bh=0B4qA1TkglN4OMx2OOtGC+4WxOgjbuwo6ZjpoXcLiI0=;
-	b=wfdcpmP+jxtQYR4Jd/mK0XscZL/b+FwNNC6mB/L0ViUBm+TV4JuraRK2dLBXffxQ5+XH
-	 lCynsLfY0drud7+hsoum9+IInlMk2KS7lDcsdi1OIObSJF8pRWt7JuIwvX56r9LQPVO9C
-	 eykHYK/yozylO7eKkk/xRmsunpkHQEc4MBeZMz6QdLLw9c8b+KvrweNF8Wu8hJRzHCJGd
-	 afOwGdzLyB2itcgFZ/A1xCorFoZWAezH3Hfj//o5pz0sMhyF8Mx8JtGBydWmWW5Wv5zpj
-	 QPeVnGKoJa033JNhjyqyU0/r+sPwn8D9hJ1SxYA5JdDg+ZyIrTtzojA0q88jt4EPk+A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794325926;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Date:From:To:CC:Subject:In-Reply-To:
+	 Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=zrMcVk/FXBVd+TGYXJcrqn9TJIqgyPhhxmNRvtTxdwY=;
+	b=0zYnNFkdGhgrRtnPkh1PB7wLbJbg2DjQIP+8KJdcuW+bF8XUPLS1phqbV3Yu/lOMigTn
+	 Mg6ilo3vJXpw+zzQFAkgTde8CTFKE83WRZjwenAiLSRdssUvbQ38lyGMvRoyXWDypCAYA
+	 CDZkMYGbnrysm15j6gxavIqVK24DdjrVUS2Sxxk6yVr2MZUT4LTAkvml6xwzmW0xRTi4f
+	 5hq2Jefm91C1W6SPb0ceWQONNRprEPus5LWfbsHNM2UfWjNy4LERmpFoFWb6INXhY9V20
+	 l4Fg3Qahxk1HAPTqpFIfBv1WykCmBlipPgrZ7y8eM3svBREvyStt+xsp/s/yikrV8nA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=suse.cz;
-	spf=pass smtp.mailfrom=suse.cz;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b="KX3USKj/";
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b="/2pLOUfc";
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b="KX3USKj/";
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b="/2pLOUfc";
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b="LAO6VCj/";
+	arc=none smtp.remote-ip=95.215.58.186
+Received: from mta1.migadu.com (out-186.mta1.migadu.com [95.215.58.186])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4045B60A3809;
-	Tue, 10 Nov 2026 14:42:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4045B60A3809
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E3B606A320
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 15:52:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 87E3B606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=KX3USKj/;
-	dkim=pass header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=/2pLOUfc;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.a=rsa-sha256 header.s=susede2_rsa header.b=KX3USKj/;
-	dkim=neutral header.d=suse.cz header.i=@suse.cz header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=/2pLOUfc
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 5D72521EF0;
-	Tue, 10 Nov 2026 14:42:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794321773; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0B4qA1TkglN4OMx2OOtGC+4WxOgjbuwo6ZjpoXcLiI0=;
-	b=KX3USKj/BuUCPazH8t3noRkhKvNyS5Vl2sfPRRfBrVBNp1j8KEsgjtdwoDEfs+Fi37nQ68
-	vnsR7ycg2OeYqigI5LNHLalsHJ9KCDX9IcBSdyT+NAc3WsyWV3FKF78iAL2OBmuxWV0Xwz
-	g2i8xSSiqPdjbp3ohRC0gvCg0kyAyjo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794321773;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0B4qA1TkglN4OMx2OOtGC+4WxOgjbuwo6ZjpoXcLiI0=;
-	b=/2pLOUfcw4Ranr2A4Pwh/sC+sB848L9X9w962zn/48Fcdt+Sh4cEXY+LMMlgvMsVazsfNO
-	Ql9bUyzc9/d9uBDA==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b="KX3USKj/";
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b="/2pLOUfc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1794321773; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0B4qA1TkglN4OMx2OOtGC+4WxOgjbuwo6ZjpoXcLiI0=;
-	b=KX3USKj/BuUCPazH8t3noRkhKvNyS5Vl2sfPRRfBrVBNp1j8KEsgjtdwoDEfs+Fi37nQ68
-	vnsR7ycg2OeYqigI5LNHLalsHJ9KCDX9IcBSdyT+NAc3WsyWV3FKF78iAL2OBmuxWV0Xwz
-	g2i8xSSiqPdjbp3ohRC0gvCg0kyAyjo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1794321773;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0B4qA1TkglN4OMx2OOtGC+4WxOgjbuwo6ZjpoXcLiI0=;
-	b=/2pLOUfcw4Ranr2A4Pwh/sC+sB848L9X9w962zn/48Fcdt+Sh4cEXY+LMMlgvMsVazsfNO
-	Ql9bUyzc9/d9uBDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 288DF134F4;
-	Tue, 10 Nov 2026 14:42:53 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id QGhKOWwt82q+MwAAD6G6ig
-	(envelope-from <jack@suse.cz>); Tue, 10 Nov 2026 14:42:53 +0000
-Received: by quack.suse.cz (Postfix, from userid 1000)
-	id 7821722550; Tue, 10 Nov 2026 15:42:48 +0100 (CET)
-Date: Tue, 10 Nov 2026 15:42:48 +0100
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
-	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
-	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
-	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
-	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
-	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
-	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
-	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
-	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
-	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
-	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
-	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
-	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
-	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
-	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
-	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
-	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
-Subject: Re: [PATCH v2 37/51] proc/vmcore: don't let vmcore_cleanup() run
- twice at once
-Message-ID: <q4w6yd2pk7g6uzqva7sivfusaavqfwsgh3f4m2y7lbp74dfgvr@unclx56ulwys>
-References: <20261104-work-procfs-bugfixes-v2-0-bbf7d5546809@kernel.org>
- <20261104-work-procfs-bugfixes-v2-37-bbf7d5546809@kernel.org>
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LAO6VCj/
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=I48YjLcxJvx4CWukts+x9dGdBS0QAfV6VzkLdQtjevU=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794325923; v=1; x=1794930723;
+ b=LAO6VCj/jP97doJQdG9N7nDKXV86mxjgXAenEhMMC4DEMioHzogsAR3u4dnk7G+xT/vASlEn
+ 8H0KwD//3y7rPZOujqEXkoyxyVbiEaozExAGmmv8kSVpAhvr8eoF1QA5LvgFAAEqdNqWMTUylEu
+ XUClkzHN2xVrI8jjGczIs2Mo=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 9b44e70281ab94c0;
+	Tue, 10 Nov 2026 15:52:03 +0000
+X-Mizu-Trace-ID: 9b44e70281ab94c0
+X-Migadu-Flow: FLOW_OUT
+Date: Tue, 10 Nov 2026 15:51:58 +0000
+From: Bradley Morgan <bradley.morgan@linux.dev>
+To: jiangjiehua1@huawei.com
+CC: audit@vger.kernel.org, coreteam@netfilter.org, eparis@redhat.com,
+ fw@strlen.de, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org, paul@paul-moore.com, rrobaina@redhat.com,
+ zhangchangzhong@huawei.com
+Subject: =?US-ASCII?Q?Re=3A_=5BPATCH=5D_audit=3A_fix_incomplete_N?=
+ =?US-ASCII?Q?ETFILTER=5FPKT_records_and_return_void?=
+In-Reply-To: <20261110122939.45373-1-jiangjiehua1@huawei.com>
+Message-ID: <F79DD66E-99AE-44E0-87A3-E7B2FE704290@linux.dev>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -133,95 +66,307 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261104-work-procfs-bugfixes-v2-37-bbf7d5546809@kernel.org>
-X-Spamd-Result: default: False [-11.51 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	ARC_NA(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.cz:email,suse.cz:dkim];
-	RCVD_COUNT_THREE(0.00)[3];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCPT_COUNT_GT_50(0.00)[60];
-	RCVD_TLS_LAST(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.cz:+]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -11.51
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 5D72521EF0
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8bit
 
-On Wed 04-11-26 18:47:23, Christian Brauner wrote:
-> vmcore_cleanup() has a single caller, fadump's release_mem_store() on
-> powerpc. That checks fw_dump.dump_active without a lock and calls
-> vmcore_cleanup() without one, and kernfs only serializes the writers of
-> one open file. So two tasks that write to
-> /sys/kernel/fadump/release_mem through different files run
-> vmcore_cleanup() at the same time.
-> 
-> The first one removes /proc/vmcore and waits for its readers in
-> proc_remove(). The second one finds the entry already unlinked, returns
-> from proc_remove() right away and frees vmcore_list, the ELF headers
-> and the device dumps while those readers still walk them. Or both of
-> them free the same lists at once.
-> 
-> Serialize vmcore_cleanup() with a mutex of its own. It can't be
-> vmcore_mutex, removing /proc/vmcore calls release_vmcore() which takes
-> it. The second caller then finds nothing left to free.
-> 
-> Reported-by: Chris Mason <mason@kernel.org>
-> Fixes: b500afff11f6 ("fadump: Invalidate registration and release reserved memory for general use.")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+On 10 November 2026 12:29:39 GMT, JiangJieHua <jiangjiehua1@huawei.com>
+wrote:
+>Commit f19590b07cb6 ("audit: add audit_log_nf_skb helper function") and
+>commit 15b0c43aa621 ("audit: include source and destination ports to
+>NETFILTER_PKT") introduced audit_log_nf_skb() and its transport header
+>parsing.
+>
+>The helper returned early with -ENOMEM when skb_header_pointer() failed
+>for
+>the network header, and the later port parsing did the same for the
+>transport header.  Such an early return skips the remaining fields, so the
+>NETFILTER_PKT record is emitted with only "mark=" and without the address
+>and protocol fields.
+>
+>Log the address and protocol once the network header is available, and
+>route the error paths through placeholder logging: a missing network
+>header
+>logs "saddr=? daddr=? proto=-1", as the pre-refactoring callers did, and a
+>transport header that cannot be read where one is expected logs
+>"sport=? dport=?".  The same "proto=-1" placeholder is used for an
+>unknown bridge ethertype and an unknown nfproto, which previously printed
+>"proto=?".
+>
+>Validate the IP version and the IPv4 header length, since bridge packets
+>can reach the audit hook without the receive path validating them.  Locate
+>the transport header from the network header instead of relying on
+>skb_transport_offset(), which is not guaranteed to point at the transport
+>header.  For IPv4, a non-first fragment or an unreadable transport header
+>logs unknown ports; protocols without ports are unaffected.  For IPv6, a
+>non-first fragment leaves proto at IPPROTO_FRAGMENT (44) and a negative
+>offset from ipv6_skip_exthdr() means the extension header chain cannot be
+>parsed; in both cases the transport header is not available, so keep the
+>addresses and protocol and do not log ports.
+>
+>Both callers ignore the return value (net/netfilter/nft_log.c and
+>net/netfilter/xt_AUDIT.c), so make the helper return void instead of
+>inventing error codes for a value nobody consumes.
+>
+>A packet whose network header cannot be read now logs:
+>
+>  before: mark=0x0
+>  after:  mark=0x0 saddr=? daddr=? proto=-1
+>
+>A TCP packet whose transport header cannot be read now logs:
+>
+>  before: mark=0x0
+>  after:  mark=0x0 saddr=10.20.0.2 daddr=10.20.0.1 proto=6 sport=? dport=?
+>
+>Fixes: f19590b07cb6 ("audit: add audit_log_nf_skb helper function")
+>Fixes: 15b0c43aa621 ("audit: include source and destination ports to NETFILTER_PKT")
 
-A bit sad but OK. Feel free to add:
+This code looks very, very confusing. :(
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+>Signed-off-by: JiangJieHua <jiangjiehua1@huawei.com>
+>---
+> include/linux/audit.h |  12 ++---
+> kernel/audit.c        | 114 ++++++++++++++++++++++--------------------
+> 2 files changed, 65 insertions(+), 61 deletions(-)
+>
+>diff --git a/include/linux/audit.h b/include/linux/audit.h
+>index 767e349d4834..8263257a010e 100644
+>--- a/include/linux/audit.h
+>+++ b/include/linux/audit.h
+>@@ -197,8 +197,8 @@ extern int audit_log_subj_ctx(struct audit_buffer *ab, struct lsm_prop *prop);
+> extern int audit_log_obj_ctx(struct audit_buffer *ab, struct lsm_prop
+> *prop);
+> extern int audit_log_task_context(struct audit_buffer *ab);
+> extern void audit_log_task_info(struct audit_buffer *ab);
+>-extern int audit_log_nf_skb(struct audit_buffer *ab,
+>-			    const struct sk_buff *skb, u8 nfproto);
+>+extern void audit_log_nf_skb(struct audit_buffer *ab,
+>+			     const struct sk_buff *skb, u8 nfproto);
+> 
+> extern int		    audit_update_lsm_rules(void);
+> 
+>@@ -276,11 +276,9 @@ static inline int audit_log_task_context(struct audit_buffer *ab)
+> static inline void audit_log_task_info(struct audit_buffer *ab)
+> { }
+> 
+>-static inline int audit_log_nf_skb(struct audit_buffer *ab,
+>-				   const struct sk_buff *skb, u8 nfproto)
+>-{
+>-	return 0;
+>-}
+>+static inline void audit_log_nf_skb(struct audit_buffer *ab,
+>+				    const struct sk_buff *skb, u8 nfproto)
+>+{ }
+> 
+> static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
+> {
+>diff --git a/kernel/audit.c b/kernel/audit.c
+>index 631d6d4a23cf..c5997077a46b 100644
+>--- a/kernel/audit.c
+>+++ b/kernel/audit.c
+>@@ -2511,8 +2511,8 @@ void audit_log_path_denied(int type, const char *operation)
+> 	audit_log_end(ab);
+> }
+> 
+>-int audit_log_nf_skb(struct audit_buffer *ab,
+>-		     const struct sk_buff *skb, u8 nfproto)
+>+void audit_log_nf_skb(struct audit_buffer *ab,
+>+		      const struct sk_buff *skb, u8 nfproto)
+> {
+> 	/* find the IP protocol in the case of NFPROTO_BRIDGE */
+> 	if (nfproto == NFPROTO_BRIDGE) {
+>@@ -2532,24 +2532,32 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 	case NFPROTO_IPV4: {
+> 		struct iphdr iph;
+> 		const struct iphdr *ih;
+>+		int thoff;
+>+		bool frag;
+> 
+> 		ih = skb_header_pointer(skb, skb_network_offset(skb),
+> 					sizeof(iph), &iph);
+> 		if (!ih)
+>-			return -ENOMEM;
+>+			goto unknown_proto;
+>+		if (ih->version != 4 || ih->ihl < 5)
+>+			goto unknown_proto;
+>+
+>+		thoff = skb_network_offset(skb) + ih->ihl * 4;
+>+		frag = ntohs(ih->frag_off) & IP_OFFSET;
+>+
+>+		audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+>+				 &ih->saddr, &ih->daddr, ih->protocol);
+> 
+> 		switch (ih->protocol) {
+> 		case IPPROTO_TCP: {
+> 			struct tcphdr _tcph;
+> 			const struct tcphdr *th;
+> 
+>-			th = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_tcph), &_tcph);
+>-			if (!th)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, ih->protocol,
+>+			th = skb_header_pointer(skb, thoff, sizeof(_tcph),
+>+						&_tcph);
+>+			if (frag || !th)
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(th->source), ntohs(th->dest));
+> 			break;
+> 		}
+>@@ -2558,13 +2566,11 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 			struct udphdr _udph;
+> 			const struct udphdr *uh;
+> 
+>-			uh = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_udph), &_udph);
+>-			if (!uh)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, ih->protocol,
+>+			uh = skb_header_pointer(skb, thoff, sizeof(_udph),
+>+						&_udph);
+>+			if (frag || !uh)
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(uh->source), ntohs(uh->dest));
+> 			break;
+> 		}
+>@@ -2572,19 +2578,14 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 			struct sctphdr _sctph;
+> 			const struct sctphdr *sh;
+> 
+>-			sh = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_sctph), &_sctph);
+>-			if (!sh)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, ih->protocol,
+>+			sh = skb_header_pointer(skb, thoff, sizeof(_sctph),
+>+						&_sctph);
+>+			if (frag || !sh)
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(sh->source), ntohs(sh->dest));
+> 			break;
+> 		}
+>-		default:
+>-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+>-					 &ih->saddr, &ih->daddr, ih->protocol);
+> 		}
+> 
+> 		break;
+>@@ -2594,28 +2595,36 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 		const struct ipv6hdr *ih;
+> 		u8 nexthdr;
+> 		__be16 frag_off;
+>+		int thoff;
+> 
+> 		ih = skb_header_pointer(skb, skb_network_offset(skb),
+> 					sizeof(iph), &iph);
+> 		if (!ih)
+>-			return -ENOMEM;
+>+			goto unknown_proto;
+>+		if (ih->version != 6)
+>+			goto unknown_proto;
+> 
+> 		nexthdr = ih->nexthdr;
+>-		ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(iph),
+>-				 &nexthdr, &frag_off);
+>+		thoff = ipv6_skip_exthdr(skb,
+>+					 skb_network_offset(skb) + sizeof(iph),
+>+					 &nexthdr, &frag_off);
+>+
+>+		audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
+>+				 &ih->saddr, &ih->daddr, nexthdr);
+>+
+>+		if (thoff < 0)
+>+			break;
+> 
+> 		switch (nexthdr) {
+> 		case IPPROTO_TCP: {
+> 			struct tcphdr _tcph;
+> 			const struct tcphdr *th;
+> 
+>-			th = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_tcph), &_tcph);
+>+			th = skb_header_pointer(skb, thoff, sizeof(_tcph),
+>+						&_tcph);
+> 			if (!th)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, nexthdr,
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(th->source), ntohs(th->dest));
+> 			break;
+> 		}
+>@@ -2624,13 +2633,11 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 			struct udphdr _udph;
+> 			const struct udphdr *uh;
+> 
+>-			uh = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_udph), &_udph);
+>+			uh = skb_header_pointer(skb, thoff, sizeof(_udph),
+>+						&_udph);
+> 			if (!uh)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, nexthdr,
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(uh->source), ntohs(uh->dest));
+> 			break;
+> 		}
+>@@ -2638,19 +2645,14 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 			struct sctphdr _sctph;
+> 			const struct sctphdr *sh;
+> 
+>-			sh = skb_header_pointer(skb, skb_transport_offset(skb),
+>-						sizeof(_sctph), &_sctph);
+>+			sh = skb_header_pointer(skb, thoff, sizeof(_sctph),
+>+						&_sctph);
+> 			if (!sh)
+>-				return -ENOMEM;
+>-
+>-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
+>-					 &ih->saddr, &ih->daddr, nexthdr,
+>+				goto unknown_ports;
+>+			audit_log_format(ab, " sport=%hu dport=%hu",
+> 					 ntohs(sh->source), ntohs(sh->dest));
+> 			break;
+> 		}
+>-		default:
+>-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
+>-					 &ih->saddr, &ih->daddr, nexthdr);
+> 		}
+> 
+> 		break;
+>@@ -2659,11 +2661,15 @@ int audit_log_nf_skb(struct audit_buffer *ab,
+> 		goto unknown_proto;
+> 	}
+> 
+>-	return 0;
+>+	return;
+>+
+>+unknown_ports:
+>+	audit_log_format(ab, " sport=? dport=?");
+>+	return;
+> 
+> unknown_proto:
+>-	audit_log_format(ab, " saddr=? daddr=? proto=?");
+>-	return -EPFNOSUPPORT;
+>+	audit_log_format(ab, " saddr=? daddr=? proto=-1");
+>+	return;
+> }
+> EXPORT_SYMBOL(audit_log_nf_skb);
+> 
+>
 
-								Honza
-
-> ---
->  fs/proc/vmcore.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/fs/proc/vmcore.c b/fs/proc/vmcore.c
-> index 1fe70c4ecc54..ccb795b85509 100644
-> --- a/fs/proc/vmcore.c
-> +++ b/fs/proc/vmcore.c
-> @@ -1764,6 +1764,11 @@ fs_initcall(vmcore_init);
->  /* Cleanup function for vmcore module. */
->  void vmcore_cleanup(void)
->  {
-> +	/* Not vmcore_mutex, removing /proc/vmcore calls release_vmcore(). */
-> +	static DEFINE_MUTEX(vmcore_cleanup_mutex);
-> +
-> +	/* Two writers of fadump's release_mem can get here at once. */
-> +	guard(mutex)(&vmcore_cleanup_mutex);
->  	if (proc_vmcore) {
->  		proc_remove(proc_vmcore);
->  		proc_vmcore = NULL;
-> 
-> -- 
-> 2.53.0
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+--- Thanks!
