@@ -1,62 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.186
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794325926;
-	b=z7nVhHsORaU/ExJkDaZ/iFy4C78PNFhochyppv1NQ3CLfktbDAA0GhdFASm7icm7x9WT
-	 2CvvE2dlNnaomNXW6vcN1zlg9DRapNt9t6C+tmhj2ziNqJ7yKQigrDvpwzjDcxn0bYVGx
-	 qTuCuYAo+RKO52nlJoNPGxclMDNI8oKyByt/PFL6Z/G9eK7L04UsBTLcgrt7VUIbazSay
-	 /B7Yys0PlPaZqMLn5GfSbxIZD0S2quVJHQmYmBBC6EJcdHipQyj9520G3kJcFOuui91ys
-	 iv2MPAAuR2BIZEk2o+E/Af11lTf8OgPoM8/JQjPMNt80CNxPFCnVqyNFKFe5OQl/j0w==
+	t=1794347686;
+	b=AFCzST5fffYh7gi1bFC8G8Eay+QqFUTAink1W1hZPtx+L8oGi8xCaLYjh83s20+RTWlA
+	 ku9fWts2P4pMhPU56hGG6g4KFDc7+pc4tXQ+spoavR6gtr6zJxc9QKwPEopqPncZm3a5F
+	 6qogQlgRYeBNkKqNi1D6zaR4ld/+SE/EHJp58Kd5vr9pkCGr28z4lLCwsZEDewxuGPaPx
+	 I1iLZw2AlJKdvJUsE81i4GeySGBeq4sy3f0UussL73bybrlrOJeKexmKC5QEK0WalVHuh
+	 EdIZV1loLwqm9ma33aTGO3LqQ6C59cFiR7TXn5J2xOF4b3ybJweRExFKl+0DawUYGiQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794325926;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:Date:From:To:CC:Subject:In-Reply-To:
-	 Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=zrMcVk/FXBVd+TGYXJcrqn9TJIqgyPhhxmNRvtTxdwY=;
-	b=0zYnNFkdGhgrRtnPkh1PB7wLbJbg2DjQIP+8KJdcuW+bF8XUPLS1phqbV3Yu/lOMigTn
-	 Mg6ilo3vJXpw+zzQFAkgTde8CTFKE83WRZjwenAiLSRdssUvbQ38lyGMvRoyXWDypCAYA
-	 CDZkMYGbnrysm15j6gxavIqVK24DdjrVUS2Sxxk6yVr2MZUT4LTAkvml6xwzmW0xRTi4f
-	 5hq2Jefm91C1W6SPb0ceWQONNRprEPus5LWfbsHNM2UfWjNy4LERmpFoFWb6INXhY9V20
-	 l4Fg3Qahxk1HAPTqpFIfBv1WykCmBlipPgrZ7y8eM3svBREvyStt+xsp/s/yikrV8nA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794347686;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
+	bh=VG0FQGZtaJvUuPvoUldOYmMRJMDLasf2Pmn+DxMzQdE=;
+	b=duep4VPdBEUeNtAZEzzpR9QjrU8B7OhWPbjGUDl7HHNG2KrtcE5+l2mb8QRHEtBgknq4
+	 ZCX/ypEtKkVsuxbN+GheRaTbs6N5S0G04eWMgeFqafZeG71GPz3sgrmB9m/rbg4jN8IIu
+	 7ud8Jo0pcZc1U5pDVfdwB8jV96zOrGqm1/yaREFnDnXOwVW+AclQ5yoBD9COhGvVtaoqe
+	 clKNow3kj8Wa0vArsereNQHiXBT0N0AmkGHr9BHldrt3zOPducGETBIqNgubDD6cVhVH7
+	 w7GL0fdukRHyadvYzrOZ4WoQvZ7BGLoaS5ndPATkwwnZVsYyGpg9TYuefBmWNwNGroA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b="LAO6VCj/";
-	arc=none smtp.remote-ip=95.215.58.186
-Received: from mta1.migadu.com (out-186.mta1.migadu.com [95.215.58.186])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SqL9uAkg;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E3B606A320
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 15:52:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 87E3B606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55240606A320
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 21:54:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 55240606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=LAO6VCj/
-X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=I48YjLcxJvx4CWukts+x9dGdBS0QAfV6VzkLdQtjevU=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794325923; v=1; x=1794930723;
- b=LAO6VCj/jP97doJQdG9N7nDKXV86mxjgXAenEhMMC4DEMioHzogsAR3u4dnk7G+xT/vASlEn
- 8H0KwD//3y7rPZOujqEXkoyxyVbiEaozExAGmmv8kSVpAhvr8eoF1QA5LvgFAAEqdNqWMTUylEu
- XUClkzHN2xVrI8jjGczIs2Mo=
-X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 9b44e70281ab94c0;
-	Tue, 10 Nov 2026 15:52:03 +0000
-X-Mizu-Trace-ID: 9b44e70281ab94c0
-X-Migadu-Flow: FLOW_OUT
-Date: Tue, 10 Nov 2026 15:51:58 +0000
-From: Bradley Morgan <bradley.morgan@linux.dev>
-To: jiangjiehua1@huawei.com
-CC: audit@vger.kernel.org, coreteam@netfilter.org, eparis@redhat.com,
- fw@strlen.de, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org, paul@paul-moore.com, rrobaina@redhat.com,
- zhangchangzhong@huawei.com
-Subject: =?US-ASCII?Q?Re=3A_=5BPATCH=5D_audit=3A_fix_incomplete_N?=
- =?US-ASCII?Q?ETFILTER=5FPKT_records_and_return_void?=
-In-Reply-To: <20261110122939.45373-1-jiangjiehua1@huawei.com>
-Message-ID: <F79DD66E-99AE-44E0-87A3-E7B2FE704290@linux.dev>
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SqL9uAkg
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1794347683;
+	bh=VG0FQGZtaJvUuPvoUldOYmMRJMDLasf2Pmn+DxMzQdE=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=SqL9uAkgwrgzbYtDBhjy5pLag/pQnQcJVeNzWpV4ux9HVSt+O5eUfHRhDPpemXj9q
+	 wCm3fRg+fXT0WsmNaKa+6/GA0OHPBgPqjPYYTc9LJbMpnApMmXTPfZ6jlEji9X+P7U
+	 A4F+FkkNVFOGoD8Ky/2xzMoxURh0OwWdyUADbaUnR1hzDmY+zGlE5Q/tV8uUUzr5s8
+	 K2khke+4R1uwOBMJLpHWKNOBbv3siBwp79oPk6cI7YOGQ2ZRGmVADgFzon8PB5IrxC
+	 B/57++jT8F0o74O00fbOVqFqmuSKAv/40/xTVEUkpL1Uz45XTT1LnGVBf1IG1S5l79
+	 P5/s4ij2zghLA==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id CAD6360304
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2026 22:54:43 +0100 (CET)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v6 2/7] netfilter: nfnetlink_queue: add helper function to retrieve hook entries
+Date: Tue, 10 Nov 2026 22:54:34 +0100
+Message-ID: <20261110215439.1958120-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261110215439.1958120-1-pablo@netfilter.org>
+References: <20261110215439.1958120-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,307 +63,97 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
 Content-Transfer-Encoding: 8bit
 
-On 10 November 2026 12:29:39 GMT, JiangJieHua <jiangjiehua1@huawei.com>
-wrote:
->Commit f19590b07cb6 ("audit: add audit_log_nf_skb helper function") and
->commit 15b0c43aa621 ("audit: include source and destination ports to
->NETFILTER_PKT") introduced audit_log_nf_skb() and its transport header
->parsing.
->
->The helper returned early with -ENOMEM when skb_header_pointer() failed
->for
->the network header, and the later port parsing did the same for the
->transport header.  Such an early return skips the remaining fields, so the
->NETFILTER_PKT record is emitted with only "mark=" and without the address
->and protocol fields.
->
->Log the address and protocol once the network header is available, and
->route the error paths through placeholder logging: a missing network
->header
->logs "saddr=? daddr=? proto=-1", as the pre-refactoring callers did, and a
->transport header that cannot be read where one is expected logs
->"sport=? dport=?".  The same "proto=-1" placeholder is used for an
->unknown bridge ethertype and an unknown nfproto, which previously printed
->"proto=?".
->
->Validate the IP version and the IPv4 header length, since bridge packets
->can reach the audit hook without the receive path validating them.  Locate
->the transport header from the network header instead of relying on
->skb_transport_offset(), which is not guaranteed to point at the transport
->header.  For IPv4, a non-first fragment or an unreadable transport header
->logs unknown ports; protocols without ports are unaffected.  For IPv6, a
->non-first fragment leaves proto at IPPROTO_FRAGMENT (44) and a negative
->offset from ipv6_skip_exthdr() means the extension header chain cannot be
->parsed; in both cases the transport header is not available, so keep the
->addresses and protocol and do not log ports.
->
->Both callers ignore the return value (net/netfilter/nft_log.c and
->net/netfilter/xt_AUDIT.c), so make the helper return void instead of
->inventing error codes for a value nobody consumes.
->
->A packet whose network header cannot be read now logs:
->
->  before: mark=0x0
->  after:  mark=0x0 saddr=? daddr=? proto=-1
->
->A TCP packet whose transport header cannot be read now logs:
->
->  before: mark=0x0
->  after:  mark=0x0 saddr=10.20.0.2 daddr=10.20.0.1 proto=6 sport=? dport=?
->
->Fixes: f19590b07cb6 ("audit: add audit_log_nf_skb helper function")
->Fixes: 15b0c43aa621 ("audit: include source and destination ports to NETFILTER_PKT")
+Add nf_queue_hook_entry() and nf_queue_hook_entries() helper functions
+to retrieve hook entries and use them.
 
-This code looks very, very confusing. :(
+This comes in preparation for a fix to restrict expectation creation to
+nfnetlink_cthelper.
 
->Signed-off-by: JiangJieHua <jiangjiehua1@huawei.com>
->---
-> include/linux/audit.h |  12 ++---
-> kernel/audit.c        | 114 ++++++++++++++++++++++--------------------
-> 2 files changed, 65 insertions(+), 61 deletions(-)
->
->diff --git a/include/linux/audit.h b/include/linux/audit.h
->index 767e349d4834..8263257a010e 100644
->--- a/include/linux/audit.h
->+++ b/include/linux/audit.h
->@@ -197,8 +197,8 @@ extern int audit_log_subj_ctx(struct audit_buffer *ab, struct lsm_prop *prop);
-> extern int audit_log_obj_ctx(struct audit_buffer *ab, struct lsm_prop
-> *prop);
-> extern int audit_log_task_context(struct audit_buffer *ab);
-> extern void audit_log_task_info(struct audit_buffer *ab);
->-extern int audit_log_nf_skb(struct audit_buffer *ab,
->-			    const struct sk_buff *skb, u8 nfproto);
->+extern void audit_log_nf_skb(struct audit_buffer *ab,
->+			     const struct sk_buff *skb, u8 nfproto);
-> 
-> extern int		    audit_update_lsm_rules(void);
-> 
->@@ -276,11 +276,9 @@ static inline int audit_log_task_context(struct audit_buffer *ab)
-> static inline void audit_log_task_info(struct audit_buffer *ab)
-> { }
-> 
->-static inline int audit_log_nf_skb(struct audit_buffer *ab,
->-				   const struct sk_buff *skb, u8 nfproto)
->-{
->-	return 0;
->-}
->+static inline void audit_log_nf_skb(struct audit_buffer *ab,
->+				    const struct sk_buff *skb, u8 nfproto)
->+{ }
-> 
-> static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
-> {
->diff --git a/kernel/audit.c b/kernel/audit.c
->index 631d6d4a23cf..c5997077a46b 100644
->--- a/kernel/audit.c
->+++ b/kernel/audit.c
->@@ -2511,8 +2511,8 @@ void audit_log_path_denied(int type, const char *operation)
-> 	audit_log_end(ab);
-> }
-> 
->-int audit_log_nf_skb(struct audit_buffer *ab,
->-		     const struct sk_buff *skb, u8 nfproto)
->+void audit_log_nf_skb(struct audit_buffer *ab,
->+		      const struct sk_buff *skb, u8 nfproto)
-> {
-> 	/* find the IP protocol in the case of NFPROTO_BRIDGE */
-> 	if (nfproto == NFPROTO_BRIDGE) {
->@@ -2532,24 +2532,32 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 	case NFPROTO_IPV4: {
-> 		struct iphdr iph;
-> 		const struct iphdr *ih;
->+		int thoff;
->+		bool frag;
-> 
-> 		ih = skb_header_pointer(skb, skb_network_offset(skb),
-> 					sizeof(iph), &iph);
-> 		if (!ih)
->-			return -ENOMEM;
->+			goto unknown_proto;
->+		if (ih->version != 4 || ih->ihl < 5)
->+			goto unknown_proto;
->+
->+		thoff = skb_network_offset(skb) + ih->ihl * 4;
->+		frag = ntohs(ih->frag_off) & IP_OFFSET;
->+
->+		audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
->+				 &ih->saddr, &ih->daddr, ih->protocol);
-> 
-> 		switch (ih->protocol) {
-> 		case IPPROTO_TCP: {
-> 			struct tcphdr _tcph;
-> 			const struct tcphdr *th;
-> 
->-			th = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_tcph), &_tcph);
->-			if (!th)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, ih->protocol,
->+			th = skb_header_pointer(skb, thoff, sizeof(_tcph),
->+						&_tcph);
->+			if (frag || !th)
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(th->source), ntohs(th->dest));
-> 			break;
-> 		}
->@@ -2558,13 +2566,11 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 			struct udphdr _udph;
-> 			const struct udphdr *uh;
-> 
->-			uh = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_udph), &_udph);
->-			if (!uh)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, ih->protocol,
->+			uh = skb_header_pointer(skb, thoff, sizeof(_udph),
->+						&_udph);
->+			if (frag || !uh)
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(uh->source), ntohs(uh->dest));
-> 			break;
-> 		}
->@@ -2572,19 +2578,14 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 			struct sctphdr _sctph;
-> 			const struct sctphdr *sh;
-> 
->-			sh = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_sctph), &_sctph);
->-			if (!sh)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, ih->protocol,
->+			sh = skb_header_pointer(skb, thoff, sizeof(_sctph),
->+						&_sctph);
->+			if (frag || !sh)
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(sh->source), ntohs(sh->dest));
-> 			break;
-> 		}
->-		default:
->-			audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
->-					 &ih->saddr, &ih->daddr, ih->protocol);
-> 		}
-> 
-> 		break;
->@@ -2594,28 +2595,36 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 		const struct ipv6hdr *ih;
-> 		u8 nexthdr;
-> 		__be16 frag_off;
->+		int thoff;
-> 
-> 		ih = skb_header_pointer(skb, skb_network_offset(skb),
-> 					sizeof(iph), &iph);
-> 		if (!ih)
->-			return -ENOMEM;
->+			goto unknown_proto;
->+		if (ih->version != 6)
->+			goto unknown_proto;
-> 
-> 		nexthdr = ih->nexthdr;
->-		ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(iph),
->-				 &nexthdr, &frag_off);
->+		thoff = ipv6_skip_exthdr(skb,
->+					 skb_network_offset(skb) + sizeof(iph),
->+					 &nexthdr, &frag_off);
->+
->+		audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
->+				 &ih->saddr, &ih->daddr, nexthdr);
->+
->+		if (thoff < 0)
->+			break;
-> 
-> 		switch (nexthdr) {
-> 		case IPPROTO_TCP: {
-> 			struct tcphdr _tcph;
-> 			const struct tcphdr *th;
-> 
->-			th = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_tcph), &_tcph);
->+			th = skb_header_pointer(skb, thoff, sizeof(_tcph),
->+						&_tcph);
-> 			if (!th)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, nexthdr,
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(th->source), ntohs(th->dest));
-> 			break;
-> 		}
->@@ -2624,13 +2633,11 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 			struct udphdr _udph;
-> 			const struct udphdr *uh;
-> 
->-			uh = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_udph), &_udph);
->+			uh = skb_header_pointer(skb, thoff, sizeof(_udph),
->+						&_udph);
-> 			if (!uh)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, nexthdr,
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(uh->source), ntohs(uh->dest));
-> 			break;
-> 		}
->@@ -2638,19 +2645,14 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 			struct sctphdr _sctph;
-> 			const struct sctphdr *sh;
-> 
->-			sh = skb_header_pointer(skb, skb_transport_offset(skb),
->-						sizeof(_sctph), &_sctph);
->+			sh = skb_header_pointer(skb, thoff, sizeof(_sctph),
->+						&_sctph);
-> 			if (!sh)
->-				return -ENOMEM;
->-
->-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu sport=%hu dport=%hu",
->-					 &ih->saddr, &ih->daddr, nexthdr,
->+				goto unknown_ports;
->+			audit_log_format(ab, " sport=%hu dport=%hu",
-> 					 ntohs(sh->source), ntohs(sh->dest));
-> 			break;
-> 		}
->-		default:
->-			audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
->-					 &ih->saddr, &ih->daddr, nexthdr);
-> 		}
-> 
-> 		break;
->@@ -2659,11 +2661,15 @@ int audit_log_nf_skb(struct audit_buffer *ab,
-> 		goto unknown_proto;
-> 	}
-> 
->-	return 0;
->+	return;
->+
->+unknown_ports:
->+	audit_log_format(ab, " sport=? dport=?");
->+	return;
-> 
-> unknown_proto:
->-	audit_log_format(ab, " saddr=? daddr=? proto=?");
->-	return -EPFNOSUPPORT;
->+	audit_log_format(ab, " saddr=? daddr=? proto=-1");
->+	return;
-> }
-> EXPORT_SYMBOL(audit_log_nf_skb);
-> 
->
+No functional changes are intended.
 
---- Thanks!
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v6: no changes
+
+ net/netfilter/nfnetlink_queue.c | 40 +++++++++++++++++++++++++--------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a8aa7ad832c3..09af8faf8675 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -360,6 +360,27 @@ static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
+ 	return ret;
+ }
+ 
++static const struct nf_hook_entries *
++nf_queue_hook_entries(struct nf_queue_entry *entry)
++{
++	const struct net *net = entry->state.net;
++	u8 pf = entry->state.pf;
++
++	return nf_hook_entries_head(net, pf, entry->state.hook);
++}
++
++static const struct nf_hook_entry *
++nf_queue_hook_entry(const struct nf_hook_entries *hooks,
++		    struct nf_queue_entry *entry)
++{
++	unsigned int i = entry->hook_index;
++
++	if (i >= hooks->num_hook_entries)
++		return NULL;
++
++	return &hooks->hooks[i];
++}
++
+ /* caller must hold rcu read-side lock */
+ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+@@ -367,10 +388,8 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	const struct nf_hook_entries *hooks;
+ 	struct sk_buff *skb = entry->skb;
+ 	bool old_in_nf_duplicate;
+-	const struct net *net;
+ 	unsigned int i;
+ 	int err;
+-	u8 pf;
+ 
+ 	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
+ 			    !entry->in_nf_duplicate,
+@@ -379,20 +398,23 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	local_bh_disable();
+ 	old_in_nf_duplicate = current->in_nf_duplicate;
+ 
+-	net = entry->state.net;
+-	pf = entry->state.pf;
+-
+ 	current->in_nf_duplicate = entry->in_nf_duplicate;
+-	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
+ 
+-	i = entry->hook_index;
+-	if (!hooks || i >= hooks->num_hook_entries) {
++	hooks = nf_queue_hook_entries(entry);
++	if (!hooks) {
+ 		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+ 		nf_queue_entry_free(entry);
+ 		goto out;
+ 	}
+ 
+-	hook_entry = &hooks->hooks[i];
++	hook_entry = nf_queue_hook_entry(hooks, entry);
++	if (!hook_entry) {
++		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
++		nf_queue_entry_free(entry);
++		goto out;
++	}
++
++	i = entry->hook_index;
+ 
+ 	/* Continue traversal iff userspace said ok... */
+ 	if (verdict == NF_REPEAT)
+-- 
+2.47.3
+
