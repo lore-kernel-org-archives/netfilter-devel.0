@@ -1,50 +1,84 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=94.136.29.106
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=82.195.75.108
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794395606;
-	b=p6rEMcne6Bgd2jW/Ao4uc2EEKAyzORhEMKui3TLtcTXQC9YxWEOqQeSXu9+WyMJ5YmWL
-	 ScCbIQdinLeMEZQfSIby2ux31H8oRiJGu8N6T1PQynUThuefJhwzK9P9nwwDsAhRrdgcX
-	 KOecV+fWlUhfd/LYIMzkqGrHtMBsSCr4/JUvS+oGTcWYnD63VWkR/1JF9cGCYodXvcc/I
-	 wU1kiapxj0ycqEPvVxmW5TLAKbfN/0f/nc1dsCFMwiimg5zzpuN4ePOiz+RlmO2fa/gMg
-	 DgRFEPGNg5hkPADusJnATlQsIsQchpIHKp9gBe65S1bBE7uPmKEvT3+SPCzjSsmL4ng==
+	t=1794398064;
+	b=eBaSdccKQpBHGgvYilgSk5nY1nsrRJApqPHXTfJqLhJbAXt6oWRDVwg2DIna5NpEJxFx
+	 3PjRg2F53FP/ohb3jalNgRok/rLnQsc66QQA6Y3nchx7q2odXZ1sjSGdGvTlvvuzGIfoH
+	 pAvhCYUPKpxYBXYkzJKJhcUXtZlqjT1cvy8TZJFspFZnnT84yEmOkVavMvvWca7aUKN3j
+	 5SDwW/Zk9ZM6n2XxKNu2NgoujIBAwl5c7ZXpvP2rNVQaiwo4QfdsOnjqFk684yzx6qpii
+	 93eE1ac5INl/0t0Qy8DbyVy9UUgiH4i/uZ5FBkWpsT+pPSPipJ20xZOGXq5Lm43r0Gw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794395606;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 X-Bm-Milter-Handled:X-Bm-Transport-Timestamp;
-	bh=Y0ME94W3ayVjJi/Q8oGCWWvasHa8KRmGNVoPpEDqrAg=;
-	b=e68IChfNY/jZUYIoIKx5x20VQ9QE4drtTz5GVhHyHTfpA6oTSDosJFgBrtJKbga96BWD
-	 +m3Nj/2qm37uGPXepmQr9mwtwHS9VykPH3fc9M/3Uk6cDPJROoXNiLZIz8ersdymCDxqC
-	 HoJmZD+XC7qAUkatOrRWkQHj4EqAQV8pi+Wv8e7nPKzSL5oFjvGuQp4Ps8d9g6I6Q3qXY
-	 /C1D8o+KwyJVkwJy4izqh2JwSVvXEJGldC9VhKRaNc4L5Ah1dEGFthhhhfEQ6JbuTGsOO
-	 zGGAS8U7oHgLFrmevWcLaFdC5kd/Q5CeUh/9zcuZKhQfBSWOKnPlccn2UseQac3tLzw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794398064;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Debian-User;
+	bh=Ep5AJlsUvRo/Sl9Rg+NwP6D7Lq/wQPVEaLy1Gie9QQ4=;
+	b=kSLfRzPZ+UKsasYkIbpqJ/vITapkU0elP5o0JXeuaDjOpN+g3TP59lLBg2hg5PXjNGJt
+	 vwgPYlXZR1d9ZvixRGmUHeOkWt+tsdyV0qBn9ZAY5xzYVzXf7hmuGyTFX6S57GOTnpIzF
+	 AcnCBHNlTmWJ5edE+ZyX1yJLTuL6ve8DMStbkxWbSK+bfFfRnr8+kFgNTssE4l4ykYMFS
+	 M6LTGpqnK4ylkmAdd9kx7/CPXQ14EKwSdB/OAXpAMzpoK7U+2i6ZyeY1r7zS9k45HxshI
+	 LG6WpR1UQ4lYITagxJN5ayExy30UWYFegZa4g5E4JZiBEI2ZpVK+KshwtMpXC/95joA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=proxmox.com;
-	spf=pass smtp.mailfrom=proxmox.com;
-	arc=none smtp.remote-ip=94.136.29.106
-Received: from proxmox-new.maurer-it.com (proxmox-new.maurer-it.com [94.136.29.106])
+	dmarc=pass header.from=debian.org;
+	spf=pass smtp.mailfrom=debian.org;
+	dkim=pass header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=vV5nh+mu;
+	arc=none smtp.remote-ip=82.195.75.108
+Received: from stravinsky.debian.org (stravinsky.debian.org [82.195.75.108])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C5D606A32A
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 11:13:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A1C5D606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proxmox.com
-Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
-	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id 30E1B41DFC;
-	Wed, 11 Nov 2026 12:13:17 +0100 (CET)
-From: Stefan Hanreich <s.hanreich@proxmox.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Stefan Hanreich <s.hanreich@proxmox.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf-next 3/3] netfilter: nf_tables: use a counter for anonymous set names
-Date: Wed, 11 Nov 2026 12:12:46 +0100
-Message-ID: <20261111111250.226432-4-s.hanreich@proxmox.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261111111250.226432-1-s.hanreich@proxmox.com>
-References: <20261111111250.226432-1-s.hanreich@proxmox.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E310B606A321;
+	Wed, 11 Nov 2026 11:54:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E310B606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=debian.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=debian.org header.i=@debian.org header.a=rsa-sha256 header.s=smtpauto.stravinsky header.b=vV5nh+mu
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=debian.org;
+	s=smtpauto.stravinsky; h=X-Debian-User:In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=Ep5AJlsUvRo/Sl9Rg+NwP6D7Lq/wQPVEaLy1Gie9QQ4=; b=vV5nh+muii9KUwMXfoK65C9FPK
+	aNSl0OiG0j4I+LFXc7WeA74kYOFf834TBtI7qS+ZEF0cf7hSHSrnoI47iOSAXQPCAXQU9fne6O/8R
+	G2wk/XluU5ugbAZ7f5jU4JBscAk6nd/VyyPFhAk65/tq7U9wZjt9SJD8a8A/m2R6Cxj7l7C76kg9H
+	1KIPLAQYQ/Fv+JWvD04uouKwGYT/8gu4uHiCPUf9Bg4PxVdqeWdNvrfltP4AIW+MdO1/5WBfOmizl
+	DellelcAiKmJM9KaaC82wP83/72jAdgWurCb/I4tMo/beG16KgajqNT/PO+VCT1shIIGmoQlyuzr0
+	Arg3hVEA==;
+Received: from authenticated-user
+	by stravinsky.debian.org with esmtpsa (TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
+	(Exim 4.96)
+	(envelope-from <leitao@debian.org>)
+	id 1xR6u3-00DA6f-37;
+	Wed, 11 Nov 2026 11:54:12 +0000
+Date: Wed, 11 Nov 2026 03:54:00 -0800
+From: Breno Leitao <leitao@debian.org>
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, 
+	Linus Torvalds <torvalds@linux-foundation.org>, Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+	Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, NeilBrown <neil@brown.name>, 
+	Eric Dumazet <edumazet@kernel.org>, Thomas Gleixner <tglx@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+	Greg Kroah-Hartman <gregkh@suse.de>, Joel Granados <joel.granados@kernel.org>, 
+	Kees Cook <kees@kernel.org>, Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, linux-acpi@vger.kernel.org, 
+	linux-kselftest@vger.kernel.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	netdev@vger.kernel.org, ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	coreteam@netfilter.org, kexec@lists.infradead.org, linux-pci@vger.kernel.org, 
+	linux-sound@vger.kernel.org, netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+	linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, 
+	linux-fbdev@vger.kernel.org, linux-hwmon@vger.kernel.org, linux-mm@kvack.org, 
+	linux-sh@vger.kernel.org, linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+	sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-doc@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-atm-general@lists.sourceforge.net, 
+	Takashi Iwai <tiwai@suse.de>, linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, linux-debuggers@vger.kernel.org, 
+	Chuck Lever <cel@kernel.org>, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 25/38] powerpc/crash_dump: check ioremap_cache() in
+ copy_oldmem_page()
+Message-ID: <avRXHYDKemkiDvoj@gmail.com>
+References: <20261102-work-procfs-bugfixes-v1-0-59422ed3e465@kernel.org>
+ <20261102-work-procfs-bugfixes-v1-25-59422ed3e465@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -54,130 +88,24 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Bm-Milter-Handled: 55990f41-d878-4baa-be0a-ee34c49e34d2
-X-Bm-Transport-Timestamp: 1794395595979
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261102-work-procfs-bugfixes-v1-25-59422ed3e465@kernel.org>
+X-Debian-User: leitao
 
-To allocate a name for an anonymous set, nf_tables_set_alloc_name()
-parses the name of every set in the table with sscanf() to find the
-smallest number not in use for the given format. Loading a ruleset
-with many anonymous sets therefore takes time quadratic in the number
-of sets.
+On Mon, Nov 02, 2026 at 03:21:40PM +0100, Christian Brauner wrote:
+> copy_oldmem_page() maps a page of the old kernel that isn't in the
+> linear mapping with ioremap_cache() and copies from it without checking
+> whether the mapping worked. If it didn't, the copy reads from an offset
+> into the NULL page. That oopses unless the copy happens to be a user
+> copy, whose exception table entries turn the fault into a short copy.
+> 
+> Return -ENOMEM like the other architectures do. read_from_oldmem()
+> turns that into -EFAULT like any other short copy.
+> 
+> Reported-by: Chris Mason <mason@kernel.org>
+> Fixes: 54c32021eb6f ("[PATCH] powerpc: Add arch-dependent copy_oldmem_page")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Take the number from a per-table counter instead and probe the
-candidate name with a set lookup, skipping names that are still in
-use. This is similar to anonymous chains, which are named after a
-counter as well. The counter wraps around at INT_MAX, since the name
-is formatted with %d. If all numbers are in use, -ENFILE is returned.
-
-Numbers are no longer reused, and different formats share the same
-counter. Userspace does not depend on the actual number: nft refers to
-a new anonymous set by its set ID within the batch and never parses the
-number from the name.
-
-Signed-off-by: Stefan Hanreich <s.hanreich@proxmox.com>
----
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 52 ++++++++++++++-----------------
- 2 files changed, 26 insertions(+), 28 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index d09959eea8ba..be129db1b82d 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1303,6 +1303,7 @@ static inline void nft_use_inc_restore(u32 *use)
-  *	@flags: table flag (see enum nft_table_flags)
-  *	@genmask: generation mask
-  *	@nlpid: netlink port ID
-+ *	@anon_set_num: next number for anonymous set names
-  *	@name: name of the table
-  *	@udlen: length of the user data
-  *	@udata: user data
-@@ -1324,6 +1325,7 @@ struct nft_table {
- 					flags:8,
- 					genmask:2;
- 	u32				nlpid;
-+	u32				anon_set_num;
- 	char				*name;
- 	u16				udlen;
- 	u8				*udata;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c9b0070846b7..b46e32192f41 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4950,13 +4950,30 @@ struct nft_set *nft_set_lookup_global(const struct net *net,
- 	return set;
- }
- 
-+static int nft_set_alloc_anon_num(struct nft_ctx *ctx, const char *name)
-+{
-+	struct nft_table *table = ctx->table;
-+	char buf[NFT_SET_MAXNAMELEN];
-+	u32 i, n;
-+
-+	for (i = 0; i <= INT_MAX; i++) {
-+		n = table->anon_set_num;
-+		table->anon_set_num = n < INT_MAX ? n + 1 : 0;
-+
-+		snprintf(buf, sizeof(buf), name, n);
-+		if (IS_ERR(__nft_set_lookup(ctx->net, table, buf,
-+					    nft_genmask_next(ctx->net))))
-+			return n;
-+	}
-+
-+	return -ENFILE;
-+}
-+
- static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 				    const char *name)
- {
--	const struct nft_set *i;
- 	const char *p;
--	unsigned long *inuse;
--	unsigned int n = 0, min = 0;
-+	int n = 0;
- 
- 	p = strchr(name, '%');
- 	if (p != NULL) {
-@@ -4966,33 +4983,12 @@ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
- 		if (strnlen(name, NFT_SET_MAX_ANONLEN) >= NFT_SET_MAX_ANONLEN)
- 			return -EINVAL;
- 
--		inuse = (unsigned long *)get_zeroed_page(GFP_KERNEL);
--		if (inuse == NULL)
--			return -ENOMEM;
--cont:
--		list_for_each_entry(i, &ctx->table->sets, list) {
--			int tmp;
--
--			if (!nft_is_active_next(ctx->net, i))
--				continue;
--			if (!sscanf(i->name, name, &tmp))
--				continue;
--			if (tmp < min || tmp >= min + BITS_PER_BYTE * PAGE_SIZE)
--				continue;
--
--			set_bit(tmp - min, inuse);
--		}
--
--		n = find_first_zero_bit(inuse, BITS_PER_BYTE * PAGE_SIZE);
--		if (n >= BITS_PER_BYTE * PAGE_SIZE) {
--			min += BITS_PER_BYTE * PAGE_SIZE;
--			memset(inuse, 0, PAGE_SIZE);
--			goto cont;
--		}
--		free_page((unsigned long)inuse);
-+		n = nft_set_alloc_anon_num(ctx, name);
-+		if (n < 0)
-+			return n;
- 	}
- 
--	set->name = kasprintf(GFP_KERNEL_ACCOUNT, name, min + n);
-+	set->name = kasprintf(GFP_KERNEL_ACCOUNT, name, n);
- 	if (!set->name)
- 		return -ENOMEM;
- 
--- 
-2.47.3
-
-
+Reviewed-by: Breno Leitao <leitao@debian.org>
