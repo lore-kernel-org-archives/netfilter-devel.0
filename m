@@ -1,75 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794428186;
-	b=UDajssv/NE3SWVd6njR4LKt13g9uqVBYlmO4NLIrKOb+UcDCKXXuiNH+7Q2Mj1s2SPe/
-	 lAyhF8NG4rUXud/MSth0PB0xNBWkErNj4tRBmNr1wxIEvmQ/GlDh8iyBrF3OwB1HcgZKA
-	 8WA4Kpl/ZrKK8s0TsleR2qImyncLxw67vHDWshvX6543sunWX9uLpZT03ouagzXxCoSYk
-	 j3xAY80qDLvA/V4I6aYtwiKl4NIvd/h4VGvYT0gtdhZ72XBuucrgMED6SsqxddePnX96T
-	 nX9+N1T6huG0uQB6N1rsvi22Rt5fV3QXIMr59HeQmU3xbnvciMkdHxGmtAS1OOpRQLA==
+	t=1794432840;
+	b=ILqNxA6z48kdJmkvqAqsSUezmwAdfp002DECsQnssjSbH9PodaACk2O+AlMStmNrTDJa
+	 SwhN5HF/TDEAsxrf9JCXY/ICIrO9H5gGpV3VQgPoRrenwKCqAPvkGCttsglmlh6EdvRg8
+	 0GZK1PPrcGWBsCN1QnHYxu1Jie+o38yw/yzLYIQaJWR5sAfsDVNla6suNVUmcQfxufD9s
+	 nmrRqJoS08wFqGz5bgtU3POmy9HwLN3u060wpVr9S2MA4KiBRMWe4fcTuScdj8ujsw7w1
+	 Z5IBQWO0lRNO9k3oVxJQVlaIavPiHWPdsBx8RIicEHyeveseL3IriZd6KEDDpMmSIFA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794428186;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=Sw68+VFJWTPmZ8QOfcR0ktmagWnvJL/uJgWmtm4CXEo=;
-	b=YOk8XUYo6MhKla30LvLCILcQSm4Z4dfWk+TNotM7LcF8rBfWRHPjfB6TZxeUKzjCgmqB
-	 bnKi0d23ZsrY/2ECeqK+4NgMNek+b75JYJLdfarKsntjiCIndKMB02mvdrm9A9Q36fRSi
-	 GdSpLJqbuCRo6aih/+pFe6PsD8fuxumP/qbALTD9JZ0TSeGyS5BNfnn7k6wnM0DWn6GwS
-	 G4PWWoTnPXOqUxfomtAqiQHLe3tT7VKXBF3F5uAEj1leDiOfBbcmzHNQCUeAoaOzG96i1
-	 ihmmLXDRFLEMUPfW7C4y+X3ZNS91mUrHKR65jiN4wJrDyTfvVR+VAGLuECJKsZvK/HA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794432840;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=XsrLygMXUO8t6Dug7THlfgRGdAUk0g1VTR1xNcAcyYQ=;
+	b=j/Yz9ErKaLEbyEjyw7MxkkME0jOrktxwEZzaPc827lk/101v4YPCKfcpghmYMAuZWVPh
+	 oMMWUAEJE0n5Bg1qFspQi6vm9jRYW/1eidoCo03AO86T2HyZVaABXBjoCvdq/MXvfkmpz
+	 hOvKRlzcAM66t/yuZLRJiReYJlgsGQR1XR0V11LV/raV58YZDGUYs4lIb/i9TZx/llMfj
+	 tT2bDALHRIUepeQcX4E4hm+VJSMDXb78I8LJgnXNPjlGvXRANt+dPa69jgrTBV6xRNPoN
+	 LPMib2iSLCrexA7zAOH3P8q2tu0h4azR9vrwGyXzV7glL0dhVD/qMnOdnK/nT9BVLgA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=RhKq3st9;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=FiUqzxbo;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 652AF606A336;
-	Wed, 11 Nov 2026 20:16:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 652AF606A336
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id F16C8606A31C;
+	Wed, 11 Nov 2026 21:33:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F16C8606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=RhKq3st9
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id D4F9E21FFD;
-	Wed, 11 Nov 2026 22:16:23 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=Sw68+VFJWTPmZ8QOfcR0ktmagWnvJL/uJgWmtm4CXEo=; b=RhKq3st97x0S
-	biRCkCCufwojiwp8oaKXsUXhmPoX+aPTsc3VwswV5bGaoGgJubNCTQPxlRIrv/Hl
-	4oMbwcp5N5l9WIhMDOu9fru1AzCS5pHnfw+dWxpYJWXfUP/tGDt+dNvvZ6sXv88A
-	KY8cXJFJvEJ2IGWUi9iMZQckLs32mNT+aa0y3jUWdG0Dz1imXI5YA8mgoux6/3kB
-	5RP4fmCWaMoBuCZ6JqN/QmIDTkLAZec1wgKNxxSPLoSmSbqCPfHV/e+NGEyFnN/G
-	+GbkCUnw4PE+CWYc4yLSfAK65ru4BS/6Zu33aN76YiJwgF89TJsxbMnXVIBh6Rs1
-	2+kNT1oXd4JT6KnAk+VmZm+fuESqHEgy+QhTAxkwDsConjPfF9LuGtKoYHuk3Vpo
-	jCPKd1qpeP88Mav1c8KqqgzyZZ8TDkpITSkNlb/kZY55ZBePGLx+aRx0UpUDPLgs
-	+m5mjwTHX7IDIgC8bAofStjog0lHwA8ZWX2UEJcObCZpNPuuyYJ+y37vut4S4OGd
-	wp88kgwBRcFyF/iIDKkze97yhs+hvXj4SWc0nqAmFtRxSvXfpZmnLvl2SWom8E5W
-	CmykJUnXU83PYESFRNDgveXE230c0vu9xE7yNiXxKfLMU8IhbH5xnS6rnFdlRxQb
-	1EzCd6rEO41Xax+rrczUj9agoKp0RSM=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 11 Nov 2026 22:16:23 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 3BFB560214;
-	Wed, 11 Nov 2026 22:16:23 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6ABKGL3V083613;
-	Wed, 11 Nov 2026 22:16:21 +0200
-Date: Wed, 11 Nov 2026 22:16:21 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] ipvs: pass correct sk to update_pmtu and on
- tunneling
-In-Reply-To: <20261103152550.60449-1-ja@ssi.bg>
-Message-ID: <d3d1522f-bb49-5412-0a96-af3930a626e2@ssi.bg>
-References: <20261103152550.60449-1-ja@ssi.bg>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=FiUqzxbo
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1794432836;
+	bh=XsrLygMXUO8t6Dug7THlfgRGdAUk0g1VTR1xNcAcyYQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=FiUqzxbojTrjYQStNsMK4iPs7PDMTYrw1WVtRyWjKQgvgspoTYGhdDgKqKg3VXaR2
+	 Z4xolKhdeZazfy/7IBx81+2Xk5TCYJJh/Iba/uGQX7iONDs9+sjyyOfep4uLrBANP4
+	 m3nCD8V+YdNjciB4SDqbATGOhucXByeU5wMeMi6+y4S+n45/poO5wfAcvrrUIftMaT
+	 TXLe4iaJA3BbiRk3fpBSOJ5hMZsCzKwazfUuYc9/RssB80mVT613VeRSPMjQJV029D
+	 uoIWXLLeNF25O8hBDqiFkCG6uTlTzVyWFGxG13yvc4hFIrN2JsetnDmQmG826geWR9
+	 +3I8CTizo/Uow==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 91FA260051;
+	Wed, 11 Nov 2026 22:33:56 +0100 (CET)
+Date: Wed, 11 Nov 2026 22:33:54 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jamal Hadi Salim <jhs@mojatatu.com>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, Victor Nogueira <victor@mojatatu.com>,
+	Jiri Pirko <jiri@resnulli.us>, sashiko-bot@kernel.org
+Subject: Re: [PATCH net-next 1/2] netfilter: nft_fwd_netdev: drop the stale
+ dst when steering to a device
+Message-ID: <avTfQjFQYR2NNdRg@chamomile>
+References: <CORE-9NOG.v1.r0.20261111073528@mojatatu.com>
+ <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -79,56 +70,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com>
 
-
-	Hello,
-
-On Tue, 3 Nov 2026, Julian Anastasov wrote:
-
-> This commit fixes two cases of providing sk on tunneling,
-> one to the update_pmtu handler and the second case is to
-> the ip_local_out() call.
+On Wed, Nov 11, 2026 at 09:16:37AM -0500, Jamal Hadi Salim wrote:
+> This is a followup of the review of the teql arp-queue fix as reported
+> by Sashiko.
 > 
-> For local clients, we can see at LOCAL_OUT a netfilter hook's
-> state->sk that is different from the protocol's skb->sk. This
-> can be the case for UDP_TUNNEL where different sk is provided to
-> ip_local_out. If such packet is then forwarded via IPVS tunnel
-> we may need to provide state->sk to the update_pmtu handler.
+> The issue: the neighbour variant of fwd rewrites skb->dev to the
+> configured output device and calls neigh_xmit(), but leaves the skb's
+> dst untouched. If that device's neighbour for the configured nexthop is
+> incomplete, the packet is parked on the neighbour's arp_queue while the
+> stale dst still describes the device the packet was routed through.
+> Draining the queue re-looks the neighbour up from that dst, so the frame
+> is built with the routed device's link-layer header and then transmitted
+> on the configured device. The packet leaves with another device's
+> addresses.
 > 
-> Fix that by passing the netfilter's hook state via the
-> packet_xmit and conn_schedule handlers to call the update_pmtu
-> handler with state->sk instead of skb->sk.
+> The Fix: drop the dst before the device switch. Both lookup inputs the
+> neighbour transmission needs, the device and the nexthop, are supplied
+> by the rule, so the route dst is never consulted. Without it the queue
+> drain keeps the parking neighbour and the frame carries the configured
+> device's addresses.
 > 
-> While here, change maybe_update_pmtu() to be family independent
-> by using dst and do not request neigh confirm via the last
-> update_pmtu arg because we do not generate the event based on
-> remote signal.
+> Conditions to recreate the bug: two network namespaces, A (10.10.0.1/24)
+> and B (10.1.0.1/24) in one, their veth peers in the other with only A's
+> peer addressed (10.10.0.2/24) so B's nexthop cannot be resolved by ARP.
+> Resolve A's neighbour for 10.10.0.2 as permanent, then load this ruleset
+> on A:
 > 
-> The second problem is that on tunnel forwarding we call
-> ip_local_out() with skb->sk. As we push our own outer IP header
-> in ip_vs_tunnel_xmit*(), the right thing is to provide NULL
-> instead.
+>     table netdev t {
+>             chain c {
+>                     type filter hook egress device va priority 0
+>                     policy accept
+>                     fwd ip to 10.1.0.2 device vb
+>             }
+>     }
 > 
-> For consistency, even if we do not walk the netfilter hooks and
-> just pass the packet with NF_ACCEPT, provide ip_vs_null_xmit_v6
-> handler to properly indicate that we are sending IPv6 packet.
-> Before now we used ip_vs_null_xmit for both families.
+> Send one packet to 10.10.0.2. It is parked on B's incomplete neighbour
+> for 10.1.0.2; once that neighbour becomes valid the frame leaves B
+> carrying A's source address and A's neighbour as the destination.
 > 
-> Fixes: 79b16aadea32 ("udp_tunnel: Pass UDP socket down through udp_tunnel{, 6}_xmit_skb().")
-> Fixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okfn().")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Reported-by: Sashiko (nipa) <sashiko-bot@kernel.org>
+> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com
+> Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com/
+> Reviewed-by: Victor Nogueira <victor@mojatatu.com>
+> Signed-off-by: Jamal Hadi Salim <jhs@mojatatu.com>
+> ---
+>  net/netfilter/nft_fwd_netdev.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+> index a48c2f765bba..ad4d61d64cdd 100644
+> --- a/net/netfilter/nft_fwd_netdev.c
+> +++ b/net/netfilter/nft_fwd_netdev.c
+> @@ -175,6 +175,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+>  		}
+>  	}
+>  
 
-	Dropping v2, we have some problems to address:
+Does this need a check for skb_dst_valid()? I think it is valid to
+attach a template dst here for tunneling?
 
-https://sashiko.dev/#/patchset/20261103152550.60449-1-ja%40ssi.bg
-
-	v3 was just sent.
-
-pw-bot: changes-requested
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+> +	skb_dst_drop(skb);
+>  	skb->dev = dev;
+>  	skb_clear_tstamp(skb);
+>  
+> -- 
+> 2.43.0
+> 
