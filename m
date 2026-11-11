@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794391952;
-	b=coSZ6OrhkHd5bPUPci0lYgnrukWeqRvllxbnjs3UxLRH3auTk7eYvQvpEv8ZJ3FkgtUL
-	 MrA/S72zKhnjhMYZkU6x1oHFiUfDbV0qtEGdanjjMf6d7rF2G9HuiYzDAAc7A+KXnepm2
-	 hjeyI/tZqUM3CZUgSt6SiGWuURX65Ck6LRXzbr00QHDiLWrsnzNvmi/v0c6zfDE+6tScM
-	 WZrtjWgSRLhE8IQAsR1WKFTsOpdoseHuGFuULsYksNYsb2TDGgK8evyXEqKnEW2DvHpHg
-	 WueLFCbBgH9hRgDqJE5jYYHd7xNjuN1hDvDjJe7sqNRbc3OpJOqrwkBFlVNYnVG1IIg==
+	t=1794392180;
+	b=aWwstem/9jWSh6SSsKJYH2worUxC9AsccHzRiiLgLPo3QrkBjgu1tMhWeA/ZLVFGjyRw
+	 K41PDi7rNDkVweNWwewyZe2FiN9Da6UFIZVAJXehK98nUvxvb2S9fjPge7LKygSiwDg5N
+	 jr1c6cxlFDf+9KujSN8UhD3OoF+rK9sp5oe51n7wbNTpJDAnZa2OVLDv/YQIswQubyO4k
+	 OmZTEFb2FZpMsvutsNxddrvj558i3Tk+Yf66U2mapFErriGELs++X8tAc19wuI7thSglD
+	 M7ToXRRfd2y4pQW5bhBtSlcFafvNhVM3kTftoLrpAb6mtuVxey3xkPvDLgixqCmmwqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794391952;
-	h=DMARC-Filter:Received:From:To:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=sIgXs5wdf2+QuBT8v71dh3KCWGRseANXbVgXU5nQ1Wk=;
-	b=iwLgLAlJ9Q2Z22tB3/OL5/dyAg2TtKlGfdsK19dw5Jw/8vi1LXW9GN88bN6pZHKvXl5V
-	 f09BSSYw4KyHQHzZXWuCRkPLN83JKDZpsxYSgmxkJS48tUdYdcJoEVXls9ppC1qaPr0N7
-	 B/Vhu78Oy/9vgwIb0dxej3YrYbn8nWITzel9ka67XKKjzMDSVFFv+gOj338wvw19pPeR1
-	 90rUopuim4v/8oo0PPa270V65wZgVvuF4ezhBspi6RtFUG59WKeEQtXx3n1ziWgCRpdiP
-	 4JoIzPylGXmvOLDmzsK+bIjUdE69V+IM/NS1d6Jqi6y9ddNGXPdAqTpRMRqQIR7Ql6Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794392180;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=TbD4H8p7Q6K63xQ/qNi89XWaocyCT1N+IPh/sf1Hf2k=;
+	b=RcmJagpzjH4iqZj5H+roVaPWT/zWVh+YkCWQVhIYzAWxwwfz+VlU3CRhrs0Z/zgaBmJi
+	 wjor3h7tC8FgOXjQV54tiw98HxZeTKAnQ2MgdglrTTK0+DkOE02NCmYpYAODxeS2Ly5hX
+	 BhGjrF6W8wuZDmFai8Ue4QrJPGkwJhduaJxxFK/Tkb53sMBNbNeT8ghUfaV8v0oButZ1b
+	 6TuA+RDbe4z8NsE4fR+rYHohQ6Htp8R8suudMbJgePtSOo+o3IH2iFLAabyNcBr8ubCc6
+	 k6QJJfWa0gZBVS8CfHtvnJDlb3nIH37Gf/e77lELs+/LxnrQrib7CH90CVe/PHG5w7A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,21 +24,21 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7960606A334
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 10:12:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C7960606A334
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F07606A324
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 10:16:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B1F07606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3614B6060B; Wed, 11 Nov 2026 11:12:30 +0100 (CET)
+	id AD39D6060B; Wed, 11 Nov 2026 11:16:17 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v8 6/6] netfilter: ipset: re-add forceadd support
-Date: Wed, 11 Nov 2026 11:11:57 +0100
-Message-ID: <20261111101157.22270-7-fw@strlen.de>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH ipset 1/3] tests: hash:net,iface: cover cross-iface narrow-net fallthrough blocking
+Date: Wed, 11 Nov 2026 11:16:01 +0100
+Message-ID: <20261111101603.22698-1-fw@strlen.de>
 X-Mailer: git-send-email 2.56.0
-In-Reply-To: <20261111101157.22270-1-fw@strlen.de>
-References: <20261111101157.22270-1-fw@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -50,146 +50,69 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The rhashtable conversion removed the SET_WITH_FORCEADD eviction logic.
+Extend the hash:net,iface test to verify that when multiple nets of
+different sizes and different interfaces overlap, the narrowest net
+entry governs the lookup outcome regardless of its associated
+interface. Specifically:
 
-Add mtype_remove_random() helper to look up a random key slot: a group
-for IP_SET_HASH_WITH_MULTI sets, or a plain element otherwise. If there
-is one, try to evict it and allow add of the new element just like
-before the rhashtable conversion.
+- A narrower net on eth0 blocks fallthrough to a broader net on eth1,
+  so a query for (ip, eth1) must not match the broader eth1 entry.
+- A timeout-bearing narrow entry continues to block fallthrough while
+  it is still live (i.e. before GC reaps it).
+- After the narrow entry on the queried interface is deleted, the
+  intermediate /30 entry on another iface still prevents the broader
+  /16 eth1 entry from matching.
+
+This intentionally omits the 'has timed out but not reaped' case,
+because that fails on the existing implementation, so it is added
+later.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- - adjust for changes in patch 5, must call
-  mtype_group_unlock() after mtype_group_remove_elem().
+ Passes on either main or with rhashtable patches.
 
- net/netfilter/ipset/ip_set_hash_gen.h | 93 ++++++++++++++++++++++++++-
- 1 file changed, 92 insertions(+), 1 deletion(-)
+ tests/hash:net,iface.t | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 5c85f316a09a..f6e73b5aaece 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -165,6 +165,8 @@ static const union nf_inet_addr zeromask = {};
- #undef mtype_kadt
- #undef mtype_uadt
- 
-+#undef mtype_remove_random
-+#undef mtype_remove_cmpfn
- #undef mtype_new_elem
- #undef mtype_add_replace_old
- #undef mtype_add
-@@ -235,6 +237,8 @@ static const union nf_inet_addr zeromask = {};
- #define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
- #define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
- 
-+#define mtype_remove_random	IPSET_TOKEN(MTYPE, _remove_random)
-+#define mtype_remove_cmpfn	IPSET_TOKEN(MTYPE, _remove_cmpfn)
- #define mtype_new_elem		IPSET_TOKEN(MTYPE, _new_elem)
- #define mtype_add_replace_old	IPSET_TOKEN(MTYPE, _add_replace_old)
- #define mtype_add		IPSET_TOKEN(MTYPE, _add)
-@@ -952,6 +956,93 @@ mtype_rht_size(struct ip_set *set, u32 *elements, size_t *ext_size)
- #endif
- }
- 
-+static int mtype_remove_cmpfn(struct rhashtable_compare_arg *arg, const void *obj)
-+{
-+	return 0; /* always match */
-+}
-+
-+/**
-+ * mtype_remove_random() - Remove a random element from the set (forceadd)
-+ * @set: Pointer to the ip_set
-+ *
-+ * When sets created with forceadd option become full the next addition
-+ * to the set may succeed and evict a random entry from the set.
-+ * Best-effort: no linear scan; 'return false' is fine.
-+ *
-+ * Return: true if an element was evicted, false otherwise.
-+ */
-+static bool
-+mtype_remove_random(struct ip_set *set)
-+{
-+	u32 k[HKEY_DATALEN / sizeof(u32)];
-+	struct htype *h = set->data;
-+
-+	/* make sure k[] doesn't eat too much stack space */
-+	BUILD_BUG_ON(sizeof(k) > 64);
-+
-+	/* The real hashfn is needed instead of a "get_random_u32" stub,
-+	 * because rhashtable_lookup() might fail to constant-fold the
-+	 * params below, in which case it would fall back to h->params
-+	 * hashfn.
-+	 */
-+	get_random_bytes(k, sizeof(k));
-+
-+#ifdef IP_SET_HASH_WITH_MULTI
-+	{
-+		static const struct rhashtable_params ip_set_hash_grp_rnd_params = {
-+			.head_offset	= offsetof(struct mtype_group, node),
-+			.key_offset	= offsetof(struct mtype_group, key),
-+			.hashfn		= mtype_rht_hashfn,
-+			.obj_hashfn	= mtype_group_obj_hashfn,
-+			.obj_cmpfn	= mtype_remove_cmpfn,
-+			.key_len	= HKEY_DATALEN,
-+		};
-+		struct mtype_group *grp;
-+		struct mtype_rht_elem *e;
-+
-+		grp = rhashtable_lookup(&h->ht, k, ip_set_hash_grp_rnd_params);
-+		if (!grp)
-+			return false;
-+
-+		/* mtype_add() can call us while already holding this exact
-+		 * group's lock (maxelem reached while inserting into it);
-+		 * trylock to avoid self-deadlock. Best-effort: no linear
-+		 * scan, 'return false' is fine either way.
-+		 */
-+		if (!spin_trylock_bh(&grp->lock))
-+			return false;
-+		e = hlist_entry_safe(grp->iface_list.first,
-+				     struct mtype_rht_elem, node);
-+		if (!e) {
-+			spin_unlock_bh(&grp->lock);
-+			return false;
-+		}
-+		mtype_group_remove_elem(set, h, grp, e);
-+		mtype_group_unlock(h, grp);
-+		return true;
-+	}
-+#else
-+	{
-+		static const struct rhashtable_params ip_set_hash_rnd_params = {
-+			.head_offset	= offsetof(struct mtype_rht_elem, node),
-+			.key_offset	= offsetof(struct mtype_rht_elem, elem),
-+			.hashfn		= mtype_rht_hashfn,
-+			.obj_hashfn	= mtype_rht_obj_hashfn,
-+			.obj_cmpfn	= mtype_remove_cmpfn,
-+			.key_len	= HKEY_DATALEN,
-+		};
-+		struct mtype_rht_elem *e;
-+
-+		e = rhashtable_lookup(&h->ht, &k, ip_set_hash_rnd_params);
-+		if (!e || rhashtable_remove_fast(&h->ht, &e->node, mtype_rht_params))
-+			return false;
-+
-+		ipset_hash_elem_destroy_free(set, e);
-+		return true;
-+	}
-+#endif
-+}
-+
- /**
-  * mtype_new_elem() - allocate and initialize a replacement/new element
-  * @set: Pointer to the ip_set
-@@ -995,7 +1086,7 @@ mtype_new_elem(struct ip_set *set, struct htype *h, const struct mtype_elem *d,
- 		 * its pretty much pointless, userspace can just retry once
- 		 * gc has fired, resp. decrease the gc interval.
- 		 */
--		if (1) {
-+		if (!SET_WITH_FORCEADD(set) || !mtype_remove_random(set)) {
- 			if (net_ratelimit())
- 				pr_warn("Set %s is full, maxelem %u reached\n",
- 					set->name, h->maxelem);
+diff --git a/tests/hash:net,iface.t b/tests/hash:net,iface.t
+index 216f7e8a0253..6566fb407e81 100644
+--- a/tests/hash:net,iface.t
++++ b/tests/hash:net,iface.t
+@@ -150,6 +150,13 @@
+ 0 ipset -A test 1.1.1.0/28,eth0 nomatch
+ # Add an even larger matching net
+ 0 ipset -A test 1.1.1.0/26,eth0
++# Add an even larger net for an unrelated interface
++0 ipset -A test 1.1.0.0/16,eth1
++# Add a short-lived net for one interface
++0 ipset -A test 9.9.9.0/24,eth0 timeout 2
++# Note: GC hasn't reaped the former yet when it expires below.
++# Add a permanent, broader net for another.
++0 ipset -A test 9.9.0.0/16,eth1
+ # Check non-matching IP
+ 1 ipset -T test 1.1.1.1,eth0
+ # Check matching IP from non-matchin small net
+@@ -158,6 +165,11 @@
+ 1 ipset -T test 1.1.1.4,eth0
+ # Check matching IP from even larger net
+ 0 ipset -T test 1.1.1.16,eth0
++# Check narrower net's entries for other iface block fallthrough to broader/unrelated iface
++# to the broader, unrelated-interface net, matching or not
++1 ipset -T test 1.1.1.1,eth1
++# The short-lived net is still live here, so it still blocks fallthrough
++1 ipset -T test 9.9.9.1,eth1
+ # Update non-matching IP to matching one
+ 0 ipset -! -A test 1.1.1.1,eth0
+ # Delete overlapping small net
+@@ -176,6 +188,8 @@
+ 0 ipset -T test 1.1.1.1,eth0
+ # Check matching IP
+ 0 ipset -T test 1.1.1.3,eth0
++# Check live entry on intermediate /30 net blocks fallthrough to broader eth1 net
++1 ipset -T test 1.1.1.1,eth1
+ # Delete test set
+ 0 ipset destroy test
+ # Timeout: Check that resizing keeps timeout values
 -- 
 2.56.0
 
