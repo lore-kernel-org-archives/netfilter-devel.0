@@ -1,22 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=94.136.29.106
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794395606;
-	b=JQqVMm1YLw693d90buxjPdpOf+PDOZDDNcmP417XBcdo9n2vXz2FhFlju/xE4ORDjsiG
-	 OQlWchmF7/jXCKBFY+8djhk1JbZBHYvxf3cwFrVVyudb0ShDH+vHrPxHSJ13kBhEzZCLd
-	 cyYJ4VElbYakW0ZlM66zE0+X83f+nMSRH3w5xPIVGLh2UDlzo0aLC9WPVg5hnNPJAfj/+
-	 zSh/SRsPorbAdwOieb8WV2h9iCuXoOlmK6ml7gzEy2MHPnnr1qurdunficxhgbjXoJ1ts
-	 enEOdgnSks6HBqiK24KsYgyVkAn+7uC1k1Gh7jJWSS8HJ/N0jmlUaRnSi6Qj9+HWz4w==
+	b=rmhZllQ8R+2xE8ms4p23+m/iiC7rJl0EpHcURTRc/0MM4SA5z15185ff9swKii5aAdk4
+	 i73xXFrczFZFLE/tV9BtAF5HFP/aYiPQU3VE94adUrCvCeVdH//H6bX6NrX8lPfoVYHLR
+	 4D/BB8pJngNcSfC+H+Ej3wILX5N5px4NQd8TytVqjkKBkKYVvjW6MASH3dQy7I9JhZq6o
+	 IAy4ccoDgZQbEGtZt78vyVDw12SqogJPYxmAjEpmNTfzA0N9063n0VCB8kvVIAblyyfOl
+	 haxWOfaU+pgshN/vNCkjfJU5Vk/eSvrFLHzvkrtUJp/FjhQ1lY1gnEqa5q6hVjMZbTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794395606;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 X-Bm-Milter-Handled:X-Bm-Transport-Timestamp;
-	bh=hkRVs1TToHlxgPZ9XG4nPjq+9GQLyOyEfRZ1Z//KgSw=;
-	b=nZ1M8ojQVaUjj5lgkAhy+yBD3y0sXVv4/fys23HKp2sbe4HxLT49/Lw5P0JnX/lfkR/L
-	 rAVND4xpmPjeoykR7v3m7g6difaozrD/ScH3WFQ8hv0nlPN1KmUIQ/RS4LfwgElhd/ct8
-	 6JEOz0zMQuz4mUxy84cr7UcUqt5CxPEBRNLb/dLZYmYdDDA93xLWcPmjCpX5owhNEcMpN
-	 /nfN8PGc10K3CfHtLZTdYGTi+nbKLqpwdBXgwxEHTiA9xYeLDXZuAR55MNsvME9gfdEXO
-	 30/3916vsPAKlCVwNIqOKdFwBeZZmN8MErAwIFY2qwAcKDMGEkRP0voMeUmi85G+Trg==
+	 MIME-Version:Content-Transfer-Encoding:X-Bm-Milter-Handled:
+	 X-Bm-Transport-Timestamp;
+	bh=kvWD9EQTMwYBo2ig95vUjM3dPcRLEkFL5l+720cDBdI=;
+	b=Q7NtysnPWqCoxb792DY0UwWjyBVUIZ5LcmVAq1ebDXiG7uN0VsKxcO5ZxCH0TWRbWlfp
+	 oJcKT/QSMbcrPKXWou7OT8mQYW4UVpkOxZJIzJWj94mzOW0o6K0eUSTlPcKxVS5isXSHD
+	 ghSQRjOSlbH5/cr8Nj7NVS0aBPBPX3rjnwv0oRqI5PI+hV/bHr7J4xEsraFfN1k9YNbYX
+	 G90D1Lc8AMlmfVDxg9zsIRZR4w/pIyEsuxaertzEVY6VppaCxLklqYLOOh9GKQIapy4wb
+	 S9HxXzUMM8iCvVq1nweHk4cERAoliMJOhazQSmdcokXaEQBxJzROiC2Zc+xPLI1wX1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=proxmox.com;
 	spf=pass smtp.mailfrom=proxmox.com;
@@ -25,13 +25,13 @@ Received: from proxmox-new.maurer-it.com (proxmox-new.maurer-it.com [94.136.29.1
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B20606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1A3A606A326
 	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 11:13:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A1B20606A327
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A1A3A606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proxmox.com
 Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
-	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id C1F10481F8;
+	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id CF60B48206;
 	Wed, 11 Nov 2026 12:13:16 +0100 (CET)
 From: Stefan Hanreich <s.hanreich@proxmox.com>
 To: netfilter-devel@vger.kernel.org
@@ -39,12 +39,10 @@ Cc: Stefan Hanreich <s.hanreich@proxmox.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf-next 2/3] netfilter: nf_tables: stop bind walk at anonymous set creation
-Date: Wed, 11 Nov 2026 12:12:45 +0100
-Message-ID: <20261111111250.226432-3-s.hanreich@proxmox.com>
+Subject: [PATCH nf-next 0/3] netfilter: nf_tables: speed up loading rulesets with many sets
+Date: Wed, 11 Nov 2026 12:12:43 +0100
+Message-ID: <20261111111250.226432-1-s.hanreich@proxmox.com>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261111111250.226432-1-s.hanreich@proxmox.com>
-References: <20261111111250.226432-1-s.hanreich@proxmox.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -56,49 +54,109 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Bm-Milter-Handled: 55990f41-d878-4baa-be0a-ee34c49e34d2
-X-Bm-Transport-Timestamp: 1794395595918
+X-Bm-Transport-Timestamp: 1794395595795
 
-When an anonymous set is bound to a rule, __nft_set_trans_bind() marks
-the NEWSET and NEWSETELEM transactions of that set as bound. It walks
-the whole commit list to do so, so a batch adding N rules that each use
-an anonymous set takes time quadratic in N.
+In nft_table, while chains and objects are looked up by name in a
+hashtable, sets are only kept in a linked list. Looking up a set by name
+and allocating a name for an anonymous set both require walking this
+list. This makes applying a ruleset take time quadratic in the number of
+sets. This series addresses this by storing sets the same way as chains
+and objects.
 
-The walk was introduced in commit f6ac85858976 ("netfilter: nf_tables:
-unbind set in rule from commit path") to stop at the NEWSET transaction
-of the set, which is likely close to the tail of the list.
+Patch 1 adds a hashtable for set lookups by name, as already done for
+chains and objects. This covers creating sets, adding and deleting set
+elements, and expressions referring to a set by name.
 
-Commit 6a0a8d10a366 ("netfilter: nf_tables: use-after-free in failing
-rule with bound set") turned the condition into a switch statement to
-also mark NEWSETELEM transactions, so the break statement only leaves
-the switch and the loop runs to the head of the list.
+Patch 2 stops walking the transaction list when binding an anonymous
+set once the transaction creating the set is found. This early exit was
+lost in commit 6a0a8d10a366 ("netfilter: nf_tables: use-after-free in
+failing rule with bound set").
 
-Stopping at the NEWSET transaction is still sufficient. Anonymous sets
-cannot be updated, so there is only one NEWSET transaction per set, and
-elements can only be added after the set was created. Since the list is
-walked starting from the newest transaction, all transactions referring
-to the set have been seen once its NEWSET transaction is found.
+Patch 3 takes the numbers for anonymous set names from a per-table
+counter, similar to anonymous chains, instead of searching all sets of
+the table for the smallest unused number.
 
-Signed-off-by: Stefan Hanreich <s.hanreich@proxmox.com>
----
- net/netfilter/nf_tables_api.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+The changes in this patch series cause set names in lookups to be cut
+off at the first NUL byte, as for chains and objects, so a name like
+"foo\0bar" refers to an existing set "foo" instead of matching no set.
+Also, anonymous set numbers are no longer reused, and all name formats
+such as "__set%d" and "__map%d" share one counter. nft does not depend
+on the actual numbers.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9fe234e329df..c9b0070846b7 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -248,8 +248,10 @@ static void __nft_set_trans_bind(const struct nft_ctx *ctx, struct nft_set *set,
- 	list_for_each_entry_reverse(trans, &nft_net->commit_list, list) {
- 		switch (trans->msg_type) {
- 		case NFT_MSG_NEWSET:
--			if (nft_trans_set(trans) == set)
-+			if (nft_trans_set(trans) == set) {
- 				nft_trans_set_bound(trans) = bind;
-+				return;
-+			}
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			if (nft_trans_elem_set(trans) == set)
+Time to load the rulesets with "nft -f", in seconds, as printed by the
+script below (perf stat, mean of 5 runs):
+
+Without any patches (at 734bef54):
+
+named sets, 1000:
+          0.022394 +- 0.000179 seconds time elapsed  ( +-  0.80% )
+named sets, 5000:
+           0.31914 +- 0.00670 seconds time elapsed  ( +-  2.10% )
+named sets, 10000:
+            1.3933 +- 0.0232 seconds time elapsed  ( +-  1.67% )
+anon sets, 1000:
+           0.03728 +- 0.00271 seconds time elapsed  ( +-  7.27% )
+anon sets, 5000:
+            0.8123 +- 0.0110 seconds time elapsed  ( +-  1.36% )
+anon sets, 10000:
+            3.6800 +- 0.0508 seconds time elapsed  ( +-  1.38% )
+
+
+With all 3 patches applied:
+
+named sets, 1000:
+           0.00884 +- 0.00115 seconds time elapsed  ( +- 12.96% )
+named sets, 5000:
+           0.04680 +- 0.00450 seconds time elapsed  ( +-  9.62% )
+named sets, 10000:
+           0.09196 +- 0.00523 seconds time elapsed  ( +-  5.69% )
+anon sets, 1000:
+         0.0089494 +- 0.0000518 seconds time elapsed  ( +-  0.58% )
+anon sets, 5000:
+           0.05008 +- 0.00468 seconds time elapsed  ( +-  9.35% )
+anon sets, 10000:
+          0.090748 +- 0.000146 seconds time elapsed  ( +-  0.16% )
+
+#!/bin/sh
+named() {
+	echo "add table inet t"
+	echo "add chain inet t c"
+	for i in $(seq 1 "$1"); do
+		echo "add set inet t s$i { type ipv4_addr; }"
+		echo "add rule inet t c ip saddr @s$i counter"
+	done
+}
+
+anon() {
+	echo "add table inet t"
+	echo "add chain inet t c"
+	for i in $(seq 1 "$1"); do
+		echo "add rule inet t c ip saddr { 10.0.0.1, 10.0.0.2 } counter"
+	done
+}
+
+rules=$(mktemp)
+for type in named anon; do
+	for n in 1000 5000 10000; do
+		$type "$n" > "$rules"
+		echo "$type sets, $n:"
+		perf stat --null -r 5 --pre "nft flush ruleset" nft -f "$rules" 2>&1 |
+			grep 'time elapsed'
+	done
+done
+rm "$rules"
+
+Stefan Hanreich (3):
+  netfilter: nf_tables: use a hashtable for set lookups by name
+  netfilter: nf_tables: stop bind walk at anonymous set creation
+  netfilter: nf_tables: use a counter for anonymous set names
+
+ include/net/netfilter/nf_tables.h |  10 +-
+ net/netfilter/nf_tables_api.c     | 170 +++++++++++++++++++++---------
+ 2 files changed, 127 insertions(+), 53 deletions(-)
+
+
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
 -- 
 2.47.3
 
