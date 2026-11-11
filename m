@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794392180;
-	b=aWwstem/9jWSh6SSsKJYH2worUxC9AsccHzRiiLgLPo3QrkBjgu1tMhWeA/ZLVFGjyRw
-	 K41PDi7rNDkVweNWwewyZe2FiN9Da6UFIZVAJXehK98nUvxvb2S9fjPge7LKygSiwDg5N
-	 jr1c6cxlFDf+9KujSN8UhD3OoF+rK9sp5oe51n7wbNTpJDAnZa2OVLDv/YQIswQubyO4k
-	 OmZTEFb2FZpMsvutsNxddrvj558i3Tk+Yf66U2mapFErriGELs++X8tAc19wuI7thSglD
-	 M7ToXRRfd2y4pQW5bhBtSlcFafvNhVM3kTftoLrpAb6mtuVxey3xkPvDLgixqCmmwqg==
+	t=1794392184;
+	b=FlcLkBlOWeCceNg6ullMVeN6ZE35l06nf9EBxWlOmfHcpcz45JMurcEqA+/EtPf6QlPN
+	 JsXEGty0I8HVsPKGvOy9uB5G/sTnFs8/pvEduVUnggfFg5i6cIDcApZhE6wOe/XPemxIz
+	 rM/oIMjasLwJ4UN+EU9yhUHGtANR3QEBGDJ5Mz018azPL+IJ4BNL42OZpqQwZx8aT22Rf
+	 7K/98nr7f2NlEKMvLQUT6iPP5fAMCtNwqVLZmjYeGjcTof+rbGvJpXBAFMeOVkSx6+L+c
+	 oppM6kwxMTyAxfcN0qrFc95bVzXsCK+QUB+wiMrEaF9QdXcwj+jMv6NjHI/nESagDtw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794392180;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794392184;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=TbD4H8p7Q6K63xQ/qNi89XWaocyCT1N+IPh/sf1Hf2k=;
-	b=RcmJagpzjH4iqZj5H+roVaPWT/zWVh+YkCWQVhIYzAWxwwfz+VlU3CRhrs0Z/zgaBmJi
-	 wjor3h7tC8FgOXjQV54tiw98HxZeTKAnQ2MgdglrTTK0+DkOE02NCmYpYAODxeS2Ly5hX
-	 BhGjrF6W8wuZDmFai8Ue4QrJPGkwJhduaJxxFK/Tkb53sMBNbNeT8ghUfaV8v0oButZ1b
-	 6TuA+RDbe4z8NsE4fR+rYHohQ6Htp8R8suudMbJgePtSOo+o3IH2iFLAabyNcBr8ubCc6
-	 k6QJJfWa0gZBVS8CfHtvnJDlb3nIH37Gf/e77lELs+/LxnrQrib7CH90CVe/PHG5w7A==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=hEn5+W4I5DkbryWX9Xx6+U2ScmSj/KyR3NnsUmVcVDs=;
+	b=ynhQQzahTTz6mpnLlA4x0CggoqAxvSCxislio2yFrsPXH74u2U7xi3cGQWPeP6MTMT5L
+	 cxnbrZ9+F+BXoDMBG4TrG3pdfrrwkZQgQ1Gydyn6E5PJbLIo1jnfivtxCykVRO3ZN4tiD
+	 M6lUwgyUONnBxd+zQe9596kNT47XUzftEl3wRfTEMeuxGH+dIervW9DevT5SVuVjhpZrd
+	 b69f5e0s4/81MozsjO7+D+3b2pe+BhgFSS3TKIB08rLYE62u7yVahS5enbDJWyMCbu7Nt
+	 SjsZ/SZ2iKB6dpMU2vRsx7xTm/9Bz4+fO6/QXg4C9ZywelVWChxBifwQRWAHO9p1Kww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,21 +24,23 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1F07606A324
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 10:16:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B1F07606A324
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91D0C606A31C
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 10:16:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 91D0C606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id AD39D6060B; Wed, 11 Nov 2026 11:16:17 +0100 (CET)
+	id EFD456060B; Wed, 11 Nov 2026 11:16:21 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH ipset 1/3] tests: hash:net,iface: cover cross-iface narrow-net fallthrough blocking
-Date: Wed, 11 Nov 2026 11:16:01 +0100
-Message-ID: <20261111101603.22698-1-fw@strlen.de>
+Subject: [PATCH ipset 2/3] tests: hash:net,iface: timed-out entries must be ignored
+Date: Wed, 11 Nov 2026 11:16:02 +0100
+Message-ID: <20261111101603.22698-2-fw@strlen.de>
 X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261111101603.22698-1-fw@strlen.de>
+References: <20261111101603.22698-1-fw@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -50,66 +52,31 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Extend the hash:net,iface test to verify that when multiple nets of
-different sizes and different interfaces overlap, the narrowest net
-entry governs the lookup outcome regardless of its associated
-interface. Specifically:
+When a timed-out entry in a `hash:net,iface` set expires, it should no
+longer affect matching: lookups must behave as if the entry had already
+been reaped by GC.
 
-- A narrower net on eth0 blocks fallthrough to a broader net on eth1,
-  so a query for (ip, eth1) must not match the broader eth1 entry.
-- A timeout-bearing narrow entry continues to block fallthrough while
-  it is still live (i.e. before GC reaps it).
-- After the narrow entry on the queried interface is deleted, the
-  intermediate /30 entry on another iface still prevents the broader
-  /16 eth1 entry from matching.
-
-This intentionally omits the 'has timed out but not reaped' case,
-because that fails on the existing implementation, so it is added
-later.
+As-is, the expired entry continues to shadow the broader one until GC
+removes the entry from the set, creating a window where matching is
+inconsistent with the entry's logical state.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Passes on either main or with rhashtable patches.
+ Fails on main, but not on rhashtable v8 patches.
 
- tests/hash:net,iface.t | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ tests/hash:net,iface.t | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/tests/hash:net,iface.t b/tests/hash:net,iface.t
-index 216f7e8a0253..6566fb407e81 100644
+index 6566fb407e81..c4a8de45fced 100644
 --- a/tests/hash:net,iface.t
 +++ b/tests/hash:net,iface.t
-@@ -150,6 +150,13 @@
- 0 ipset -A test 1.1.1.0/28,eth0 nomatch
- # Add an even larger matching net
- 0 ipset -A test 1.1.1.0/26,eth0
-+# Add an even larger net for an unrelated interface
-+0 ipset -A test 1.1.0.0/16,eth1
-+# Add a short-lived net for one interface
-+0 ipset -A test 9.9.9.0/24,eth0 timeout 2
-+# Note: GC hasn't reaped the former yet when it expires below.
-+# Add a permanent, broader net for another.
-+0 ipset -A test 9.9.0.0/16,eth1
- # Check non-matching IP
- 1 ipset -T test 1.1.1.1,eth0
- # Check matching IP from non-matchin small net
-@@ -158,6 +165,11 @@
- 1 ipset -T test 1.1.1.4,eth0
- # Check matching IP from even larger net
- 0 ipset -T test 1.1.1.16,eth0
-+# Check narrower net's entries for other iface block fallthrough to broader/unrelated iface
-+# to the broader, unrelated-interface net, matching or not
-+1 ipset -T test 1.1.1.1,eth1
-+# The short-lived net is still live here, so it still blocks fallthrough
-+1 ipset -T test 9.9.9.1,eth1
- # Update non-matching IP to matching one
- 0 ipset -! -A test 1.1.1.1,eth0
- # Delete overlapping small net
-@@ -176,6 +188,8 @@
- 0 ipset -T test 1.1.1.1,eth0
- # Check matching IP
+@@ -190,6 +190,8 @@
  0 ipset -T test 1.1.1.3,eth0
-+# Check live entry on intermediate /30 net blocks fallthrough to broader eth1 net
-+1 ipset -T test 1.1.1.1,eth1
+ # Check live entry on intermediate /30 net blocks fallthrough to broader eth1 net
+ 1 ipset -T test 1.1.1.1,eth1
++# Check expired net no longer blocks fallthrough to the broader other-interface net
++0 ipset -T test 9.9.9.1,eth1
  # Delete test set
  0 ipset destroy test
  # Timeout: Check that resizing keeps timeout values
