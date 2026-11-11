@@ -1,103 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794406608;
-	b=P7r+5ToPZOEyLocE/1EnZgd2AmvkHqiPZ4k/lYo40XSAmpvsGO3bNsB9gdRCoRq1yE2y
-	 a6Lj8Fim91jT8hDZ1MHxKHVfez3CkC4AfTURea2uxVClN/wiwbd0oDkeu92JSGdQyEb2s
-	 kic0jovEJ7oyCIn3Lt/iTAsU4GLnkUtHIV725v+GOzgscA4eC+hqUdiVkMeRS+AGI9z6l
-	 ggQdifAzDo0z012aKYz84QyvX2UlklGymDt8mj+73gty64FVCWcmJc5DXjub15YMyPu8D
-	 6xYGFU5MquocgOGaGHqDz98wCagiLfBEJOB5xB1lz2bDlzwes1miXBxYhHnAJw4O8iQ==
+	t=1794410514;
+	b=xsK10kuyH/+J2Yk4zRLxNlzxn7rVS6TS/cBX3QYjzZzZeowHAJTKIzy0W0RVQFM+8SWe
+	 s287bz4HmSqy6GA8gwpUiztV8HzZ3ucnhkAmomu+pX7KOReawNGE0jdRWlZRvIii333wR
+	 voejA9p/+i/rC2T5pPzkhpNFHfmL0s+Tx4Bt6n4rYBo5A4zd1dbHHP3lHJcywOtZpdTut
+	 JrSnpWoVSRZ2zwC3aLRbYLEYmJ2K6958FbAePqxVmm6PUbrQWBLjGM6AmSlqwLsE/g1qC
+	 I9GOGhXLhTXl1MEgfCNQYDRP7PqioSSnmGkRohq+0kVsQjy28+cylypjdx+EnzuzPpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794406608;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=Kkp0sf7AYW6VmAUeGJTN0IINgbfaB9P070/+YW6JJGM=;
-	b=dxwXGO9XOapfdEbeJO5VyidE9ZbTORA/fsuedcJanKYGm9e2tkb69gmxNUjTGp85pcfh
-	 H/tSQFGVG1T2Axl5GOW3H4JY2QVMAGTFY2WE+/sVi44ZUuWTqcIFTWoubax4UGBsLiX3y
-	 WIcHJb9Wpwapi1cDkl83csycGQDoQmfukzaeKwMpSTW4qE1m5lGhO9RT7GBB0cZXcvdBw
-	 Vic8RkWK9xzs84Z48efZGXGAj3LC8NcLAV7GbIat0b2q3oHt41FRI2Rdf8pF1Caw2yNwn
-	 tTqwA8mQ2mRVcNHUXvkMXvCkamBfSvvdva11Iq1iIFbtgX/B/6T7Shko1Saeb/Mzw8A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794410514;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=81ZdOZI8AFzoY6Wjc1ZAc89k6QICeJEkg2KfANGYI3I=;
+	b=Zpo96lETfkAF1Gekm/THP9M/xlqq2bJIECyJyM/dhy3pRup8GlSt+VAhdjgCIMWHQAST
+	 dX7yAIWpbVpVfbHLdy+DAoHxFGDIqe3Hxl/k3G0VyzHoK+siercPiH+yyagZGA55wIH6d
+	 Gxh9aIeov2B3x9zI3Ub/XM9vY67u/AQOX1npmyqq/lZRLVTP3Qsib3q5RLGg7g990nR2a
+	 btkcGFPYW1qNi5b9RRVH56MJnex6XFCOUIVWw+lhM0w0C7R3I9Gnnq5JEVckG/DNr3akc
+	 xrOwSq478pbIFTVR2h3hAx/PgIcIU+P9l8TjFGmUnvRJYvaI70+Jbxudd6MczNMGP2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=mojatatu.com;
-	spf=none smtp.mailfrom=mojatatu.com;
-	dkim=pass header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=SQ4E1TMp;
-	arc=none smtp.remote-ip=209.85.160.169
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=YsCD+kcs;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770AE606A33A
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 14:16:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 770AE606A33A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 1F12F606A324;
+	Wed, 11 Nov 2026 15:21:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F12F606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=SQ4E1TMp
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-53639b8903bso40660051cf.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2026 06:16:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu.com; s=google; t=1794406607; x=1795011407; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Kkp0sf7AYW6VmAUeGJTN0IINgbfaB9P070/+YW6JJGM=;
-        b=SQ4E1TMp/e2ruLG4sjeW4a9FyCecaLf7rPv9DZjCXoQQokviHfyx48hZqqIliIAyzg
-         U0qynPV/Rcmw3BZy5NZ115W30eORxd1WIQpNwsNbtHLkZmQGhIImXhOEOBnpyc5JsFyU
-         sMeljLDzBCoa+U/Jzm/wSHqHh+G3MhvLtwxbE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794406607; x=1795011407;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Kkp0sf7AYW6VmAUeGJTN0IINgbfaB9P070/+YW6JJGM=;
-        b=2RL3WReqfr+3NKFyOis4E8JfTiyUYgMdPp2pCrirJOvfy6a4M6CqNcMPbjwDyWGNzt
-         rT9gcpw6or9gU/4vrMPVEbQ4wB8NWzOyHD6y0hpRv+p9jBcSU1cvWMots01VcfQJ3G/b
-         PvufUJ4zXztS0NQQpUSgG3BWpGNpaaMjiz21RnKv4DyDDJgjR5FKlYrF+G3sn3bQG9dz
-         5hyHYfiBRKU4WS66YgsL0iaFOs9sK0FHOa4ghRvzB65d3RcjD5ojuC93P/692zBlDJdw
-         VnA0XjXZyAO4ElWCCXRCWWsm1/JGRpnseuugh4N2JwSCdonUa9IpStiUvYnLrIajcFKJ
-         K0fQ==
-X-Forwarded-Encrypted: i=1; AL+hErHFwLZ5Gciy2ytrjx2SKZsDPADCT6tsMoRixLQZgWaqJoNVVKyuPJYIrlcjyXKVuMdXw+DUuRttP2Y7MsUBKzo=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9mmI3OP+bz15fsuHczxtERy3TwAd7lxUz1VvprazELbEw2cKG3
-	WPop0WxH1e/K6yEigrbG9z84E3ztY3JOJzkWx6S2R3So3pqf2qnUdgIH99Ba09AozQ==
-X-Gm-Gg: AYBFou2iznjWyKtmjN+h9L4PAxM0Wl+UEN2SMFTNgMhCHIhs5Dgz8NST7C/QEznmAft
-	yi1Ivwbr2mW0xvIcIlD2FvsgATEwJIvxJ1aMqhOdRwdEormmvLnJH0DdXCGgFRnRcYZI1yVUMuZ
-	KxoWZDbkDM61+KuzmJ1cR/eY7Z6edAn4nOuOJJ9FbZFE9VCbZAqaFDg6CF3HaYfE8LW2F1WsGJq
-	Qe/qQ+At22ZfLnji8JKPm5qlNZEJrOMKNfViyaEDcvaVcrZImw6rvgOv0Z3wg3ChdNdpV6UX86F
-	TZ3rR59Z7JxXzlh9ZhQsXQYpOI9Y+BKhPTgLQHLAByW7uNnaqYxgreolVAuJ9wHjo/ZJZCExqVU
-	1L8p+m+zzjRF+KoBXxUwQxS2DbOyyxuWKOkSEsFzQig7FZEgcMdUGPFQ3F7F1yg89Tntpng+Vae
-	uLnuj+WrwhjQK58zApvbqDm3kKfhYPZwW1psF9uGLEkERSRf7FDtlp7edBPUWco/gfdHIVbJ9Oo
-	gLPnP91MPzThMrkM0Jcyjo05o1UdG2GswIq3Mc1fVGbHgf9FRngzX/yJGGFYIgI5gcYzSs0G3id
-	CdInMWqyztRB836ZoHyW6RCgvo6KvHG8VT6lBFQhnR5Nc3AM4Qf7sfsOJz89lozHgsrhaEjUOT1
-	e9iJTTQP4W8iJ4g==
-X-Received: by 2002:ac8:5fc5:0:b0:535:96cd:559a with SMTP id d75a77b69052e-556c0cbd262mr31027821cf.16.1794406607214;
-        Wed, 11 Nov 2026 06:16:47 -0800 (PST)
-Received: from localhost.localdomain ([64.203.83.2])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5550be2e592sm51505041cf.24.2026.11.11.06.16.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Nov 2026 06:16:46 -0800 (PST)
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-To: netdev@vger.kernel.org
-Cc: Jamal Hadi Salim <jhs@mojatatu.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Victor Nogueira <victor@mojatatu.com>,
-	Jiri Pirko <jiri@resnulli.us>,
-	sashiko-bot@kernel.org
-Subject: [PATCH net-next 1/2] netfilter: nft_fwd_netdev: drop the stale dst when steering to a device
-Date: Wed, 11 Nov 2026 09:16:37 -0500
-Message-Id: <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <CORE-9NOG.v1.r0.20261111073528@mojatatu.com>
-References: <CORE-9NOG.v1.r0.20261111073528@mojatatu.com>
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=YsCD+kcs
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1794410504;
+	bh=81ZdOZI8AFzoY6Wjc1ZAc89k6QICeJEkg2KfANGYI3I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=YsCD+kcsxHtTV4zP34F7vLZ/ekCoGHlQC9NpKuHz10dcYsogCDKyCqf91wjZ/QUEv
+	 hpwVjxcXbT1BtRZJpBp9HE1eLMWRQrm/wqNVrLQTWJ2IvGv9SlQp6YlS+vHhq+d2AY
+	 LvEFaZrhBAizhh21XETNKqcXLIWY0UcFPLJHk7hFijuoAZkkf0eML9djQ7xPUteaOX
+	 WNyUPw3gATGFPlxghW2yUsrOAi1duAzB0wQsyri+hWQ/2UlVKljrHP8EPtxUvSN4ec
+	 AGOSuiz6z02GqVOUIrmOxb9X1lp6J9PQdQ4mNOnboRwGJ9PdeSY+/PKujwtQtc0RHK
+	 FIC8aJq+C3CoQ==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 0BD8660055;
+	Wed, 11 Nov 2026 16:21:44 +0100 (CET)
+Date: Wed, 11 Nov 2026 16:21:41 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: John <shffr@protonmail.com>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"regressions@lists.linux.dev" <regressions@lists.linux.dev>
+Subject: Re: [REGRESSION] netfilter: flowtable: XMIT_NEIGH flows sent to
+ 00:00:00:00:00:00 once the next hop's neighbour entry is gone
+Message-ID: <avSIBUcLH4kZyISX@chamomile>
+References: <MAEpYNlWKRd7lM0j62YlEZ97Ux1h5AyjSuFRm4Lxk2Q6haeDGTKqX8lpDRZ8slvBu6qA7Bbt18zpr9fyF_jArrEemTgRqzqluxmsGH7UcFk=@protonmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -107,66 +67,273 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="AFckwEBk/Xj85OWv"
+Content-Disposition: inline
+In-Reply-To: <MAEpYNlWKRd7lM0j62YlEZ97Ux1h5AyjSuFRm4Lxk2Q6haeDGTKqX8lpDRZ8slvBu6qA7Bbt18zpr9fyF_jArrEemTgRqzqluxmsGH7UcFk=@protonmail.com>
 
-This is a followup of the review of the teql arp-queue fix as reported
-by Sashiko.
 
-The issue: the neighbour variant of fwd rewrites skb->dev to the
-configured output device and calls neigh_xmit(), but leaves the skb's
-dst untouched. If that device's neighbour for the configured nexthop is
-incomplete, the packet is parked on the neighbour's arp_queue while the
-stale dst still describes the device the packet was routed through.
-Draining the queue re-looks the neighbour up from that dst, so the frame
-is built with the routed device's link-layer header and then transmitted
-on the configured device. The packet leaves with another device's
-addresses.
+--AFckwEBk/Xj85OWv
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-The Fix: drop the dst before the device switch. Both lookup inputs the
-neighbour transmission needs, the device and the nexthop, are supplied
-by the rule, so the route dst is never consulted. Without it the queue
-drain keeps the parking neighbour and the frame carries the configured
-device's addresses.
+Hi,
 
-Conditions to recreate the bug: two network namespaces, A (10.10.0.1/24)
-and B (10.1.0.1/24) in one, their veth peers in the other with only A's
-peer addressed (10.10.0.2/24) so B's nexthop cannot be resolved by ARP.
-Resolve A's neighbour for 10.10.0.2 as permanent, then load this ruleset
-on A:
+Would you give a try to this attached patch?
 
-    table netdev t {
-            chain c {
-                    type filter hook egress device va priority 0
-                    policy accept
-                    fwd ip to 10.1.0.2 device vb
-            }
-    }
+Thanks.
 
-Send one packet to 10.10.0.2. It is parked on B's incomplete neighbour
-for 10.1.0.2; once that neighbour becomes valid the frame leaves B
-carrying A's source address and A's neighbour as the destination.
+On Mon, Nov 09, 2026 at 09:26:55PM +0000, John wrote:
+> Hi,
+> 
+> Since commit b5964aac51e0 ("netfilter: flowtable:
+> consolidate xmit path"), a flow offloaded with
+> FLOW_OFFLOAD_XMIT_NEIGH keeps being forwarded with
+> destination MAC 00:00:00:00:00:00 after the next hop's
+> neighbour entry has been removed. Nothing resolves the next
+> hop again, so the flow stays black-holed for as long as it
+> keeps sending.
+> 
+> Before that commit the XMIT_NEIGH case called neigh_xmit(),
+> which creates the entry if needed, sends a solicitation and
+> queues the packet. Now nf_flow_offload_ipv6_hook() does
+> 
+> 	neigh = ip_neigh_gw6(rt->dst.dev, rt6_nexthop(...));
+> 	if (IS_ERR(neigh)) { ... }
+> 	xmit.dest = neigh->ha;
+> 
+> and passes the skb to dev_queue_xmit() through
+> nf_flow_queue_xmit(), without looking at neigh->nud_state.
+> When ip_neigh_gw6() has just created the entry, ha is all
+> zeros, and since the neighbour output path is never used, no
+> solicitation goes out and the entry stays unresolved. The
+> IPv4 branch has the same construction with ip_neigh_gw4().
+> In v7.4-rc2 the code has moved into the per-family xmit
+> functions but is otherwise unchanged.
+> 
+> This hit a router here running 6.18.60, which has
+> b5964aac51e0 as a stable backport. A WireGuard endpoint
+> behind the router talks to nothing else through it, so its
+> neighbour entry on the router aged out while the tunnel's
+> flow was offloaded, and the endpoint's handshake retries
+> every 5 s kept the flow alive. On the router's egress
+> interface every forwarded packet of the flow then looked
+> like this (addresses replaced):
+> 
+>   02:0e:bd:92:63:28 > 00:00:00:00:00:00,
+>   ethertype IPv6 (0x86dd), length 154:
+>   2001:db8:1::51.60161 > 2001:db8:2::1f.59320:
+>   UDP, length 92
+> 
+> "ip -6 neigh" had no entry for the destination, conntrack
+> showed the flow as [OFFLOAD], and deleting the conntrack
+> entry restored the tunnel until the next time the entry aged
+> out, a few minutes later. Going back to 6.12.115 on the same
+> router fixed it.
+> 
+> The script below reproduces it with three network namespaces
+> and no special hardware (IPv6 only, needs iproute2, nft and
+> python3). The server has a permanent entry for the router,
+> so the router only knows the server from its own resolution.
+> The flow is offloaded while the router has no valid entry
+> for the server, which gives XMIT_NEIGH, and once it is
+> offloaded the script removes the router's entry again, which
+> is what neighbour GC does to an idle STALE entry.
+> 
+> 6.18.60:
+> 
+>   flow: [OFFLOAD]
+>   entry: fd00:2::2 lladdr a2:5b:b4:93:86:a9 REACHABLE
+>   entry removed, flow offloaded
+>   2 s later:
+>   echoes: 7 ok, 11 lost
+>   destination MAC of echoes to the server:
+>        10 00:00:00:00:00:00
+>         7 a2:5b:b4:93:86:a9
+> 
+> 6.12.116 (Debian 6.12.116+deb13):
+> 
+>   flow: [OFFLOAD]
+>   entry: fd00:2::2 lladdr de:9b:d1:db:19:4c REACHABLE
+>   entry removed, flow offloaded
+>   2 s later: fd00:2::2 lladdr de:9b:d1:db:19:4c REACHABLE
+>   echoes: 17 ok, 1 lost
+>   destination MAC of echoes to the server:
+>        18 de:9b:d1:db:19:4c
+> 
+> (Datagram 0 is lost on both kernels, during start-up.)
+> 
+> I have not run the reproducer on mainline. I compared the
+> code in v7.4-rc2 instead, and the IPv4 path is untested.
+> 
+> I don't know this code well enough to say which fix you
+> would want. Handing the packet to neigh_xmit() when the
+> entry is not NUD_VALID would restore the old behaviour for
+> that case, and tearing the flow down would also work, since
+> the next packet would then take the classic path and resolve
+> the neighbour. I can test a patch on the router or with the
+> script.
+> 
+> #regzbot introduced: b5964aac51e0
+> 
+> --- reproducer ---
+> 
+> #!/bin/bash
+> # Flowtable XMIT_NEIGH flow forwarded to 00:00:00:00:00:00
+> # after the next hop's neighbour entry goes away. Needs
+> # root, iproute2, nft and python3.
+> #
+> # Namespaces c (client), r (router with a flowtable) and s
+> # (server). The server has a permanent entry for the
+> # router, so it never solicits and the router only knows
+> # the server from its own resolution. The flow is set up
+> # before the flow-add rule exists, the router's entry for
+> # the server is removed, and only then is the rule added:
+> # the flow is offloaded while the next hop has no valid
+> # entry, which gives XMIT_NEIGH. Once it is offloaded the
+> # entry is removed again, as neighbour GC does with an
+> # idle STALE entry.
+> set -u
+> P=ftrepro
+> W=$(mktemp -d)
+> E() { local ns=$1; shift; ip netns exec "$P-$ns" "$@"; }
+> cleanup() {
+>   for j in $(jobs -p); do kill "$j" 2>/dev/null; done
+>   for n in c r s; do ip netns del "$P-$n" 2>/dev/null; done
+>   rm -rf "$W"
+> }
+> trap cleanup EXIT
+> trap 'exit 1' INT TERM
+> 
+> for n in c r s; do ip netns add "$P-$n"; done
+> ip link add rc netns "$P-r" type veth \
+>   peer name c0 netns "$P-c"
+> ip link add rs netns "$P-r" type veth \
+>   peer name s0 netns "$P-s"
+> for n in c r s; do E $n ip link set lo up; done
+> E c ip link set c0 up
+> E r ip link set rc up
+> E r ip link set rs up
+> E s ip link set s0 up
+> E c ip -6 addr add fd00:1::2/64 dev c0 nodad
+> E r ip -6 addr add fd00:1::1/64 dev rc nodad
+> E r ip -6 addr add fd00:2::1/64 dev rs nodad
+> E s ip -6 addr add fd00:2::2/64 dev s0 nodad
+> E c ip -6 route add default via fd00:1::1
+> E s ip -6 route add default via fd00:2::1
+> RMAC=$(E r cat /sys/class/net/rs/address)
+> E s ip -6 neigh replace fd00:2::1 lladdr "$RMAC" \
+>   dev s0 nud permanent
+> E r sysctl -qw net.ipv6.conf.all.forwarding=1
+> E r nft -f - <<'NFT'
+> table inet t {
+>   flowtable f {
+>     hook ingress priority 0; devices = { rc, rs };
+>   }
+>   chain fw {
+>     type filter hook forward priority 0; policy accept;
+>   }
+> }
+> NFT
+> 
+> # Client: UDP echo on port 6000.
+> E c python3 -c '
+> import socket
+> s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+> s.bind(("fd00:1::2", 6000))
+> while True:
+>     d, a = s.recvfrom(100)
+>     s.sendto(d, a)
+> ' >/dev/null 2>&1 &
+> 
+> # Server side of the wire: destination MAC of every echo
+> # coming back to the server.
+> E s python3 -c '
+> import socket, sys
+> r = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
+>                   socket.htons(3))
+> r.bind(("s0", 0))
+> f = open(sys.argv[1], "w")
+> port = (5000).to_bytes(2, "big")
+> while True:
+>     p = r.recv(2048)
+>     # IPv6, next header UDP, destination port 5000
+>     if p[12:14] == b"\x86\xdd" and p[20] == 17 \
+>             and p[56:58] == port:
+>         f.write(p[0:6].hex(":") + "\n")
+>         f.flush()
+> ' "$W/wire.log" >/dev/null 2>&1 &
+> sleep 1
+> 
+> # Server: one datagram a second to the client, port 5000.
+> E s python3 -c '
+> import socket, time, sys
+> c = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+> c.bind(("fd00:2::2", 5000))
+> c.settimeout(0.8)
+> f = open(sys.argv[1], "w")
+> for i in range(18):
+>     t = time.time()
+>     c.sendto(str(i).encode(), ("fd00:1::2", 6000))
+>     try:
+>         c.recvfrom(100)
+>         f.write("%d ok\n" % i)
+>     except socket.timeout:
+>         f.write("%d lost\n" % i)
+>     f.flush()
+>     time.sleep(max(0, 1.0 - (time.time() - t)))
+> ' "$W/server.log" >/dev/null 2>&1 &
+> SV=$!
+> 
+> sleep 4
+> E r ip -6 neigh del fd00:2::2 dev rs
+> E r nft add rule inet t fw ct state established \
+>   meta l4proto udp flow add @f
+> sleep 3
+> FLOW=$(E r grep -o '\[OFFLOAD\]' /proc/net/nf_conntrack |
+>   head -1)
+> echo "flow: $FLOW"
+> echo "entry: $(E r ip -6 neigh show fd00:2::2 dev rs)"
+> E r ip -6 neigh del fd00:2::2 dev rs &&
+>   echo "entry removed, flow offloaded"
+> sleep 2
+> echo "2 s later: $(E r ip -6 neigh show fd00:2::2 dev rs)"
+> wait $SV
+> echo "echoes: $(grep -c ok "$W/server.log") ok," \
+>   "$(grep -c lost "$W/server.log") lost"
+> echo "destination MAC of echoes to the server:"
+> sort "$W/wire.log" | uniq -c
+> 
+> Thanks,
+> John
+> 
 
-Reported-by: Sashiko (nipa) <sashiko-bot@kernel.org>
-Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com
-Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com/
-Reviewed-by: Victor Nogueira <victor@mojatatu.com>
-Signed-off-by: Jamal Hadi Salim <jhs@mojatatu.com>
----
- net/netfilter/nft_fwd_netdev.c | 1 +
- 1 file changed, 1 insertion(+)
+--AFckwEBk/Xj85OWv
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="fix.patch"
 
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index a48c2f765bba..ad4d61d64cdd 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -175,6 +175,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 19cafae748ab..73f49dc41157 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -873,7 +873,8 @@ static int nf_flow_queue_xmit4(struct sk_buff *skb,
+ 			return NF_DROP;
  		}
- 	}
- 
-+	skb_dst_drop(skb);
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
- 
--- 
-2.43.0
+ 		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, ip_addr->ip));
+-		if (IS_ERR(neigh)) {
++		if (IS_ERR(neigh) ||
++		    !(READ_ONCE(neigh->nud_state) & NUD_VALID)) {
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
+ 		}
+@@ -1202,7 +1203,8 @@ static int nf_flow_queue_xmit6(struct sk_buff *skb,
+ 			return NF_DROP;
+ 		}
+ 		neigh = ip_neigh_gw6(rt->dst.dev, rt6_nexthop(rt, &ip_addr->in6));
+-		if (IS_ERR(neigh)) {
++		if (IS_ERR(neigh) ||
++		    !(READ_ONCE(neigh->nud_state) & NUD_VALID)) {
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
+ 		}
 
+--AFckwEBk/Xj85OWv--
