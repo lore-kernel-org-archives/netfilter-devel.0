@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794521483;
-	b=K9oURy/muPwQBkHHv3sJcRTfvewtuJrTJpiiZTBnliK02ljnZaosQJq7VX3p8xpUfk3A
-	 pxxyIRzXT/jQ6SlBsCO87Jz6/Mqs0szfe02h2cE8n54lr+U72sQzLA+J8CW6cgGq3Ugqf
-	 NqjKd5p1KC+EC2FKmT5vfBP6h+wJRrZNQRVY7H7LEnCsL1xHn5H4amZCdNOjtc8hdj1dM
-	 qb8dPAhiabxLP0Naz0ZHqTtwvL7TepX2kLErZSAegpN52QJHeTgpltjMqQ869EL9n21vZ
-	 pluul7UKs18MBiEvJ0UJg8DjNc0tn9Dnf00RwR5dq884WDOifZFt96MJ2KsaJmPVH0Q==
+	t=1794521484;
+	b=lf29HGJyiRbty/X8+TsxrBvHoZTTecaPuARHQ5eOJ3zDvyKX8+yj2n50weSHdyTZgOLV
+	 FjOcAl5coM7tcfBUxcY7a5mnUFOBcQpwMjOFRQ6s8qrAh1AS72oq6lG10bco2Z2DHAnrs
+	 X7qmbuws44fjKX/qLxPkKodCT9QB3bI5A91GQTrj411bUI+zrop38OvhD2XDLYOiRZMRo
+	 URxr+euWJFoS1v4w2l+MoPFEjy/DvxCZ+u790vUKDs7n9y+q70ZCu3Q9FmTYkq6X9LnYE
+	 nxtp0fuTp89bT+IBuBGjBITiyOkglRo8V/BaLEw3Ns5okqojqaqIvN2yZxiwLum71iw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794521483;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794521484;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=ZH0UvnB9LVoT+8gp4SOngt4+90mV4RDEL7Cp6u2on+w=;
-	b=c8X1iYKgL3yDJGHal5jywr/IlOkafKJiLPaGUGPITENDhm5sOQgJoner8+ZZROPUo8lE
-	 v5HnEXjmGFzPQGrAJBp8Z3jl6P5Zxv15fdOOY+vW4xKXlJzkZ5BLVMq8Ur7CZIPELnJIt
-	 GlR0XR2kTBu3/Nx+EvvGc+gzAECGwfx5B+Y48sEPILDP1jR1TLswMCCT973EikRMSpqIr
-	 W9MpAIPH/ghhBJratqdqCNCI2DJyq+akeMWNkb2uEsbrc5FAHAPWD5kRRIV9U9eMCQoO6
-	 SXrHZ81sj64oVFD/S53CggMpGGA7BST0wZb5a8mbYQS2kLJ8g5D5WvFsKUG2c/1+CNw==
+	bh=PLDribXdiLfnsz1c6bMjU1+Iu6odvWQ+xgo2QJBYJbc=;
+	b=XQTkjIKKGRSZplFRLePoA0hrn0nhFMvKqfhC3EGTUR6UZWxCZbV6HaGc0TwsuxmtTPsa
+	 RUf0TEJ0ks2PKoDBYDL8i/gh2/rlraioTWgNwycqIAJiCbdNJCO4+5mmgtYKloHqg0k/l
+	 bSW/ToHVAWU7YitlA9Ox3+mLgwDdfCbxlRttaFn0aRi6ZWDvJQOxuZCAEGeQ5iNXD4e9s
+	 bLnuf8TJg8IC/4flpUTy+06oF3bMtkLWl2CMdpdS0XTVtko7fn32fuA5vwe8MowHa4PFD
+	 Kmp8Rq+i/oQuA7vuvmdOL2uTTwDYJMNDdeYYmloYybKDu5UDSJYNkTc0tnx7/EGSoAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="tWkM0/T6";
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EVnH6uwC;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F14E9606A321
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 22:11:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F14E9606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BC6B606A323
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 22:11:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7BC6B606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=tWkM0/T6
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=EVnH6uwC
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794521475;
-	bh=ZH0UvnB9LVoT+8gp4SOngt4+90mV4RDEL7Cp6u2on+w=;
+	s=2025; t=1794521480;
+	bh=PLDribXdiLfnsz1c6bMjU1+Iu6odvWQ+xgo2QJBYJbc=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=tWkM0/T6+/Dj/GpoBhF6wuOMAOAQViN37lrGu/S3e/qLzbkbAe4mEOkYlW/b+1txi
-	 nyctE7IQyIB1OVeOI79rYxr3/nm5UpoqVPcx8PcYC49DxAteTH+mnOdlvhbnUIoJOQ
-	 hAz1KCDfN7aw4PKnczIsss08UZIwNI1YVhTGaHpaRkX1qlxIphVi6Bf0s1/WQsD8MO
-	 YQddW6+rnmXD+vaaql8oMcpsPMBzCc6ddRr1vCZg229KjoKLKY/MhhJAbtO+rBlPTG
-	 BvmmsXCMTs2SLWrOeRJyYQNbGDIlR3jT2eoEGoqBu6jbARAlWaWOVyR5Zrdh0OFDPA
-	 C0Zi3QAaXR/eg==
+	b=EVnH6uwC3zplNRTYL09X6RgKOpA5Ltwusng/Awyh2dVMH2BQ85tsAvECETEE8ethC
+	 L378q8v9KImh28v/XJtwIT8vFINLmFUnGwwUX3pHyuGHVFsLKspVxBakBrLXPHkalf
+	 sTAQFIL0Eb6DI88J+MOYUI3GrMJk2WvfOgVew7Gtul8b6gW9VqWtRURSmGFFQh5qgL
+	 +yfQ2tTldPsL1vLyZq/+JYmVhosgYPYSten4SlLJcVn2m9B8H98HpymMZsanGjkacS
+	 Mwdz5t/LuX4f3IW8uwDpzJYQbRCBlcYarqyD3Pxgsb3dkv0dwJ1iAMOFqMudZzhJd2
+	 Q07Gyq6Dn8jIg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6CA536007A
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 23:11:15 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E17BB6007D
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 23:11:19 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v7 3/6] netfilter: ctnetlink: restrict expectation creation glue to userspace helpers
-Date: Thu, 12 Nov 2026 23:11:03 +0100
-Message-ID: <20261112221106.2278789-3-pablo@netfilter.org>
+Subject: [PATCH nf,v7 6/6] netfilter: nfnetlink_queue: do not skip ct confirmation with userspace ct helpers
+Date: Thu, 12 Nov 2026 23:11:06 +0100
+Message-ID: <20261112221106.2278789-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261112221106.2278789-1-pablo@netfilter.org>
 References: <20261112221106.2278789-1-pablo@netfilter.org>
@@ -65,79 +65,118 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The integration between ctnetlink and nfnetlink_queue that allows to
-create expectations is targeted at the userspace conntrack helpers.
+There are a two more issues with the existing userspace ct helpers:
 
-Fixes: bd0779370588 ("netfilter: nfnetlink_queue: allow to attach expectations to conntracks")
+- Disallow re-queueing packets in userspace ct helpers, none of the
+  existing helper in userspace use this feature.
+
+- nf_conntrack_update() should only be called if this is the confirmation
+  hook, there is a new helper function to check this, use it.
+
+While at this, nfqnl_reinject() is already called from a rcu read lock
+section, remove the redundant rcu_read_{un,lock}().
+
+Remove #ifdef around nfqnl_hook_exp_support() so this function can be
+used regardless conntrack supported to address a compilation warning.
+
+Fixes: ee04805ff54a ("netfilter: conntrack: make conntrack userspace helpers work again")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v7: no changes
+v7: fix compilation warning due to #ifdef dependencies.
 
- net/netfilter/nf_conntrack_netlink.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 45 +++++++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1f8d94a05240..fa9024bc6dc3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2644,7 +2644,8 @@ static struct nf_conntrack_expect *
- ctnetlink_alloc_expect(const struct nlattr *const cda[], struct nf_conn *ct,
- 		       const struct nf_conntrack_helper *assign_helper,
- 		       struct nf_conntrack_tuple *tuple,
--		       struct nf_conntrack_tuple *mask);
-+		       struct nf_conntrack_tuple *mask,
-+		       bool userspace);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 3f6b38776ff8..4d5de657ef95 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -381,7 +381,6 @@ nf_queue_hook_entry(const struct nf_hook_entries *hooks,
+ 	return &hooks->hooks[i];
+ }
  
- #ifdef CONFIG_NETFILTER_NETLINK_GLUE_CT
- static size_t
-@@ -2899,7 +2900,7 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
- 	}
- 
- 	exp = ctnetlink_alloc_expect((const struct nlattr * const *)cda, ct,
--				     assign_helper, &tuple, &mask);
-+				     assign_helper, &tuple, &mask, true);
- 	if (IS_ERR(exp))
- 		return PTR_ERR(exp);
- 
-@@ -3534,14 +3535,14 @@ static struct nf_conntrack_expect *
- ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 		       const struct nf_conntrack_helper *assign_helper,
- 		       struct nf_conntrack_tuple *tuple,
--		       struct nf_conntrack_tuple *mask)
-+		       struct nf_conntrack_tuple *mask, bool userspace)
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ static bool nfqnl_hook_exp_support(struct nf_hook_ops *ops)
  {
- 	struct net *net = read_pnet(&ct->ct_net);
- 	struct nf_conntrack_helper *helper;
- 	struct nf_conntrack_ecache *ecache;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conn_help *help;
--	u32 class = 0;
-+	u32 class = 0, flags;
- 	int err;
+ 	return (ops->hook_ops_type == NF_HOOK_OP_CONNTRACK &&
+@@ -392,7 +391,6 @@ static bool nfqnl_hook_exp_support(struct nf_hook_ops *ops)
+ 		 (ops->pf == NFPROTO_BRIDGE &&
+ 		  ops->hooknum == NF_BR_POST_ROUTING)));
+ }
+-#endif
  
- 	help = nfct_help(ct);
-@@ -3552,6 +3553,12 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 	if (!helper)
- 		return ERR_PTR(-EOPNOTSUPP);
+ /* caller must hold rcu read-side lock */
+ static void nf_reinject(struct nf_queue_entry *entry,
+@@ -526,31 +524,46 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
+ 			     const struct nf_hook_entries *hooks,
+ 			     unsigned int verdict)
+ {
+-	const struct nf_ct_hook *ct_hook;
++	unsigned int verdict_mask = verdict & NF_VERDICT_MASK;
  
-+	if (userspace) {
-+		flags = READ_ONCE(helper->flags);
-+		if (!(flags & NF_CT_HELPER_F_USERSPACE))
-+			return ERR_PTR(-EOPNOTSUPP);
-+	}
+ 	if (!nf_bridge_ports_valid(entry))
+-		verdict = NF_DROP;
++		goto drop;
 +
- 	if (cda[CTA_EXPECT_CLASS]) {
- 		class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
- 		if (class > helper->expect_class_max)
-@@ -3639,7 +3646,7 @@ ctnetlink_create_expect(struct net *net,
- 	ct = nf_ct_tuplehash_to_ctrack(h);
++	if (verdict_mask == NF_ACCEPT ||
++	    verdict_mask == NF_REPEAT ||
++	    verdict_mask == NF_STOP ||
++	    verdict_mask == NF_QUEUE) {
++		const struct nf_ct_hook *ct_hook;
++		struct nf_hook_ops **ops;
++		unsigned int i;
++
++		ops = nf_hook_entries_get_hook_ops(hooks);
  
- 	rcu_read_lock();
--	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
-+	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask, false);
- 	if (IS_ERR(exp)) {
- 		err = PTR_ERR(exp);
- 		goto err_rcu;
+-	if (verdict == NF_ACCEPT ||
+-	    verdict == NF_REPEAT ||
+-	    verdict == NF_STOP) {
+-		unsigned int ct_verdict = verdict;
++		i = entry->hook_index;
++		if (i >= hooks->num_hook_entries)
++			goto drop;
+ 
+-		rcu_read_lock();
+ 		ct_hook = rcu_dereference(nf_ct_hook);
+-		if (ct_hook)
+-			ct_verdict = ct_hook->update(entry->state.net, entry->skb);
+-		rcu_read_unlock();
++		if (ct_hook && nfqnl_hook_exp_support(ops[i])) {
++			if (verdict_mask == NF_QUEUE ||
++			    verdict_mask == NF_REPEAT)
++				goto drop;
+ 
+-		switch (ct_verdict & NF_VERDICT_MASK) {
++			verdict_mask = ct_hook->update(entry->state.net, entry->skb);
++		}
++
++		switch (verdict_mask) {
+ 		case NF_ACCEPT:
+ 			/* follow userspace verdict, could be REPEAT */
+ 			break;
+ 		case NF_STOLEN:
+ 			nf_queue_entry_free(entry);
+ 			return;
++		case NF_QUEUE:
++			/* follow userspace verdict too */
++			break;
+ 		default:
+-			verdict = ct_verdict & NF_VERDICT_MASK;
++			verdict = verdict_mask;
+ 			break;
+ 		}
+ 	}
+@@ -572,6 +585,10 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
+ 			verdict = NF_DROP;
+ 	}
+ 	nf_reinject(entry, hooks, verdict);
++	return;
++drop:
++	kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
++	nf_queue_entry_free(entry);
+ }
+ 
+ static void nfqnl_reinject(struct nf_queue_entry *entry,
 -- 
 2.47.3
 
