@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794494311;
-	b=ydcpx8YKAXIKhB0u8pJmKWaUQjZSNC/ho+mpvA5RwHCV85GWvzb8QwApWpqD41CLbwNO
-	 r6W3+LmR0Pj9DmrndOYCFR3wccRQObM468jxyfpaTHgljENCEnU2QWAKDw9qzWxEwjyF+
-	 roXWVAxz8oeFsMt1OeeGPBYXbV+2MijOeFJdmf/M+FqWZcr8U7rJB5cilzK1jI3ZrokC9
-	 +LcNKygvvUJdjUTOl/KkYRXLSssuw2TTY/uW07wQpYeZUnxp2ox1G60ZqG3P9hyQdQzZp
-	 2ssT/iqZyPJSvkXFNcMGlhKqHzydWSVZBR4h0knpiE9JdyAm5adkNgl5G7KuzZkYbZA==
+	t=1794494315;
+	b=slHQAO+PT+RUTkviqxgxO3fENRVk6a6tcADi4dxaO6det7ZSHrQNDkaOD5m859AGFIzt
+	 Eocv+3D44YQ+2Uo7BkeOo9Y4UQ/VBGRi1Jl8ET8ShBypFVhh0wpeIoV7d6Fb/ot5o5UvT
+	 2dWQR0um051NxpOqwzDXdAgeTN2eYrB0bAg/AOXum/V/8lQHUeaJyKFiDJKZOCIoRLKdw
+	 16FveT/2zYc41Di1EIPhrE+4qGhp0PDa8f0wgWl0zHffxAb5dAAvYoWmAH+oCitGIzF0L
+	 0WxcEw56rMtc0WsES8AhfHK6RiJL5Oabp+5+WvB9oWiaENpRWQBbFtZxrA3f/38l5ag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794494311;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794494315;
 	h=DMARC-Filter:Received:From:To:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=dudsSt44Iz7uM0jC/y7/5hRW+pfi1imVs5+pGCmyXWg=;
-	b=C5UET23B2RUsLW3p4T6geii6xSZR7hvNAEyPsx9JJdNBS3ee1p4cCRM0ymA5ZSDMRlin
-	 6oHshP1QwoRJSGqq8XJJCqVNdj+xqk19HDKED92Qkcz3kl14imLMY28znJPcslXBBACTS
-	 aLbAzfzjpxA2IRt1d0B+CZrXq6yFl6Eh2iVkCJOICsz0JhxK4Y3k99mrRrBG5fSSxrA+a
-	 sma776UhVYPWc2pV8FX/HYhr08hk4Dfc+PcdOSIzCS8nSB4mG4frDvML707J8XGEvXIFB
-	 IjCJsTUheurBld8OuxVp/RKaXmD+0GbFlZ6Zi2B3hn+Nnu4oln24RtJ7/t4P/DtYDew==
+	bh=9v58WEbHR41gPiwvpoxjPEHAXi0ZB79sKHcpdoUMXEg=;
+	b=F0a8n703s93EOpgkH1chMXkNL8Frh4Lz2WckLyCtTtQ6mp2+gheVfTNMq9kFM2B4CGol
+	 JvH/aHis9QRl2P2nPu0w83HXIY+i1meVcysy2vMO7Kr9JM7ROjfiofIjbFYwI88vTaFI5
+	 p2IZ9FsogHaHOqSmAYPBf4iZyTjIPx3qNKMIA2HOINOMT+wNtJeFRYIiCU329HvkgGO2m
+	 vDzW8dgdWbSNYq7yWWxIoULxgqTgUMZUCcJIZo3FQVjqsRNcdRzR2zUlTEV1k2v34OIgq
+	 +tD68alQwiUt2ExFheeGRLgcOGNjdsFV0owDbePTX2kCp3HYjcr4Qsm7L6k5OBZ9aYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,18 +24,18 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F7760A3802
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 14:38:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41F7760A3802
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431EC60A3831
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 14:38:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 431EC60A3831
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 780A56028B; Thu, 12 Nov 2026 15:38:29 +0100 (CET)
+	id B9DC760420; Thu, 12 Nov 2026 15:38:33 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v10 1/6] rhashtable: Add rhashtable_flush_and_free helper
-Date: Thu, 12 Nov 2026 15:38:13 +0100
-Message-ID: <20261112143818.30638-2-fw@strlen.de>
+Subject: [PATCH nf-next v10 2/6] netfilter: ipset: add rhashtable boilerplate stubs
+Date: Thu, 12 Nov 2026 15:38:14 +0100
+Message-ID: <20261112143818.30638-3-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261112143818.30638-1-fw@strlen.de>
 References: <20261112143818.30638-1-fw@strlen.de>
@@ -50,479 +50,233 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Preparation patch.  Adds an rhashtable to the set and initialises
+and destroys it.  No elements are ever added to this hashtable.
 
-This patch adds the helper rhashtable_flush_and_free and its
-rhltable counter-part.  The intended user is netfilter:
+This change is supposed to be devoid of side effects and is
+separate to reduce size of the conversion patch.
 
-https://sashiko.dev/#/patchset/20260828152256.8759-1-fw%40strlen.de
-
-The hash table briefly becomes NULL during the flush call in order
-to quiesce insertions on the old table so that ht->nelems can be
-reset to zero safely.
-
-The rest of the code is updated to handle ht->tbl being NULL.
-
-In order to ensure that rehashes are fully disabled during the
-flush, the self-rearming in rht_deferred_worker is moved inside
-the mutex.
-
-Incidentally, this allows the removal of the special hack where
-it had to bypass the IRQ work. However, as the existing
-rhashtable_free_and_destroy helper does not set the hash table
-to NULL, change it to use disable_work_sync instead.
-
-If concurrent insertions and removals hit the old table during
-the call, they act directly on the old table.
-
-If they see a NULL ht->tbl, they fail immediately.
-
-Concurrent insertions and removals that see the new table act
-on it.
-
-After setting ht->tbl to NULL, the new helper waits for concurrent
-insertions and removals on the old ht->tbl to complete, and then
-cancels existing rehashes.
-
-Once rehashes are completely gone, ht->nelems is reset to zero,
-and the new table is installed.
-
-Walkers are detached from the old table, and the dying flag is
-set on the old table so that other walkers cannot reattach themselves
-to the dying table.  Replace the rcu_head_after_call_rcu check
-in rhashtable_walk_stop with the dying flag.
-
-Finally, the entries in the old table are freed.
-
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/rhashtable.h |  40 +++++++-
- lib/rhashtable.c           | 186 ++++++++++++++++++++++++++-----------
- 2 files changed, 171 insertions(+), 55 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 114 ++++++++++++++++++++++++--
+ 1 file changed, 109 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
-index 70dac9214617..b98876dc6ff7 100644
---- a/include/linux/rhashtable.h
-+++ b/include/linux/rhashtable.h
-@@ -67,6 +67,7 @@ struct rhash_lock_head {};
-  * @nest: Number of bits of first-level nested table.
-  * @rehash: Current bucket being rehashed
-  * @hash_rnd: Random seed to fold into hash
-+ * @dying: True if table is about to be freed
-  * @walkers: List of active walkers
-  * @rcu: RCU structure for freeing the table
-  * @future_tbl: Table under construction during rehashing
-@@ -77,6 +78,7 @@ struct bucket_table {
- 	unsigned int		size;
- 	unsigned int		nest;
- 	u32			hash_rnd;
-+	bool			dying;
- 	struct list_head	walkers;
- 	struct rcu_head		rcu;
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 80ca523f304b..a3f6c0aa47f7 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -8,6 +8,7 @@
+ #include <linux/rcupdate_wait.h>
+ #include <linux/jhash.h>
+ #include <linux/types.h>
++#include <linux/rhashtable.h>
+ #include <linux/seqlock.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/ipset/ip_set.h>
+@@ -217,9 +218,16 @@ static const union nf_inet_addr zeromask = {};
  
-@@ -255,6 +257,10 @@ void rhashtable_free_and_destroy(struct rhashtable *ht,
- 				 void *arg);
- void rhashtable_destroy(struct rhashtable *ht);
- 
-+void rhashtable_flush_and_free(struct rhashtable *ht,
-+			       void (*free_fn)(void *ptr, void *arg),
-+			       void *arg);
+ #undef mtype_ahash_destroy
+ #undef mtype_ext_cleanup
++#undef mtype_rht_elem
++#undef mtype_rht_hashfn
++#undef mtype_rht_obj_hashfn
++#undef mtype_rht_cmpfn
++#undef mtype_rht_params
 +
- struct rhash_lock_head __rcu **rht_bucket_nested(
- 	const struct bucket_table *tbl, unsigned int hash);
- struct rhash_lock_head __rcu **__rht_bucket_nested(
-@@ -630,6 +636,9 @@ static __always_inline struct rhash_head *__rhashtable_lookup(
+ #undef mtype_add_cidr
+ #undef mtype_del_cidr
+ #undef mtype_del_cidr_all
++#undef mtype_flush_elem
+ #undef mtype_ahash_memsize
+ #undef mtype_flush
+ #undef mtype_destroy
+@@ -265,9 +273,17 @@ static const union nf_inet_addr zeromask = {};
  
- 	BUILD_BUG_ON(!__builtin_constant_p(freq));
- 	tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!tbl)
-+		goto out;
+ #define mtype_ahash_destroy	IPSET_TOKEN(MTYPE, _ahash_destroy)
+ #define mtype_ext_cleanup	IPSET_TOKEN(MTYPE, _ext_cleanup)
 +
- restart:
- 	hash = rht_key_hashfn(ht, tbl, key, params);
- 	bkt = rht_bucket(tbl, hash);
-@@ -653,6 +662,7 @@ static __always_inline struct rhash_head *__rhashtable_lookup(
- 	if (unlikely(tbl))
- 		goto restart;
- 
-+out:
- 	return NULL;
- }
- 
-@@ -768,16 +778,19 @@ static __always_inline void *__rhashtable_insert_fast(
- 	};
- 	struct rhash_lock_head __rcu **bkt;
- 	struct rhash_head __rcu **pprev;
-+	void *data = ERR_PTR(-ESTALE);
- 	struct bucket_table *tbl;
- 	struct rhash_head *head;
- 	unsigned long flags;
- 	unsigned int hash;
- 	int elasticity;
--	void *data;
- 
- 	rcu_read_lock();
- 
- 	tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!tbl)
-+		goto out;
++#define mtype_rht_elem		IPSET_TOKEN(MTYPE, _rht_elem)
++#define mtype_rht_hashfn	IPSET_TOKEN(MTYPE, _rht_hashfn)
++#define mtype_rht_obj_hashfn	IPSET_TOKEN(MTYPE, _rht_obj_hashfn)
++#define mtype_rht_cmpfn		IPSET_TOKEN(MTYPE, _rht_cmpfn)
++#define mtype_rht_params	IPSET_TOKEN(MTYPE, _rht_params)
 +
- 	hash = rht_head_hashfn(ht, tbl, obj, params);
- 	elasticity = RHT_ELASTICITY;
- 	bkt = rht_bucket_insert(ht, tbl, hash);
-@@ -1136,11 +1149,13 @@ static __always_inline int __rhashtable_remove_fast(
- 	const struct rhashtable_params params, bool rhlist)
- {
- 	struct bucket_table *tbl;
--	int err;
-+	int err = -ENOENT;
+ #define mtype_add_cidr		IPSET_TOKEN(MTYPE, _add_cidr)
+ #define mtype_del_cidr		IPSET_TOKEN(MTYPE, _del_cidr)
+ #define mtype_del_cidr_all	IPSET_TOKEN(MTYPE, _del_cidr_all)
++#define mtype_flush_elem	IPSET_TOKEN(MTYPE, _flush_elem)
+ #define mtype_ahash_memsize	IPSET_TOKEN(MTYPE, _ahash_memsize)
+ #define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
+ #define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
+@@ -300,6 +316,62 @@ static const union nf_inet_addr zeromask = {};
  
- 	rcu_read_lock();
+ #define htype			MTYPE
  
- 	tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!tbl)
-+		goto out;
- 
- 	/* Because we have already taken (and released) the bucket
- 	 * lock in old_tbl, if we find that future_tbl is not yet
-@@ -1152,6 +1167,7 @@ static __always_inline int __rhashtable_remove_fast(
- 	       (tbl = rht_dereference_rcu(tbl->future_tbl, ht)))
- 		;
- 
-+out:
- 	rcu_read_unlock();
- 
- 	return err;
-@@ -1271,11 +1287,13 @@ static __always_inline int rhashtable_replace_fast(
- 	const struct rhashtable_params params)
- {
- 	struct bucket_table *tbl;
--	int err;
-+	int err = -ENOENT;
- 
- 	rcu_read_lock();
- 
- 	tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!tbl)
-+		goto out;
- 
- 	/* Because we have already taken (and released) the bucket
- 	 * lock in old_tbl, if we find that future_tbl is not yet
-@@ -1287,6 +1305,7 @@ static __always_inline int rhashtable_replace_fast(
- 	       (tbl = rht_dereference_rcu(tbl->future_tbl, ht)))
- 		;
- 
-+out:
- 	rcu_read_unlock();
- 
- 	return err;
-@@ -1340,4 +1359,19 @@ static inline void rhltable_destroy(struct rhltable *hlt)
- 	rhltable_free_and_destroy(hlt, NULL, NULL);
- }
- 
-+/**
-+ * rhltable_flush_and_free - unlink and free all elements in the hash list table
-+ * @hlt:	the hash list table to destroy
-+ * @free_fn:	callback to release resources of element
-+ * @arg:	pointer passed to free_fn
-+ *
-+ * See documentation for rhashtable_flush_and_free.
++/* Per-element rhashtable object.  Extensions follow the elem field inline;
++ * allocate as offsetof(struct mtype_rht_elem, elem) + set->dsize bytes.
 + */
-+static inline void rhltable_flush_and_free(struct rhltable *hlt,
-+					   void (*free_fn)(void *ptr,
-+							   void *arg),
-+					   void *arg)
++struct mtype_rht_elem {
++	struct rhash_head node;
++	struct rcu_head rcu;		/* deferred free after removal */
++
++	/* element data; must be last. extensions follow. */
++	struct mtype_elem elem __aligned(__alignof__(u64));
++};
++
++/* jhash of the lookup key */
++static u32 mtype_rht_hashfn(const void *data, u32 len, u32 seed)
 +{
-+	rhashtable_flush_and_free(&hlt->ht, free_fn, arg);
++	BUILD_BUG_ON(HKEY_DATALEN % sizeof(u32) != 0);
++	return jhash2((const u32 *)data, HKEY_DATALEN / sizeof(u32), seed);
 +}
- #endif /* _LINUX_RHASHTABLE_H */
-diff --git a/lib/rhashtable.c b/lib/rhashtable.c
-index 500c45cd1304..7b33dd046f67 100644
---- a/lib/rhashtable.c
-+++ b/lib/rhashtable.c
-@@ -350,6 +350,8 @@ static int rhashtable_rehash_table(struct rhashtable *ht)
- 	rcu_assign_pointer(ht->tbl, new_tbl);
- 
- 	spin_lock(&ht->lock);
-+	old_tbl->dying = true;
 +
- 	list_for_each_entry(walker, &old_tbl->walkers, list)
- 		walker->tbl = NULL;
- 
-@@ -357,8 +359,8 @@ static int rhashtable_rehash_table(struct rhashtable *ht)
- 	 * table, and thus no references to the old table will
- 	 * remain.
- 	 * We do this inside the locked region so that
--	 * rhashtable_walk_stop() can use rcu_head_after_call_rcu()
--	 * to check if it should not re-link the table.
-+	 * rhashtable_walk_stop() can check tbl->dying before it
-+	 * re-links the table.
- 	 */
- 	call_rcu(&old_tbl->rcu, bucket_table_free_rcu);
- 	spin_unlock(&ht->lock);
-@@ -434,6 +436,9 @@ static void rht_deferred_worker(struct work_struct *work)
- 	mutex_lock(&ht->mutex);
- 
- 	tbl = rht_dereference(ht->tbl, ht);
-+	if (!tbl)
-+		goto out;
++/* jhash of an existing element object */
++static u32 mtype_rht_obj_hashfn(const void *obj, u32 len, u32 seed)
++{
++	const struct mtype_rht_elem *e = obj;
++#ifdef IP_SET_HASH_WITH_NETS
++	/* Reset transient flags (e.g. nomatch) before hashing so that the
++	 * object hash always equals the lookup-key hash computed by hashfn.
++	 */
++	struct mtype_elem tmp;
++	u8 flags = 0;
 +
- 	tbl = rhashtable_last_table(ht, tbl);
- 
- 	if (rht_grow_above_75(ht, tbl))
-@@ -450,18 +455,11 @@ static void rht_deferred_worker(struct work_struct *work)
- 		err = err ?: nerr;
- 	}
- 
--	mutex_unlock(&ht->mutex);
--
--	/*
--	 * Re-arm via @run_work, not @run_irq_work.
--	 * rhashtable_free_and_destroy() drains async work as irq_work_sync()
--	 * followed by cancel_work_sync(). If this site queued irq_work while
--	 * cancel_work_sync() was waiting for us, irq_work_sync() would already
--	 * have returned and the stale irq_work could fire post-teardown.
--	 * cancel_work_sync() natively handles self-requeue on @run_work.
--	 */
- 	if (err)
--		schedule_work(&ht->run_work);
-+		irq_work_queue(&ht->run_irq_work);
++	memcpy(&tmp, &e->elem, HKEY_DATALEN);
++	mtype_data_reset_flags(&tmp, &flags);
++	return jhash2((const u32 *)&tmp, HKEY_DATALEN / sizeof(u32), seed);
++#else
++	return jhash2((const u32 *)&e->elem, HKEY_DATALEN / sizeof(u32), seed);
++#endif
++}
 +
-+out:
-+	mutex_unlock(&ht->mutex);
++/* 0 = key matches object (equal), non-zero = not equal */
++static int mtype_rht_cmpfn(struct rhashtable_compare_arg *arg, const void *obj)
++{
++	const struct mtype_rht_elem *e = obj;
++	u32 multi = 0;
++
++	return !mtype_data_equal(&e->elem,
++				 (const struct mtype_elem *)arg->key, &multi);
++}
++
++static const struct rhashtable_params mtype_rht_params = {
++	.head_offset	= offsetof(struct mtype_rht_elem, node),
++	.key_offset	= offsetof(struct mtype_rht_elem, elem),
++	.hashfn		= mtype_rht_hashfn,
++	.obj_hashfn	= mtype_rht_obj_hashfn,
++	.obj_cmpfn	= mtype_rht_cmpfn,
++	.key_len	= HKEY_DATALEN,
++};
++
+ #define HKEY(data, initval, htable_bits)			\
+ ({								\
+ 	const u32 *__k = (const u32 *)data;			\
+@@ -313,6 +385,7 @@ static const union nf_inet_addr zeromask = {};
+ /* The generic hash structure */
+ struct htype {
+ 	struct htable __rcu *table; /* the hash table */
++	struct rhashtable ht;	/* the hash table */
+ 	struct net_prefixes __rcu *rnets[IPSET_NET_COUNT]; /* cidr prefixes */
+ 	struct htable_gc gc;	/* gc workqueue */
+ 	u32 maxelem;		/* max elements in the hash */
+@@ -482,6 +555,19 @@ mtype_del_cidr_all(struct ip_set *set, struct htype *h, const struct mtype_elem
+ #endif
  }
  
- /*
-@@ -488,6 +486,8 @@ static int rhashtable_insert_rehash(struct rhashtable *ht,
- 	int err;
++/* Free one element: called by rhashtable_free_and_destroy */
++static void
++mtype_flush_elem(void *ptr, void *arg)
++{
++	struct mtype_rht_elem *e = ptr;
++	struct ip_set *set = arg;
++
++	rcu_read_lock();
++	ip_set_ext_destroy(set, &e->elem);
++	kfree_rcu(e, rcu);
++	rcu_read_unlock();
++}
++
+ /* Calculate the actual memory size of the set data */
+ static size_t
+ mtype_ahash_memsize(const struct htype *h, const struct htable *t)
+@@ -586,6 +672,8 @@ mtype_destroy(struct ip_set *set)
+ 	struct htable *t = (__force struct htable *)h->table;
+ 	struct list_head *l, *lt;
  
- 	old_tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!old_tbl)
-+		return -EAGAIN;
- 
- 	size = tbl->size;
- 
-@@ -635,6 +635,8 @@ static void *rhashtable_try_insert(struct rhashtable *ht, const void *key,
- 	void *data;
- 
- 	new_tbl = rcu_dereference(ht->tbl);
-+	if (!new_tbl)
-+		return ERR_PTR(-ESTALE);
- 
- 	do {
- 		tbl = new_tbl;
-@@ -779,6 +781,8 @@ void *rhashtable_next_key(struct rhashtable *ht, const void *prev_key)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
- 	tbl = rht_dereference_rcu(ht->tbl, ht);
-+	if (!tbl)
-+		return NULL;
- 	do {
- 		he = __rhashtable_next_in_table(ht, tbl, prev_key);
- 		if (!IS_ERR_OR_NULL(he))
-@@ -820,12 +824,13 @@ void rhashtable_walk_enter(struct rhashtable *ht, struct rhashtable_iter *iter)
- 	iter->p = NULL;
- 	iter->slot = 0;
- 	iter->skip = 0;
--	iter->end_of_table = 0;
- 
- 	spin_lock(&ht->lock);
- 	iter->walker.tbl =
- 		rcu_dereference_protected(ht->tbl, lockdep_is_held(&ht->lock));
--	list_add(&iter->walker.list, &iter->walker.tbl->walkers);
-+	if (iter->walker.tbl)
-+		list_add(&iter->walker.list, &iter->walker.tbl->walkers);
-+	iter->end_of_table = !iter->walker.tbl;
- 	spin_unlock(&ht->lock);
- }
- EXPORT_SYMBOL_GPL(rhashtable_walk_enter);
-@@ -883,6 +888,10 @@ int rhashtable_walk_start_check(struct rhashtable_iter *iter)
- 		iter->slot = 0;
- 		iter->skip = 0;
- 		iter->p = NULL;
-+		if (!iter->walker.tbl) {
-+			iter->end_of_table = true;
-+			return 0;
-+		}
- 		return -EAGAIN;
- 	}
- 
-@@ -1091,7 +1100,7 @@ void rhashtable_walk_stop(struct rhashtable_iter *iter)
- 	ht = iter->ht;
- 
- 	spin_lock(&ht->lock);
--	if (rcu_head_after_call_rcu(&tbl->rcu, bucket_table_free_rcu))
-+	if (tbl->dying)
- 		/* This bucket table is being freed, don't re-link it. */
- 		iter->walker.tbl = NULL;
- 	else
-@@ -1223,45 +1232,12 @@ static void rhashtable_free_one(struct rhashtable *ht, struct rhash_head *obj,
- 	} while (list);
- }
- 
--/**
-- * rhashtable_free_and_destroy - free elements and destroy hash table
-- * @ht:		the hash table to destroy
-- * @free_fn:	callback to release resources of element
-- * @arg:	pointer passed to free_fn
-- *
-- * Stops an eventual async resize. If defined, invokes free_fn for each
-- * element to releasal resources. Please note that RCU protected
-- * readers may still be accessing the elements. Releasing of resources
-- * must occur in a compatible manner. Then frees the bucket array.
-- *
-- * This function will eventually sleep to wait for an async resize
-- * to complete. The caller is responsible that no further write operations
-- * occurs in parallel.
-- *
-- * After cancel_work_sync() has returned, the deferred rehash worker is
-- * quiesced and, per the contract above, no other concurrent access to the
-- * rhashtable is possible. The tables are therefore owned exclusively by
-- * this function and can be walked without ht->mutex held.
-- */
--void rhashtable_free_and_destroy(struct rhashtable *ht,
--				 void (*free_fn)(void *ptr, void *arg),
--				 void *arg)
-+static void rhashtable_free(struct rhashtable *ht, struct bucket_table *tbl,
-+			    void (*free_fn)(void *ptr, void *arg), void *arg)
++	rhashtable_free_and_destroy(&h->ht, mtype_flush_elem, set);
++
+ 	list_for_each_safe(l, lt, &t->ad) {
+ 		list_del(l);
+ 		kfree(l);
+@@ -1652,6 +1740,7 @@ static int
+ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 			    struct nlattr *tb[], u32 flags)
  {
--	struct bucket_table *tbl, *next_tbl;
-+	struct bucket_table *next_tbl;
- 	unsigned int i;
++	struct rhashtable_params params;
+ 	u32 hashsize = IPSET_DEFAULT_HASHSIZE, maxelem = IPSET_DEFAULT_MAXELEM;
+ #ifdef IP_SET_HASH_WITH_MARKMASK
+ 	u32 markmask;
+@@ -1668,6 +1757,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	size_t hsize;
+ 	struct htype *h;
+ 	struct htable *t;
++	int err;
+ 	u32 i;
  
--	irq_work_sync(&ht->run_irq_work);
--	cancel_work_sync(&ht->run_work);
--
--	/*
--	 * Do NOT take ht->mutex here. The rehash worker establishes
--	 * ht->mutex -> fs_reclaim via GFP_KERNEL bucket allocation under
--	 * the mutex; callers on the reclaim path (e.g. simple_xattr_ht_free()
--	 * from evict() under the dcache shrinker for shmem/kernfs/pidfs
--	 * inodes) would otherwise close a circular dependency
--	 * fs_reclaim -> ht->mutex.
--	 */
--	tbl = rcu_dereference_raw(ht->tbl);
- restart:
- 	if (free_fn) {
- 		for (i = 0; i < tbl->size; i++) {
-@@ -1286,6 +1262,36 @@ void rhashtable_free_and_destroy(struct rhashtable *ht,
- 		goto restart;
- 	}
- }
-+
-+/**
-+ * rhashtable_free_and_destroy - free elements and destroy hash table
-+ * @ht:		the hash table to destroy
-+ * @free_fn:	callback to release resources of element
-+ * @arg:	pointer passed to free_fn
-+ *
-+ * Stops an eventual async resize. If defined, invokes free_fn for each
-+ * element to releasal resources. Please note that RCU protected
-+ * readers may still be accessing the elements. Releasing of resources
-+ * must occur in a compatible manner. Then frees the bucket array.
-+ *
-+ * This function will eventually sleep to wait for an async resize
-+ * to complete. The caller is responsible that no further write operations
-+ * occurs in parallel.
-+ *
-+ * After disable_work_sync() has returned, the deferred rehash worker is
-+ * quiesced and, per the contract above, no other concurrent access to the
-+ * rhashtable is possible. The tables are therefore owned exclusively by
-+ * this function and can be walked without ht->mutex held.
-+ */
-+void rhashtable_free_and_destroy(struct rhashtable *ht,
-+				 void (*free_fn)(void *ptr, void *arg),
-+				 void *arg)
-+{
-+	disable_work_sync(&ht->run_work);
-+	irq_work_sync(&ht->run_irq_work);
-+
-+	rhashtable_free(ht, rcu_dereference_raw(ht->tbl), free_fn, arg);
-+}
- EXPORT_SYMBOL_GPL(rhashtable_free_and_destroy);
+ 	pr_debug("Create set %s with family %s\n",
+@@ -1749,15 +1839,27 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
  
- void rhashtable_destroy(struct rhashtable *ht)
-@@ -1362,3 +1368,79 @@ struct rhash_lock_head __rcu **rht_bucket_nested_insert(
+ #ifdef IP_SET_PROTO_UNDEF
+ 	hsize = sizeof(struct htype);
++	params = mtype_rht_params;
+ #else
+-	hsize = set->family == NFPROTO_IPV6 ?
+-		sizeof(struct IPSET_TOKEN(HTYPE, 6)) :
+-		sizeof(struct IPSET_TOKEN(HTYPE, 4));
++	if (set->family == NFPROTO_IPV6) {
++		hsize = sizeof(struct IPSET_TOKEN(HTYPE, 6));
++		params = IPSET_TOKEN(HTYPE, 6_rht_params);
++	} else {
++		hsize = sizeof(struct IPSET_TOKEN(HTYPE, 4));
++		params = IPSET_TOKEN(HTYPE, 4_rht_params);
++	}
+ #endif
+ 	h = kzalloc(hsize, GFP_KERNEL);
+ 	if (!h)
+ 		return -ENOMEM;
  
- }
- EXPORT_SYMBOL_GPL(rht_bucket_nested_insert);
++	/* maxsize: maximum bucket table size to expand to */
++	params.max_size = maxelem;
 +
-+/**
-+ * rhashtable_flush_and_free - detach and discard all current elements
-+ * @ht:		the hash table to flush
-+ * @free_fn:	callback to release resources of an element, may be %NULL
-+ * @arg:	pointer passed to free_fn
-+ *
-+ * Swaps the bucket table backing @ht for a new, empty table.
-+ *
-+ * The detached table is then walked and every element found is
-+ * unlinked, and, if @free_fn is given, handed to it for release.
-+ *
-+ * Unlike rhashtable_destroy(), @ht is left fully initialized and may
-+ * continue to be used for lookups, insertions, and removals.
-+ *
-+ * This function may sleep, it cannot be called from atomic context or
-+ * RCU read-side critical sections.
-+ *
-+ * The caller must not make concurrent rhashtable_flush_and_free calls.
-+ * That is, a subsequent call can only be made once the first call has
-+ * returned.
-+ */
-+void rhashtable_flush_and_free(struct rhashtable *ht,
-+			       void (*free_fn)(void *ptr, void *arg),
-+			       void *arg)
-+{
-+	struct bucket_table *tbl, *old_tbl, *new_tbl;
-+	struct rhashtable_walker *walker;
++	err = rhashtable_init(&h->ht, &params);
++	if (err)
++		goto free_h;
 +
-+	new_tbl = bucket_table_alloc(ht, rounded_hashtable_size(&ht->p),
-+				     GFP_KERNEL);
-+	if (!new_tbl)
-+		new_tbl = bucket_table_alloc(ht, ht->p.min_size,
-+					     GFP_KERNEL | __GFP_NOFAIL);
-+
-+	mutex_lock(&ht->mutex);
-+	old_tbl = rht_dereference(ht->tbl, ht);
-+	RCU_INIT_POINTER(ht->tbl, NULL);
-+	mutex_unlock(&ht->mutex);
-+
-+	/* Wait for insertions/removals on the old ht->tbl to complete. */
-+	synchronize_rcu();
-+
-+	/* Cancel resizes/rehashes. */
-+	irq_work_sync(&ht->run_irq_work);
-+	cancel_work_sync(&ht->run_work);
-+
-+	atomic_set(&ht->nelems, 0);
-+
-+	/* No need for mutex as rehashes have all stopped. */
-+	rcu_assign_pointer(ht->tbl, new_tbl);
-+
-+	/* Detach walkers from the old hash table. */
-+	tbl = old_tbl;
-+	spin_lock(&ht->lock);
-+	do {
-+		tbl->dying = true;
-+		list_for_each_entry(walker, &tbl->walkers, list) {
-+			struct rhashtable_iter *iter = container_of(
-+				walker, struct rhashtable_iter, walker);
-+
-+			walker->tbl = NULL;
-+			iter->end_of_table = true;
-+			iter->p = NULL;
-+		}
-+
-+		tbl = rcu_dereference_raw(tbl->future_tbl);
-+	} while (tbl);
-+	spin_unlock(&ht->lock);
-+
-+	/* Wait for walkers on old table to complete. */
-+	synchronize_rcu();
-+
-+	rhashtable_free(ht, old_tbl, free_fn, arg);
-+}
-+EXPORT_SYMBOL_GPL(rhashtable_flush_and_free);
+ 	/* Compute htable_bits from the user input parameter hashsize.
+ 	 * Assume that hashsize == 2^htable_bits,
+ 	 * otherwise round up to the first 2^n value.
+@@ -1765,10 +1867,10 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	hbits = fls(hashsize - 1);
+ 	hsize = htable_size(hbits);
+ 	if (hsize == 0)
+-		goto free_h;
++		goto free_rht;
+ 	t = ip_set_alloc(hsize);
+ 	if (!t)
+-		goto free_h;
++		goto free_rht;
+ 	t->hregion = ip_set_alloc(ahash_sizeof_regions(hbits));
+ 	if (!t->hregion)
+ 		goto free_t;
+@@ -1855,6 +1957,8 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ #endif
+ free_t:
+ 	ip_set_free(t);
++free_rht:
++	rhashtable_destroy(&h->ht);
+ free_h:
+ 	kfree(h);
+ 	return -ENOMEM;
 -- 
 2.56.1
 
