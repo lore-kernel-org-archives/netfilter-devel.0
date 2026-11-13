@@ -1,59 +1,65 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794527622;
-	b=5nVjCpWapobGGM/EDmbV6fcs7+6NRDB6J/LQTSrLjXdo4Ok0I+D0mqkjSPrQ57lTTMP/
-	 zGcRp7i8/sxOgk9HhkD0Pcqi8zyCzPRtP+O0TBYQ+g22WwMD4XOIwIiGEb+vLVu9hPa3N
-	 sLWuvRWCDeeuNMoNDbGu8l8ulCfcBOxbTCL0KZxHUAY6xsH9FqT9IigQu7b1iLci1hOJp
-	 A9ItIAivX0dRMr19YyOC1KzVVhxg6BRwj0EzYujOWAuFfFEBGgHhOtPDFXm4TGmlnOwpe
-	 p6sLeVAL7rwhHYskEfOe1UbiCQmySn6wB2YgtVkAHZMiDltm16bVHc6fc6PW0ge7iYA==
+	t=1794532498;
+	b=a7X5VvSDCqC7HwP3o43w8tKoxlnPPl+orCogrmrT6yEMRhdrANBnb4a2hjMSriRaTSFo
+	 v6hncFc71NLmuzbgOwJwwRdTJ2rmH3WBxLgq66hONO1EBfANw6DaKtAbWC6ZiePOm46ob
+	 vjnyq+gu0BBJKXNt6ih8a3j2QJsatghSIcTE5bh8sOlnYTnxPGuCOGOPL9phUnjMaTnPr
+	 3ZncZ0Z1PSYn+rt3fpewGX4GS3+7BYWcJ4LvTVdn4l99YmlOpQLAy2NpY5VZ+DLTZLLKD
+	 r0akIuOuisstgvfSsm38VD8JEmxfduq3jA5zNJ3eA/P64N3iNgL+ujGjq68+6VHflQA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794527622;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=K1G5e8I13roSs+x/0OACUW73BREQ8js9ToBC089JOKY=;
-	b=g3eN6n+t3f9wwQaflttcE/WzJ7ccZdq9KeugKGoinBn8/PHqeTz2fe2GHyKDIpJmQnV/
-	 v96SoJIkZjm+OlwfanYP0u5lD6tkxlfNb6MgCidpcLRfDAiB8pmiQaCyycCZC484sggVJ
-	 CIXSYA3s+52LD4XP7Sf+VXy00Zsn9DgA+1RH/NnViTtiUY4ptQrcG39OACZEPhsuToeVm
-	 Fpga4Jjj+ws8q25RoVOzEhSRhHR42t7YHwFpZQljqLgySOMrFc4btquoDD50C1oM0EAy1
-	 /IZHdPOWBgQS5yTabPe5/FYGuf3PLIqeAYX9/VzZ7vmAjwIUqrmSqMiC2ulDXtp6YrQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794532498;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Spam-Status:X-Spam-Checker-Version;
+	bh=IOhpMrHiqwvzQOFzgMunwEOVkFowBtszwQ+dcMbylmQ=;
+	b=EOLRg+0REDqXOFhAOrmL+Qt4+XiVkPEj6WbWU9KBtpkPzZz9KTCkikvMQVirF4j4sZDL
+	 HmHDumLDYKudCEIA8RpOOQ8Vfa3uXMnfi39XqP1JWtyYrT5tXnm1gDQjDZb6hdDjq/UKf
+	 tDIO5CP6nDRgXCjgcOldwYY9/fINttpJY1q9d2F99WqHjq36b3TRmWesz+xYB6gU7Siuu
+	 /A9NJYbL5j3AHoUDwNv2N6kuxNQWLPD9H/1uG8gr63YnpppYhBRi2zb+DDeUhX0JBEF3n
+	 snyqpoqjVlMJ+vvj4OlUWU30bvLCUJOpjucXCNTK4B90+dX1vjg5nfcKREZFDNvtShg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=BCHb1+Mm;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="s/ki8f7x";
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id F0B77606A321
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Nov 2026 23:53:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F0B77606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F0F606A323;
+	Fri, 13 Nov 2026 01:14:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4F0F606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=BCHb1+Mm
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=s/ki8f7x
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794527618;
-	bh=K1G5e8I13roSs+x/0OACUW73BREQ8js9ToBC089JOKY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BCHb1+MmZNfxbweIuvWjuzzWQ2SERHRsUhQeMcU4vP5LrMXmKT2yiWzdiR2aiUduS
-	 d9FNQirrynQ5XgAc5LCkbD8tiVKOM4WWL+OulQ89AjHK6aqlev1KPy42QlFz2+quZ8
-	 a+qJhypkWtu8JxP/23DOgyAmIrVxUFQbx53bK50l9Su4iHO+sQbyWnTSzK/1ls72k1
-	 5S4Ka8NSTzptTa8/BL3U/01cimwe931lGRpED7D7Ydqj3+e618BNApgzRVnI8+HHTf
-	 qWsU5hofqBZ4sBJAfnTzzMSNpHv9G85AcEYxZaFHWgmn3Q0taucTXg9tPtjupRujuI
-	 7O7KpF0dqKe5w==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9B1B860079;
-	Fri, 13 Nov 2026 00:53:38 +0100 (CET)
-Date: Fri, 13 Nov 2026 00:53:35 +0100
+	s=2025; t=1794532495;
+	bh=IOhpMrHiqwvzQOFzgMunwEOVkFowBtszwQ+dcMbylmQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=s/ki8f7xzKIeOGF2yIIQa7fwU7qdGQMMXj2IuApqEo/d3VS7+uOlLg62zO1O+YmOt
+	 jAVUC3vYnx5LW6aZq883zqL+/Jkd4MIsBUT5kCEeHksjiqBU6g95on0cenyi42maIP
+	 cX8wYwMV5JSo/iF8g5aQibSoA42lAESwaKmPSELolGiiitZt5tg1EhwltovC1bP3IC
+	 u6V3cI8erxSbt9C4fBoMu37APfRQJ7Rl/xfr305HfWXTOK9IyXTmjZ2Xn/HVtm0TbX
+	 Qaw5og1ybtsZrcVsIijm7Ktl6kwmNnOT2GxrSVJprdEpY4RLKIs+7cWm4Vv2wmfCKr
+	 sKK7I30T/4/dQ==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 84B3060058;
+	Fri, 13 Nov 2026 02:14:54 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Daehyeon Ko <4ncienth@gmail.com>
-Subject: Re: [PATCH nf v2] netfilter: nf_conntrack: limit expectation master
- chain depth
-Message-ID: <avZRah74LdH7P9LH@chamomile>
-References: <20261110133443.21073-1-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@kernel.org,
+	horms@kernel.org,
+	fw@strlen.de,
+	ja@ssi.bg
+Subject: [PATCH net 00/15] IPVS fixes for net
+Date: Fri, 13 Nov 2026 02:14:32 +0100
+Message-ID: <20261113011447.2357709-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,189 +69,127 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20261110133443.21073-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 10, 2026 at 02:34:43PM +0100, Florian Westphal wrote:
-> A conntrack can point to a master conntrack, which itself may point to
-> another master, and so on.  There is currently no bound on how deep this
-> chain can grow.
-> 
-> Force a max depth in nf_ct_expect_alloc(): walk the master chain and
-> reject allocation if it would exceed 8 levels of nesting.
-> 
-> Also add ctnetlink_find_get_master and use it so that ctnetlink create
-> paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
-> and returning a misleading -ENOMEM.
-> 
-> This prevents unbounded ct->master->master->... chains.
-> 
-> This also restricts the number of call forward/redirects that h323 and sip
-> helpers will follow.
+Hi,
 
-"Should ctnetlink_glue_attach_expect() or ctnetlink_alloc_expect() also
-check nf_ct_master_acceptable(ct) and return -EMLINK?"
+The following patchset contains IPVS fixes for net:
 
-It would be great to collapse this patch to v3 too:
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20261101225435.447072-1-pablo@netfilter.org/
+1)  Avoid out-of-bounds write in ip_vs_nat_icmp_v6() when an ICMPv6
+    error embeds a non-first ESP fragment, from Axel Mierczuk.
 
-since this is another way to build long chains, so this is fixed at
-once.
+2)  Update *offset for non-first fragments in ipv6_find_hdr(), so
+    callers no longer use the initial offset as if it had been
+    updated. Also from Axel.
 
-Thanks!
+3)  Rework connection refcounting so the pending and running timer
+    hold a reference. This fixes a use-after-free race between
+    connection deletion and a concurrent timer callback, from
+    Julian Anastasov.
 
-> Reported-by: Daehyeon Ko <4ncienth@gmail.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  v2: increase cap to 8, no other changes.
-> 
->  include/net/netfilter/nf_conntrack_helper.h | 15 +++++++++
->  net/netfilter/nf_conntrack_expect.c         | 15 +++++++--
->  net/netfilter/nf_conntrack_netlink.c        | 36 +++++++++++++++------
->  3 files changed, 53 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-> index 335b8c43694f..53a8eda848dc 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -29,6 +29,8 @@ enum nf_ct_helper_flags {
->  
->  #define NF_CT_HELPER_NAME_LEN	16
->  
-> +#define NF_CT_MAX_EXPECT_CHAIN_LEN	8
-> +
->  /* Must be kept in sync with the classes defined by helpers */
->  #define NF_CT_MAX_EXPECT_CLASSES	4
->  
-> @@ -159,6 +161,19 @@ static inline void nf_ct_help_put(const struct nf_conn *ct)
->  		kfree_rcu(helper, rcu);
->  }
->  
-> +static inline bool nf_ct_master_acceptable(const struct nf_conn *m)
-> +{
-> +	unsigned int depth = 0;
-> +
-> +	while (m->master) {
-> +		if (++depth >= NF_CT_MAX_EXPECT_CHAIN_LEN)
-> +			return false;
-> +		m = m->master;
-> +	}
-> +
-> +	return true;
-> +}
-> +
->  int nf_conntrack_helper_init(void);
->  void nf_conntrack_helper_fini(void);
->  
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index 06242c86e1dc..62e434cd57c9 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -299,13 +299,22 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp)
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_unexpect_related);
->  
-> -/* We don't increase the master conntrack refcount for non-fulfilled
-> - * conntracks. During the conntrack destruction, the expectations are
-> - * always killed before the conntrack itself */
-> +/**
-> + * nf_ct_expect_alloc - allocate a new conntrack expectation
-> + * @me: The conntrack to be used as master.
-> + *
-> + * The master conntrack refcount is not incremented; expectations
-> + * are always killed before the master conntrack is destroyed.
-> + *
-> + * Return: a new expectation on success or NULL on failure.
-> + */
->  struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
->  {
->  	struct nf_conntrack_expect *new;
->  
-> +	if (!nf_ct_master_acceptable(me))
-> +		return NULL;
-> +
->  	new = kmem_cache_zalloc(nf_ct_expect_cachep, GFP_ATOMIC);
->  	if (!new)
->  		return NULL;
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index 1f8d94a05240..30428d520e43 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -2231,6 +2231,26 @@ ctnetlink_change_conntrack(struct nf_conn *ct,
->  	return 0;
->  }
->  
-> +static struct nf_conn *
-> +ctnetlink_find_get_master(struct net *net, const struct nf_conntrack_zone *zone,
-> +			  const struct nf_conntrack_tuple *tuple)
-> +{
-> +	struct nf_conntrack_tuple_hash *master_h;
-> +	struct nf_conn *master_ct;
-> +
-> +	master_h = nf_conntrack_find_get(net, zone, tuple);
-> +	if (!master_h)
-> +		return ERR_PTR(-ENOENT);
-> +
-> +	master_ct = nf_ct_tuplehash_to_ctrack(master_h);
-> +	if (!nf_ct_master_acceptable(master_ct)) {
-> +		nf_ct_put(master_ct);
-> +		return ERR_PTR(-EMLINK);
-> +	}
-> +
-> +	return master_ct;
-> +}
-> +
->  static struct nf_conn *
->  ctnetlink_create_conntrack(struct net *net,
->  			   const struct nf_conntrack_zone *zone,
-> @@ -2356,7 +2376,6 @@ ctnetlink_create_conntrack(struct net *net,
->  	/* setup master conntrack: this is a confirmed expectation */
->  	if (cda[CTA_TUPLE_MASTER]) {
->  		struct nf_conntrack_tuple master;
-> -		struct nf_conntrack_tuple_hash *master_h;
->  		struct nf_conn *master_ct;
->  
->  		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER,
-> @@ -2364,12 +2383,11 @@ ctnetlink_create_conntrack(struct net *net,
->  		if (err < 0)
->  			goto err2;
->  
-> -		master_h = nf_conntrack_find_get(net, zone, &master);
-> -		if (master_h == NULL) {
-> -			err = -ENOENT;
-> +		master_ct = ctnetlink_find_get_master(net, zone, &master);
-> +		if (IS_ERR(master_ct)) {
-> +			err = PTR_ERR(master_ct);
->  			goto err2;
->  		}
-> -		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
->  		__set_bit(IPS_EXPECTED_BIT, &ct->status);
->  		ct->master = master_ct;
->  	}
-> @@ -3613,7 +3631,6 @@ ctnetlink_create_expect(struct net *net,
->  			u_int8_t u3, u32 portid, int report)
->  {
->  	struct nf_conntrack_tuple tuple, mask, master_tuple;
-> -	struct nf_conntrack_tuple_hash *h = NULL;
->  	struct nf_conntrack_expect *exp;
->  	struct nf_conn *ct;
->  	int err;
-> @@ -3633,10 +3650,9 @@ ctnetlink_create_expect(struct net *net,
->  		return err;
->  
->  	/* Look for master conntrack of this expectation */
-> -	h = nf_conntrack_find_get(net, zone, &master_tuple);
-> -	if (!h)
-> -		return -ENOENT;
-> -	ct = nf_ct_tuplehash_to_ctrack(h);
-> +	ct = ctnetlink_find_get_master(net, zone, &master_tuple);
-> +	if (IS_ERR(ct))
-> +		return PTR_ERR(ct);
->  
->  	rcu_read_lock();
->  	exp = ctnetlink_alloc_expect(cda, ct, NULL, &tuple, &mask);
-> -- 
-> 2.56.0
-> 
-> 
+4)  Expire controlled connection chains iteratively instead of
+    recursively to avoid kernel stack exhaustion, from Zihan Xi.
+
+5)  Reject zero and configured FTP control ports as data ports in
+    the FTP helper, from Zihan Xi.
+
+6)  Skip conntrack templates in ip_vs_ftp_out() to fix a UAF in the
+    expectation list after the CT rule is removed, from Theodor
+    Arsenij Larionov Trichkine.
+
+7)  Add the seqadj extension before linking the FTP expectation, since
+    krealloc() of ct->ext can otherwise leave the expectation pointing
+    to freed memory. Also from Theodor.
+
+8)  Update conn flags, seqs and related fields in the backup server
+    under cp->lock, from Julian Anastasov.
+
+9)  Read conn flags and seqs atomically in the master when building
+    sync messages, from Julian Anastasov.
+
+10) Fix a race that can leave a destination in the overload state
+    forever. Also make the LBLC/LBLCR schedulers honor the overload
+    state for cached destinations, from Julian Anastasov.
+
+11) Validate cport and IP_VS_CONN_F_NO_CPORT in received sync records.
+    This rejects templates and connections that incoming lookups
+    cannot match, from Axel Mierczuk.
+
+12) Skip cport 0 connections in ip_vs_conn_out_get(), using the same
+    rule as __ip_vs_conn_in_get(). Also from Axel.
+
+13) Do not create connections from packets with client or virtual
+    port 0, which could create a duplicate connection for every
+    packet, from Julian Anastasov.
+
+14) Wait for an RCU grace period before reusing a destination from
+    dest_trash, and before restarting its estimator, from Darong Lu.
+
+15) Pass the netfilter hook's state->sk to the update_pmtu handler,
+    and pass a NULL sk to ip_local_out() when forwarding through an
+    IPVS tunnel, from Julian Anastasov.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-11-13
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit d1bb235aa409a4e5aeba6c748d953d948625b1e9:
+
+  netfilter: nat: zero newrange before filling it in (2026-11-05 13:31:11 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-11-13
+
+for you to fetch changes up to 937b060406a547e4d931525e600540726ea26532:
+
+  ipvs: pass correct sk to update_pmtu and on tunneling (2026-11-13 02:08:35 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 26-11-13
+
+----------------------------------------------------------------
+Axel Mierczuk (4):
+      ipvs: avoid out-of-bounds write in ip_vs_nat_icmp_v6
+      ipv6: update *offset for non-first fragments in ipv6_find_hdr()
+      ipvs: validate cport in received sync records
+      ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+
+Darong Lu (1):
+      ipvs: wait grace period before reusing destinations
+
+Julian Anastasov (6):
+      ipvs: fix problems during connection deletion
+      ipvs: update flags and seqs in backup server under lock
+      ipvs: read flags and seqs in master atomically
+      ipvs: honor the overload state and do not enter it forever
+      ipvs: do not create conns from packets with port 0
+      ipvs: pass correct sk to update_pmtu and on tunneling
+
+Theodor Arsenij Larionov Trichkine (2):
+      ipvs: ftp: skip conntrack templates in ip_vs_ftp_out
+      ipvs: ftp: add seqadj extension before linking the expectation
+
+Zihan Xi (2):
+      ipvs: avoid stack overflow from recursive connection expiration
+      ipvs: reject FTP control ports as data ports
+
+ include/net/ip_vs.h                     |  52 ++++++++----
+ net/ipv6/exthdrs_core.c                 |   6 +-
+ net/netfilter/ipvs/ip_vs_conn.c         | 133 ++++++++++++++++++------------
+ net/netfilter/ipvs/ip_vs_core.c         |  58 +++++++++----
+ net/netfilter/ipvs/ip_vs_ctl.c          | 140 ++++++++++++++++++++++++--------
+ net/netfilter/ipvs/ip_vs_ftp.c          |  39 +++++++--
+ net/netfilter/ipvs/ip_vs_lblc.c         |   8 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c        |  13 +--
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |   2 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c   |  12 ++-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c    |  12 ++-
+ net/netfilter/ipvs/ip_vs_proto_udp.c    |  11 ++-
+ net/netfilter/ipvs/ip_vs_sync.c         |  53 ++++++++++--
+ net/netfilter/ipvs/ip_vs_xmit.c         | 114 +++++++++++++++++---------
+ 14 files changed, 462 insertions(+), 191 deletions(-)
