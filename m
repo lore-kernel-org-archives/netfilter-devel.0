@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794532514;
-	b=GmmtQC/L1ERJfPhCrEZ5ol/95SFyq9rMzZOrBxrfiAqyFSCPg/YprFUOqt7ZQVFemtNc
-	 K0+9YXYUqpw6hbzJeZRVdKzBAhLbCbOgG2Nfri0byezsjTDuUtY1hvahiHlnSarxpxr3a
-	 H6ETOBdFuChWYDOqX73KrC3G47+Du65SjxRkc0fuAhyQUZw/NVsYc0GUlNmcKBesFo45B
-	 NvbRz1XUR27dxB4L+nCb9iXZi2oKGr/GwhAhkhrGyCWW9IedcmFgyc5Lee1hnRPvHvEku
-	 jJmKz8/XG3teda8Jl//ojYquNDtvSBf7ODhpTAtgBJMkNGXo4MXyCX8Xk43QQMJJ9BA==
+	t=1794532515;
+	b=d2A0TmtN20hSxpg5N8Bl1Vbd78eO37M2VdLSFBcKjbEipZp73Segw5uPnBtTEL+CLW4G
+	 FfNivPsPs5dZdBoJ7ws4/Dhc6CUc7UYs2PnG6ArsgxHiR+5sokTW9nIZtseu+UsbKDEwj
+	 6FD5WTLvksnGc5Xv3oxNRP5N98DkmOvSo8hQjWZuabYeFibhE5kAUmJc8zHHX+JwaL5/N
+	 rIdHl/mRZsrP1K5SeFC6KvIM7hasdY4BDKuroqUDZ1+JQ/4cfIE+p35zKdklgP5f+A16Z
+	 kq2W7sV5xtkDdS+5Ubfsn75kOcdrO9+YS76X8vSRJZLM5AAttsNYmbTpHmTjKOrHpDg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794532514;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794532515;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=iy4TGIRj/y0rTfGvhCEsPkvS8/SqmV+ZRLhEWbG+xdk=;
-	b=RbibPBATmOkTHfLw3vb2/t1z8amSgyc5U4/CrBE/XDCS4O5v48UARgl17SQ/JCb4HPh0
-	 LyvbJrcBa3hTQ0k8qQVdVS5mCYAfMG6jnM2keFU890l1zQwdtH0iN1/Jjly4pLItLlK3v
-	 22IQleBF6tbkHHt4SUzdwcFXlN5sjswjnSR4CeQGg05rGuftNIoGYvVYIlY/ro5GT9VAw
-	 iNQUer2U8uBHlTjLoYPT9KF8NtEIfZHG+mj1sxH5aGQpMz0Ldv1H1GV47Mmsm6TEiedCH
-	 k4LIRvz37qNyhIUyVKJxyaM/KQQKZYPQc1JeBPxcaAe4R5mrYqHUzN/PQ5huTO4ZFqw==
+	bh=SNaZg93QoJFoyUqJdrg7u3we72+lDKRsNMRyQGErX4U=;
+	b=tGmvOBaveJs9Z1y6qbAeqeLIMm1qMd6WRcuqdgtv+a1U2266PUvFgwZvHZJV36J6YGcI
+	 uUomSO1lJcp8ouuuVy9I9TSwKeBDqx/puAReB18u6q54Nc5IhjDqdEcaCXP1R80WcatXi
+	 oVjMMQTwsusxkFcapoqpXxg0u93ygLn4mNmNAy22WNVBvB0ja/acG2v/H5BvJ749R2ltS
+	 3GU4oMeCprQUoWIZsP62hRVOJp4M5V9mA9s3ro/kE2ShaBPhYlQixwIvrGlfRbmYbCQxK
+	 Yl0X68XdlqBS5Fd6w4j2FJ+qyrnulv/VLNzuJwon9+0w088ZEj7h4go74Ifblmft3lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=g5bDnkPd;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=tQcpmk78;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EA2B60A2628;
-	Fri, 13 Nov 2026 01:15:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8EA2B60A2628
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35C60606A890;
+	Fri, 13 Nov 2026 01:15:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 35C60606A890
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=g5bDnkPd
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=tQcpmk78
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794532512;
-	bh=iy4TGIRj/y0rTfGvhCEsPkvS8/SqmV+ZRLhEWbG+xdk=;
+	s=2025; t=1794532513;
+	bh=SNaZg93QoJFoyUqJdrg7u3we72+lDKRsNMRyQGErX4U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=g5bDnkPdTuqRN6gqffVNGimA1UhWIIU73qZQL32j7q87PjcN5AY3XJGe6nJt8iHmt
-	 b91E8p0oPBg+PUMAoFbF3fxZNQ0H3/hVnGlnMEa8VLOmyyInJKrHIH8ij/q2IuPPlo
-	 JNikI1A5RdJcOzImjuaGkOZtnDrCC++GBwK2iwW/NtqDqAotRAmcs+bVkaIfOSxG4O
-	 vvvqI6NEjHWRNJZdq43UMaLKvRjdVf2gQ3BvILtUCBt1HfZ72Lpi3r7I+FJGrHY/7Y
-	 QUf4OTWSISsdHj2EwxUiIJ3ORCYDsLrFas3RQDRWBrNBlYXALtYU8+buyMUFyD9LSw
-	 AaFcZxVszo0gg==
+	b=tQcpmk78yVs8brKGAq20FzBejxsiFoGdtFntzUwvBUcHBCgzd8P216BDjdhnfnUn5
+	 7ENeFYpTUqUCmfR7YQ21rky4HKVN/3131uHPTbuLX5a4oZceZvJwaUAi8z/CM3IZaW
+	 gBJ3qIpIHuXOOU/06wIGYndtUX1oKGWMjakYCmT0CsJ7TKD8zXoDA9z6rL97+veKGn
+	 8gQOLzBlpJDuqNEzqS6GMpwerdOQaKPBrNxOCJG/JC/jBIgGNnX9iVtqxx5GOzoKz2
+	 yatfjfqfhp7kuAE0orZ2gahM7qT06zTo3HT2+nNcrJy5Xamrt1pATzweEmNoNLVMDj
+	 D0M8bvBYf9sNw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6E20A6005B;
-	Fri, 13 Nov 2026 02:15:11 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D15396005C;
+	Fri, 13 Nov 2026 02:15:12 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 11/15] ipvs: validate cport in received sync records
-Date: Fri, 13 Nov 2026 02:14:43 +0100
-Message-ID: <20261113011447.2357709-12-pablo@netfilter.org>
+Subject: [PATCH net 12/15] ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+Date: Fri, 13 Nov 2026 02:14:44 +0100
+Message-ID: <20261113011447.2357709-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113011447.2357709-1-pablo@netfilter.org>
 References: <20261113011447.2357709-1-pablo@netfilter.org>
@@ -75,62 +75,46 @@ Content-Transfer-Encoding: 8bit
 
 From: Axel Mierczuk <axel.mierczuk@1password.com>
 
-Local templates have cport 0 and IP_VS_CONN_F_NO_CPORT clear, so
-ip_vs_conn_in_get() cannot match them. A template received over the
-unauthenticated sync protocol with a nonzero cport can reach the
-protocol state machine. Before template state validation, this
-could cause out-of-bounds reads, crashes and kernel data leaks.
+ip_vs_conn_out_get() does not filter templates. A template with
+cport 0 is matched by a packet sent to client port 0 that traverses
+the out hook, and handle_response() then runs ip_vs_set_state() and
+the timeout update on a connection that must never see packets. A
+backup server receives such templates over the unauthenticated sync
+protocol. An ordinary connection scheduled for a client that uses
+source port 0 has cport 0 as well and is matched the same way.
 
-Ordinary records with cport 0 and IP_VS_CONN_F_NO_CPORT clear, or
-with a nonzero cport and IP_VS_CONN_F_NO_CPORT set, create connections
-that incoming lookups cannot match. The latter also keeps the
-cport-zero fallback in ip_vs_conn_in_get() enabled.
+Apply the rule used by __ip_vs_conn_in_get(): a lookup for client
+port 0 matches only connections flagged IP_VS_CONN_F_NO_CPORT, which
+still wait for their cport, and a lookup for a nonzero client port
+matches only connections without this flag. Test p->vport, which was
+already compared with cp->cport, instead of reading cp->cport again.
 
-Reject all three cases. Continue accepting ordinary connections with
-cport 0 and IP_VS_CONN_F_NO_CPORT. The companion commit f96e91748f63
-("ipvs: filter some flags received in the backup server") rejects
-template records carrying IP_VS_CONN_F_NO_CPORT.
+ip_vs_ftp_out() relies on the first case: it looks up the data
+connection with client port 0 to find the IP_VS_CONN_F_NO_CPORT entry
+created for an earlier PASV or EPSV reply. That lookup keeps working.
 
-Fixes: 87375ab47cd0 ("[IPVS]: ip_vs_ftp breaks connections using persistence")
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Cc: stable@vger.kernel.org
 Suggested-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Axel Mierczuk <axel.mierczuk@1password.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_sync.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ net/netfilter/ipvs/ip_vs_conn.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index f11c59eca553..7e562e745ab5 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -871,6 +871,25 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
- 	struct ip_vs_dest *dest;
- 	struct ip_vs_conn *cp;
- 
-+	/* Templates require cport 0. Ordinary connections require
-+	 * NO_CPORT exactly when cport is 0.
-+	 */
-+	if (flags & IP_VS_CONN_F_TEMPLATE) {
-+		if (param->cport) {
-+			IP_VS_DBG(2, "BACKUP, template with cport dropped\n");
-+			kfree(param->pe_data);
-+			return;
-+		}
-+	} else if (!param->cport && !(flags & IP_VS_CONN_F_NO_CPORT)) {
-+		IP_VS_DBG(2, "BACKUP, conn without cport dropped\n");
-+		kfree(param->pe_data);
-+		return;
-+	} else if (param->cport && (flags & IP_VS_CONN_F_NO_CPORT)) {
-+		IP_VS_DBG(2, "BACKUP, conn with cport and NO_CPORT dropped\n");
-+		kfree(param->pe_data);
-+		return;
-+	}
-+
- 	if (!(flags & IP_VS_CONN_F_TEMPLATE)) {
- 		cp = ip_vs_conn_in_get(param);
- 		if (cp && ((cp->dport != dport) ||
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 66fcdc00ef37..83d8a9153a34 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -590,6 +590,8 @@ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
+ 				    ip_vs_addr_equal(p->af, p->vaddr,
+ 						     &cp->caddr) &&
+ 				    ip_vs_addr_equal(p->af, p->caddr, saddr) &&
++				    (!p->vport ^
++				     (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
+ 				    p->protocol == cp->protocol) {
+ 					if (__ip_vs_conn_get(cp))
+ 						goto out;
 -- 
 2.47.3
 
