@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794539580;
-	b=LQatqFT/Xugg1DYQrzaiQrOWOlSkbRW2Bp5UcWNTS4KwPczKoALUG5muydf0GVqclzK6
-	 yKAToxWpGaJeEA1+yHAXLhalEwPdwJPwV6httlqg9pcZL0caesXKR5LJ0/K8WYq35y8uW
-	 beIYzIVUz23N4P7BZiEpM8ZM88GGUGpUcFUcbQ7k06lg7xGIRgvAniCqm0i5UV3NZ5l5I
-	 vhiXpSlN/7hu3fm06BmPAzDxZ5CznIE6Eiak4yMU5Z37+gGyfBn6nKSyrmYM2G5DJKFB8
-	 m8Toi4cMA1MXeMhrJf2rZuCWRW8y+tGBhyafNkHZNgO3qkAuAgvR1vgb437gcqX9s9g==
+	t=1794539581;
+	b=CXWp/CUvWkWSSvxVGOzehKB8d5lKnNX+oOPQ8tFRmgJn3P49eXitPUAdkRHtcE1Y6JFe
+	 akcEexXD9olIuSicbzJIORgiutGDGc9fzcvZGnYGKV7ypXVnoNXRn5RU46KQ5Rr9iM6wS
+	 OlQHiGaW+pD/ZkaWvrc3nnwv2RwWUELga5Y+Lm1XBQMdv5kesv9EhlC5J9DJEUaUHcqd7
+	 cKgIPJiEjgtbj5D28vMP8RNQ1HguvAz1/45CqtcERH+TujHQE/IHeFokAW6B3ZLyYJuPf
+	 q7U42P3MUet/AXmgmXq2opcrSB3grxDzJcDAM8IlggZdS0ZORTOr8F1sxRW7l+AvzQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794539580;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794539581;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=9zmDEpfpsyhkPdf0R7bMz9mubrw4ivGSdNjMo6UTJw0=;
-	b=SlugcWiJpulS1zrGX0QnLDqrclkrsou4Sknpj2I4NnXV3N9WmSE4wMLrk3raM7gaZnQP
-	 giMCFBsvz4MBRtFrjE8jUKG6qUFA5mi+s+9p5s3Ai/QYr229UrboKVoTus3IjGdrsnNaN
-	 2VF7XNYotqBBe5C1e0JZkdSFkM89hJ/OLzj5PJJo3+MWxrIRsR1PaEHziSg/jhwCSI4Ra
-	 Wsb65OIzoiP+DALN1oza675wH75Z6e/UavxwmCcoHo77wtnbwB7XUSbpgcgOFu/aVGJIG
-	 KYsjBbdAfGZvGWqMIfxO1whaLBPfgEc98TNWxZfk+iL0za0vLCpLIaZnIardRt8V3lA==
+	bh=VwXdHxOfjvzzynD1vM7dDHln5nJMoyIHrViPYcVmOAE=;
+	b=Dn+2nrFDQKrtiNq9ga8VPS9XghL+cNwxNtGPRO1/jQaUPo8EW4mwabVL67lhil8V3IoH
+	 dnToTLcEwnVjbp+Ucf9g3QbVvZzjztcW3jgm2fZhJKjvO1Y8KizVtnGLOP4wRsVI9alNd
+	 QI9u+h5mZ+vrLvJZKAdalNRAyGlecwMJ6hmaHhdHoNc5OVDMJ+f2Sdhqnx7FAtEHB7ZHf
+	 RVSTZf0rrmnbsKqsZKM299Dmy9NZHdg+KcnOIPwha60wHdE9wooIVNApZnPtApfuIQ2Ak
+	 GLUxrpesQHjjrXG9WI2O8/jKtwLojQUv14YM6GWeb2jOEaa6TNOkpO7+ZYPHab7afng==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Gnx5s4dr;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=DIovl3Sk;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98188606A32D;
-	Fri, 13 Nov 2026 03:12:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 98188606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5162606A883;
+	Fri, 13 Nov 2026 03:13:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D5162606A883
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Gnx5s4dr
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=DIovl3Sk
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794539577;
-	bh=9zmDEpfpsyhkPdf0R7bMz9mubrw4ivGSdNjMo6UTJw0=;
+	s=2025; t=1794539579;
+	bh=VwXdHxOfjvzzynD1vM7dDHln5nJMoyIHrViPYcVmOAE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Gnx5s4drwlhbCVwESVbxhXJl4rC07FkJXnQPVxdIjGZ+w6cHQmiJgCpkMZPnLl3VT
-	 krStAFlcpR6clBRUrxnz1pyE4eGpvpmqX7b3fmKNxstNj5xr8xobhL4C/UeByB+az9
-	 49bQc85IFGjEJMKJur12BbaE8KXkOFTUKAzYSeOW3w5R25pEeKoT+xl/cBF4sK2pWH
-	 UD5CzYH+MoONxkzMd6o/mzChvri72YFAPCTGCh4FYdXbz1zoKwquml6Yb3zsvby2vL
-	 toVYLZb0v2oe9CHEfoHhvihpPLXrTQjWz19A5jqLOyK0LeQYSw0sht67u9zuXlDEej
-	 k9TnASh92q4gg==
+	b=DIovl3Sk1UzsB3L2t+V0y09VzZ7e5fvtQYZjyyQwaLVjSXqKopwZRIFk9F8GhuLPy
+	 +KGmHhD0Q5q8eqPQwQKyp/h75GHQKBno8JPMbTYWQGgfV9Qclzu2cE6W2aSRPZ8+x4
+	 eZaIH8QAU6JpuvdSvzIkUyP2ZN3NNv1npeXihlpvkA1RvPspuZl1AUnGZVFD5qb1bl
+	 4ZlYUeMZNNN6tENbr517fda19aW7g25FZfEm4hW0KUG9APtFbwq5je99ZSlAzZLisg
+	 PL4AQ6X7Xm4jB6elm8YRjRAWjSMiSCzzSTTZB4k+oCuPtDyM+wvHZqaFwGKTGoZj+B
+	 T9IBaGefG35qQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 508C1602A5;
-	Fri, 13 Nov 2026 04:12:57 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9486E602A6;
+	Fri, 13 Nov 2026 04:12:58 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 01/15] netfilter: flowtable: do not hw offload flows in teardown state
-Date: Fri, 13 Nov 2026 04:12:37 +0100
-Message-ID: <20261113031251.2437074-2-pablo@netfilter.org>
+Subject: [PATCH net-next 02/15] netfilter: flowtable: fix pmtu discovery in nf_flow_tunnel_ip6ip6_push()
+Date: Fri, 13 Nov 2026 04:12:38 +0100
+Message-ID: <20261113031251.2437074-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113031251.2437074-1-pablo@netfilter.org>
 References: <20261113031251.2437074-1-pablo@netfilter.org>
@@ -73,36 +73,40 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sashiko reports that refreshing hw offload from packet path is racy
-since the flow might be already going away.
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
-Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
-status bit"), GC skips flow entries that are still pending to be
-offloaded. Let's just check for the teardown status bit after the
-pending bit is set on to address this race.
+nf_flow_tunnel_ip6ip6_push() invokes skb_scrub_packet() before updating
+the PMTU. skb_scrub_packet() drops the skb dst, so
+skb_dst_update_pmtu_no_confirm() finds no dst and the PMTU update is
+silently lost.
 
+Move the PMTU update before skb_scrub_packet() so the inner route is
+updated with the MTU advertised by the tunnel dst, as done in
+ip6_tnl_xmit().
+
+Fixes: 93cf357fa797 ("netfilter: flowtable: Add IP6IP6 tx sw acceleration")
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_offload.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ net/netfilter/nf_flow_table_ip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index 4365859220e6..3a18fa48cadb 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -1120,6 +1120,12 @@ void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
- 	if (!offload)
- 		return;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 19cafae748ab..644e70fd6773 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -699,10 +699,10 @@ static int nf_flow_tunnel_ip6_push(struct net *net, struct sk_buff *skb,
+ 	if (err)
+ 		return err;
  
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-+		clear_bit(NF_FLOW_PENDING, &flow->flags);
-+		kfree(offload);
-+		return;
-+	}
-+
- 	flow_offload_queue_work(offload);
- }
+-	skb_scrub_packet(skb, true);
+ 	mtu = dst_mtu(dst) - sizeof(*ip6h);
+ 	mtu = max(mtu, IPV6_MIN_MTU);
+ 	skb_dst_update_pmtu_no_confirm(skb, mtu);
++	skb_scrub_packet(skb, true);
  
+ 	skb_push(skb, sizeof(*ip6h));
+ 	skb_reset_network_header(skb);
 -- 
 2.47.3
 
