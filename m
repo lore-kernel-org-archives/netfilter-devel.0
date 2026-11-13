@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794539589;
-	b=dnBYYWmRCoQlbysjyQ20juUagWa+su+Wn3Psl/1haOwgXue3wZ1lc3J292DPE45gC+oQ
-	 YcfH6jqSpt7W/KxelP8WwtHI+BA5GGVyi7jDXL8l2yNRpBm9sDH87JpAxz/g4X/CoR7Za
-	 GzW1U5iZwMYQRSD+80uM/jnztZBWnmknohi/iO9/nagI/XIRiMnu6S3E9bFiqBQTBYXlH
-	 Nl2LalRfn90SWQKVUEVuM4lp+EVhuZW0IAqH+gc39NJuCmvYDlm004D8IH9exgqgSBB58
-	 I4P3BPCocgv0C6v87TD5FRL8EF0yUBd54XkkE6DIwe0ZmWQcAXFqVVJsv/GtYaBAR+Q==
+	t=1794539584;
+	b=ZyImWPas1J2JZQxqjCxJvOvFXOG3kBC4xoqbigT2pfmtsSQodPI/E1KRE5bTTvfy+Lzj
+	 3dhyVW9Ze91EbygVR2V/rWmmdWBj08Tc5Z4QRWCsI1oYxDoecqXSMEj/tIZO3wyD3o4bJ
+	 LWKaaPrI1fo7huORw432mQV5Ipv8A9eSKgKx8Mw1jC95aod4dxZ9uElFkRPJoPGvGRWgn
+	 5mh1/wE+PNPkShN5Obcty7EBYUlZD9WE8o05c6jnrP02HBzsEcnjw5Svc04zNqj8ztu8N
+	 T48bOcJIYDI7p7zs/Ak18c1kOKjTYklXB0FggPFnHiInnEOv8uTnostnWnjRcrhfmbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794539589;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794539584;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=2Z/RPSCZzGOwx32PFiUP+tr0MR11Y1QNpYHw9wZIm+0=;
-	b=3mOFleC+jlxtmggeHc0IloFNII5OLYgADi2swQCfEg6sHaxPE2Wd1+3IpxBAI4DWC0yy
-	 B2IfEShBk9mL9gUsSemcNoAIrj1pe2UXEedtszpywAsSf1L3SwqENC6oBTpBRQhKwBANs
-	 8LX8Ll825BkGIyWvQ+J3d/BHk1SqSw0B4JZNcEJjAmbD9VS4mtin1djOAp0DNudgem4QD
-	 ZV/l5J3pgHQPfaE5yxNI1rewU7TxoE6LIFwPUGBocZqEpXmtrIk/AWDm3PoxjUT7luJDB
-	 pl5S0Uo1YuNwmjSPRZAD0TidjARAc+uCs9uCV61kjkSZuLUMHyz8VIoMiA2PihEMBNw==
+	bh=TG/14QAYLr9AECWOTVuoUws/MaH0SzB3BMceRMURL3c=;
+	b=eXdLD2kaHJK6VbKnvc2Axtlp8jXRHWtR/fBKBp39v3iqSKM+oQNPtgzEXUdHWiS71V0K
+	 qC5Qqhvs1p6l6psxMvnWxyoItM921guOcFwP+QOzH6D1AIWWMjqmW0ltRD83yuyV1u5xk
+	 wCWKAJ6z7i25L7oVS6WQpraYzoEk+dCGMg7jyOtCYozITwQCrEyI6y1fgBYyRbj2J+7O2
+	 rBKywcCptF1c9X8qXj5/lCYI/cfNDb90oCYhNF4KqU8AXoBIHT0jYt6xVwgd0cbrq9kgp
+	 DsWVYRsMTysSuzrYh530abgil58XaE4kFa8eS+EnOnViQFAODgBnB9SVqAAphsLBlQg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dCTIqUkD;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KSojmTeq;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9961760A2611;
-	Fri, 13 Nov 2026 03:13:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9961760A2611
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79080606A8A3;
+	Fri, 13 Nov 2026 03:13:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 79080606A8A3
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dCTIqUkD
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KSojmTeq
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794539587;
-	bh=2Z/RPSCZzGOwx32PFiUP+tr0MR11Y1QNpYHw9wZIm+0=;
+	s=2025; t=1794539583;
+	bh=TG/14QAYLr9AECWOTVuoUws/MaH0SzB3BMceRMURL3c=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dCTIqUkD2S/ffilVbG1gaSb0FEJXTZn0zKJ3NgWxROg493fsflHCf7gpGc0uXwZg5
-	 IVSDeNPgyqq8jaKXLbrNUlB+vrzYVbGE/H5iDi04Lmy0KfclmFFhYnf2yIuMJ48qjq
-	 HhT1vJ92uKQjbpNbaROolUSskccr8QgctJ3VEio19lEvOXtkUuJktZhL37th15NSDZ
-	 LMv3HRy/s9x0jEN3NFK4Fb+Le1OBMPARDCOV0wsJtJnblrFmtRcoAdLCng8wzdmkYs
-	 GtzTf97t8ARwiv0jHWyQ9xy3Hy13P4YuEKJUN0e3NKY0oJGGsyTm9N0lqXH/Gg4GO2
-	 eB1F219NUd2VQ==
+	b=KSojmTeqyq94OI5qlXVlXx6ezkptqBNBcEuQl6ATwaZXCjCp1lKDbJCr4HuLse7+O
+	 tHQfmx241+UmUrRsLNqp2O5KUoKGG8yh6FGuZ+64KUR6hBsEK6EEifNvj/aqbQRlzo
+	 h/JaqojG/Rwys29926jVNuKUocPnDI9YBi2DqSEXVV1sR9W0EJTov4swAxAIhLr0vJ
+	 Y9YJ1QpfUafMeR1Gjc+JnWPbGiRtT4ocLfeiH8GzgpUUWo6X+d2nr64ei/BtTflZKH
+	 f1/7Vp95efPbcQAaBTQm+slyFDZq6cua7VfWGdLskSf85/jaRjx8KsP+BMixKGGbsP
+	 gg0iqnVvHIx/A==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9437F602A6;
-	Fri, 13 Nov 2026 04:13:06 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7708B602A6;
+	Fri, 13 Nov 2026 04:13:02 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 08/15] netfilter: lwtunnel: expose read-only sysctl nf_hooks_lwtunnel for non init-netns
-Date: Fri, 13 Nov 2026 04:12:44 +0100
-Message-ID: <20261113031251.2437074-9-pablo@netfilter.org>
+Subject: [PATCH net-next 05/15] net: airoha: update stats on flow deletion
+Date: Fri, 13 Nov 2026 04:12:41 +0100
+Message-ID: <20261113031251.2437074-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113031251.2437074-1-pablo@netfilter.org>
 References: <20261113031251.2437074-1-pablo@netfilter.org>
@@ -73,43 +73,80 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Expose nf_hooks_lwtunnel sysctl with 0444 mode from non init-netns
-instead of 0644, sashiko reports this is exposing a global static branch
-to modification by unprivileged users.
+From: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 
-Fixes: 7a3f5b0de364 ("netfilter: add netfilter hooks to SRv6 data plane")
+Update this driver to use the new approach to fetch stats on flow
+deletion, introduced by ("netfilter: flowtable: retrieve stats on flow
+deletion").
+
+Signed-off-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_hooks_lwtunnel.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/airoha/airoha_ppe.c | 31 +++++++++++++++---------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_hooks_lwtunnel.c b/net/netfilter/nf_hooks_lwtunnel.c
-index 40c6fce14a63..7e2ee8677f1f 100644
---- a/net/netfilter/nf_hooks_lwtunnel.c
-+++ b/net/netfilter/nf_hooks_lwtunnel.c
-@@ -68,14 +68,18 @@ static int __net_init nf_lwtunnel_net_init(struct net *net)
- {
- 	const struct ctl_table *table;
- 	struct ctl_table_header *hdr;
-+	struct ctl_table *dup;
+diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
+index f5369c45766d..af8c7fe9b7f0 100644
+--- a/drivers/net/ethernet/airoha/airoha_ppe.c
++++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+@@ -1285,6 +1285,23 @@ static int airoha_ppe_flow_offload_replace(struct airoha_eth *eth,
+ 	return err;
+ }
  
- 	table = nf_lwtunnel_sysctl_table;
- 	if (!net_eq(net, &init_net)) {
--		table = kmemdup(nf_lwtunnel_sysctl_table,
--				sizeof(nf_lwtunnel_sysctl_table),
--				GFP_KERNEL_ACCOUNT);
--		if (!table)
-+		dup = kmemdup(nf_lwtunnel_sysctl_table,
-+			      sizeof(nf_lwtunnel_sysctl_table),
-+			      GFP_KERNEL_ACCOUNT);
-+		if (!dup)
- 			goto err_alloc;
++static void airoha_ppe_flow_update_stats(struct airoha_eth *eth,
++					 struct flow_cls_offload *f,
++					 struct airoha_flow_table_entry *e)
++{
++	u32 idle = airoha_ppe_entry_idle_time(eth->ppe, e);
 +
-+		dup->mode = 0444;
-+		table = dup;
- 	}
++	f->stats.lastused = jiffies - idle * HZ;
++	if (e->hash != 0xffff) {
++		struct airoha_foe_stats64 stats = {};
++
++		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
++		f->stats.pkts += (stats.packets - e->stats.packets);
++		f->stats.bytes += (stats.bytes - e->stats.bytes);
++		e->stats = stats;
++	}
++}
++
+ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+ 					   struct flow_cls_offload *f)
+ {
+@@ -1295,6 +1312,7 @@ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+ 	if (!e)
+ 		return -ENOENT;
  
- 	hdr = register_net_sysctl_sz(net, "net/netfilter", table,
++	airoha_ppe_flow_update_stats(eth, f, e);
+ 	airoha_ppe_foe_flow_remove_entry(eth->ppe, e);
+ 	rhashtable_remove_fast(&eth->flow_table, &e->node,
+ 			       airoha_flow_table_params);
+@@ -1342,24 +1360,13 @@ static int airoha_ppe_flow_offload_stats(struct airoha_eth *eth,
+ 					 struct flow_cls_offload *f)
+ {
+ 	struct airoha_flow_table_entry *e;
+-	u32 idle;
+ 
+ 	e = rhashtable_lookup(&eth->flow_table, &f->cookie,
+ 			      airoha_flow_table_params);
+ 	if (!e)
+ 		return -ENOENT;
+ 
+-	idle = airoha_ppe_entry_idle_time(eth->ppe, e);
+-	f->stats.lastused = jiffies - idle * HZ;
+-
+-	if (e->hash != 0xffff) {
+-		struct airoha_foe_stats64 stats = {};
+-
+-		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
+-		f->stats.pkts += (stats.packets - e->stats.packets);
+-		f->stats.bytes += (stats.bytes - e->stats.bytes);
+-		e->stats = stats;
+-	}
++	airoha_ppe_flow_update_stats(eth, f, e);
+ 
+ 	return 0;
+ }
 -- 
 2.47.3
 
