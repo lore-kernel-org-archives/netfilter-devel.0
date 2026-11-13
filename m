@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794532499;
-	b=ycUE3pccM1f0URjSXvxjUHsMNgJ/4iwadavAodOu81HWpVBa+hGloUrs2zwPxPRDbjBQ
-	 EuDbIeTkfYrREzz57K8OllHyj4I2rLwbGKs9vxrcrQXv6WDXuu5TXIO0k0c30DjXzuxI8
-	 4ugenR4RWXbI1NTKs5zXuU01zOhx85wnhjImzgbCUVnTcp1vZzuC4EiQpBPpiImurI0da
-	 AI5Dl8HPd41HqqkM49m9Jwbsn8j9SftYrWfpwz07BDtBc/2yo2eJRRfJW6tSKjfRp35LT
-	 RovTEE8fZ4tfeK1+frFN8UNP2/28iSkDK6zjgOURr/TfShhCzsMP18rhTZe6m2MwyFg==
+	t=1794532500;
+	b=12EYGe0oqqAWMLRuArEjQFUn1Tst67f9VK8DSBFSB8V+oEl4iFk6+eNaaE0WRNk1N5ar
+	 2OeRWWnCXLttWDNT/HbbozCK5XQSdrj4jba2yeeDJlIQ2IS3Ooycp+Y0WIBvGNsFamrJ2
+	 FoOlFEeaoRPa5wweHuYTTB2leH+vPhUAxxwuSwAKQE2SxndI6pvZiz7NsPkl4eJXHr5Bz
+	 cX/CNpB6YqwbwYTBIk83LsFrs8QflE9gb/LNNSa8lvp47/jCUpTjuB4expTEy9/tFt9n2
+	 A5nNHdjGZEZjNWetfWCa97Ho06jv9VRdbUr1Cw8YDmtDhkS0XM+C+A8voxorhsPpohg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794532499;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794532500;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=v41bCtFzAN8QCeZS7l5n270HMrE/5hpeD/4liMHjCLc=;
-	b=eSBxkTzSi7wK6NGipg5OgELxz3Lg/36CjdVT9g5B6iBCIygJFFQSutS9ZciCbxQxcLvG
-	 tUW2KYbnqKbvr9tZSaz5OQrB4xfHSSlba4Ek7L9K/0zStoCcARrbnw2L4pYiD77JX+g54
-	 rDhdiFlV2bVmK5FHfSC4YLz5VC0PmOEbxuG8+AvWUOzDvqye07lmkQ4WKDqBDn0O2m7lq
-	 NPr9tfuJ6CbpR94+BgM/J8/cBc/gS4MpOAnX9qVdNSp6zurC035baAHfhwLIydLcBdJzt
-	 p+ZDuMjtiyT0Nli2W7glhUOG3EOIIV4XscjNr0Btahlr76Ecy4KHsUV6SHIB0xgkJZA==
+	bh=zzEsJnJnM1bQXthU4+437vS4Xm/cQAtHw6bJmg1IONE=;
+	b=tVugAzNV5g17WplV4aGHrlafGKb2QlUERxj96Jw3dsUBEzDTZ3qZ6FtfgymQVoV+cJKi
+	 dP0hqrp8b9lcqRh5GbT2+COwJ7+lXtkh4GbgsZGt1NOtjGTEo1uYlmlSxPjV/XrAcZqFd
+	 FM0UpNnIhdpvNgxePUs3n9JMr+hRLPUFDM3J/EAFHzfMioZyhYQhNMaHh6Zr5jyiPgcWr
+	 0XpQr5jQyKQLLFaIoBN5mIqSkPsrzzS8Be8V+8lqhRGJj2qs5I+PJ7SZ3zhSY/Y8LFIGm
+	 Air/Ex3OoK6ve+nwFRulPUeHg1a4D0JXc5gjbdyXD/8opfQTcQpKBrTWbWSjVYg3mfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Bib7dVBb;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=S3duZu2R;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57E7A606A32D;
-	Fri, 13 Nov 2026 01:14:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 57E7A606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61104606A333;
+	Fri, 13 Nov 2026 01:15:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 61104606A333
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Bib7dVBb
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=S3duZu2R
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794532497;
-	bh=v41bCtFzAN8QCeZS7l5n270HMrE/5hpeD/4liMHjCLc=;
+	s=2025; t=1794532498;
+	bh=zzEsJnJnM1bQXthU4+437vS4Xm/cQAtHw6bJmg1IONE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Bib7dVBbtrdTbVqf5l5iCnBHemKa//P/geKMjijFPdMaN9a0ar4FIo2XjxnyKGVDw
-	 ux4ePkK3OEo98ZLT1Ff/+9ouQrLauBqwlBVctH44AyWKhINfVT+e/ABPFdp7s9S3yH
-	 IQK3nir2sZNOZPC2s5fJ1TEevVzxHJiAuQLG2kCHC6uu+LUoTbBMgYXy2sqZyADvfF
-	 7V6Q49QEJkL99G+ig/3hYT4HiKYHZy9sZhbECWniRdu7WWmLJ28illsIEOWGLfraEc
-	 upV8gTgme8cCxg/K3YSWt4aSpLLbo1ydMuSeH4q0+ze1jh6aCvJ+yuTr+RWUPumDJ/
-	 IIfToUeOBOCCw==
+	b=S3duZu2RNJMgqFlSR5qyfemWOVEJk7CLxGNhx3v4Oeu+x5/yDE0DhjWu+lQakoK1i
+	 IkxE28ZVxd4vBY7xVxkGSKDC/6KdjrvS08XA/vrQMJBkXQzklu4CIe3TI87BlOI3vQ
+	 JgBPoH1z4an41Usg5FjMXFTG2ggIQHH4NImEdvOQUhmdi2CvP2DMGzJDrWuF8o6OT7
+	 n9ZravCuPxf7lgpNV6UlR/aQJhT5a+8hJY2gNfrnzGMUJH8SPpiIMGm83EB7cui4aP
+	 vePNQ4U7tc9kpbqeQVsDUIgXJA9WptdBVOnt5R8YSLYahRgAy1NcTYsMeiwTVskJBn
+	 3SbiwcnmhMkNQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E2B286005B;
-	Fri, 13 Nov 2026 02:14:56 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3C5AA6005C;
+	Fri, 13 Nov 2026 02:14:58 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 01/15] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp_v6
-Date: Fri, 13 Nov 2026 02:14:33 +0100
-Message-ID: <20261113011447.2357709-2-pablo@netfilter.org>
+Subject: [PATCH net 02/15] ipv6: update *offset for non-first fragments in ipv6_find_hdr()
+Date: Fri, 13 Nov 2026 02:14:34 +0100
+Message-ID: <20261113011447.2357709-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113011447.2357709-1-pablo@netfilter.org>
 References: <20261113011447.2357709-1-pablo@netfilter.org>
@@ -75,63 +75,50 @@ Content-Transfer-Encoding: 8bit
 
 From: Axel Mierczuk <axel.mierczuk@1password.com>
 
-ipv6_find_hdr() does not set the header offset for non-first
-fragments, so an ICMPv6 error embedding such an ESP fragment leaves
-ip_vs_fill_iph_skb_icmp() with len == off. The NAT paths size
-skb_ensure_writable() from len, and ip_vs_nat_icmp_v6() then writes
-the embedded addresses after the validated area.
+The non-first fragment early return is the only successful exit of
+ipv6_find_hdr() that leaves *offset untouched. IPVS used the initial
+offset as if it had been updated.
 
-Include the embedded IP header in ciph.len at both ICMPv6 call
-sites when parsing stops at a non-first fragment. ESP lookup does
-not require a transport header. Non-first TCP, UDP and SCTP fragments
-bypass IPVS ICMP handling before connection lookup.
+For non-first fragments with target < 0, set *offset immediately
+after the Fragment header, at the start of the fragment payload.
+Callers must still account for the nonzero fragment offset. A
+NEXTHDR_FRAGMENT search continues to return the Fragment header's
+offset. Other target < 0 callers check the returned fragment offset
+or ignore *offset here.
 
-This fix does not depend on patch 2. Stable kernels without commit
-342e24a339b9 ("ipvs: do not mangle ICMP replies for non-first fragments")
-also need that commit to handle incoming ICMPv6 errors quoting
-non-first ESP fragments.
-
-Fixes: 63dca2c0b0e7 ("ipvs: Fix faulty IPv6 extension header handling in IPVS")
-Cc: stable@vger.kernel.org
+Fixes: b777e0ce7437 ("[NETFILTER]: make ipv6_find_hdr() find transport protocol header")
 Suggested-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Axel Mierczuk <axel.mierczuk@1password.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ net/ipv6/exthdrs_core.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 8a3c880fdb26..76213159404f 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1206,6 +1206,13 @@ static int ip_vs_out_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 				     true, &ciph))
- 		return NF_ACCEPT; /* The packet looks wrong, ignore */
- 
-+	/* ipv6_find_hdr() does not include the embedded header for
-+	 * non-first fragments, add it so that ESP can pass and the
-+	 * NAT writable checks cover the rewritten addresses
-+	 */
-+	if (ciph.len == ciph.off)
-+		ciph.len += sizeof(struct ipv6hdr);
-+
- 	pp = ip_vs_proto_get(ciph.protocol);
- 	if (!pp)
- 		return NF_ACCEPT;
-@@ -2036,6 +2043,13 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
- 	if (!ip_vs_fill_iph_skb_icmp(AF_INET6, skb, offset, true, &ciph))
- 		return NF_ACCEPT;
- 
-+	/* ipv6_find_hdr() does not include the embedded header for
-+	 * non-first fragments, add it so that ESP can pass and the
-+	 * NAT writable checks cover the rewritten addresses
-+	 */
-+	if (ciph.len == ciph.off)
-+		ciph.len += sizeof(struct ipv6hdr);
-+
- 	pd = ip_vs_proto_data_get(ipvs, ciph.protocol);
- 	if (!pd)
- 		return NF_ACCEPT;
+diff --git a/net/ipv6/exthdrs_core.c b/net/ipv6/exthdrs_core.c
+index 4a9748338cf4..e27f5b8cc154 100644
+--- a/net/ipv6/exthdrs_core.c
++++ b/net/ipv6/exthdrs_core.c
+@@ -179,7 +179,10 @@ EXPORT_SYMBOL_GPL(ipv6_find_tlv);
+  *
+  * Note that non-1st fragment is special case that "the protocol number
+  * of last header" is "next header" field in Fragment header. In this case,
+- * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
++ * for target < 0, *offset points immediately after the Fragment header,
++ * at the start of the fragment payload. Callers must still account for
++ * the nonzero fragment offset before interpreting the payload. The
++ * fragment offset is stored in *fragoff if fragoff
+  * isn't NULL.
+  *
+  * if flags is not NULL and it's a fragment, then the frag flag
+@@ -261,6 +264,7 @@ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+ 				     hp->nexthdr == NEXTHDR_NONE)) {
+ 					if (fragoff)
+ 						*fragoff = _frag_off;
++					*offset = start + sizeof(struct frag_hdr);
+ 					return hp->nexthdr;
+ 				}
+ 				if (!found)
 -- 
 2.47.3
 
