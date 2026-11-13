@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794532505;
-	b=plYY0D3Is6pnc6QgBaBm9zB37BJjIrTSvTdYD/tHil1jFnwHwfxhODBktTIURr7LGweK
-	 W2ucDkgXN9fp7tVmcw9MPLANciqsJpSno6sz/ozLP81ANjv2Znh79z0BGrGggkn6HOt+I
-	 LfKAqzUYuTuf4RoDZ/8tIjFY95FUwXXSMNaRQW9Ua66nfHK5zfNsKGRipueTOeKbV5P+O
-	 ozQWBLX7oRq39XDF03mpsU5Nh5WjbULumXTnLhUJd49BBUvTr9F7KoOuaGC/1vHVo7NKH
-	 Xh1UJuJGrRUhilO9CsWHMaC4y+yKH7UzVU6D6MnyLhzADKCdntl+OVL+d8RSQLX7KHQ==
+	t=1794532507;
+	b=mGXjOozyOYTNEt3CDrNW777POZqDrVL8x69/kZ1P9nffaODrfJQlENqo9NUTZvqGLZ4N
+	 nIpqm35XPwqguRqplRikOj9LjSGqhGl96o1Lp4gNO+MjgVo1EscFlCrXF/f9zkIcz4KRm
+	 toBllyeI1X83OgaHeTgvrMWIq1ADPPFJ6Ha6o1m/P/tNjgmUCjOm5r8GQRXqZMmb5dBYi
+	 17JCirqE6bE7eKa9+KjyUfU3B2lB+1TDrNVQspw5QmO71/dslZdCmvXRDHH0EC0b/yC2L
+	 I3MAgAQHZQ3TX31oQ47jZE50Srb9F3FzZNY01hNvoYMmOZ+/OFAzovdyw5dL2zpafHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794532505;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794532507;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=L/mDYBLr21Zl+KzenQ/2+WneZOvu1su6eDvZBqxB/YQ=;
-	b=ta0gNY/Yk6HyYLnZCYFulQAsIoa+LbeVKzO9aqDJxpT4HAy/MeRvLYH1EEBPQ1fwBfxQ
-	 N1SzGvOzLu1QsU3DolTqGKUFWuSNkA/nTLCbqzrZaN1g/ScLuSGqtynhNBKeOfmc2BsVO
-	 4UJA4nYjf1naJDfVnBeXKDJDqlqHWbpnBT8GtVvLAJt6QQGZik1hE3XYtai9GbWqPgicq
-	 CnT5T0rjyzucdNSgWC5/Y0eH1v4398/llKiPuzH+uny4ubI0aVDS2nBkVsm1f6/T5GR67
-	 DmJ7TNSal8lrJXcK4MOGJJgEZC5G7StnFzwpjUkGWdKrL9LlWn7Be0jQ158dmUYDDMg==
+	bh=8bhtQHOBI7+X/9nJSN6otowzZoz1vReVnQfpWCOI+kg=;
+	b=hWYCHitoKPbLgLWV10+GNIA/rCAVI0eVq+WXY3Bwom7+wfWTsO850xk8rR/NomsVryBZ
+	 N2wvS26qshRMKUuic1ra26R6xhy9gTFoHsE15Zva+UOqUhxKdQWLsVab+6RhGURqh94Mj
+	 71MnrsUFI+02hydZaT6HyAsRJCnfyW4tArBAw5D/c8bk7xvEJcOiLHxvAgsaLn9xwJB0D
+	 Ojv1Ddftr2Xog0YGx+RvhGM3qYuF+BOKuJqKSY6B5oI991GLgEnFbBUev/nOSEfIIDad2
+	 UgJN2W2PyG16+vAVl96jmYf73kg1pWf39yq5jv/NZ5s5SUu7luDwT64aSZO/2Fi9wlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Ky0wmxXF;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KcVmIpQQ;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20133606A899;
-	Fri, 13 Nov 2026 01:15:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 20133606A899
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDD41606A885;
+	Fri, 13 Nov 2026 01:15:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EDD41606A885
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Ky0wmxXF
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KcVmIpQQ
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794532503;
-	bh=L/mDYBLr21Zl+KzenQ/2+WneZOvu1su6eDvZBqxB/YQ=;
+	s=2025; t=1794532504;
+	bh=8bhtQHOBI7+X/9nJSN6otowzZoz1vReVnQfpWCOI+kg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ky0wmxXFn7yFW79dZpI/uzvN5LUzu8s/xgAFt+2J/7XaQZeBlvtMA1N5bYEZooM/r
-	 wfYBSyrQqeviqVkMNRXOa3bUw8DWLev/uIyoh4kIyw3O3qFN3mVxbW4uoN8NNXiQyl
-	 YnCna9IvwwzYZrqW8bGeX/2TxD4EhyJEX9FpxSIt3oLKFsZj+bR7q8Jl3w40z8TCfr
-	 K3D1fhIJ6RKW+V2a/1eBmPRMhk6W9Z8Ih6AzewGCvu8lbxRViUUkkHElbygX0dv5Jr
-	 MDw61huX0nDwDh2GXFndSWgjAs///98P/49ayKevst8o91sadY8WXLAzS3GsNUM6a2
-	 Dghbi5faT9Zpw==
+	b=KcVmIpQQbVaivGvTXFffBso9Zwu7ws+jF9Vn4Ad4vhTxVgmqP3XdWfeaONQJhXDcg
+	 aXC+CeO/4NA3CWgICP4D40nX/wUvcDg1C7C/9wFsZTxzz3CoLXf2btfA4HbyIlzv85
+	 zUG272pwjusU/8cK6m6FR8ylE0kUOk74Wr97yH0kqlqF90AyYrXKEmuvi4sv3sftAz
+	 0U10NbcqjMkAoRX4Ip5CDZ5W/G+QI0Yo0eOF0pLH2DP62c45Nsks5I0TSYsEblWCqo
+	 OviroPAohzSaUelZEyilHp8SJphLYku733oeYarMSRYLAgzOzIrDul4SV+9aQiYYXp
+	 SgMIT71/Y93Tw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EE44060060;
-	Fri, 13 Nov 2026 02:15:02 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 54FD360074;
+	Fri, 13 Nov 2026 02:15:04 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net 05/15] ipvs: reject FTP control ports as data ports
-Date: Fri, 13 Nov 2026 02:14:37 +0100
-Message-ID: <20261113011447.2357709-6-pablo@netfilter.org>
+Subject: [PATCH net 06/15] ipvs: ftp: skip conntrack templates in ip_vs_ftp_out
+Date: Fri, 13 Nov 2026 02:14:38 +0100
+Message-ID: <20261113011447.2357709-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261113011447.2357709-1-pablo@netfilter.org>
 References: <20261113011447.2357709-1-pablo@netfilter.org>
@@ -73,71 +73,43 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zihan Xi <zihanx@nebusec.ai>
+From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
 
-The FTP helper must not treat a configured control port as a data port.
-Accepting such a port can leave IPVS connections in a state that leads
-to recursive expiration and kernel stack exhaustion.
+A CT target hooked after conntrack attaches its template to a packet
+that conntrack left without an entry. On an IPVS FTP PASV/EPSV reply,
+ip_vs_ftp_out() then mangles with the template and creates an
+expectation with the template as master. Deleting the CT rule frees
+the template and leaves the expectation, so a later expectation flush
+reads freed memory:
 
-Reject zero and configured control ports before creating passive data
-connections. For active mode, reject a zero client port and a derived
-data port that is itself a configured control port.
+  BUG: KASAN: slab-use-after-free in nf_ct_unlink_expect_report
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reachable with CAP_NET_ADMIN in a user namespace.
+
+Skip templates, as nft_ct and nfnetlink_queue do.
+
+Fixes: f4bc17cdd205 ("ipvs: netfilter connection tracking changes")
 Cc: stable@vger.kernel.org
-Reported-by: Vega <vega@nebusec.ai>
-Co-developed-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Luxing Yin <root@tr0jan.top>
-Signed-off-by: Zihan Xi <zihanx@nebusec.ai>
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_ftp.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ net/netfilter/ipvs/ip_vs_ftp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 9e3e005a8263..4822a1a75212 100644
+index 4822a1a75212..44de99f4d187 100644
 --- a/net/netfilter/ipvs/ip_vs_ftp.c
 +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -62,6 +62,17 @@ static unsigned short ports[IP_VS_APP_MAX_PORTS] = {21, 0};
- module_param_array(ports, ushort, &ports_count, 0444);
- MODULE_PARM_DESC(ports, "Ports to monitor for FTP control commands");
+@@ -383,7 +383,7 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+ 	buf_len = strlen(buf);
  
-+static bool is_control_port(u16 port)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ports_count; i++) {
-+		if (ports[i] == port)
-+			return true;
-+	}
-+	return false;
-+}
-+
+ 	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct) {
++	if (ct && !nf_ct_is_template(ct)) {
+ 		bool mangled;
  
- static char *ip_vs_ftp_data_ptr(struct sk_buff *skb, struct ip_vs_iphdr *ipvsh)
- {
-@@ -319,6 +330,10 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 		return 1;
- 	}
- 
-+	/* Do not redirect data to control ports */
-+	if (!port || is_control_port(ntohs(port)))
-+		return 0;
-+
- 	/* Now update or create a connection entry for it */
- 	{
- 		struct ip_vs_conn_param p;
-@@ -529,6 +544,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 		return 1;
- 	}
- 
-+	if (!port || is_control_port(ntohs(cp->vport) - 1))
-+		return 0;
-+
- 	/* Passive mode off */
- 	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
- 
+ 		/* If mangling fails this function will return 0
 -- 
 2.47.3
 
