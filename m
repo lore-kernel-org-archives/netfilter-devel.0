@@ -1,78 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794569268;
-	b=F97PT0rph0X/v9Zy4b/+oK++o8Ul53ykob++XWrEgDWWLvZOgO31zx8UHBE6SzIh+Z/o
-	 LsD/MYMBf+7O4ST555XIUNAImXivm7v7cfFiPttOK2ZienuhKuMYPW8wAfs6hC6UgBPXz
-	 Wz1Jjj1sEDRNEWHAiL8awVH77uLhszo7wc+1JMzRSjs0vMp5hqJi+D6WRnO4j6i0jdOJv
-	 +CmmYOJE6AFt6v+CzyZbmkfxKO/Q5Fqwl3p0BCIUeYGpBXb842VLgxToID7LuZm6g2arc
-	 Vw0uyK1r1QNXNotEM86yLnXHz0sVYk6ym5CmqFAqtiTNg9Ymz0RF9Fh1yihyesn2S0g==
+	t=1794570449;
+	b=zaGU1+O2J2t2Yp1I3lH19mO45HOLEJSrwDCmka3F0yWio+EnYAiL8/GU2WRrBkxaU9vC
+	 eEHjg1+tvFhd/Ol+WBcuVhslMfskZpd8JczljRRb6bJUGSYckAXOPT8idqd3W3NnMpWLr
+	 nBjzHoGmjLCGTd/gmXqVQE8q1HjSSyKzPLLhA070g5iyJZN8PfxFTz/5WGTzAdJWOj9rr
+	 wvbFJLOQdRAPa/gPXF6O25qPDBHpbxJk4SPaCKY5AldHSs9CSv/y8yzlIbCdvw6Q+IOCX
+	 qaZbLNFRf/PO5MdThy7PioOv3t2hfysR+5Xp43lFiYGLtj3HdqMNru5vvdJAFBYTqGQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794569268;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=jb+Jq8mEOSP/+3jfof2fCZx8nezK1iMhQ/ZomWq2Dds=;
-	b=t4jE6V0JQHUB/Lmmly0BB9E0JAeFfnRASOBoHEdU4g80aDKg2TAP800Ajir23IDCMn3I
-	 9JAksqyAD7Y5Wf/9S+hOWyd5MutGCp3VwLZYXYL1vVMSgImsUo3cCbGdnrRKrhbZUf4ca
-	 5BjEQDNPWaHK+EvyoWiqXlNj+UEk2S3KjwCdn+z8a2JMWwZkF9JDRUKceHmuaQxyZenaw
-	 ed021daOOH9cx2UkGVdgygIYEnpNavkNBL/9cYJxf3H9cx9o7BWibrtrmHJTqqmVWzuzA
-	 56yl+YK2GhVXDJ4S7sNdzRJ4apzvpLjcxrgO2fhZFcP7lJi/MC8ihg0zIJGr47KJ7Cw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794570449;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=L8Oxm/zXPBLhazILHETxILKKFO9UIid5BwUc3DXTOuk=;
+	b=wWbUMcM3UUq4HGPI8Om8geDH07pU3mzE1Gnl1XOKTFg4KltVPxwIFS0YBCc/yn2yUI8x
+	 G2Q7m1FLCzjk6BEs7u4py6JU4LzECXqKVRF4lCy8BRYax9HogIt+bw7+UH2n7124aSpA8
+	 1fVS+1unbiwCRqHUJz/0yWfUOVKTGNggBicIdNbraBtLi1TKE56+kLL6+kq1Yj/skuT6i
+	 BtrsFdZNv0Baf/LrxiPOng0EfnqGk5dtf21tGN2E1F1RkJgSTeD4U/PTA5B9d/0ELAm2v
+	 Xu4x3W34BLFDYvIBdh4upGDlecya6MPknp3LFKhpVdkgNmktVciufcM004qwJDWS/5A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=iUnV1Zfn;
-	arc=none smtp.remote-ip=192.198.163.16
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=WfrAlYuS;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4CA606A31C
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2026 11:27:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5B4CA606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id DF200606A32D
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2026 11:47:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DF200606A32D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=iUnV1Zfn
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794569268; x=1826105268;
-  h=date:from:to:cc:subject:message-id;
-  bh=azZBVjK2FhUaA/+MTuxXdpchAxTrUD8ifmvHKMgoAF8=;
-  b=iUnV1Zfnwtu5P9e+T1G89DCgnDsh3jkBBjFWM+0iK62+n2OoU6lW9e4M
-   8GMSZdMG+fhcWi9nTi0v8G5z+z5NN2DTI2IeJTAWBvWjP5B1bFFsYAen6
-   ffES1VzNSFcUKFgz+h2gFmMae5TGqRKdxEJsBHfMMEj7MlXn+F3r3Apt6
-   UPjakL4h8GJauTaA2+E3kyvOyRLQCiz82Jx24NrTCaV3oCKY2Mm5i/8ZU
-   joGUjU5AruTY7befmEwcZgTm84TxPZNPTN3gLNrrZHxriBubqbv/vLip6
-   CNknlzJhJXgnjRJXagMokJgxm0vnKPmpeMPCJdylFqL2OuBKm6/QKZL3+
-   w==;
-X-CSE-ConnectionGUID: FuxjtWDeSvW/qnmVXQvYiw==
-X-CSE-MsgGUID: PW1wZNEtT12jNtJI9r7+QQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11964"; a="3401332"
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="3401332"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Nov 2026 03:27:48 -0800
-X-CSE-ConnectionGUID: 3hG9YljaTAmbgwapWiCNDg==
-X-CSE-MsgGUID: 2pIXz34iR8+hDBvpVX12RQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,211,1787036400"; 
-   d="scan'208";a="8811776"
-Received: from igk-lkp-server01.igk.intel.com (HELO 1073a420ae3a) ([10.211.93.152])
-  by orviesa007.jf.intel.com with ESMTP; 13 Nov 2026 03:27:47 -0800
-Received: from kbuild by 1073a420ae3a with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xRpRX-000000001Dl-2ohb;
-	Fri, 13 Nov 2026 11:27:43 +0000
-Date: Fri, 13 Nov 2026 12:27:22 +0100
-From: kernel test robot <lkp@intel.com>
-To: Julian Anastasov <ja@ssi.bg>
-Cc: oe-kbuild-all@lists.linux.dev, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [netfilter-nf:for-netdev-nf-26-11-13 27/27]
- net/netfilter/ipvs/ip_vs_conn.c:1060:21: error: use of undeclared identifier
- 'ip_vs_null_xmit_v6'; did you mean 'ip_vs_null_xmit'?
-Message-ID: <202611131204.pFzcf1WG-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=WfrAlYuS
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1794570446;
+	bh=L8Oxm/zXPBLhazILHETxILKKFO9UIid5BwUc3DXTOuk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=WfrAlYuSdyHnfAlyw1KM6k2SnEBqLaMKinYVX2vMwDaG/FPuf1vdrzlk17Hhcp9eF
+	 ZTCk3/wXvTIv0NAEgxNGqPMU7bDbrt+ZVQodAg05V78qS0Tx0l5pLpuGWNhaMt4yKi
+	 yzmTc6N0Ub1S4VPYvjujhofYlwdzryG00CROf5X2HB6/UBEdXsrMO4ej0AYWejaNP2
+	 sXoaQ6MPcIEDNsSxftB7UZc2VKuGVOPN9yWAABE20BnmGZESgLGWaNZW3Ft1fUZ3gr
+	 A5fZXKetiMHZ+A9JKyYYcr6eiTCY7bDNpvOrBKLc8APOvtUBhv7psMsB9FGoxGmnqL
+	 bZD9iqs+HieTQ==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B249960056;
+	Fri, 13 Nov 2026 12:47:26 +0100 (CET)
+Date: Fri, 13 Nov 2026 12:47:23 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Stosse <florian.stosse@harvester.fr>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH libmnl 0/5] libmnl: fix memory safety issues found by
+ static analysis
+Message-ID: <avb4y4AJsR6LUqgz@chamomile>
+References: <20261106191841.1645-1-florian.stosse@harvester.fr>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -81,70 +62,58 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261106191841.1645-1-florian.stosse@harvester.fr>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git for-netdev-nf-26-11-13
-head:   937b060406a547e4d931525e600540726ea26532
-commit: 937b060406a547e4d931525e600540726ea26532 [27/27] ipvs: pass correct sk to update_pmtu and on tunneling
-config: i386-randconfig-2200-20261113 (https://download.01.org/0day-ci/archive/20261113/202611131204.pFzcf1WG-lkp@intel.com/config)
-compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
-smatch: v0.5.0-9187-g5189e3fb
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261113/202611131204.pFzcf1WG-lkp@intel.com/reproduce)
+On Fri, Nov 06, 2026 at 08:18:35PM +0100, Florian Stosse wrote:
+> Hi,
+> 
+> This series fixes five bugs found while analysing libmnl with Frama-C
+> (Eva, WP and E-ACSL-instrumented fuzzing). Each one was then confirmed
+> on current master with a small standalone program under ASan/UBSan.
+> 
+> None of them can be triggered by netlink data received from the kernel
+> through the usual parsing path. They all need a caller that uses the
+> API in a less common, but valid or near-valid, way, so I am sending
+> them as ordinary fixes.
+> 
+> Patch 1 is the most relevant one. When the message that overflowed a
+> batch is larger than the messages already in it, mnl_nlmsg_batch_reset()
+> memcpy()s it onto an overlapping range and then reads nlmsg_len back
+> from the overwritten location. With limit = 100, a 20-byte message
+> followed by a 92-byte one leaves mnl_nlmsg_batch_size() returning
+> 0x97969594 on glibc/x86-64, and the next mnl_nlmsg_batch_next() uses
+> b->buf + 0x97969594.
+> 
+> Patches 2 and 3 fix out-of-bounds accesses on unusual input:
+> - The *_check() builders compare the unaligned nlmsg_len against
+>   buflen while the attribute is written at MNL_ALIGN(nlmsg_len), so
+>   they can write up to 3 bytes past the buffer.
+> - mnl_attr_get_payload_len() wraps for nla_len < 4, which makes
+>   mnl_attr_parse_nested() read past the end of the nest.
+> 
+> Patches 4 and 5 are minor:
+> - mnl_nlmsg_fprintf() can read up to 3 bytes past an unaligned message.
+> - mnl_cb_error() can compute -INT_MIN.
+> 
+> I can send the reproducers if they are useful.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611131204.pFzcf1WG-lkp@intel.com/
+I'm planning to apply 1-3.
 
-All errors (new ones prefixed by >>):
+Patch 4 and 5, it would be good to display in some way that unaligned
+bytes has been ignored while printing. As for the -INT_MIN case, it is
+probably safe to remove the workaround in userspace, IIRC this was
+helping with a very old kernel where netlink was reported a negative
+errno value in the error message, it can possibly be removed and the
+need for this ugly corner case will not be needed anymore.
 
->> net/netfilter/ipvs/ip_vs_conn.c:1060:21: error: use of undeclared identifier 'ip_vs_null_xmit_v6'; did you mean 'ip_vs_null_xmit'?
-    1060 |                 cp->packet_xmit = ip_vs_null_xmit_v6;
-         |                                   ^~~~~~~~~~~~~~~~~~
-         |                                   ip_vs_null_xmit
-   include/net/ip_vs.h:1992:5: note: 'ip_vs_null_xmit' declared here
-    1992 | int ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
-         |     ^
-   1 error generated.
+I am looking into adding
 
+#ifdef __GNUC__
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#define likely(x)   __builtin_expect(!!(x), 1)
+#endif
 
-vim +1060 net/netfilter/ipvs/ip_vs_conn.c
-
-  1034	
-  1035	/*
-  1036	 *	Bind a connection entry with the corresponding packet_xmit.
-  1037	 *	Called by ip_vs_conn_new.
-  1038	 */
-  1039	static inline void ip_vs_bind_xmit(struct ip_vs_conn *cp)
-  1040	{
-  1041		switch (IP_VS_FWD_METHOD(cp)) {
-  1042		case IP_VS_CONN_F_MASQ:
-  1043			cp->packet_xmit = ip_vs_nat_xmit;
-  1044			break;
-  1045	
-  1046		case IP_VS_CONN_F_TUNNEL:
-  1047	#ifdef CONFIG_IP_VS_IPV6
-  1048			if (cp->daf == AF_INET6)
-  1049				cp->packet_xmit = ip_vs_tunnel_xmit_v6;
-  1050			else
-  1051	#endif
-  1052				cp->packet_xmit = ip_vs_tunnel_xmit;
-  1053			break;
-  1054	
-  1055		case IP_VS_CONN_F_DROUTE:
-  1056			cp->packet_xmit = ip_vs_dr_xmit;
-  1057			break;
-  1058	
-  1059		case IP_VS_CONN_F_LOCALNODE:
-> 1060			cp->packet_xmit = ip_vs_null_xmit_v6;
-  1061			break;
-  1062	
-  1063		case IP_VS_CONN_F_BYPASS:
-  1064			cp->packet_xmit = ip_vs_bypass_xmit;
-  1065			break;
-  1066		}
-  1067	}
-  1068	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+so this can be used in patch 3 in the check there.
