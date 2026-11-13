@@ -1,60 +1,45 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794532621;
-	b=Uh9yNNkQV+nrZQc+WiWO7y+huRrgoqU3OtuXC211Get6WMPx+3/VZMgaErGzdYOBnETU
-	 RVqoDm+jxl4LBg8IfFeEM9YNGCV3MVM6iasioOjKE+eJe/zefIOg+a/3d/01Hlz002qpH
-	 9j+kccXFmi7G7fWO1Ch8W4wKxpPHBOLjO1xc8qxYZXdIWwZ4XSvLZOtYZFl8RGj3lN+jW
-	 P7F2V0mwwDNscDDf83VxVPvNHgWBUPgSJMCcGXyniGyz4Vv/Zadxcz48bWNyoUdbAsPJf
-	 hWbfz9nnTNzawcLQoT4Vho9MiSEU9USKAuFfzdwCLcMvGtwr1ECplCVCR8WKh/JFc9Q==
+	t=1794534396;
+	b=Q05IgzGePmVPQCGyMIAbjaeRMLFw+iBLq35Ai7mmaNpvrBkt3JbLWM4BNc4tzTgmcPSs
+	 dTfO2PwjPkHkgDZXPXqtiecCFQ6NCRWzyoNEvjcC7TkE+4FGeoCPgCicU312sk8E5yf6G
+	 IO+xso7m/dETw0Gm7qtogfwLeKsaPvskbLiwMrG8POD6XAm4ErY90JudWbq4+0mXJUvcN
+	 0VFAhFnR3wdjoaovSS//d0e7vDOmfPgTomSKXZoOiZnrXexY8lYUMAalCsL5Ufcx2QUoJ
+	 A0O7xrhJchogLmQ6sZAAcBACIkGs51jeT0H7YgDwyp4tlqZj2nC5ZyxhK3lAdasf8qQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794532621;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=oVTc5I6nKpBiLsItkBZmeShBR8ASpkDeEBpnWBZ++aw=;
-	b=rc8eK6EgfcN5gIIpaEK+Pvrjt2zmqXaJ2XmSHuXMZp8qS0zkL+N0yHkCDOL3OBRWuUF/
-	 SWkN7CBAEcJSP3nc4sXwvcRTt3jnWVK4T7vkBNKL+CDuD8bJb8kQ23wfjrK0HYoVaZJ/F
-	 Rkvl5+cmIRE3DfQjo40zt+dox9ulpZqesx9EXrDWnlgmXnfAwaSeXhVp6snuf3YmJ4Nvl
-	 pNTKicV172vvQGCJce0IOO9rShkMrwmUGNJy5qleNLIFq0mpMgMGHaqA2Dxvrbya0Mp1i
-	 Jf5Ia87aL+Ska2Ixy7eK9eNeSvp2rh7ohEtnvAiAMjrsTmIrQaDhWQGPJpGVVYOI04Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794534396;
+	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
+	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=8ugPyJZycM++/Po4nkE5U2kjFxqMbLlChnXj7srK6+U=;
+	b=Yw1INE8W1x1lqNsAt481vHkSQiu04g8mSSXoSlBlJrCldKw82eOBOiK1Mf6EjE8ZsFLF
+	 nHSuzWF1pe3ycBhxzknUbq4XqHuEFxsd+qWtKzan+Vv5c0/ZTkcYrx7H1+//jkKie1LyE
+	 H5dZOJxB/CtKI5Lhey+G9eydTgv7UeFASufwarhhCSGl+slVEJFLbCg917t1HstEmkgfM
+	 DI2MXx6sFIj2XbtxJEywjINeOAjlfw0fbtgDibFgJfDONhEBiZLi5TLr8IV4H/QjOS2I2
+	 aoyuXjfDAnFVwggHbh1wfdgF1KLXDDs4d33+9YZJACfJ6WS/jaXsPUE7dg1aA2vCScQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EAYPUxJc;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=strlen.de;
+	spf=pass smtp.mailfrom=strlen.de;
+	arc=none smtp.remote-ip=91.216.245.30
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 469E5606A32D;
-	Fri, 13 Nov 2026 01:17:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EAYPUxJc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A68E1F000C4;
-	Fri, 13 Nov 2026 01:17:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794532620;
-	bh=oVTc5I6nKpBiLsItkBZmeShBR8ASpkDeEBpnWBZ++aw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=EAYPUxJcNB7Ws5AXXuEPGaEj51JKaHwbGafMJ0g8y9T2z6qwns4m2TSMyxAqaOFAd
-	 EvuusQXsZm3IKiqMFzWVhZ6TfW7NddUfZo35H7ngEsORRN/44uyyCaFdmVWNg2kBNA
-	 3BlfCb3BAD1TZWt8rpmNJeudtHmuBKe41rKkF050jsPLRbzi226AVhzZSSna8XVNan
-	 4/oXbRzWX+CR0KaMq9xn11mflz12HJS3kJoA/6kByBrjZJh7Vv2RlY3QoVNv+6LUtH
-	 NjwxZOiddvtcnjaqhnzIaKFxkFmyxCtXDXhl+qOqjR3TewGQFLKozpZvNRyXn2Lruf
-	 RDXuj4Zf8Cweg==
-From: netdev-bot+sinfo@kernel.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A73606A31C
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2026 01:46:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08A73606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0F550602AB; Fri, 13 Nov 2026 02:46:27 +0100 (CET)
+Date: Fri, 13 Nov 2026 02:46:26 +0100
+From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: 
- Re: [PATCH net 01/15] ipvs: avoid out-of-bounds write in ip_vs_nat_icmp_v6
-Date: Fri, 13 Nov 2026 01:16:59 +0000
-Message-ID: <179453261966.2168702.2891153493137589697@kernel.org>
-In-Reply-To: <20261113011447.2357709-2-pablo@netfilter.org>
-References: <20261113011447.2357709-1-pablo@netfilter.org>
- <20261113011447.2357709-2-pablo@netfilter.org>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Daehyeon Ko <4ncienth@gmail.com>
+Subject: Re: [PATCH nf v2] netfilter: nf_conntrack: limit expectation master
+ chain depth
+Message-ID: <avZr8lPA-bN9Z9_t@strlen.de>
+References: <20261110133443.21073-1-fw@strlen.de>
+ <avZRah74LdH7P9LH@chamomile>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -64,25 +49,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <avZRah74LdH7P9LH@chamomile>
 
-Hi!
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Nov 10, 2026 at 02:34:43PM +0100, Florian Westphal wrote:
+> > A conntrack can point to a master conntrack, which itself may point to
+> > another master, and so on.  There is currently no bound on how deep this
+> > chain can grow.
+> > 
+> > Force a max depth in nf_ct_expect_alloc(): walk the master chain and
+> > reject allocation if it would exceed 8 levels of nesting.
+> > 
+> > Also add ctnetlink_find_get_master and use it so that ctnetlink create
+> > paths return -EMLINK instead of falling through to nf_ct_expect_alloc()
+> > and returning a misleading -ENOMEM.
+> > 
+> > This prevents unbounded ct->master->master->... chains.
+> > 
+> > This also restricts the number of call forward/redirects that h323 and sip
+> > helpers will follow.
+> 
+> "Should ctnetlink_glue_attach_expect() or ctnetlink_alloc_expect() also
+> check nf_ct_master_acceptable(ct) and return -EMLINK?"
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+I saw that but there are many patches in flight in this area, so I don't
+want to meddle with those.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+> It would be great to collapse this patch to v3 too:
+> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20261101225435.447072-1-pablo@netfilter.org/
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by LLM and not proven at runtime). If it was triggered
-   please include the symptoms, like the stack trace or kernel messages.
+?
 
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account. If the series needs another revision for
-other reasons, please include the information in the commit messages
-then.
+Not following.
 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+ct_expect_help() calls nf_ct_expect_alloc(), so I don't see how nft_ct
+can create long chains after this patch.
