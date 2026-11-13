@@ -1,62 +1,76 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794571202;
-	b=FpbvRDlWk+M6LsTLaNhGUWRMX723JcWegKH1IOkEDoxIfHWM1fGX2X3gXql8NosoyLIr
-	 NQjvU7ppI3fIpv9EWNVk60VpaIIihVaPbmfXQlcx3bIMslMPHt6qBPX5d52Ab7N0EWn5P
-	 TMSoSMLjnbZrbpiV6XmZ9lQlQ0htEUf14VrjrIc1H7/XgjFblzEjPPfyhXwdT9Wv6FFy7
-	 7k96H4HVlIy7ddIKLlrWkqaRZsg2B1JEonW6ziW2Y6wiMN79wDyWnv2uM/QLLvIvvHAFo
-	 JZg+vD912z5oiW6GCJO718tRdQFCXt5aiLmLOXST0u1qmbvN3RNCb/3A+NOqjRrT7Lw==
+	t=1794572000;
+	b=D/gvK7iFll26q/TcEur4QDQ54MuKudoE5FZfRs1SyyHmRkEKKF7Xgux1ady9YYvQjdOQ
+	 BjWNtuDC3zqYluXCCtSO/b5zosRtklSIJD3lDyGE7YsQH/RfJMJvvzrTnzYC6XDrlXaSj
+	 qj0zCudQ+wZF0ZP84krALMvxTwEjp37BSt1wZZdIfQ460B6mRUWxyEEjWWbka/5LP/J/T
+	 Es22bOkC/O/0FBvRi1TInc3DJuv8pi3AO9XzZQxB6//S1fwzbLc3N0CCYymscak5T1iVh
+	 l3lQ2CWE7L7qmH7SofEuMU9UvPf0f5H3m1cXMTSR6kRW/JuQTINedMQpDlnUIRBkMKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794571202;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=F6z6kO9QLC5dxZdKvObpAH8Cfuz+ZqCSODLNOd1MpAA=;
-	b=4Du+/qYfX8swav9Wyp9ZMrXHhY9lqSF1dktIiBmfs/IRwfkuK9n+5HcuthVTSif/6n86
-	 uNYVXHL/S1SIJGbwa6UqIbInTX4XK0YbJCXe9LpejU1r/UZmcQxALSaOPUbKWRbcaYx5Y
-	 d/3huDA+8VNbGKDrLPMjX9HTkSp/iu6YVKZOSRuFQkH9iGkUqpFsL/DPkhmgHNBUJnpI0
-	 /MdzSd+Triyxi4RD/jgAL+TKkOy+Z/GCsaBDzTThV7oT4VTGA8HJ9eDQacimyByWdZDbJ
-	 NU1YiU41STkp3xTTPdq/8PM711f/7BrJZIhpiYwec9OcswBv6Q/wfv0C/iR5kuADK7w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794572000;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
+	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=uPG4C1mu1ylF+wJ98TTAeFpv7zY3PtxlJl2S4OUQIbY=;
+	b=C6NO3VhGMAZVdNh8DFoV+VOXg4TPfQMHtedpaD2C2HqLVLhpjV1T6HkcEENEVF4kQss8
+	 rItuC/Y/n+DYN2+R46NisS9DMtyAgqU8h63TTYSjdujUhiPyE1e4hhLYuylu63pa07Qqo
+	 V0zlegYSrDZgxb2AEzIyp0xjZ8SaZUrWBj1+ae//8WOisfJhcYb6LRAOd68V/UCn4AiZH
+	 glJjgA9A40Xot9V3u1mxF0rAt4SPG+ZV0iYp0X+uyHQi0lH/KQvO7/Yg2+mdKyum1r08K
+	 U1Bs0Qu0kmy0ZufkwBWqjSbEqq3L2pEYgLVgkCtPQ9RlsNE6rrpFH87oq4Upx3iv77Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="rVTf/ivG";
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=DnB8bKO2;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id A147A606A881
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2026 12:00:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A147A606A881
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDAF4606A323;
+	Fri, 13 Nov 2026 12:13:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CDAF4606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=rVTf/ivG
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794571199;
-	bh=F6z6kO9QLC5dxZdKvObpAH8Cfuz+ZqCSODLNOd1MpAA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rVTf/ivGNWBBUPGu1fvNtyyeX3ZAPqW5L1Zd1htQsbyuB3Fo4VPrYlAxejPfmeQ8R
-	 snZ/YNYEiEH/ITVoNOe+yHn4KBu4Gx7deR3PxUFhF4joGS3OK2tJAVTRY8AW++tPZw
-	 6LVt56YNmpSZUmEh7h3XF3HrFeby5Gotp0ga0VTy8QWkh1ToPEWKgdJtANgNbnS/Sx
-	 BOJczfqIKxN6iSuF5Vs6SIc5yhh0nF+Jmuu3vYTtRbXKGY6CIMAR/q2GDs7GKQgmSm
-	 b9Q62BW4r999hHcZ1dDGm1R0GqiaVhFrGXJaZjsXjlhXmfnKqEH0ozMdWMg04aTjLV
-	 rIqaQr4a1jp+A==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6B39560074;
-	Fri, 13 Nov 2026 12:59:59 +0100 (CET)
-Date: Fri, 13 Nov 2026 12:59:56 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Julian Anastasov <ja@ssi.bg>
-Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [netfilter-nf:for-netdev-nf-26-11-13 27/27]
- net/netfilter/ipvs/ip_vs_conn.c:1060:21: error: use of undeclared identifier
- 'ip_vs_null_xmit_v6'; did you mean 'ip_vs_null_xmit'?
-Message-ID: <avb7vOLH509WntPz@chamomile>
-References: <202611131204.pFzcf1WG-lkp@intel.com>
- <e71d62ac-441c-ee4c-ed98-7216477d73ef@ssi.bg>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=DnB8bKO2
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 23FD421424;
+	Fri, 13 Nov 2026 14:13:16 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=uPG4C1mu
+	1ylF+wJ98TTAeFpv7zY3PtxlJl2S4OUQIbY=; b=DnB8bKO2vEwExivDU6jywH6c
+	xwRMSxDze7LCSRqJYnnJjobMIF7Dq9GV+FYnKoTkt14dUSVahd8v/1yNfhB2X2kV
+	Br9TOKnYO2sn4f3C3ooVDYcVm08cW/+KkE5/XtG2oK9Ee5jYlBbSAWYnidnpCHxD
+	/kI9Ii0biIon2GoqaYWFjNWSEBSzZXSSocAvRsyF9XEM+QWWTbRjb+A5SHD8ulDc
+	G2HZ3crHelao+gtfmNSjGl4Mo08XpeNypLkZkBKosfNSBw7hI0qofFB/ag0on4Ws
+	dfSVxagmevCot2iaH9/ktd2aIf9LkDR2P3t06jeOQvXhit46BBlcNLXmEpyaxFYg
+	PcNJpDS5/6Lf4opWWXIVPeUFGrnInNnn8tIS8s3IXVL0drloiE4tZuz6mgxjAOEU
+	wJoaeKDwadZJtk8slzDuxfI6aQ5KTWt8ngl0wxnkEk4HeXnyJXMSMxFQR0FrfYbR
+	QnaTixw+Du6gpcaUA1GRg4vpSxV8jXX0LN/96a2ar/VA3S7+0G3jeEx0Mu9fKIvU
+	IyFQKUJnUSBnSI+WPGMQL04BrRspgEtbQd4ErkIRHF3mHJaYQ8QBil8jORvDrgQ7
+	jlnGTqWI0jMPrLqaPSatyDsGkCDFS3lk7XJEozcXkrIobyViemmTItCTpcWDzEHA
+	+r6yCRhw9TA8OswH/JA=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri, 13 Nov 2026 14:13:15 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 9ACB9601BD;
+	Fri, 13 Nov 2026 14:13:15 +0200 (EET)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6ADCDES3042562;
+	Fri, 13 Nov 2026 14:13:14 +0200
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 6ADCDBeZ042561;
+	Fri, 13 Nov 2026 14:13:11 +0200
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCH nf v4] ipvs: pass correct sk to update_pmtu and on tunneling
+Date: Fri, 13 Nov 2026 14:13:03 +0200
+Message-ID: <20261113121303.42549-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,88 +80,784 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <e71d62ac-441c-ee4c-ed98-7216477d73ef@ssi.bg>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Nov 13, 2026 at 01:52:27PM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Fri, 13 Nov 2026, kernel test robot wrote:
-> 
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git for-netdev-nf-26-11-13
-> > head:   937b060406a547e4d931525e600540726ea26532
-> > commit: 937b060406a547e4d931525e600540726ea26532 [27/27] ipvs: pass correct sk to update_pmtu and on tunneling
-> > config: i386-randconfig-2200-20261113 (https://download.01.org/0day-ci/archive/20261113/202611131204.pFzcf1WG-lkp@intel.com/config)
-> > compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
-> > smatch: v0.5.0-9187-g5189e3fb
-> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261113/202611131204.pFzcf1WG-lkp@intel.com/reproduce)
-> > 
-> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> > the same patch/commit), kindly add following tags
-> > | Reported-by: kernel test robot <lkp@intel.com>
-> > | Closes: https://lore.kernel.org/oe-kbuild-all/202611131204.pFzcf1WG-lkp@intel.com/
-> > 
-> > All errors (new ones prefixed by >>):
-> > 
-> > >> net/netfilter/ipvs/ip_vs_conn.c:1060:21: error: use of undeclared identifier 'ip_vs_null_xmit_v6'; did you mean 'ip_vs_null_xmit'?
-> >     1060 |                 cp->packet_xmit = ip_vs_null_xmit_v6;
-> >          |                                   ^~~~~~~~~~~~~~~~~~
-> >          |                                   ip_vs_null_xmit
-> >    include/net/ip_vs.h:1992:5: note: 'ip_vs_null_xmit' declared here
-> >     1992 | int ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
-> >          |     ^
-> >    1 error generated.
-> > 
-> > 
-> > vim +1060 net/netfilter/ipvs/ip_vs_conn.c
-> > 
-> >   1034	
-> >   1035	/*
-> >   1036	 *	Bind a connection entry with the corresponding packet_xmit.
-> >   1037	 *	Called by ip_vs_conn_new.
-> >   1038	 */
-> >   1039	static inline void ip_vs_bind_xmit(struct ip_vs_conn *cp)
-> >   1040	{
-> >   1041		switch (IP_VS_FWD_METHOD(cp)) {
-> >   1042		case IP_VS_CONN_F_MASQ:
-> >   1043			cp->packet_xmit = ip_vs_nat_xmit;
-> >   1044			break;
-> >   1045	
-> >   1046		case IP_VS_CONN_F_TUNNEL:
-> >   1047	#ifdef CONFIG_IP_VS_IPV6
-> >   1048			if (cp->daf == AF_INET6)
-> >   1049				cp->packet_xmit = ip_vs_tunnel_xmit_v6;
-> >   1050			else
-> >   1051	#endif
-> >   1052				cp->packet_xmit = ip_vs_tunnel_xmit;
-> >   1053			break;
-> >   1054	
-> >   1055		case IP_VS_CONN_F_DROUTE:
-> >   1056			cp->packet_xmit = ip_vs_dr_xmit;
-> >   1057			break;
-> >   1058	
-> >   1059		case IP_VS_CONN_F_LOCALNODE:
-> > > 1060			cp->packet_xmit = ip_vs_null_xmit_v6;
-> 
-> 	We were not lucky this time. The original patch was trying to
-> patch ip_vs_bind_xmit_v6() but due to the similar code in 
-> ip_vs_bind_xmit() the change after applying occured in the IPv4 function
-> which comes first.
+This commit fixes two cases of providing sk on tunneling,
+one to the update_pmtu handler and the second case is to
+the ip_local_out() call.
 
-That's strange, I have used git am, it should have complained about
-this.
+For local clients, we can see at LOCAL_OUT a netfilter hook's
+state->sk that is different from the protocol's skb->sk. This
+can be the case for UDP_TUNNEL where different sk is provided to
+ip_local_out. If such packet is then forwarded via IPVS tunnel
+we may need to provide state->sk to the update_pmtu handler,
+not skb->sk.
 
-> 	Pablo, can some manual applying solve this or we should modify
-> somehow this hunk to not match early in the file ? In this form it
-> will do the same problem on the next tree.
+Fix that by passing the netfilter's hook state via the
+packet_xmit and conn_schedule handlers to call the update_pmtu
+handler with state->sk.
 
-This is:
+While here, change maybe_update_pmtu() to be family independent
+by using dst and do not request neigh confirm via the last
+update_pmtu arg because we do not generate the event based on
+remote signal.
 
-[PATCH net 15/15] ipvs: pass correct sk to update_pmtu and on tunneling
+Sashiko has some warnings for the update_pmtu handlers because
+we provide only sk, not skb:
 
-My plan is to drop it in v2 of the IPVS PR, so you have another round
-to post one patch that applies cleanly to nf.git or nf-next.git.
+- we do not provide skb because the handlers assume they are
+called from tunnel transmitters where skb->dev is present
+but for IPVS skb->dev is not set yet
 
-Thanks.
+- without skb, the zero destination address for unconnected
+sockets can be blindly used for FIB nexthop or route exceptions.
+So, we now restrict the sk to be for TCP_ESTABLISHED state
+where the sk is connected to destination address.
+
+- as we provide the original sk (from state->sk) for the original
+IP header, make sure we do not provide sk from one family to
+the update_pmtu handler for different family.
+
+The second problem is that on tunnel forwarding we call
+ip_local_out() with skb->sk. As we push our own outer IP header
+in ip_vs_tunnel_xmit*(), the right thing is to provide NULL
+instead.
+
+For consistency, even if we do not walk the netfilter hooks and
+just pass the packet with NF_ACCEPT, provide ip_vs_null_xmit_v6
+handler to properly indicate that we are sending IPv6 packet.
+Before now we used ip_vs_null_xmit for both families.
+
+Link: https://sashiko.dev/#/patchset/20261103152550.60449-1-ja%40ssi.bg
+Fixes: 79b16aadea32 ("udp_tunnel: Pass UDP socket down through udp_tunnel{, 6}_xmit_skb().")
+Fixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okfn().")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+---
+ Changes in v4
+ * reorder the code in ip_vs_bind_xmit and ip_vs_bind_xmit_v6 to
+   properly apply the change in ip_vs_bind_xmit_v6 as reported by
+   the kernel test robot:
+   https://lore.kernel.org/oe-kbuild-all/202611131204.pFzcf1WG-lkp@intel.com/
+
+ Link to v3:
+ https://lore.kernel.org/all/20261111200942.83226-1-ja@ssi.bg/
+
+ include/net/ip_vs.h                     |  45 +++++++---
+ net/netfilter/ipvs/ip_vs_conn.c         |  16 ++--
+ net/netfilter/ipvs/ip_vs_core.c         |  41 +++++----
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |   2 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c   |   5 +-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c    |   5 +-
+ net/netfilter/ipvs/ip_vs_proto_udp.c    |   5 +-
+ net/netfilter/ipvs/ip_vs_xmit.c         | 114 ++++++++++++++++--------
+ 8 files changed, 148 insertions(+), 85 deletions(-)
+
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 9a83bff32569..398d748f01ec 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -731,7 +731,8 @@ struct ip_vs_protocol {
+ 			     int af, struct sk_buff *skb,
+ 			     struct ip_vs_proto_data *pd,
+ 			     int *verdict, struct ip_vs_conn **cpp,
+-			     struct ip_vs_iphdr *iph);
++			     struct ip_vs_iphdr *iph,
++			     const struct nf_hook_state *state);
+ 
+ 	struct ip_vs_conn *
+ 	(*conn_in_get)(struct netns_ipvs *ipvs,
+@@ -872,7 +873,8 @@ struct ip_vs_conn {
+ 	 * NF_ACCEPT can be returned when destination is local.
+ 	 */
+ 	int (*packet_xmit)(struct sk_buff *skb, struct ip_vs_conn *cp,
+-			   struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++			   struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++			   const struct nf_hook_state *state);
+ 
+ 	struct rcu_head		rcu_head;
+ };
+@@ -1871,7 +1873,8 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
+ 	       struct ip_vs_proto_data *pd, int *ignored,
+ 	       struct ip_vs_iphdr *iph);
+ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+-		struct ip_vs_proto_data *pd, struct ip_vs_iphdr *iph);
++		struct ip_vs_proto_data *pd, struct ip_vs_iphdr *iph,
++		const struct nf_hook_state *state);
+ 
+ void ip_vs_scheduler_err(struct ip_vs_service *svc, const char *msg);
+ 
+@@ -1986,32 +1989,46 @@ static inline int ip_vs_est_max_threads(struct netns_ipvs *ipvs)
+ 
+ /* Various IPVS packet transmitters (from ip_vs_xmit.c) */
+ int ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		    struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		    struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		    const struct nf_hook_state *state);
+ int ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		      const struct nf_hook_state *state);
+ int ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		   struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		   struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		   const struct nf_hook_state *state);
+ int ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		      const struct nf_hook_state *state);
+ int ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		  const struct nf_hook_state *state);
+ int ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		    struct ip_vs_protocol *pp, unsigned int toff,
+-		    unsigned int hooknum, struct ip_vs_iphdr *ciph);
++		    const struct nf_hook_state *state,
++		    struct ip_vs_iphdr *ciph);
+ void ip_vs_dest_dst_rcu_free(struct rcu_head *head);
+ 
+ #ifdef CONFIG_IP_VS_IPV6
++int ip_vs_null_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
++		       struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		       const struct nf_hook_state *state);
+ int ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-			 struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++			 struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++			 const struct nf_hook_state *state);
+ int ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		      struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		      const struct nf_hook_state *state);
+ int ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-			 struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++			 struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++			 const struct nf_hook_state *state);
+ int ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph);
++		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *iph,
++		     const struct nf_hook_state *state);
+ int ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		       struct ip_vs_protocol *pp, unsigned int toff,
+-		       unsigned int hooknum, struct ip_vs_iphdr *ciph);
++		       const struct nf_hook_state *state,
++		       struct ip_vs_iphdr *ciph);
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 94f25fb7d87e..dde65923b45d 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1040,13 +1040,13 @@ static inline void ip_vs_bind_xmit(struct ip_vs_conn *cp)
+ 		cp->packet_xmit = ip_vs_dr_xmit;
+ 		break;
+ 
+-	case IP_VS_CONN_F_LOCALNODE:
+-		cp->packet_xmit = ip_vs_null_xmit;
+-		break;
+-
+ 	case IP_VS_CONN_F_BYPASS:
+ 		cp->packet_xmit = ip_vs_bypass_xmit;
+ 		break;
++
++	case IP_VS_CONN_F_LOCALNODE:
++		cp->packet_xmit = ip_vs_null_xmit;
++		break;
+ 	}
+ }
+ 
+@@ -1069,13 +1069,13 @@ static inline void ip_vs_bind_xmit_v6(struct ip_vs_conn *cp)
+ 		cp->packet_xmit = ip_vs_dr_xmit_v6;
+ 		break;
+ 
+-	case IP_VS_CONN_F_LOCALNODE:
+-		cp->packet_xmit = ip_vs_null_xmit;
+-		break;
+-
+ 	case IP_VS_CONN_F_BYPASS:
+ 		cp->packet_xmit = ip_vs_bypass_xmit_v6;
+ 		break;
++
++	case IP_VS_CONN_F_LOCALNODE:
++		cp->packet_xmit = ip_vs_null_xmit_v6;
++		break;
+ 	}
+ }
+ #endif
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index fd503f0efb57..bb649a9f00c7 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -760,7 +760,8 @@ static inline int ip_vs_addr_is_unicast(struct net *net, int af,
+  *  no destination is available for a new connection.
+  */
+ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+-		struct ip_vs_proto_data *pd, struct ip_vs_iphdr *iph)
++		struct ip_vs_proto_data *pd, struct ip_vs_iphdr *iph,
++		const struct nf_hook_state *state)
+ {
+ 	__be16 _ports[2], *pptr, dport;
+ 	struct netns_ipvs *ipvs = svc->ipvs;
+@@ -805,7 +806,7 @@ int ip_vs_leave(struct ip_vs_service *svc, struct sk_buff *skb,
+ 		ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd, iph->len);
+ 
+ 		/* transmit the first SYN packet */
+-		ret = cp->packet_xmit(skb, cp, pd->pp, iph);
++		ret = cp->packet_xmit(skb, cp, pd->pp, iph, state);
+ 		/* do not touch skb anymore */
+ 
+ 		if ((cp->flags & IP_VS_CONN_F_ONE_PACKET) && cp->control)
+@@ -1647,7 +1648,8 @@ static unsigned int
+ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		      struct ip_vs_proto_data *pd,
+ 		      int *verdict, struct ip_vs_conn **cpp,
+-		      struct ip_vs_iphdr *iph)
++		      struct ip_vs_iphdr *iph,
++		      const struct nf_hook_state *state)
+ {
+ 	struct ip_vs_protocol *pp = pd->pp;
+ 
+@@ -1657,7 +1659,8 @@ ip_vs_try_to_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		 */
+ 
+ 		/* Schedule and create new connection entry into cpp */
+-		if (!pp->conn_schedule(ipvs, af, skb, pd, verdict, cpp, iph))
++		if (!pp->conn_schedule(ipvs, af, skb, pd, verdict, cpp, iph,
++				       state))
+ 			return 0;
+ 	}
+ 
+@@ -1757,7 +1760,7 @@ static int ipvs_gre_decap(struct netns_ipvs *ipvs, struct sk_buff *skb,
+  */
+ static int
+ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+-	      unsigned int hooknum, struct ip_vs_iphdr *iph)
++	      const struct nf_hook_state *state, struct ip_vs_iphdr *iph)
+ {
+ 	struct icmphdr	_icmph, *ic;
+ 	struct iphdr	_ciph, *cih;	/* The ip header contained within the ICMP */
+@@ -1776,7 +1779,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 
+ 	/* reassemble IP fragments */
+ 	if (ip_is_fragment(ip_hdr(skb))) {
+-		if (ip_vs_gather_frags(ipvs, skb, ip_vs_defrag_user(hooknum)))
++		if (ip_vs_gather_frags(ipvs, skb,
++				       ip_vs_defrag_user(state->hook)))
+ 			return NF_STOLEN;
+ 		if (!ip_vs_fill_iph_skb(AF_INET, skb, false, iph))
+ 			return NF_ACCEPT;
+@@ -1893,7 +1897,8 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 		if (tunnel || !sysctl_schedule_icmp(ipvs))
+ 			return NF_ACCEPT;
+ 
+-		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp, &ciph))
++		if (!ip_vs_try_to_schedule(ipvs, AF_INET, skb, pd, &v, &cp,
++					   &ciph, state))
+ 			return v;
+ 		new_cp = true;
+ 	}
+@@ -1981,7 +1986,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 
+ 	/* do the statistics and put it back */
+ 	ip_vs_in_stats(cp, skb);
+-	verdict = ip_vs_icmp_xmit(skb, cp, pp, iph->len, hooknum, &ciph);
++	verdict = ip_vs_icmp_xmit(skb, cp, pp, iph->len, state, &ciph);
+ 
+ out:
+ 	if (likely(!new_cp))
+@@ -1994,7 +1999,7 @@ ip_vs_in_icmp(struct netns_ipvs *ipvs, struct sk_buff *skb, int *related,
+ 
+ #ifdef CONFIG_IP_VS_IPV6
+ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+-			    int *related, unsigned int hooknum,
++			    int *related, const struct nf_hook_state *state,
+ 			    struct ip_vs_iphdr *iph)
+ {
+ 	struct icmp6hdr	_icmph, *ic;
+@@ -2060,7 +2065,8 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 		if (!sysctl_schedule_icmp(ipvs))
+ 			return NF_ACCEPT;
+ 
+-		if (!ip_vs_try_to_schedule(ipvs, AF_INET6, skb, pd, &v, &cp, &ciph))
++		if (!ip_vs_try_to_schedule(ipvs, AF_INET6, skb, pd, &v, &cp,
++					   &ciph, state))
+ 			return v;
+ 
+ 		new_cp = true;
+@@ -2081,7 +2087,7 @@ static int ip_vs_in_icmp_v6(struct netns_ipvs *ipvs, struct sk_buff *skb,
+ 	/* do the statistics and put it back */
+ 	ip_vs_in_stats(cp, skb);
+ 
+-	verdict = ip_vs_icmp_xmit_v6(skb, cp, pp, iph->len, hooknum, &ciph);
++	verdict = ip_vs_icmp_xmit_v6(skb, cp, pp, iph->len, state, &ciph);
+ 
+ out:
+ 	if (likely(!new_cp))
+@@ -2150,7 +2156,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
+ 		if (unlikely(iph.protocol == IPPROTO_ICMPV6)) {
+ 			int related;
+ 			int verdict = ip_vs_in_icmp_v6(ipvs, skb, &related,
+-						       hooknum, &iph);
++						       state, &iph);
+ 
+ 			if (related)
+ 				return verdict;
+@@ -2160,7 +2166,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
+ 		if (unlikely(iph.protocol == IPPROTO_ICMP)) {
+ 			int related;
+ 			int verdict = ip_vs_in_icmp(ipvs, skb, &related,
+-						    hooknum, &iph);
++						    state, &iph);
+ 
+ 			if (related)
+ 				return verdict;
+@@ -2248,7 +2254,8 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
+ 	if (unlikely(!cp)) {
+ 		int v;
+ 
+-		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph))
++		if (!ip_vs_try_to_schedule(ipvs, af, skb, pd, &v, &cp, &iph,
++					   state))
+ 			return v;
+ 	}
+ 
+@@ -2257,7 +2264,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
+ 	ip_vs_in_stats(cp, skb);
+ 	ip_vs_set_state(cp, IP_VS_DIR_INPUT, skb, pd, iph.len);
+ 	if (cp->packet_xmit)
+-		ret = cp->packet_xmit(skb, cp, pp, &iph);
++		ret = cp->packet_xmit(skb, cp, pp, &iph, state);
+ 		/* do not touch skb anymore */
+ 	else {
+ 		IP_VS_DBG_RL("warning: packet_xmit is null");
+@@ -2320,11 +2327,11 @@ ip_vs_forward_icmp(void *priv, struct sk_buff *skb,
+ 		if (iphdr.protocol != IPPROTO_ICMPV6)
+ 			return NF_ACCEPT;
+ 
+-		return ip_vs_in_icmp_v6(ipvs, skb, &r, state->hook, &iphdr);
++		return ip_vs_in_icmp_v6(ipvs, skb, &r, state, &iphdr);
+ #endif
+ 	}
+ 
+-	return ip_vs_in_icmp(ipvs, skb, &r, state->hook, &iphdr);
++	return ip_vs_in_icmp(ipvs, skb, &r, state, &iphdr);
+ }
+ 
+ static const struct nf_hook_ops ip_vs_ops4[] = {
+diff --git a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+index 44e14acc187e..c7f90b29be51 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_ah_esp.c
+@@ -102,7 +102,7 @@ static int
+ ah_esp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		     struct ip_vs_proto_data *pd,
+ 		     int *verdict, struct ip_vs_conn **cpp,
+-		     struct ip_vs_iphdr *iph)
++		     struct ip_vs_iphdr *iph, const struct nf_hook_state *state)
+ {
+ 	/*
+ 	 * AH/ESP is only related traffic. Pass the packet to IP stack.
+diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+index fb8af6b15a39..c5810f86846e 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
+@@ -17,7 +17,7 @@ static int
+ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		   struct ip_vs_proto_data *pd,
+ 		   int *verdict, struct ip_vs_conn **cpp,
+-		   struct ip_vs_iphdr *iph)
++		   struct ip_vs_iphdr *iph, const struct nf_hook_state *state)
+ {
+ 	struct ip_vs_service *svc;
+ 	struct sctp_chunkhdr _schunkh, *sch;
+@@ -71,7 +71,8 @@ sctp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		*cpp = ip_vs_schedule(svc, skb, pd, &ignored, iph);
+ 		if (!*cpp && ignored <= 0) {
+ 			if (!ignored)
+-				*verdict = ip_vs_leave(svc, skb, pd, iph);
++				*verdict = ip_vs_leave(svc, skb, pd, iph,
++						       state);
+ 			else
+ 				*verdict = NF_DROP;
+ 			return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+index fec0e8b47b71..66ae924b04f3 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+@@ -35,7 +35,7 @@ static int
+ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		  struct ip_vs_proto_data *pd,
+ 		  int *verdict, struct ip_vs_conn **cpp,
+-		  struct ip_vs_iphdr *iph)
++		  struct ip_vs_iphdr *iph, const struct nf_hook_state *state)
+ {
+ 	struct ip_vs_service *svc;
+ 	struct tcphdr _tcph, *th;
+@@ -90,7 +90,8 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		*cpp = ip_vs_schedule(svc, skb, pd, &ignored, iph);
+ 		if (!*cpp && ignored <= 0) {
+ 			if (!ignored)
+-				*verdict = ip_vs_leave(svc, skb, pd, iph);
++				*verdict = ip_vs_leave(svc, skb, pd, iph,
++						       state);
+ 			else
+ 				*verdict = NF_DROP;
+ 			return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
+index f32785682402..58b880c84216 100644
+--- a/net/netfilter/ipvs/ip_vs_proto_udp.c
++++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
+@@ -31,7 +31,7 @@ static int
+ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		  struct ip_vs_proto_data *pd,
+ 		  int *verdict, struct ip_vs_conn **cpp,
+-		  struct ip_vs_iphdr *iph)
++		  struct ip_vs_iphdr *iph, const struct nf_hook_state *state)
+ {
+ 	struct ip_vs_service *svc;
+ 	struct udphdr _udph, *uh;
+@@ -78,7 +78,8 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
+ 		*cpp = ip_vs_schedule(svc, skb, pd, &ignored, iph);
+ 		if (!*cpp && ignored <= 0) {
+ 			if (!ignored)
+-				*verdict = ip_vs_leave(svc, skb, pd, iph);
++				*verdict = ip_vs_leave(svc, skb, pd, iph,
++						       state);
+ 			else
+ 				*verdict = NF_DROP;
+ 			return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index ebc6b697ae51..c777493eee74 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -205,13 +205,24 @@ static inline bool crosses_local_route_boundary(int skb_af, struct sk_buff *skb,
+ 	return false;
+ }
+ 
+-static inline void maybe_update_pmtu(int skb_af, struct sk_buff *skb, int mtu)
++static inline void maybe_update_pmtu(int skb_af, struct sk_buff *skb, int mtu,
++				     const struct nf_hook_state *state)
+ {
+-	struct sock *sk = skb->sk;
+-	struct rtable *ort = skb_rtable(skb);
+-
+-	if (!skb->dev && sk && sk_fullsock(sk))
+-		ort->dst.ops->update_pmtu(&ort->dst, sk, NULL, mtu, true);
++	struct dst_entry *dst = skb_dst(skb);
++	struct sock *sk = state->sk;
++
++	/* The update_pmtu handlers are missing some checks for:
++	 * - skb->dev: present for tunnels, not for IPVS, so we do not
++	 * provide skb, only sk
++	 * - present daddr: so, we require TCP_ESTABLISHED (connected socket)
++	 *
++	 * In some states the senders ignore the PMTU events:
++	 * - sk_fullsock(): so use the TCP_ESTABLISHED check
++	 */
++	if (sk && sk->sk_state == TCP_ESTABLISHED &&
++	    state->hook == NF_INET_LOCAL_OUT &&
++	    sk->sk_family == dst->ops->family)
++		dst->ops->update_pmtu(dst, sk, NULL, mtu, false);
+ }
+ 
+ static inline bool ensure_mtu_is_adequate(struct netns_ipvs *ipvs, int skb_af,
+@@ -316,7 +327,7 @@ static int
+ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		   struct ip_vs_dest *dest,
+ 		   __be32 daddr, int rt_mode, __be32 *ret_saddr,
+-		   struct ip_vs_iphdr *ipvsh)
++		   struct ip_vs_iphdr *ipvsh, const struct nf_hook_state *state)
+ {
+ 	struct net *net = ipvs->net;
+ 	struct ip_vs_dest_dst *dest_dst;
+@@ -417,7 +428,7 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 			IP_VS_DBG_RL("%s(): mtu less than 68\n", __func__);
+ 			goto err_put;
+ 		}
+-		maybe_update_pmtu(skb_af, skb, mtu);
++		maybe_update_pmtu(skb_af, skb, mtu, state);
+ 	}
+ 
+ 	if (!ensure_mtu_is_adequate(ipvs, skb_af, rt_mode, ipvsh, skb, mtu))
+@@ -489,7 +500,8 @@ static int
+ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 		      struct ip_vs_dest *dest,
+ 		      struct in6_addr *daddr, struct in6_addr *ret_saddr,
+-		      struct ip_vs_iphdr *ipvsh, int do_xfrm, int rt_mode)
++		      struct ip_vs_iphdr *ipvsh, int do_xfrm, int rt_mode,
++		      const struct nf_hook_state *state)
+ {
+ 	struct net *net = ipvs->net;
+ 	struct ip_vs_dest_dst *dest_dst;
+@@ -596,7 +608,7 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 				     IPV6_MIN_MTU);
+ 			goto err_put;
+ 		}
+-		maybe_update_pmtu(skb_af, skb, mtu);
++		maybe_update_pmtu(skb_af, skb, mtu, state);
+ 	}
+ 
+ 	if (!ensure_mtu_is_adequate(ipvs, skb_af, rt_mode, ipvsh, skb, mtu))
+@@ -720,12 +732,26 @@ static inline int ip_vs_send_or_cont(int pf, struct sk_buff *skb,
+  */
+ int
+ ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		const struct nf_hook_state *state)
+ {
+ 	/* we do not touch skb and do not need pskb ptr */
+ 	return ip_vs_send_or_cont(NFPROTO_IPV4, skb, cp, 1);
+ }
+ 
++#ifdef CONFIG_IP_VS_IPV6
++/*
++ *      NULL transmitter (do nothing except return NF_ACCEPT)
++ */
++int
++ip_vs_null_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
++		   struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		   const struct nf_hook_state *state)
++{
++	/* we do not touch skb and do not need pskb ptr */
++	return ip_vs_send_or_cont(NFPROTO_IPV6, skb, cp, 1);
++}
++#endif
+ 
+ /*
+  *      Bypass transmitter
+@@ -734,10 +760,11 @@ ip_vs_null_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+  */
+ int
+ ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		  const struct nf_hook_state *state)
+ {
+ 	if (__ip_vs_get_out_rt(cp->ipvs, cp->af, skb, NULL, ip_hdr(skb)->daddr,
+-			       IP_VS_RT_MODE_NON_LOCAL, NULL, ipvsh) < 0)
++			       IP_VS_RT_MODE_NON_LOCAL, NULL, ipvsh, state) < 0)
+ 		goto tx_error;
+ 
+ 	ip_send_check(ip_hdr(skb));
+@@ -757,13 +784,15 @@ ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #ifdef CONFIG_IP_VS_IPV6
+ int
+ ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		     const struct nf_hook_state *state)
+ {
+ 	struct ipv6hdr *iph = ipv6_hdr(skb);
+ 
+ 	if (__ip_vs_get_out_rt_v6(cp->ipvs, cp->af, skb, NULL,
+ 				  &iph->daddr, NULL,
+-				  ipvsh, 0, IP_VS_RT_MODE_NON_LOCAL) < 0)
++				  ipvsh, 0, IP_VS_RT_MODE_NON_LOCAL,
++				  state) < 0)
+ 		goto tx_error;
+ 
+ 	/* Another hack: avoid icmp_send in ip_fragment */
+@@ -785,7 +814,8 @@ ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+  */
+ int
+ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-	       struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++	       struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++	       const struct nf_hook_state *state)
+ {
+ 	struct rtable *rt;		/* Route to the other host */
+ 	int local, rc, was_input;
+@@ -805,7 +835,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	local = __ip_vs_get_out_rt(cp->ipvs, cp->af, skb, cp->dest, cp->daddr.ip,
+ 				   IP_VS_RT_MODE_LOCAL |
+ 				   IP_VS_RT_MODE_NON_LOCAL |
+-				   IP_VS_RT_MODE_RDR, NULL, ipvsh);
++				   IP_VS_RT_MODE_RDR, NULL, ipvsh, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	rt = skb_rtable(skb);
+@@ -869,7 +899,8 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #ifdef CONFIG_IP_VS_IPV6
+ int
+ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		  const struct nf_hook_state *state)
+ {
+ 	struct rt6_info *rt;		/* Route to the other host */
+ 	int local, rc;
+@@ -889,7 +920,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 				      NULL, ipvsh, 0,
+ 				      IP_VS_RT_MODE_LOCAL |
+ 				      IP_VS_RT_MODE_NON_LOCAL |
+-				      IP_VS_RT_MODE_RDR);
++				      IP_VS_RT_MODE_RDR, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	rt = dst_rt6_info(skb_dst(skb));
+@@ -1145,7 +1176,8 @@ ipvs_gre_encap(struct net *net, struct sk_buff *skb,
+  */
+ int
+ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		  struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		  const struct nf_hook_state *state)
+ {
+ 	struct netns_ipvs *ipvs = cp->ipvs;
+ 	struct net *net = ipvs->net;
+@@ -1167,7 +1199,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 				   IP_VS_RT_MODE_LOCAL |
+ 				   IP_VS_RT_MODE_NON_LOCAL |
+ 				   IP_VS_RT_MODE_CONNECT |
+-				   IP_VS_RT_MODE_TUNNEL, &saddr, ipvsh);
++				   IP_VS_RT_MODE_TUNNEL, &saddr, ipvsh, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	if (local)
+@@ -1276,7 +1308,7 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	ret = ip_vs_tunnel_xmit_prepare(skb, cp);
+ 	if (ret == NF_ACCEPT)
+-		ip_local_out(net, skb->sk, skb);
++		ip_local_out(net, NULL, skb);
+ 	else if (ret == NF_DROP)
+ 		kfree_skb(skb);
+ 
+@@ -1290,7 +1322,8 @@ ip_vs_tunnel_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #ifdef CONFIG_IP_VS_IPV6
+ int
+ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		     struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		     const struct nf_hook_state *state)
+ {
+ 	struct netns_ipvs *ipvs = cp->ipvs;
+ 	struct net *net = ipvs->net;
+@@ -1312,7 +1345,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 				      &saddr, ipvsh, 1,
+ 				      IP_VS_RT_MODE_LOCAL |
+ 				      IP_VS_RT_MODE_NON_LOCAL |
+-				      IP_VS_RT_MODE_TUNNEL);
++				      IP_VS_RT_MODE_TUNNEL, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	if (local)
+@@ -1418,7 +1451,7 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	ret = ip_vs_tunnel_xmit_prepare(skb, cp);
+ 	if (ret == NF_ACCEPT)
+-		ip6_local_out(net, skb->sk, skb);
++		ip6_local_out(net, NULL, skb);
+ 	else if (ret == NF_DROP)
+ 		kfree_skb(skb);
+ 
+@@ -1437,14 +1470,15 @@ ip_vs_tunnel_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+  */
+ int
+ ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+-	      struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++	      struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++	      const struct nf_hook_state *state)
+ {
+ 	int local;
+ 
+ 	local = __ip_vs_get_out_rt(cp->ipvs, cp->af, skb, cp->dest, cp->daddr.ip,
+ 				   IP_VS_RT_MODE_LOCAL |
+ 				   IP_VS_RT_MODE_NON_LOCAL |
+-				   IP_VS_RT_MODE_KNOWN_NH, NULL, ipvsh);
++				   IP_VS_RT_MODE_KNOWN_NH, NULL, ipvsh, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	if (local)
+@@ -1467,7 +1501,8 @@ ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #ifdef CONFIG_IP_VS_IPV6
+ int
+ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		 struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh)
++		 struct ip_vs_protocol *pp, struct ip_vs_iphdr *ipvsh,
++		 const struct nf_hook_state *state)
+ {
+ 	int local;
+ 
+@@ -1476,7 +1511,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 				      NULL, ipvsh, 0,
+ 				      IP_VS_RT_MODE_LOCAL |
+ 				      IP_VS_RT_MODE_NON_LOCAL |
+-				      IP_VS_RT_MODE_KNOWN_NH);
++				      IP_VS_RT_MODE_KNOWN_NH, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	if (local)
+@@ -1503,7 +1538,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ int
+ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 		struct ip_vs_protocol *pp, unsigned int toff,
+-		unsigned int hooknum, struct ip_vs_iphdr *ciph)
++		const struct nf_hook_state *state, struct ip_vs_iphdr *ciph)
+ {
+ 	struct rtable	*rt;	/* Route to the other host */
+ 	int rc;
+@@ -1517,7 +1552,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	   translate address/port back */
+ 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ) {
+ 		if (cp->packet_xmit)
+-			rc = cp->packet_xmit(skb, cp, pp, ciph);
++			rc = cp->packet_xmit(skb, cp, pp, ciph, state);
+ 		else
+ 			rc = NF_ACCEPT;
+ 		/* do not touch skb anymore */
+@@ -1531,11 +1566,11 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	was_input = rt_is_input_route(skb_rtable(skb));
+ 
+ 	/* LOCALNODE from FORWARD hook is not supported */
+-	rt_mode = (hooknum != NF_INET_FORWARD) ?
++	rt_mode = (state->hook != NF_INET_FORWARD) ?
+ 		  IP_VS_RT_MODE_LOCAL | IP_VS_RT_MODE_NON_LOCAL |
+ 		  IP_VS_RT_MODE_RDR : IP_VS_RT_MODE_NON_LOCAL;
+-	local = __ip_vs_get_out_rt(cp->ipvs, cp->af, skb, cp->dest, cp->daddr.ip, rt_mode,
+-				   NULL, ciph);
++	local = __ip_vs_get_out_rt(cp->ipvs, cp->af, skb, cp->dest,
++				   cp->daddr.ip, rt_mode, NULL, ciph, state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	rt = skb_rtable(skb);
+@@ -1597,8 +1632,8 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #ifdef CONFIG_IP_VS_IPV6
+ int
+ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+-		struct ip_vs_protocol *pp, unsigned int toff,
+-		unsigned int hooknum, struct ip_vs_iphdr *ciph)
++		   struct ip_vs_protocol *pp, unsigned int toff,
++		   const struct nf_hook_state *state, struct ip_vs_iphdr *ciph)
+ {
+ 	bool has_ports = false;
+ 	struct rt6_info	*rt;	/* Route to the other host */
+@@ -1612,7 +1647,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	   translate address/port back */
+ 	if (IP_VS_FWD_METHOD(cp) != IP_VS_CONN_F_MASQ) {
+ 		if (cp->packet_xmit)
+-			rc = cp->packet_xmit(skb, cp, pp, ciph);
++			rc = cp->packet_xmit(skb, cp, pp, ciph, state);
+ 		else
+ 			rc = NF_ACCEPT;
+ 		/* do not touch skb anymore */
+@@ -1625,11 +1660,12 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 	 */
+ 
+ 	/* LOCALNODE from FORWARD hook is not supported */
+-	rt_mode = (hooknum != NF_INET_FORWARD) ?
++	rt_mode = (state->hook != NF_INET_FORWARD) ?
+ 		  IP_VS_RT_MODE_LOCAL | IP_VS_RT_MODE_NON_LOCAL |
+ 		  IP_VS_RT_MODE_RDR : IP_VS_RT_MODE_NON_LOCAL;
+ 	local = __ip_vs_get_out_rt_v6(cp->ipvs, cp->af, skb, cp->dest,
+-				      &cp->daddr.in6, NULL, ciph, 0, rt_mode);
++				      &cp->daddr.in6, NULL, ciph, 0, rt_mode,
++				      state);
+ 	if (local < 0)
+ 		goto tx_error;
+ 	rt = dst_rt6_info(skb_dst(skb));
+-- 
+2.56.0
+
+
