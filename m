@@ -1,67 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794539597;
-	b=aHhiHS0Axnlj5y999SfrkSJAdj8is0U0l8C99u7Zou+SVyz3qt4tLAMGOe+zPfVkK4Iv
-	 Rz/DZQS14gJu8sUHbxUYh+1w/wSi4t2b7ulvNOMhC4flW/tHYcv+H08xzMt/nyGVJrpRi
-	 BfsN3ovJ4SJA/t2++hn/vCB9Hvf8Lhx6tOLbtC302PW8RGU5UeyyDOdBQP910Eiz9hpQH
-	 vqX4WrvvFMQH/16IqORnDHRPVSXtAjVc0r6cbhC93n/cO09Je3LcgspKUy58RvJu3UFk3
-	 LSHp1Uu2xe30gd0Iik6Hj1uB3AljGAkYI4/bOODBoI86KQAfyVqxi6bDYg7y5/PmYuA==
+	t=1794539827;
+	b=et6uoLEQNYALTduyUpsgrIfWQTiifPagsROqd6IWsIxRe1QfiiaQESh3jid8DcagM7ui
+	 dOz1HO97SYjLHh1oU8XtcS0dTEbRq0pky9rF+lT/xp2PCdna5yAPdv3QOlVcXLdFFWmaS
+	 kqWH3kAiPFcgtHHOJG1agelBfdnfcITmYGiyzoC3uGYVYcZw7IFSXjNmpwC3U0ZKWVpgo
+	 1ZRPZ5v10/FLEc696vIBIRA7e/arV6WZwnP3WUhWUWiPGUvt2rNtR5lzgOQvsLn4DeVkL
+	 7tuqv86pDyGc+REP4kI7GQlm6HHvNzK2igiHpcFrgoQxEenSIaboR/AaH2mnb/HhIkQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794539597;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=IxbUfHTuIUuXNXS9yjXAUzI5jyUz4Mx8VWxJc/reIZU=;
-	b=xOLN9K5FBpqhacuHuIqwQiQrht9zLTrHLMfJqd19WxB3BRrdsMMd90Nay1GCFR4sk0tC
-	 70RqX+Ngy7z20nrLh0hOovb06NaZwUGvt/cwoAwBnFcFZnbNcJbDiXBC3P/mvC2m/KbE9
-	 Ql+RV12KTRbP9DHiKTZwBzIEjPe33hVVR5TdaZ1LSsqtG0tYYl5YmH+5OI6vU8FkV85qW
-	 paHoXB0c1LXhlzRE28fL4wgXLKoAKw/XYaY8i7qq+sSV5baUjyqrCgy6EJ3bUUzh6f1ci
-	 w/5dVddYHHmYdasRhLF0a+bz7JnRuTE2wlrmEZEff4+mhcfUNi3lvgPEVXX6gSiWyHQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794539827;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
+	 In-Reply-To:References:Auto-Submitted:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=QRKjoaIFdZcdNI6xhQFS3ddkteDcVtqc9gdnFl/fkT8=;
+	b=Kl8VuaQpUoGgHAQ+fa9S3b6ieiuVjaewUp8ySL0pusBZuT95CBwJRipYbJPjxKsD4cs2
+	 iuJcl+TDOJyxJo0BlIy0hw1H+kJbm7VUAhhlfxkLFFEB6Z4EoZk+UDQbOTtXojYirQYIu
+	 Al1TXNNtQUxfUL5oehZaWpNdWXj58QP5HbVzLImaPjo8DtJpHijQso1SXM1MnHHHdqVVY
+	 gs6mHruRnju9NQa2usJslfL/uWRk58ws/CrRZDGGvEYfB/DAIthsmsDlnf0co4PMp3JTm
+	 X0bdHykBPxCb4ZsTcy0qIvdjzGvY9fDIoiDhozaI2FpWWBoOcyTbP/A3CVQlZVJUlrw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UwOI75+3;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JHqt0GGO;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94BD460A3818;
-	Fri, 13 Nov 2026 03:13:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94BD460A3818
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70229606A323;
+	Fri, 13 Nov 2026 03:17:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UwOI75+3
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794539595;
-	bh=IxbUfHTuIUuXNXS9yjXAUzI5jyUz4Mx8VWxJc/reIZU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UwOI75+3MpvG+G6T4VdE0pMLvsLvfkJKwxAsruD0W8EXNrDMVAMYn/e5gFsKGJoKF
-	 3/brhTqdB0rPO5PMhL0qoQtmIQHsgdQ5NNfubAkIKMbgwQPNmPL+PmzlhHWpkL8kEv
-	 mpXrX2CbgpJy/YZ6F56pfWvVkdTYfg82ub181OaZjCy2b5K5aZpYbEtWMqyLZF/AxF
-	 TeTwFv+Kgxlo74WUJh8j/tVcDV9l+gQKefJzpOCurFTSyGBl9uHTBEuGYQzHVPDVQf
-	 5KzZ99cVQ3uU1xbcODeknYOC6hoAA9+ZFCWCV6YkoFiMs6pUqybf8+TaDYSAP8fy3C
-	 /9fMHcGnTmWww==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 77E5A602A6;
-	Fri, 13 Nov 2026 04:13:14 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@kernel.org,
-	horms@kernel.org,
-	fw@strlen.de,
-	ja@ssi.bg
-Subject: [PATCH net-next 14/15] netfilter: nfnetlink_queue: make skb writable before writing NFQA_L2HDR
-Date: Fri, 13 Nov 2026 04:12:50 +0100
-Message-ID: <20261113031251.2437074-15-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261113031251.2437074-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JHqt0GGO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 660121F000C4;
+	Fri, 13 Nov 2026 03:17:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794539827;
+	bh=QRKjoaIFdZcdNI6xhQFS3ddkteDcVtqc9gdnFl/fkT8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=JHqt0GGOy76IEMUTS3P6IoC7hWETzpJ86b+UqgWqBeFLTXZHwPeRo2TTi6xwZolmp
+	 FsC9sMoZkIQzOZol/qt6QJEC+Mh8WZlDoVpVy1CTisKEk3eONnMKsvHb8xS+GXZ+Hh
+	 kevhrKPtucfL07dxTI/Fq5AkByIorhUL4f9zJ1UlrOLFkPiO6MonIo+jlwYoi5UoBe
+	 OWdtd2kWhrCPgZeOaU6sxchhnmdQ7UTsdL6AggfEo+iXSI1NgOKzNAxqEAi9AEkhA9
+	 FoOoux6FZuxMSzgEEhb7W/VfipI4t3HADbOICEBbB8annNmqm+TbBIrWZJ3gN1dsrb
+	 yHnxcXfCUpDcg==
+From: netdev-bot+sinfo@kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net-next 01/15] netfilter: flowtable: do not hw offload
+ flows in teardown state
+Date: Fri, 13 Nov 2026 03:17:05 +0000
+Message-ID: <179453982588.2168702.434281488157747833@kernel.org>
+In-Reply-To: <20261113031251.2437074-2-pablo@netfilter.org>
 References: <20261113031251.2437074-1-pablo@netfilter.org>
+ <20261113031251.2437074-2-pablo@netfilter.org>
+Auto-Submitted: auto-generated
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,49 +64,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-From: Tamaki Yanagawa <ty@000ty.net>
+Hi!
 
-nfqa_parse_bridge() copies the NFQA_L2HDR attribute over the mac header
-of the queued skb in place. Bridge flooding queues clones that share
-their data with the copies sent to the other ports, so the rewritten
-header also shows up on frames that never went through the queue, and
-is changed while those may already be in transmission. Call
-skb_ensure_writable() before the copy. At the bridge hooks skb->data
-points to the network header, so the mac header sits in the headroom,
-which skb_clone_writable() already takes into account: a write length
-of zero is enough, and a clone that owns its header area (nohdr) is
-left alone instead of being copied.
+This is an automated message. This series looks like a fix, but its
+commit messages seem to be missing some information:
 
-Fixes: 8d45ff22f1b4 ("netfilter: bridge: nf queue verdict to use NFQA_VLAN and NFQA_L2HDR")
-Signed-off-by: Tamaki Yanagawa <ty@000ty.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink_queue.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ - How the issue was discovered, e.g. hit in production, hit during
+   development, syzbot report, manual code inspection, LLM or static
+   analysis tool scan.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a8aa7ad832c3..862d2a762106 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1830,10 +1830,15 @@ static int nfqa_parse_bridge(struct nf_queue_entry *entry,
- 
- 		if (mac_header_len != nla_len(nfqa[NFQA_L2HDR]))
- 			return -EINVAL;
--		else if (mac_header_len > 0)
-+
-+		if (mac_header_len > 0) {
-+			if (skb_ensure_writable(entry->skb, 0))
-+				return -ENOMEM;
-+
- 			memcpy(skb_mac_header(entry->skb),
- 			       nla_data(nfqa[NFQA_L2HDR]),
- 			       mac_header_len);
-+		}
- 	}
- 
- 	return 0;
--- 
-2.47.3
+ - Whether the issue was actually triggered, or is only theoretical
+   (e.g. found by LLM and not proven at runtime). If it was triggered
+   please include the symptoms, like the stack trace or kernel messages.
 
+ - What hardware the change was tested on. For driver fixes please
+   mention the device (and if relevant firmware version) used for
+   testing, or say that the change was not tested on real hardware.
+
+Please do not repost the series just to address the above. Instead,
+reply to this email with the missing information, so that reviewers
+can take it into account. If the series needs another revision for
+other reasons, please include the information in the commit messages
+then.
+
+The evaluation is done by an LLM so it may be wrong, if you think
+that is the case please reply and explain.
