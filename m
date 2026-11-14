@@ -1,56 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794626623;
-	b=3NdbEWF3OpD2R6opkSZXZ33dXWktFSIi5sxowXIUYlaSFG0NIzvkBs5G8KHXFVOwEPJx
-	 5bXPspcCmcbQ6c9VI/H/VV0YEhUKvsjd9xy/0R5KYkkFStugAspRQm+8JJLXZug8ytEHS
-	 ygGGp3QqYgpvG+7jHsQnwcKmkvTovt/1FEuZkhYVP15iygMF/jzmVUOlyZBvGf6ul0ivt
-	 dbAfDFo6u04Mw3FVy8XpLvyyiBW06fRWLNGa3sYJOfJ/dgz4mfjSbjxl2hc8K5KrEgh8m
-	 f8QOGyptGVVlIxTEBmVnsWhOnNxD2LGNJThDULDyg9/MZEWNkk+zWhfEaQaLLziI5lQ==
+	t=1794626624;
+	b=ahMZUplJTjt+bV9PgIh6vhDnsCbAlUgkO9dL0DSTGrmT0vs4U+l6C2+el7liNtHrMH3s
+	 Du77ztscXlGAvIkd06g6ZH6NJN5NnY9ZliIariEE0F84io3HA5j9ZcaFUSOl0LCMGl11v
+	 U7/miDYJJpz3PSqkrzGI2OBQO90sD6uTSOyVouUKgc2kcy02dYplXksFRNx8Qt3lfEzuA
+	 jjJYEFMOveO2qGC9XcXHfC44QLlP27pn+ETUZj8x/9oVhTvzrmdeTokcKnA797DVLb6Yt
+	 CIvHBPHBcqs+ms58eOT4gk3b6UJSPghzlu9sYY2TsrQRrwNRRYWuw2eZCrGM/pcBjBQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794626623;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794626624;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=O0278166LjXzk221azAMKlrRq9SrJRCGpf87s2Ov69k=;
-	b=vtvhQKa1wv3IcGJkfUWL+gTXZ9vARSsBekaHIPGpfR5bMQ/UJydShXQC1cTc+Mge4KWo
-	 g0/GrlwcIzKJeSccCTxjLgbeppMd9IIVoLeCsxiEUv97nMRSoLrDZgmPov07xFn/9iNC9
-	 WRJ6O9iAKs7YHqfJZPi2gmctj3FnniS0zeEmo8PJCpRJ/4bBlxTWBE6kA0nHRcQV40/uP
-	 HXScuHIYwO7/D+Jt0zd4kQ+ySxpTjYW0wCd4xBoJLiEaekRW4L7qlNnFN/zl4ietyzMkz
-	 EI1TZZ4g8lponI8Tqtm0E/ohqriHUTuaEEdYE8gdnG2SWtaXWpRD+6knY5xr9VibxIw==
+	bh=ywTZNUzdDeYFYSzCQUyskO5KI+1kN5G5m4XRolGTxVo=;
+	b=kesa48ruH+nfpNWsgIry6KEtWGWgN89qCoL0oX/tRNIbm6H/lKWBvKMRzlTAQ1yAa22H
+	 fQAIdCH57Cbcgnhqpy1a6a/3m5UU3JUG6/xcMhY7ECCLQVhnksa+PmT9eyeCLUJDjM7Jj
+	 v/xHhstHYwfz6GrGeAtjPCjhFp+WSfjzA3VP9fEIdxo03vIwz1txAS0sQvJFTWVYm/n6u
+	 iUWlDBUsa6cWu/0kw2Gbytv5taV7WmfpyzwLcpf0iUFTPt3Fuh/98s76LUYyxOPgxLk3a
+	 ino0XafcY0TPwC++OhJpR8c+IxZF8s0tFCo9QUc1isa+LohMLvGRMjyjgqS60xQltVw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYHguuYs;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I3H+8dab;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBFD606A899;
-	Sat, 14 Nov 2026 03:23:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 667B2606A89E;
+	Sat, 14 Nov 2026 03:23:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYHguuYs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD15B1F000C5;
-	Sat, 14 Nov 2026 03:23:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=I3H+8dab
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE181F000C8;
+	Sat, 14 Nov 2026 03:23:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794626623;
-	bh=O0278166LjXzk221azAMKlrRq9SrJRCGpf87s2Ov69k=;
+	s=k20260515; t=1794626624;
+	bh=ywTZNUzdDeYFYSzCQUyskO5KI+1kN5G5m4XRolGTxVo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=dYHguuYs0tk1K5NX6YMv3EZtGJY+75S8xgfcFMzMW8yxVvIO2k2PDs6capiXvIp46
-	 bqAw+3VzXmb/THCxDi+ceSqW5261WJ/6bZw4lei0W0KFN1q2uGMUrhJUb+dzMfY0AG
-	 3bR3X64735lENzUNeX6+03uUwcGkgJybO+nkbEve8RrNjAaNbkRVVT7K1Tpl6BBx+c
-	 oEZ8zmwKmQWbpJb9EgJKfxTFjKPKtqJf0L0Clf2xLu651jaBVebGONPhfzQNqk85Ou
-	 JUeVLCtgoTNWlNP6L8N1f72bKVxXYn3gN1Exuj9soH2q8zzs/WV35vV1QwSNWHMuWc
-	 UFTxSdaBB/Hgg==
-Subject: Re: [PATCH net-next 04/15] net: ethernet: mtk_ppe: update stats on
- flow deletion
+	b=I3H+8dabKM/Th3RCB38PFFfWg8EenAPhtxiTkLO+mPHvvrpnVJnSVg3cu1fD28049
+	 zh9/9Pz7R7Vl5jR0lhtWExIRCkGY+rkjsltjgfQHNMq3Ur2COqGk+OiWhL9woyntry
+	 xMiC9+/q9awhQZgFqGpMvV8ens3/V+O6SrYLcsFzRAruA5kHSl63r2p6nWjNZ28LtZ
+	 BYMXnE8l2C2LEIs9vIG/jyyufdKhruOGoGsU+KoJY3ogVfcGqxF61aN99HO0omBRS7
+	 9ZtSUP4CbttTcNbJauQUZ9s3Ov+i6mxrqXOgADvQK29lyRHz89J+J6i+rgw/tmzm9a
+	 ZKt9mbLax1qhg==
+Subject: Re: [PATCH net-next 05/15] net: airoha: update stats on flow deletion
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 03:23:42 +0000
-Message-ID: <179462662226.2199510.18334585380250309949@kernel.org>
-In-Reply-To: <20261113031251.2437074-5-pablo@netfilter.org>
-References: <20261113031251.2437074-5-pablo@netfilter.org>
+Date: Sat, 14 Nov 2026 03:23:43 +0000
+Message-ID: <179462662336.2199510.7109174272716218011@kernel.org>
+In-Reply-To: <20261113031251.2437074-6-pablo@netfilter.org>
+References: <20261113031251.2437074-6-pablo@netfilter.org>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -67,7 +66,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 0
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -75,143 +74,118 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] Bridge (L2) flows on mtk_ppe: the new destroy-time call to
-  mtk_flow_offload_update_stats() read-clears the hardware MIB counter…
-- [Medium] mtk_flow_offload_destroy() takes the final MIB snapshot before
-  it invalidates the hardware FOE entry, so the 'last stats sync' on…
+- [Medium] airoha_ppe_flow_update_stats()
+  (drivers/net/ethernet/airoha/airoha_ppe.c, ~1288-1303) computes…
+- [Low] In airoha_ppe_flow_offload_destroy() the final counters are
+  sampled by airoha_ppe_flow_update_stats() (line 1315) before the…
 
 --
 
-net: ethernet: mtk_ppe: update stats on flow deletion
+net: airoha: update stats on flow deletion
 
-This moves the stats collection out of mtk_flow_offload_stats() into a new
-helper, mtk_flow_offload_update_stats(). The helper is also called from
-mtk_flow_offload_destroy(), so the final hardware counters are reported
-when a flow is deleted. This follows "netfilter: flowtable: retrieve stats
-on flow deletion".
+This commit moves the stats collection code out of
+airoha_ppe_flow_offload_stats() into a new helper,
+airoha_ppe_flow_update_stats(). The helper is also called from
+airoha_ppe_flow_offload_destroy(), so the final counters are reported on
+flow deletion, as introduced by "netfilter: flowtable: retrieve stats on
+flow deletion".
 
-> diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-> index 99b28aaa7cc47..8ca694bb5e1b7 100644
-> --- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-> +++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
-> @@ -526,6 +526,24 @@ mtk_flow_offload_replace(struct mtk_eth *eth, struct flow_cls_offload *f,
+> diff --git a/drivers/net/ethernet/airoha/airoha_ppe.c b/drivers/net/ethernet/airoha/airoha_ppe.c
+> index f5369c45766d2..af8c7fe9b7f09 100644
+> --- a/drivers/net/ethernet/airoha/airoha_ppe.c
+> +++ b/drivers/net/ethernet/airoha/airoha_ppe.c
+> @@ -1285,6 +1285,23 @@ static int airoha_ppe_flow_offload_replace(struct airoha_eth *eth,
 >  	return err;
 >  }
 >  
-> +static void
-> +mtk_flow_offload_update_stats(struct mtk_eth *eth, struct flow_cls_offload *f,
-> +			      struct mtk_flow_entry *entry)
+> +static void airoha_ppe_flow_update_stats(struct airoha_eth *eth,
+> +					 struct flow_cls_offload *f,
+> +					 struct airoha_flow_table_entry *e)
 > +{
-> +	struct mtk_foe_accounting diff;
-> +	u32 idle;
+> +	u32 idle = airoha_ppe_entry_idle_time(eth->ppe, e);
 > +
-> +	idle = mtk_foe_entry_idle_time(eth->ppe[entry->ppe_index], entry);
 > +	f->stats.lastused = jiffies - idle * HZ;
+> +	if (e->hash != 0xffff) {
+> +		struct airoha_foe_stats64 stats = {};
 > +
-> +	if (entry->hash != 0xFFFF &&
-> +	    mtk_foe_entry_get_mib(eth->ppe[entry->ppe_index], entry->hash,
-> +				  &diff)) {
+> +		airoha_ppe_foe_entry_get_stats(eth->ppe, e->hash, &stats);
+> +		f->stats.pkts += (stats.packets - e->stats.packets);
+> +		f->stats.bytes += (stats.bytes - e->stats.bytes);
+> +		e->stats = stats;
 
 [Severity: Medium]
-When a bridge (L2) flow is destroyed, can this read-clear the hardware
-counter of an unrelated flow?
+Can these subtractions wrap if the entry was re-bound after the last stats
+read?
 
-For a flower rule with only ETH_ADDRS, mtk_flow_offload_replace()
-allocates the entry with kzalloc_obj(), so entry->hash starts at 0.
-mtk_foe_entry_commit() then takes the L2 path:
+Every time the driver commits a binding, it resets the hardware/NPU counter
+slot to zero:
 
-drivers/net/ethernet/mediatek/mtk_ppe.c:mtk_foe_entry_commit() {
-	...
-	if (type == MTK_PPE_PKT_TYPE_BRIDGE)
-		return mtk_foe_entry_commit_l2(ppe, entry);
+airoha_ppe_foe_insert_entry()
+  airoha_ppe_foe_commit_entry(ppe, &e->data, hash, rx_wlan)
+    airoha_ppe_foe_flow_stats_update()
+      airoha_ppe_foe_flow_stat_entry_reset()
+        memset_io(&npu->stats[index], 0, sizeof(*npu->stats));
+        memset(&ppe->foe_stats[index], 0, sizeof(*ppe->foe_stats));
 
-	hash = mtk_ppe_hash_entry(ppe->eth, &entry->data);
-	entry->hash = 0xffff;
-	...
-}
+e->stats is not cleared on that path. Its only writer is the assignment
+above.
 
-mtk_foe_entry_commit_l2() never sets entry->hash = 0xffff. The base L2
-entry is not on the foe_flow lists, so __mtk_ppe_check_skb() never updates
-its hash. mtk_flow_entry_update_l2() only touches the subflow hashes. As a
-result, the base entry keeps hash == 0 for its whole lifetime.
+Suppose the FOE entry goes UNBIND, either through hardware aging or
+because the slot was overwritten. airoha_ppe_foe_insert_entry() then
+re-binds it and sets e->hash = hash. The next call here computes
+small - old_total in u64, which gives a value near 2^64.
 
-That means the entry->hash != 0xFFFF check passes and
-mtk_foe_entry_get_mib(ppe, 0, &diff) runs. mtk_ppe_start() enables
-MTK_PPE_MIB_CFG_RD_CLR, so this read zeroes the MIB counter of whatever
-flow is bound at FOE index 0, for example an nf_flowtable L3 flow. Those
-packets and bytes get charged to the L2 rule and never reach their real
-owner.
+On the DESTROY path, flow_offload_update_stats() passes that value to
+nf_ct_acct_add(), which takes unsigned int packets/bytes. The conntrack
+counters would then jump by roughly 2^32 - old_total.
 
-The bridge flow's own counters live in the subflow slots on
-entry->l2_flows, and this function never reads them. So the destroy-time
-stats for L2 flows are wrong as well.
+The stale baseline already affected the periodic FLOW_CLS_STATS path. But
+nf_flow_offload_gc_step() never sends FLOW_CLS_STATS for a flow that has
+been torn down. A re-bind between teardown and the DESTROY work used to
+go unreported. With this patch it becomes the flow's final accounting
+value.
 
-The missing 0xffff on L2 base entries is not new. Before this patch,
-though, mtk_flow_offload_destroy() never touched the MIB. Now every
-FLOW_CLS_DESTROY of a bridge flow does this read-clear, even when nobody
-requested stats for that rule.
+Should e->stats be reset wherever e is recommitted and the hardware counter
+is zeroed?
 
-Should L2 base entries be skipped here? Alternatively, should
-mtk_foe_entry_commit_l2() set entry->hash to 0xffff?
-
-> +		f->stats.pkts += diff.packets;
-> +		f->stats.bytes += diff.bytes;
 > +	}
 > +}
 > +
->  static int
->  mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
+>  static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+>  					   struct flow_cls_offload *f)
 >  {
-> @@ -536,6 +554,8 @@ mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
->  	if (!entry)
+> @@ -1295,6 +1312,7 @@ static int airoha_ppe_flow_offload_destroy(struct airoha_eth *eth,
+>  	if (!e)
 >  		return -ENOENT;
 >  
-> +	mtk_flow_offload_update_stats(eth, f, entry);
-> +
->  	mtk_foe_entry_clear(eth->ppe[entry->ppe_index], entry);
+> +	airoha_ppe_flow_update_stats(eth, f, e);
+>  	airoha_ppe_foe_flow_remove_entry(eth->ppe, e);
 
-[Severity: Medium]
-Is this snapshot really the final one for the flow?
+[Severity: Low]
+Could the final stats miss packets that the hardware forwards between
+these two calls?
 
-mtk_flow_offload_update_stats() read-clears MIB[entry->hash] while the
-hardware FOE entry is still in BIND state. ppe_lock is dropped between
-the two steps. The entry is only invalidated later, under ppe_lock, in
-__mtk_foe_entry_clear():
+The counters are read without ppe_lock while the FOE entry is still BIND,
+so the PPE keeps forwarding and counting. After that,
+airoha_ppe_foe_flow_remove_entry() takes ppe_lock and does:
 
-drivers/net/ethernet/mediatek/mtk_ppe.c:__mtk_foe_entry_clear() {
-	...
-		hwe->ib1 &= ~MTK_FOE_IB1_STATE;
-		hwe->ib1 |= FIELD_PREP(MTK_FOE_IB1_STATE, MTK_FOE_STATE_INVALID);
-		dma_wmb();
-		mtk_ppe_cache_clear(ppe);
+airoha_ppe_foe_remove_flow()
+  e->data.ib1 |= FIELD_PREP(AIROHA_FOE_IB1_BIND_STATE, AIROHA_FOE_STATE_INVALID);
+  airoha_ppe_foe_commit_entry(ppe, &e->data, e->hash, false)
+    airoha_ppe_foe_flow_stats_update()
+      airoha_ppe_foe_flow_stat_entry_reset()
+    airoha_ppe_foe_commit_sram_entry()
 
-		if (ppe->accounting) {
-			...
-			acct->packets = 0;
-			acct->bytes = 0;
-		}
-	}
-	entry->hash = 0xffff;
-	...
-}
+Packets counted after the snapshot and before the reset are lost. So are
+packets counted after the reset and before the SRAM write that
+invalidates the entry.
 
-Between the MIB read and the invalidation, the PPE keeps forwarding and
-counting packets for this flow. That traffic never reaches f->stats. It
-stays in the hardware MIB counter, because only the software acct_table
-is zeroed here.
+The window is small. Since the goal here is accurate final counters,
+would it be better to invalidate the hardware entry first, then read and
+reset the counter, all under ppe_lock?
 
-__mtk_foe_entry_commit() doesn't clear the MIB either. So the next
-read-clear of that index charges those packets to whichever flow binds
-the slot next.
-
-This happens whenever an active flow is torn down, for example on a
-flowtable flush, a conntrack flush or a ruleset deletion.
-
-Would it work to invalidate the entry first and then drain
-MIB[saved hash]?
-
->  	rhashtable_remove_fast(&eth->flow_table, &entry->node,
->  			       mtk_flow_ht_params);
+>  	rhashtable_remove_fast(&eth->flow_table, &e->node,
+>  			       airoha_flow_table_params);
 
 [ ... ]
 
