@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794622549;
-	b=zpxblen18WVbtuBqx3aRJy/irFwohoHKsIYuLUPZB2T2Z1XQDJ3kn1DJL9OKuSfv1Etd
-	 l1W+m7dGQ6C4zdhVyWgTrR45ROfBKR9nwa6TM81FvTUPzC1V3+Icp+vjOdgEwFq2scuOr
-	 ZqlsyKnMzwMJ4zSMZgwrEC4IPJAjITex/lqaeXapvesQLkxBQP204jqcenmp3F0SRi0dI
-	 2zqt3gO+hN/L1yfsOi3mLPvuttqhgTa1yrrdntiAJxQ6/nDb9jZ4ywTlz+FHnb3gd6eGH
-	 84F5hUHyaRrhhrbMcnU9iQWugcu4hyCynNYWAXCLk0ModBE+s6pt3JA/2MtF/psuqiQ==
+	t=1794626619;
+	b=DzpykmbcugD6LNnQfzQ5v7HFz/wmAtvTWfE3YaiAgGxN+zP/IPmABdnL8fX1eTl2olJs
+	 vNtsAM/E5LlRzgDXS7Q9mcAjQQpEUK7tsSpOMOBEqRPAxvaR1GSkJKeSZmfis/5bIFWXe
+	 QzhBGONA/M0OgonsiQHfV6eGp0W2dCfUDHjq8qq6uDVrBL8dAoVK9UIc1YjW03OM2Zkn3
+	 tKbHuHThHivsNPcmKPYCApImpfEHFyP5bPfupa4TvRC7StRyGi0O/H1vw8mhQBOlj+aR2
+	 cukl9/tvIxDm9jXysHiaOTaftSZx9SaKuHf8KmlDOGzWuDeYfZ0v2UdMOBNOKZ43eSg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794622549;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794626619;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=z2PzGhfCZXFT86c6LEhdmvfJrNYyQEznbTeZebR3mhw=;
-	b=W2BTxxZGNPMtT3M0b/9QpQqUyMdlCg0th0xwUybpcnW9v7ChV02xSwVVIjTA4lftmhUp
-	 JU4/rsu/GTqCktacim2pbLnT8JG+XkGZi+1oG+rW4sSeDjspNGMrO0OF2ZhM9DH2RtGdR
-	 7ZRmiqiW4Jmp1jqQ6wjFBvdiQLL4M1cANGPB83V9c8MfhU/L2GI+2Kg0vpMaHrhPwbDre
-	 nv6WX47DzkCPi2qgF1M2ivBhjVOE3F8FySyKTDh1JyFl0IIJMrBKBh4FfaKGLhOVeCk6H
-	 kzthhUp5VwlwtHgFsA5uZjRdGXBen4c2SOy2MQsEdX0IT5BRrmUYB6C6HozzG+CyI1g==
+	bh=qBIvOvOA603roCB7Rre/75gvv3F6mY8loL0odoti8E4=;
+	b=heVyyzjo5P8oV1tqg1KIXFRrnpPda51QxPF5I5yxVuTgx75VeB+sQRSPw7EcA3va7ioS
+	 o2VDdOrxolwDE1ZJ6D9hp4mp33seOoqrV4SmsaQ1G3xkVUmLKfADIjOpTqq8KuVI/c9PW
+	 Tdb6vZ9yjB+5go6oJZCSEc7h+VPznkOmgv+chURK/3NLKsoFPe2jxOXEffTmImTqB2YfB
+	 ZBp11i/urYtkU/oSm+0GOiGfwe3DKSIxD8QLBrBsoW2WMnaesJEjys6P1Q2gr6T5+0pq+
+	 flf368ghDClMUCVANQ1W7RzG6IekRSZYNRbiRtgsb3fJKNKls89OrqrJGClqM0Idbaw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mZD2IGJ4;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="eiMy+n/B";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FEE7606A886;
-	Sat, 14 Nov 2026 02:15:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5485606A330;
+	Sat, 14 Nov 2026 03:23:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mZD2IGJ4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 833A31F000C6;
-	Sat, 14 Nov 2026 02:15:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=eiMy+n/B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 315C71F000C4;
+	Sat, 14 Nov 2026 03:23:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794622549;
-	bh=z2PzGhfCZXFT86c6LEhdmvfJrNYyQEznbTeZebR3mhw=;
+	s=k20260515; t=1794626619;
+	bh=qBIvOvOA603roCB7Rre/75gvv3F6mY8loL0odoti8E4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=mZD2IGJ479tzjJ2LtuLkGnYG3ZPcqBuE+vvhUqSi6Pdvjdo8+qg1n/Oz+tFCYarrS
-	 E8OGJ7joDMKhWB11WIEtCVBYqeRVFEt2NR9d/cl3UhQmN/2MsFPXcBhhgHqUQY7XH9
-	 H0m71nl28IMaYGQ6d5VdERWkvNwYzhHm4JhdcU3qPLnvHir1KoGYPe2+keTjz05k4K
-	 wE5Q9k5su3eOWRbxZaXmMK2kr6iSviW1+CpBcJyPvKdFRhNNRPHJ1KCDs245Sdp/lt
-	 D+na0EsEHPTOTdiXyLP5FiaXJTv5jI2puodVWkYPspt5utm6DvFFVRGImajaszed0Y
-	 7ce7OzopHpWJg==
-Subject:
- Re: [PATCH net 12/15] ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+	b=eiMy+n/BNDwYAeDNlNYNeZIjof5AUFzWsZy5gA2IFzfVZmvtIZAQX19JmbU+6Gxnb
+	 lyz4tyj3IRj4Esx4NsX2NKSutZr5/mxvLijsiq9+e7EkSHxTD3nLGing63XANhYE8M
+	 HkcBNfy6DkDA/eaUWaNRInSAYxrOY17pegwjYbCvItM173/WaYHcO9vD+ikfGqok6V
+	 8DH9eAq+DccJqdk3/PhXo/hA2ViTYYH0hiCB3gQXMpGq59lcNreEGc+MWr3s5jk7Xe
+	 felTZk85/33izXrQ6Gj+JT38SCZ1KnU/PBvKD8WvY3xDREhLZLTAqca25V9Agb+nds
+	 OxdBNpP0F1dFQ==
+Subject: Re: [PATCH net-next 01/15] netfilter: flowtable: do not hw offload
+ flows in teardown state
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 02:15:48 +0000
-Message-ID: <179462254809.2199510.1654079102144951045@kernel.org>
-In-Reply-To: <20261113011447.2357709-13-pablo@netfilter.org>
-References: <20261113011447.2357709-13-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Sat, 14 Nov 2026 03:23:38 +0000
+Message-ID: <179462661878.2199510.10033227088688888386@kernel.org>
+In-Reply-To: <20261113031251.2437074-2-pablo@netfilter.org>
+References: <20261113031251.2437074-2-pablo@netfilter.org>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,10 +64,10 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 1 potential
+Thank you for your contribution! Sashiko AI review found 2 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 0
+Critical: 0 · High: 1 · Medium: 0 · Low: 1
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -75,115 +75,150 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] ip_vs_conn_out_get() (net/netfilter/ipvs/ip_vs_conn.c:593-594)
-  now copies the symmetric rule from __ip_vs_conn_in_get(): `(!p->vport…
+- [High] The patch only partly closes the packet-path refresh race.
+- [Low] The commit fixes a race found by an automated reporter ('Sashiko
+  reports...') but carries no Fixes:, Reported-by: or Closes: tag.
 
 --
 
-ipvs: skip cport 0 connections in ip_vs_conn_out_get()
+netfilter: flowtable: do not hw offload flows in teardown state
 
-This patch adds the rule from __ip_vs_conn_in_get() to
-ip_vs_conn_out_get(). A lookup for client port 0 matches only
-connections flagged IP_VS_CONN_F_NO_CPORT, and a lookup for a nonzero
-client port matches only connections without that flag. The goal is to
-stop templates and ordinary cport 0 connections from being matched on
-the out path.
+This commit makes nf_flow_offload_refresh() check NF_FLOW_TEARDOWN again
+after NF_FLOW_PENDING has been acquired. The goal is to stop the packet
+path from queueing a hardware refresh for a flow that is going away. It
+relies on GC skipping flows that have NF_FLOW_PENDING set, which came in
+with commit 7c549fb7eecd.
 
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index 66fcdc00ef375..83d8a9153a342 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -590,6 +590,8 @@ struct ip_vs_conn *ip_vs_conn_out_get(const struct ip_vs_conn_param *p)
->  				    ip_vs_addr_equal(p->af, p->vaddr,
->  						     &cp->caddr) &&
->  				    ip_vs_addr_equal(p->af, p->caddr, saddr) &&
-> +				    (!p->vport ^
-> +				     (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
+> Sashiko reports that refreshing hw offload from packet path is racy
+> since the flow might be already going away.
+>
+> Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
+> status bit"), GC skips flow entries that are still pending to be
+> offloaded. Let's just check for the teardown status bit after the
+> pending bit is set on to address this race.
 
-[Severity: Medium]
+[Severity: Low]
+This isn't a bug, but should this have Fixes:, Reported-by: and Closes:
+tags for the report?
 
-Can the nonzero p->vport half of this check make the out lookup miss a
-MASQ connection while ip_vs_conn_fill_cport() is still filling it?
+The fix only works on trees where nf_flow_offload_gc_step() already skips
+flows with NF_FLOW_PENDING set:
 
-For double-hashed connections (ip_vs_conn_use_hash2(): MASQ and not a
-template), ip_vs_conn_fill_cport() works in two separately locked
-passes. The first pass is dir 1:
+	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+		return;
 
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_fill_cport() {
-    ...
-	/* No packets from inside, so we can do it in 2 steps. */
-	dir = use2 ? 1 : 0;
-    ...
-		if (!cp->cport) {
-			cp->cport = cport;
-			by_me = true;
-		}
-		if (!dir) {
-			atomic_dec(&ipvs->no_cport_conns[af_id]);
-			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
-		}
-    ...
-			hlist_bl_del_rcu(&hn->node);
-			hlist_bl_add_head_rcu(&hn->node, head_new);
-    ...
-	spin_unlock_bh(&cp->lock);
-	if (dir-- && by_me)
-		goto next_dir;
-}
+That check came from commit 7c549fb7eecd. A stable backport to a tree
+without that commit would leave the race open.
 
-After the dir 1 pass, cp->cport is set and hn1 (the node walked by
-ip_vs_conn_out_get()) sits in the bucket for the new cport. But
-IP_VS_CONN_F_NO_CPORT stays set until the dir 0 pass, and all locks are
-dropped between the two passes.
+Could the message record this dependency? Could it also state the
+consequence, which is offload work queued on a flow that GC frees, i.e. a
+possible use-after-free?
 
-Before this patch, an out lookup in that window matched on cport alone.
-With the new check, p->vport is nonzero and the flag is still set, so
-the expression is 0 ^ 0 and the entry is skipped. Nothing else in
-ip_vs_conn_out_get() would find the connection.
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 4365859220e6a..3a18fa48cadb0 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -1120,6 +1120,12 @@ void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
+>  	if (!offload)
+>  		return;
+>  
+> +	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+> +		clear_bit(NF_FLOW_PENDING, &flow->flags);
+> +		kfree(offload);
+> +		return;
+> +	}
+> +
+>  	flow_offload_queue_work(offload);
+>  }
 
-One sequence that seems possible with an FTP PASV/EPSV data connection,
-which is created with IP_VS_CONN_F_NO_CPORT:
+[Severity: High]
+Does this close the race for flows that are only in the NF_FLOW_CLOSING
+state?
 
-CPU A and CPU B each handle a client packet for the data connection.
-Both find it through the cport 0 fallback in ip_vs_conn_in_get().
+GC also sends a hardware DESTROY for a CLOSING flow while TEARDOWN is
+still clear. This happens in nf_flow_offload_gc_step():
+
+	} else if (test_bit(NF_FLOW_CLOSING, &flow->flags) &&
+		   test_bit(NF_FLOW_HW, &flow->flags) &&
+		   !test_bit(NF_FLOW_HW_DYING, &flow->flags)) {
+		nf_flow_offload_del(flow_table, flow);
+
+On the packet path, flow_offload_refresh() is the only place that tests
+CLOSING, and it does so before PENDING is taken:
+
+	if (likely(!nf_flowtable_hw_offload(flow_table)) ||
+	    test_bit(NF_FLOW_CLOSING, &flow->flags))
+		return;
+
+	if (test_bit(NF_FLOW_HW, &flow->flags))
+		nf_flow_offload_refresh(flow_table, flow);
+
+Could this sequence happen?
+
+CPU B (packet path)
+flow_offload_refresh()
+  sees CLOSING == 0 and NF_FLOW_HW set
+  <stalls before test_and_set_bit(NF_FLOW_PENDING)>
 
 CPU A
-ip_vs_nat_xmit()
-  ip_vs_conn_fill_cport()
-    dir 1 pass done: cport set, hn1 rehashed, NO_CPORT still set
-    cp->lock released
+nf_flow_state_check() on FIN/RST
+  sets NF_FLOW_CLOSING
 
-CPU B
-ip_vs_nat_xmit()
-  ip_vs_conn_fill_cport()
-    sees cp->cport set and by_me false, so it does nothing
-  packet forwarded to the real server
+GC
+nf_flow_offload_gc_step()
+  nf_flow_offload_del()
+    takes PENDING, sets NF_FLOW_HW_DYING, queues DESTROY
+flow_offload_work_del()
+  removes the rule, sets NF_FLOW_HW_DEAD
+  PENDING is cleared
 
-The real server's reply then reaches ip_vs_out() before CPU A runs its
-dir 0 pass. ip_vs_conn_out_get() misses, so handle_response() and SNAT
-are skipped. The reply is NF_ACCEPTed with the real server's address as
-its source.
+CPU B resumes
+nf_flow_offload_refresh()
+  nf_flow_offload_work_alloc() wins PENDING
+  test_bit(NF_FLOW_TEARDOWN) == 0
+  flow_offload_queue_work() with FLOW_CLS_REPLACE
 
-The window is short. It only fits a full round trip if CPU A stalls
-between the passes, for example through vCPU preemption or softirq
-preemption on PREEMPT_RT. TCP retransmission should recover after dir 0
-completes.
+flow_offload_work_add() does not check NF_FLOW_HW_DYING or
+NF_FLOW_HW_DEAD. It installs the hardware rule again and sets
+IPS_HW_OFFLOAD_BIT.
 
-The commit message's goal seems to need only the p->vport == 0 half.
-For nonzero lookups, the other half only matters in this in-between
-fill state. Would a one-sided check avoid opening this window? For
-example:
+Nothing clears HW_DYING or HW_DEAD after that. When the flow later
+expires, the teardown branch in nf_flow_offload_gc_step() goes straight
+to flow_offload_del() and sends no new DESTROY:
 
-	if (!p->vport && !(cp->flags & IP_VS_CONN_F_NO_CPORT))
-		continue;
+		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+				nf_flow_offload_del(flow_table, flow);
+			else if (test_bit(NF_FLOW_HW_DEAD, &flow->flags))
+				flow_offload_del(flow_table, flow);
 
-On the in side, __ip_vs_conn_in_get() uses the same symmetric rule
-without this problem. There, hn0 is rehashed and the flag is cleared in
-the same locked step, but hn1 has no such guarantee.
+Would the re-installed rule then stay in the driver and hardware after
+the flow and its conntrack entry are freed? Its cookie is the address of
+the freed tuple, so a new flow allocated at the same address could
+collide with it.
 
->  				    p->protocol == cp->protocol) {
->  					if (__ip_vs_conn_get(cp))
->  						goto out;
+There seems to be a worse interleaving as well:
+
+1. GC reads PENDING == 0 at the top of nf_flow_offload_gc_step().
+2. CPU B wins PENDING and reads TEARDOWN == 0.
+3. GC calls flow_offload_teardown(). HW_DYING and HW_DEAD are already set
+   from the CLOSING DESTROY, so GC frees the flow through
+   flow_offload_del() without taking PENDING.
+
+Can the queued REPLACE work then run on a flow that was freed via
+call_rcu()?
+
+The window is narrow. It still looks reachable on PREEMPT_RT, where
+softirq is preemptible, or under vCPU preemption. The FIN/RST that starts
+it comes from the network.
+
+NF_FLOW_HW_DYING is set while PENDING is held, and it is published before
+PENDING is cleared. Would re-checking NF_FLOW_HW_DYING (and/or
+NF_FLOW_CLOSING) here, after PENDING is acquired, cover every state in
+which GC has already issued the DESTROY?
+
+Later patches in the series don't appear to change
+nf_flow_offload_refresh() or flow_offload_refresh().
 
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113011447.2357709-2-pablo%40netfilter.org
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113031251.2437074-2-pablo%40netfilter.org
