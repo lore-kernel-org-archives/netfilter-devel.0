@@ -1,57 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794622542;
-	b=jwlmfa3C+BrT7qFjZlbjnIKiEznxSiRnPigTFIiwTdqtH48X/IhnIttpp0M6UiSgH6zU
-	 5cNV9ofKLLtXtifpLfhrMyyywjdYc15vW0K1HfZFjnGlr9Nr2LcG+Y9Gq0jk1vmDKfQQC
-	 2V7c5K9VA9lxCgWs7TxGd+v/vgwouYxwAUyvpd5pcahIk8QRMTK2JniMGlt6rp1Ie/3EG
-	 v2AzWBxFPBKwh/6E2oC2k/OOqAQOvnOyqYkDl/69JBSe2JQYcnrVWAmUrku3q5jlbTCra
-	 2iJhl0oQ3B5pqBQdEXW/YS9ehW1UMTKs2c7rdA6KPULzyguDjhjNGwRwRuZJpJNQGoQ==
+	t=1794622543;
+	b=n8y69Fpp11zWDj12oUQoh0lpjFOrHJ88vm+D3rfCElSAh92zPKGsncvuhMssyYgTvX4/
+	 mZFZmNzHW4wK6sc8uI/vjn5Xt2TkVomCfVq26PMpY99a6qEyEQZhmSrsPR2S5K9a2rV8b
+	 L3LzeRpPNWHlbDTk3gC8rlST/XSbnLCZIfTq6+Bk5M/4vbaL/LCC6ZeU7nTz5mOKRkg74
+	 zN5lZR1vJ+LPVcx9Gk/Vbk26HIEK/8IfdRC0pQHwwwERFGSZinZP4wpcpzdXi231gyTix
+	 w3Xu5wuxNvWQWd36GZnEw4zy7j4OPQD4JhFUegCcP4WEQTAsMQuNcnrcTooReEbwI4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794622542;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794622543;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=0QVVJaI//1zE2AiZWpjkhe1vPP+g8HZO/j+NbsfH7u4=;
-	b=I5rRoxphxKjF7G53iehvshGvPH9QTIMZda6ONCrgDfB6Eu9Eer3uVFH2hJ9oostv5PJw
-	 4ksuoubcThc5H+jfBbgQAxqIBlXPQyzJ3APK9UZKHVgjXfsIxJ2Zr5Xoqp9lA88QFLch0
-	 R4xBw8M4L4RGPJsqX9J6FABagLGPvtHE3nVz62U5gaoXRk6vrvUwnZFl1CGbJ59WeRWN8
-	 9Wdpv2YYxorIOYXFzlWO84avLn1iw0jbzRv2T4gL1Fod76hE4Zt6yW6Lzag/0fmdNzTaZ
-	 sc1zaAk/WsYciqxO+8sjH/f5vyv6FXn+5F5VnaUV7ZLwUqRKAJkE/nfRDGz/idNBfUw==
+	bh=7McMDbOIQ4W/arVxJ2j2bXQ1Ce5dX3OQSA31MNX80Oo=;
+	b=cfyoiGdTj9UI4nTh0uCc1MUGZtg9kelfg38+W4yx6+Pl1luRWVQIVtDreJhjiqPObGMg
+	 ZCGSkKnjQw47bE4YcztQBU0TQ6V7fyfSY17ixICJeSSN1RC3Qf6vsicx2gHXYn2yqmZH9
+	 4vuO+7AKK8vjtlMGELN2oO5cPJk5zDrgaqXLKCoXrH4Japc84fiWKwZ2wCiMznjzQLAR5
+	 pVhFWy/qhkWEoqDf2vAlcT77lXirR7mR7QQLauZiruZ3Qjexmmm+vO/YsLr/wsqJ5JgZJ
+	 IXn+rtPepsmhBNFt87rZEskV6mAyUnkNF6lQalXe8KmBC2CfqjwKi/Pkqd4V7chtVWA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="dCJHu4/Z";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="oqF/AhwN";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFDF606A883;
-	Sat, 14 Nov 2026 02:15:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5EF606A88C;
+	Sat, 14 Nov 2026 02:15:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dCJHu4/Z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6CA51F000C4;
-	Sat, 14 Nov 2026 02:15:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oqF/AhwN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C4F01F000CB;
+	Sat, 14 Nov 2026 02:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794622542;
-	bh=0QVVJaI//1zE2AiZWpjkhe1vPP+g8HZO/j+NbsfH7u4=;
+	s=k20260515; t=1794622543;
+	bh=7McMDbOIQ4W/arVxJ2j2bXQ1Ce5dX3OQSA31MNX80Oo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=dCJHu4/Z5W7DwcPNxjbcywzwIFsWDOE/3ZB5ct8DuCDV3UyZEyjcv/bHl0w3a7QMK
-	 cKTFTCkUqmE3VohVo41FNzfCioPr0APZXy39YSyj+il8g/mIBzd+mf/xyc26XBXb4T
-	 khk0OB2uiedsMFGMpkuVgCRLtVDHA8QaiucFxS8BhKRvXkrL09pUvICfsgj1rsBWBk
-	 tf1OAc367pRKllY4jcocDXKszKjwXHWrXmyTNYt5Zu1YB5lmLKPwqNfQB+X4cVix7w
-	 H5FLB4g24a6VE5L2UzkCoTrw1wCHaXlpgcSLZPKV5KrZYCGjKRJrMag3lQvQywQEVC
-	 cRaQ2xrY0Jssw==
-Subject: Re: [PATCH net 04/15] ipvs: avoid stack overflow from recursive
- connection expiration
+	b=oqF/AhwN8StSNxgJuATfgMBCjYRRW7fGOmFaMpouDRR2tXEpOwL73Zn/Qh5gqJyXN
+	 lpkledPALWtFkq0CEPNleeNTxJIFejMXuDa4UCjnGjNGPzSs1Y6y2aIEea6PFAdkIa
+	 js8s60QezviAcps8zepykp0SoXBNsLL0rgiJ4mMqZw8MDcXry738vE8BDaUFzUfIcJ
+	 wZ0VSwme+VLEUcKc00kq6i0iQFRf6kpP5Qix+vW2eteL0M4bS/4+fIAsTpoOOIJW1o
+	 ltxBZBcTCuRhGFrtdpHQBNQC6KPVKOMmooOEqKR2VTVQDxtVfoRSRYeOgMW7JT0M54
+	 krbyDUg7yXo2A==
+Subject: Re: [PATCH net 05/15] ipvs: reject FTP control ports as data ports
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 02:15:41 +0000
-Message-ID: <179462254139.2199510.10412248743488371357@kernel.org>
-In-Reply-To: <20261113011447.2357709-5-pablo@netfilter.org>
-References: <20261113011447.2357709-5-pablo@netfilter.org>
-X-sashiko-severity: Low
+Date: Sat, 14 Nov 2026 02:15:42 +0000
+Message-ID: <179462254263.2199510.8837041620739510741@kernel.org>
+In-Reply-To: <20261113011447.2357709-6-pablo@netfilter.org>
+References: <20261113011447.2357709-6-pablo@netfilter.org>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,92 +63,106 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 0
 
-- [Low] The commit message says the recursive chain walk exhausts the
-  kernel stack "during namespace cleanup".
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The two new rejection checks in ip_vs_ftp_in() and
+  ip_vs_ftp_out() return 0.
 
 --
 
-ipvs: avoid stack overflow from recursive connection expiration
+ipvs: reject FTP control ports as data ports
 
-This commit replaces the recursive controller expiration in
-ip_vs_conn_expire() with an iterative walk. It no longer calls
-ip_vs_conn_del() on the controller. Instead, the new
-ip_vs_conn_del_reference() helper steals the controller's timer
-reference, and the function loops back with cp = ct inside a single
-rcu_read_lock() section.
+This patch adds is_control_port() to the IPVS FTP helper and uses it to
+refuse a zero port, or a configured FTP control port, as a data port.
+ip_vs_ftp_out() refuses such ports in PASV/EPSV replies. ip_vs_ftp_in()
+refuses PORT/EPRT commands that carry a zero port, or where vport - 1 is
+a control port.
 
-> When a controlled IPVS connection expires, its controller may be expired
-> synchronously if it has no remaining controlled connections. A chain of
-> controlled connections can then recurse through ip_vs_conn_expire() and
-> exhaust the kernel stack during namespace cleanup.
+> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+> index 9e3e005a82635..4822a1a75212d 100644
+> --- a/net/netfilter/ipvs/ip_vs_ftp.c
+> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
 
-[Severity: Low]
-This isn't a bug, but is "during namespace cleanup" the only place the
-recursion can happen?
+[ ... ]
 
-ip_vs_conn_del_reference() is the only code that sets cp->timeout = 0,
-which arms the drop-controller chain. It is reached from runtime callers
-as well as from the netns flush.
+> @@ -319,6 +330,10 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  		return 1;
+>  	}
+>  
+> +	/* Do not redirect data to control ports */
+> +	if (!port || is_control_port(ntohs(port)))
+> +		return 0;
+> +
+>  	/* Now update or create a connection entry for it */
+>  	{
+>  		struct ip_vs_conn_param p;
+> @@ -529,6 +544,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
+>  		return 1;
+>  	}
+>  
+> +	if (!port || is_control_port(ntohs(cp->vport) - 1))
+> +		return 0;
+> +
 
-ip_vs_random_dropentry() runs from defense_work when drop_entry defense
-is active:
+[Severity: Medium]
+Does returning 0 here stall the whole FTP control connection, rather than
+only refusing the data connection?
 
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_random_dropentry() {
-    ...
-drop:
-			IP_VS_DBG(4, "drop connection\n");
-			ip_vs_conn_del(cp);
-    ...
-}
+The pkt_in/pkt_out contract in include/net/ip_vs.h treats 0 as an error:
 
-ip_vs_expire_nodest_conn_flush() runs when a real server becomes
-unavailable and expire_nodest_conn is set:
+    Return: 0=Error, 1=Payload Not Mangled/Mangled but checksum is ok,
 
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_expire_nodest_conn_flush() {
-    ...
-			ip_vs_conn_del(cp);
-			if (cp_c && !atomic_read(&cp_c->n_control)) {
-				IP_VS_DBG(4, "del controlling connection\n");
-				ip_vs_conn_del(cp_c);
-			}
-    ...
-}
+On the inbound side, tcp_dnat_handler() passes that result up:
 
-The chain can also run from the timer softirq. If ip_vs_conn_unlink()
-fails because refcnt > 1, the expire_later path keeps timeout == 0 when
-n_control == 0:
+    if (!(ret = ip_vs_app_pkt_in(cp, skb, iph)))
+        return 0;
 
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_expire() {
-    ...
-  expire_later:
-    ...
-	if (cp->timeout || atomic_read(&cp->n_control))
-		cp->timeout = 60 * HZ;
-    ...
-	__ip_vs_conn_put_timer(cp);
-}
+ip_vs_nat_xmit() then takes the tx_error path and frees the skb. The
+segment that carries the PORT/EPRT command is dropped.
 
-The timer is then re-armed at jiffies + 0. The next callback walks the
-controller chain, and before this patch that walk recursed on the
-softirq stack.
+cp->vport is fixed for the life of the connection, and ip_vs_ftp_in()
+keeps no state for this case. Every retransmission of that segment is
+parsed the same way and dropped again. Nothing after it in the TCP stream
+gets through until the client's TCP gives up (tcp_retries2).
 
-The loop in ip_vs_conn_expire() covers all of these entry points, so the
-code change itself looks fine. Could the commit message also mention the
-runtime paths, since stable and CVE triage will rely on the stated
-impact?
+If vport - 1 is also in the ports module parameter (for example
+ports=2120,2121), would active mode hang for every client of that service?
+A client that sends PORT/EPRT with port 0 would hang its own session the
+same way.
 
-The commit message also doesn't explain how a deep chain is built. The
-ip_vs_conn_expire_now() comment still says chains are at most
-DATA->CTL->TPL. Both points are handled by the follow-up patch in the
-series, "ipvs: reject FTP control ports as data ports". It rejects
-control ports as FTP data ports in ip_vs_ftp_out() and ip_vs_ftp_in(),
-which bounds the chain again.
+The check added to ip_vs_ftp_out() above behaves similarly. It returns 0
+while cp->app_data is still IP_VS_FTP_PASV or IP_VS_FTP_EPSV, and
+tcp_snat_handler() passes that up:
+
+    if (!(ret = ip_vs_app_pkt_out(cp, skb, iph)))
+        return 0;
+
+handle_response() then drops the 227/229 reply. The server retransmits
+it, the same port is parsed again, and the reply is dropped again.
+
+The existing ret = 0 path at the end of ip_vs_ftp_out() sets
+cp->app_data = IP_VS_FTP_ACTIVE before it returns, so it never re-parses
+the reply. The ip_vs_conn_new() failure return is transient, which fits
+the existing "hopefully it will succeed on the retransmitted packet"
+comment. The new checks reject the same input every time.
+
+Could ip_vs_ftp_in() return 1 here without creating the data connection,
+since nothing is mangled on that path anyway? And could ip_vs_ftp_out()
+set cp->app_data to IP_VS_FTP_ACTIVE before rejecting, so that only the
+data connection fails?
+
+>  	/* Passive mode off */
+>  	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
+>
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113011447.2357709-2-pablo%40netfilter.org
