@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794626632;
-	b=3YX4q7DK1YYOC0uMfQJFQDqyggq6FUFoLWoGyPPSbZfxA9nopWj1vFWyFaiCPoITxvuc
-	 ijZ2rmfvpmyde/npvYz8LP/Ml6dPAeLMMx0ObNrW2cwuExazNcscyVf4vLy/+6CM9yNYl
-	 JskPdyRZG4viHwv+/3V5QqHU6gy/L8wxT+jyI4WoKJjQSG6mldUx3nFXtyXaG3c8Y7kAd
-	 mahLx7IWciV1QQ9164REc6VWkjeLXr6zbIbnfDeig9EZ69DVCOdXcnwxnZ3dqFK8kkSHu
-	 6qrdgmLFLyzSKAy3CWC6NJkTMz52SD6FOp0j0bde7sUbgzqP3F/j+w2kZ8nXfIy+jFg==
+	t=1794626631;
+	b=N1aOOCV2rg4s64E0UJ58sTERclgKOn4XL3Rnzihle2CMGI9ROIxntc2VgPYkSXaalX4J
+	 U78YITyLcTALuO9G5+hoV7OTHQ1YLwa/orucF5xJxd78BjBHDiMSHKawWEQdRXoYkvr4V
+	 vCYD+O9SGB6cf1AgUHH+gurd+m+H79yRISBqrNLCPO96KnT8KDSwfoVAC4JCehMgoxMbC
+	 X93LCSxiDMnvxhRrApSAncrcbuD3YFv/gld3n7DzVzIoyOwtI9cx3GWgDl57/ZBAU/A0b
+	 kPH9cvU0zR5hpAv+eTwLcCgptgGrEj5UyA1GDtjMzeAgoX3EWx51WgtZ4lhFtEKFctg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794626632;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794626631;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=RDsm/q1T9xStnUWpUU9lxQl0hScJur67DeHA8vz0UOc=;
-	b=oFQC3w0CHNPHfu03vZ/vT+cP0kpdtrzdO636rrnHwWGPtrtr2teRYDQ/dwWjJcxXTIzr
-	 wo+3dynhLBPt1TOC3UFT0bKfGcLymY8Kx6OIOgjWD4ljSgKR++tbDbSaYM+qtmw6pZJX/
-	 v0YfL7gO3eDZG6rODNOPGkzyX1bQDBnvZhGQnOka5h+9RJX2dvX9P39S/YpFxCdM9aq/w
-	 OHZPkBxJ4DfrS6R6QfcnEESkXRq4nR6xoQoBcim2xfSsgTHo7Erm9lO54FXaBLHsywxL4
-	 ZyQWpgj5t0WzfCNAVmifsklwJiimJ8XaA/HIrshnp5Vbz+SvyIbqamDi8NPLig50Cbw==
+	bh=vOrw1y8m+9NBltBknIKtJtVKStAg1SQPVgtsudklyYI=;
+	b=U764lOoac6ork7oEvi6Hs5cbb21kL7zRmFXRZA7Pvo5SEO+mA0N6gJx2cxp4nvmuTaCE
+	 YLQ+8wBe1HlY2JPgkNsOorx0Ql3Jh60ncQ8t18hzSlwm+eLT1G9deEVXrDgfiZBxS13Bt
+	 wDnNRRWgkYCDq4kZk3H3+xbwnXpyx7jd7P27gmwv/TCTQTiyhr/GhxT224Jj5KW/lo0Bd
+	 HO2FOPUsb2nVTvTpIGhQYWtMbKQVTNho8ylRnCk9mWtNXeF/ikNiVkVbdLxClxstSufef
+	 Rdj2JSB7dfylZdmBoRUWmMLGUsGhEdX6oCdUOrEL9j/JyyVB/0sKkKH+fsSIVBIi/kA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pobg8Yht;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="GwWGXRx/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A610D60A2620;
-	Sat, 14 Nov 2026 03:23:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Pobg8Yht
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B99EE1F000C5;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D79860A262F;
 	Sat, 14 Nov 2026 03:23:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GwWGXRx/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98F8C1F000C5;
+	Sat, 14 Nov 2026 03:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794626632;
-	bh=RDsm/q1T9xStnUWpUU9lxQl0hScJur67DeHA8vz0UOc=;
+	s=k20260515; t=1794626631;
+	bh=vOrw1y8m+9NBltBknIKtJtVKStAg1SQPVgtsudklyYI=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Pobg8YhtoqMIXh4WGFwfTE98DokYUWIn7S12qOpGrQVU5mkrHFmE1ugPQ9TIuoswx
-	 NbGPGVSxqCbZRwc5GQnd/y4h+W+sRqmKVqw6WoWoFesSdEbKWmpB4HKq85CMe3LW9h
-	 +i+zMH38SJASXV1tz6rAInrgMehGAViuSwOpmwiX2QC86i1fpCweo5ALJL4ECxoVF5
-	 Da0tWkg0fAUjQSmT8akYkq3tCc5yL02oEaBOvgO8rEIO4lmgWh2ooI9+14bm0UGuwU
-	 7LQ4wTFS5Jm9D4Fiv7OAxnJJCgr4I0z4gwWeW6QgogD0r8I6mBLzHZl5vx0ynUUeuB
-	 4N2RdVU7bfbyw==
-Subject: Re: [PATCH net-next 15/15] selftests: netfilter: add UDP flowtable
- offload test
+	b=GwWGXRx/O/jsDouSZjxag2nP3y6G4U5KyKsm200a31+nqxxetL2IEYX75gMyLv8to
+	 qM1UPIdgaRDfJZcMlS4PdCFwO0d3z+lELvENiHyFiAPnPetC2p+uPhTrtvEyr6x1FZ
+	 Nax+Z+KYNUThwNTNKfMK2ZSNhsth5uxNSDdGcrFOTMPNEYA4hUMoCpU6LIPWnzsUV4
+	 LEkJA8se37RhIKrm8UT0jSZTpgviyVNV8qsKbJKzDZoLNPR08PHR81V55tGaKshKcA
+	 /6JD+g93nNT3gLHCUSQelRdeeT2pJj6fviBOammk7yKif8+Io2nHHGzHGX2uvZqH6m
+	 3QglMcXx9uQHg==
+Subject: Re: [PATCH net-next 12/15] netfilter: flowtable: tunnel device
+ poisons h_source of fast-path frames
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 03:23:51 +0000
-Message-ID: <179462663134.2199510.11490120367774907266@kernel.org>
-In-Reply-To: <20261113031251.2437074-16-pablo@netfilter.org>
-References: <20261113031251.2437074-16-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Sat, 14 Nov 2026 03:23:50 +0000
+Message-ID: <179462663016.2199510.13278925196473487911@kernel.org>
+In-Reply-To: <20261113031251.2437074-13-pablo@netfilter.org>
+References: <20261113031251.2437074-13-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,205 +64,94 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 4 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 3
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] The test runs the UDP flowtable checksum code but cannot
-  detect a bug in it.
-- [Low] The header comment in nft_flowtable_udp.sh claims coverage the
-  test does not provide.
-- [Low] The "IPv4 UDP masquerade" and "IPv6 UDP masquerade" cases (lines
-  235-236) never check that NAT actually happened.
-- [Low] listener_ready() is supposed to wait for both UDP listeners but
-  passes as soon as either one is bound.
+- [Low] The commit message's only reproduction cannot happen on the tree
+  this patch targets.
 
 --
 
-selftests: netfilter: add UDP flowtable offload test
+netfilter: flowtable: tunnel device poisons h_source of fast-path frames
 
-This adds nft_flowtable_udp.sh, which sends a burst of UDP echoes through
-an ingress flowtable for IPv4 and IPv6, with and without masquerade. It
-checks that the payload comes back intact, that the forward chain sees
-only the handshake, and that conntrack marks the flow OFFLOAD and counts
-every datagram.
+This commit stops nft_dev_path_info() from copying the dev_addr of a
+DEV_PATH_TUN device into info->h_source. On a tunnel device, dev_addr is
+the local tunnel IP address and not an Ethernet address. Before this
+change, those bytes became the source MAC of fast-path frames.
 
-> diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable_udp.sh b/tools/testing/selftests/net/netfilter/nft_flowtable_udp.sh
-> new file mode 100755
-> index 0000000000000..e0f05c76bd8ec
-> --- /dev/null
-> +++ b/tools/testing/selftests/net/netfilter/nft_flowtable_udp.sh
-> @@ -0,0 +1,238 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +#
-> +# nft_flowtable.sh offloads TCP only. These UDP paths therefore stay at
-> +# zero coverage in that run:
-> +#
-> +#   nf_flow_tuple_ip / nf_flow_tuple_ipv6          IPPROTO_UDP
-> +#   nf_flow_nat_ip_udp / nf_flow_nat_port_udp      IPv4 NAT checksum
-> +#   nf_flow_snat_ipv6 / nf_flow_dnat_ipv6          IPv6 NAT, including UDP
-> +#   flow_offload_get_timeout / flow_offload_fixup_ct for UDP
+> Seen on a DS-Lite setup, LAN -> ip6tnl (IPv4 inside IPv6) -> PPPoE ->
+> 802.1Q VLAN -> Ethernet, with conntrack flows offloaded through an
+> nftables flowtable ('flow add @ft'). The first packets of a flow, still
+> on the slow path, and the fast-path packets of the same flow differ only
+> in the Ethernet source address:
+>
+>   slow path:  d8:58:d7:00:2e:bd > 80:ac:ac:39:ef:c2, 802.1Q vlan 35,
+>               PPPoE [ses 0x454] IP6 2a01:110f:4328:c400::1 >
+>               2a01:1000:0:1::2216 next-header IPIP, 192.0.0.2.40010 >
+>               1.1.1.1.53
+>   fast path:  2a:01:11:0f:43:28 > 80:ac:ac:39:ef:c2, same frame otherwise
 
 [Severity: Low]
-Is this list accurate for nf_flow_dnat_ipv6 and flow_offload_fixup_ct?
+Can this DS-Lite setup reach the flowtable fast path on this tree?
 
-The only NAT rule the test adds is a postrouting masquerade, which is
-source NAT only. flow_offload_alloc() sets NF_FLOW_DNAT only when the
-conntrack has IPS_DST_NAT:
+ip6_tnl_fill_forward_path() starts by rejecting any inner flow that is not
+IPv6:
 
-net/netfilter/nf_flow_table_core.c:flow_offload_alloc() {
+net/ipv6/ip6_tunnel.c:ip6_tnl_fill_forward_path() {
     ...
-	if (ct->status & IPS_DST_NAT)
-		__set_bit(NF_FLOW_DNAT, &flow->flags);
+	if (ctx->ether_type != cpu_to_be16(ETH_P_IPV6))
+		return -EOPNOTSUPP;
+    ...
+	path->tun.inner_proto = IPPROTO_IPV6;
     ...
 }
 
-nf_flow_nat_ipv6() calls the DNAT helpers only when that bit is set:
+For a forwarded IPv4 flow, ctx->ether_type comes from pkt->ethertype.
+nft_set_pktinfo() sets that to skb->protocol, which is ETH_P_IP here:
 
-	if (test_bit(NF_FLOW_DNAT, &flow->flags)) {
-		nf_flow_dnat_port(flow, skb, thoff, ip6h->nexthdr, dir);
-		nf_flow_dnat_ipv6(flow, skb, ip6h, thoff, dir);
-
-So nf_flow_dnat_ipv6() never seems to run in this test.
-
-The only caller of flow_offload_fixup_ct() is flow_offload_teardown().
-The UDP offload timeout is 30 seconds, the test finishes in a few seconds,
-and no route or device changes. Teardown only happens when cleanup_all_ns
-runs from the EXIT trap, after PASS/FAIL has been printed. Nothing checks
-the conntrack state or timeout after that point.
-
-A minor point: tools/testing/selftests/bpf/prog_tests/xdp_flowtable.c
-already adds UDP flows to a flowtable. The comment does limit its "zero
-coverage" claim to the nft_flowtable.sh run, though.
-
-Could the comment be corrected, or could a DNAT case and a teardown/fixup
-check be added?
-
-[ ... ]
-
-> +listener_ready() {
-> +	ss -N "$ns2" -uln -H "sport = :$port" | grep -q "$port"
-> +}
-> +
-> +ip netns exec "$ns2" socat -T 60 \
-> +	UDP4-LISTEN:"$port",reuseaddr,fork EXEC:cat >/dev/null 2>&1 &
-> +ip netns exec "$ns2" socat -T 60 \
-> +	UDP6-LISTEN:"$port",reuseaddr,ipv6only=1,fork EXEC:cat >/dev/null 2>&1 &
-> +
-> +if ! busywait 3000 listener_ready; then
-
-[Severity: Low]
-Can listener_ready() succeed when only one of the two listeners is bound?
-
-The two socat processes start in parallel, and grep -q succeeds on the
-first matching socket line. So busywait can return once 0.0.0.0:12345 is
-bound, before the UDP6 socat has bound [::]:12345.
-
-On a heavily loaded machine, the "IPv6 UDP" case could then send its
-first datagram before the IPv6 listener exists. It would get ICMPv6 port
-unreachable and fail with "FAIL: packet 0 timeout", which has nothing to
-do with the flowtable. The 32 IPv4 round trips that run first make this
-unlikely in practice.
-
-Would counting the matching sockets (at least two), or checking ss -4 and
-ss -6 separately, close this gap?
-
-> +
-> +udp_exchange() {
-
-[ ... ]
-
-> +	i=0
-> +	while [ "$i" -lt "$count" ]; do
-> +		msg=$(printf '%04d' "$i")
-> +		printf '%s' "$msg" >&"${SO[1]}"
-> +		if ! IFS= read -r -n 4 -t 2 got <&"${SO[0]}"; then
-> +			echo "FAIL: packet $i timeout" >&2
-> +			kill "$SO_PID" 2>/dev/null || true
-> +			wait "$SO_PID" 2>/dev/null || true
-> +			return 1
-> +		fi
-> +		if [ "$got" != "$msg" ]; then
-
-[Severity: Medium]
-Can this payload comparison catch a broken UDP checksum update in the
-flowtable NAT code?
-
-The commit message lists "the UDP checksum update" as newly covered. The
-header comment labels nf_flow_nat_ip_udp / nf_flow_nat_port_udp as "IPv4
-NAT checksum".
-
-All links are veth pairs with default features, and VETH_FEATURES
-includes NETIF_F_HW_CSUM. So the datagrams socat sends stay
-CHECKSUM_PARTIAL from end to end.
-
-On the router, nf_flow_nat_ip_udp() takes this branch, which only adjusts
-the pseudo-header seed:
-
-net/netfilter/nf_flow_table_ip.c:nf_flow_nat_ip_udp() {
-	if (udph->check || skb->ip_summed == CHECKSUM_PARTIAL) {
-		inet_proto_csum_replace4(&udph->check, skb, addr,
-					 new_addr, true);
+include/net/netfilter/nf_tables.h:nft_set_pktinfo() {
+    ...
+	pkt->ethertype = pkt->skb->protocol;
     ...
 }
 
-nf_flow_nat_port_udp() calls inet_proto_csum_replace2(..., false). For
-CHECKSUM_PARTIAL skbs, that leaves uh->check untouched.
+So dev_fill_forward_path() fails and nft_flow_route() returns -ENOENT. No
+flow entry is created, and nft_dev_path_info() never sees a DEV_PATH_TUN
+entry for this topology.
 
-The receiver in ns2 (or ns1 for replies) treats CHECKSUM_PARTIAL as
-already valid in skb_csum_unnecessary():
+inner_proto is also hard-coded to IPPROTO_IPV6. Given that, could the
+offload path on this tree produce the "next-header IPIP" fast-path frame
+quoted above?
 
-	(skb->ip_summed == CHECKSUM_PARTIAL &&
-	 skb_checksum_start_offset(skb) >= 0));
+The check came from commit 5592223f3d4e45 ("net: netfilter: add
+ether_type to net_device_path_ctx and use it"). That commit says IPv4
+over IPv6 is "currently not support[ed]". Was the capture taken on an
+older kernel, or on one with local changes?
 
-A wrong udph->check written by the flowtable would still be delivered.
-The 4-byte payload would still match, and the test would still print
-PASS. The CHECKSUM_NONE full-checksum branch never runs at all.
+> The PPPoE endpoint binds the session to the
+> subscriber MAC and silently drops the frames, the effect is that every
+> TCP/UDP flow dies the moment it is offloaded, while ICMP, which is never
+> offloaded, keeps working.
 
-Would turning off tx checksum offload on the eth0 devices in ns1 and ns2
-(for example ethtool -K eth0 tx off) force a real checksum that the
-receiver verifies after the flowtable rewrites it?
+The code change itself looks correct. On this tree, the h_source
+poisoning still seems reachable in two ways:
 
-[ ... ]
+  - ipip_fill_forward_path(), which accepts ETH_P_IP inner flows and
+    emits DEV_PATH_TUN with dev_addr set to the local IPv4 address
 
-> +if ! ip netns exec "$nsr" nft add rule inet nat postrouting \
-> +		oifname "veth1" masquerade; then
-> +	echo "FAIL: could not add masquerade rule" >&2
-> +	exit 1
-> +fi
-> +
-> +run_case "IPv4 UDP masquerade" 4 10.0.2.99 5403
-> +run_case "IPv6 UDP masquerade" 6 dead:2::99 5404
+  - ip6tnl carrying an IPv6 inner flow
 
-[Severity: Low]
-Do these masquerade cases check that NAT actually happened?
+Either one needs a PPPoE entry later on the path, or a hw-offload
+flowtable on an Ethernet device. Then xmit_type is
+FLOW_OFFLOAD_XMIT_DIRECT, and info.h_source is copied into
+route->tuple[dir].out.h_source.
 
-run_case() checks three things: [OFFLOAD] in the conntrack line, the slow
-counter, and the orig/reply packet counts. None of these differ between a
-NATed flow and a plain one. ns2 has a default route back through nsr, so
-the echo works with or without SNAT.
-
-If the conntrack entry were not NATed, these cases would pass just like
-the plain ones, without ever reaching nf_flow_snat_ip() or
-nf_flow_snat_ipv6().
-
-There is one partial safeguard. If the flowtable failed to apply an
-existing SNAT binding, the slow counter would probably go over 8. A
-missing binding would still go unnoticed.
-
-Could run_case() check the conntrack line for a reply tuple that points
-at the router, such as dst=10.0.2.1 or dst=dead:2::1?
-
-> +
-> +exit $ret
+Could the commit message describe one of those reproducible cases
+instead? Alternatively, it could note that the DS-Lite observation came
+from a kernel without commit 5592223f3d4e45.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113031251.2437074-2-pablo%40netfilter.org
