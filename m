@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794626622;
-	b=Tb51aYmM/3kV+x/Q3x0RPZNiFWCGmnyA6f8ZyQ4mtNMJMjvmvkg/UN9YtIqZTZ+Q0zsg
-	 IBALoqDCUD3lLRzYvKsuyxkYWzqfz2XGXdLaqHK5M3wUjXzssUzgO4PV1tPvIdklQyfj+
-	 MrFOQn2i7JEBekKvB/P005aoyHHxExO8yg8IWODnfl77yxj+iwzH/Bals4rllZSC8HUou
-	 ++IBe0tWA7zOqrv71ywNIRQXwOoFRBr8sjzuZjIPTbSaIpppwKFCkr2VSbG6Bau2iZBHB
-	 /gSW1FVpw9K6bYpPSrJgXFOV4im9kDvEOhk4Ng8Pvzslh590w4ACEzvo4uWMdgUD/6w==
+	t=1794626623;
+	b=3NdbEWF3OpD2R6opkSZXZ33dXWktFSIi5sxowXIUYlaSFG0NIzvkBs5G8KHXFVOwEPJx
+	 5bXPspcCmcbQ6c9VI/H/VV0YEhUKvsjd9xy/0R5KYkkFStugAspRQm+8JJLXZug8ytEHS
+	 ygGGp3QqYgpvG+7jHsQnwcKmkvTovt/1FEuZkhYVP15iygMF/jzmVUOlyZBvGf6ul0ivt
+	 dbAfDFo6u04Mw3FVy8XpLvyyiBW06fRWLNGa3sYJOfJ/dgz4mfjSbjxl2hc8K5KrEgh8m
+	 f8QOGyptGVVlIxTEBmVnsWhOnNxD2LGNJThDULDyg9/MZEWNkk+zWhfEaQaLLziI5lQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794626622;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794626623;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=S2knM01CTgxUYDjhrubFbbZ13vwWICkyKiPGhue8nfA=;
-	b=GWYNoLe+WyxtWihlrc6OB+L5OVazYLPbSo+apn1wyKqhBJFXREclFh6pdu47Zk6g4qUI
-	 C/WOUSVbW7yuZ3Ruqav45QzN8O0n+qALqjZo9bdpkfJLeEh6h8PawofSWFczzVX5Oxqh8
-	 J+NIzcFC4260B5zrqWF+LBZ2FTMdaZuOnenJaceEBcZ2XukDBNuka9qpdhGeiSnmbEfhY
-	 xF4A8HQZn7EAmP7O7kXRdsXlljbQWganKLn/XvHIdFBXMdsWXA6P/+IHFPQLnbkLlEzH8
-	 EGmq0mz/j5VyLz/hX+LVeEkFaSCQxoqvt7w/mvDgWzkABsY5GQGii9w2z2xKx6GpiXA==
+	bh=O0278166LjXzk221azAMKlrRq9SrJRCGpf87s2Ov69k=;
+	b=vtvhQKa1wv3IcGJkfUWL+gTXZ9vARSsBekaHIPGpfR5bMQ/UJydShXQC1cTc+Mge4KWo
+	 g0/GrlwcIzKJeSccCTxjLgbeppMd9IIVoLeCsxiEUv97nMRSoLrDZgmPov07xFn/9iNC9
+	 WRJ6O9iAKs7YHqfJZPi2gmctj3FnniS0zeEmo8PJCpRJ/4bBlxTWBE6kA0nHRcQV40/uP
+	 HXScuHIYwO7/D+Jt0zd4kQ+ySxpTjYW0wCd4xBoJLiEaekRW4L7qlNnFN/zl4ietyzMkz
+	 EI1TZZ4g8lponI8Tqtm0E/ohqriHUTuaEEdYE8gdnG2SWtaXWpRD+6knY5xr9VibxIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EFgE90v3;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYHguuYs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF65606A331;
-	Sat, 14 Nov 2026 03:23:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DBFD606A899;
+	Sat, 14 Nov 2026 03:23:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=EFgE90v3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 893131F000C7;
-	Sat, 14 Nov 2026 03:23:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dYHguuYs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD15B1F000C5;
+	Sat, 14 Nov 2026 03:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794626622;
-	bh=S2knM01CTgxUYDjhrubFbbZ13vwWICkyKiPGhue8nfA=;
+	s=k20260515; t=1794626623;
+	bh=O0278166LjXzk221azAMKlrRq9SrJRCGpf87s2Ov69k=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=EFgE90v3N4wnFDXDAcBMlxbVNIM/pbrb73xmNBFIPWKq/YMplLFP33rkLtp4J+5nC
-	 j4MOh/fWZZUmsQtNgnTDMwygj/iibGpV3rO0FF+jgIQic8kyq9pnNRS3RIvuHryeX5
-	 fnD72XvCm9DicIhEBUhQax4XDn1OhgCat+sNIb3u3egIHyeFM/0x99lWdoj0JNSwKp
-	 6EyaibHBNhlMe/NHHjEMyEJsTuUjnqT9EzY9tZPXIkowpWNeWaWLm1413oTPiqGvvB
-	 KyaBy9oAoCmYx+16LxckhY1DMsFR/j2HATpHWIN14lZIC2PDPBn2LZWh7e4arqlL9+
-	 2SlyYGqOkdE4g==
-Subject: Re: [PATCH net-next 03/15] netfilter: flowtable: retrieve stats on
+	b=dYHguuYs0tk1K5NX6YMv3EZtGJY+75S8xgfcFMzMW8yxVvIO2k2PDs6capiXvIp46
+	 bqAw+3VzXmb/THCxDi+ceSqW5261WJ/6bZw4lei0W0KFN1q2uGMUrhJUb+dzMfY0AG
+	 3bR3X64735lENzUNeX6+03uUwcGkgJybO+nkbEve8RrNjAaNbkRVVT7K1Tpl6BBx+c
+	 oEZ8zmwKmQWbpJb9EgJKfxTFjKPKtqJf0L0Clf2xLu651jaBVebGONPhfzQNqk85Ou
+	 JUeVLCtgoTNWlNP6L8N1f72bKVxXYn3gN1Exuj9soH2q8zzs/WV35vV1QwSNWHMuWc
+	 UFTxSdaBB/Hgg==
+Subject: Re: [PATCH net-next 04/15] net: ethernet: mtk_ppe: update stats on
  flow deletion
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 03:23:41 +0000
-Message-ID: <179462662110.2199510.725528221767942638@kernel.org>
-In-Reply-To: <20261113031251.2437074-4-pablo@netfilter.org>
-References: <20261113031251.2437074-4-pablo@netfilter.org>
+Date: Sat, 14 Nov 2026 03:23:42 +0000
+Message-ID: <179462662226.2199510.18334585380250309949@kernel.org>
+In-Reply-To: <20261113031251.2437074-5-pablo@netfilter.org>
+References: <20261113031251.2437074-5-pablo@netfilter.org>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -75,166 +75,143 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The core change only does anything when a driver writes
-  f->stats in its FLOW_CLS_DESTROY handler.
-- [Medium] The final hardware stats are added to the conntrack
-  asynchronously in flow_offload_work_del() ->…
+- [Medium] Bridge (L2) flows on mtk_ppe: the new destroy-time call to
+  mtk_flow_offload_update_stats() read-clears the hardware MIB counter…
+- [Medium] mtk_flow_offload_destroy() takes the final MIB snapshot before
+  it invalidates the hardware FOE entry, so the 'last stats sync' on…
 
 --
 
-netfilter: flowtable: retrieve stats on flow deletion
+net: ethernet: mtk_ppe: update stats on flow deletion
 
-This commit passes a flow_stats object to the driver on FLOW_CLS_DESTROY,
-so the final hardware counters can be synced into the conntrack entry
-when a flow is removed from hardware. The stats update logic moves out of
-flow_offload_work_stats() into a new flow_offload_update_stats() helper,
-which both the stats path and the delete path now use.
+This moves the stats collection out of mtk_flow_offload_stats() into a new
+helper, mtk_flow_offload_update_stats(). The helper is also called from
+mtk_flow_offload_destroy(), so the final hardware counters are reported
+when a flow is deleted. This follows "netfilter: flowtable: retrieve stats
+on flow deletion".
 
-Closes: https://patch.msgid.link/netfilter-devel/20261021175030.4800-1-dreyksmail@gmail.com/
-
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 3a18fa48cadb0..c302051489f23 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -928,12 +928,33 @@ static int nf_flow_offload_tuple(struct nf_flowtable *flowtable,
-
-[ ... ]
-
-> +static void flow_offload_update_stats(struct flow_offload_work *offload,
-> +				      struct flow_stats *stats)
+> diff --git a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> index 99b28aaa7cc47..8ca694bb5e1b7 100644
+> --- a/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> +++ b/drivers/net/ethernet/mediatek/mtk_ppe_offload.c
+> @@ -526,6 +526,24 @@ mtk_flow_offload_replace(struct mtk_eth *eth, struct flow_cls_offload *f,
+>  	return err;
+>  }
+>  
+> +static void
+> +mtk_flow_offload_update_stats(struct mtk_eth *eth, struct flow_cls_offload *f,
+> +			      struct mtk_flow_entry *entry)
 > +{
-> +	u64 lastused;
+> +	struct mtk_foe_accounting diff;
+> +	u32 idle;
 > +
-
-[ ... ]
-
-> +	if (offload->flowtable->flags & NF_FLOWTABLE_COUNTER) {
-> +		if (stats[0].pkts)
-> +			nf_ct_acct_add(offload->flow->ct,
-> +				       FLOW_OFFLOAD_DIR_ORIGINAL,
-> +				       stats[0].pkts, stats[0].bytes);
+> +	idle = mtk_foe_entry_idle_time(eth->ppe[entry->ppe_index], entry);
+> +	f->stats.lastused = jiffies - idle * HZ;
+> +
+> +	if (entry->hash != 0xFFFF &&
+> +	    mtk_foe_entry_get_mib(eth->ppe[entry->ppe_index], entry->hash,
+> +				  &diff)) {
 
 [Severity: Medium]
-When we get here from flow_offload_work_del(), could the conntrack entry
-already have been deleted and reported?
+When a bridge (L2) flow is destroyed, can this read-clear the hardware
+counter of an unrelated flow?
 
-One of the triggers that queues the DESTROY work is a dying ct in
-nf_flow_offload_gc_step():
+For a flower rule with only ETH_ADDRS, mtk_flow_offload_replace()
+allocates the entry with kzalloc_obj(), so entry->hash starts at 0.
+mtk_foe_entry_commit() then takes the L2 path:
 
-net/netfilter/nf_flow_table_core.c:nf_flow_offload_gc_step() {
-    ...
-	    nf_ct_is_dying(flow->ct) ||
-    ...
+drivers/net/ethernet/mediatek/mtk_ppe.c:mtk_foe_entry_commit() {
+	...
+	if (type == MTK_PPE_PKT_TYPE_BRIDGE)
+		return mtk_foe_entry_commit_l2(ppe, entry);
+
+	hash = mtk_ppe_hash_entry(ppe->eth, &entry->data);
+	entry->hash = 0xffff;
+	...
 }
 
-By that point nf_ct_delete() has already set IPS_DYING, unlinked the
-entry and sent IPCT_DESTROY. That event carries the ct accounting
-counters to ctnetlink/ulogd:
+mtk_foe_entry_commit_l2() never sets entry->hash = 0xffff. The base L2
+entry is not on the foe_flow lists, so __mtk_ppe_check_skb() never updates
+its hash. mtk_flow_entry_update_l2() only touches the subflow hashes. As a
+result, the base entry keeps hash == 0 for its whole lifetime.
 
-net/netfilter/nf_conntrack_core.c:nf_ct_delete() {
-    ...
-	if (test_and_set_bit(IPS_DYING_BIT, &ct->status))
-		return false;
-    ...
-	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
-				    portid, report) < 0) {
-    ...
-}
+That means the entry->hash != 0xFFFF check passes and
+mtk_foe_entry_get_mib(ppe, 0, &diff) runs. mtk_ppe_start() enables
+MTK_PPE_MIB_CFG_RD_CLR, so this read zeroes the MIB counter of whatever
+flow is bound at FOE index 0, for example an nf_flowtable L3 flow. Those
+packets and bytes get charged to the L2 rule and never reach their real
+owner.
 
-So when an offloaded ct is removed by conntrack -D or -F, by
-nf_ct_iterate_cleanup() on device or NAT events, or by netns teardown,
-the sequence looks like this:
+The bridge flow's own counters live in the subflow slots on
+entry->l2_flows, and this function never reads them. So the destroy-time
+stats for L2 flows are wrong as well.
 
-nf_ct_delete()
-  IPCT_DESTROY event sent with the current counters
-nf_flow_offload_gc_step()
-  nf_ct_is_dying() -> flow_offload_teardown() -> nf_flow_offload_del()
-flow_offload_work_handler()
-  flow_offload_work_del()
-    flow_offload_update_stats()
-      nf_ct_acct_add()
+The missing 0xffff on L2 base entries is not new. Before this patch,
+though, mtk_flow_offload_destroy() never touched the MIB. Now every
+FLOW_CLS_DESTROY of a bridge flow does this read-clear, even when nobody
+requested stats for that rule.
 
-The counters added here go into a ct that nothing reports any more. On
-this path, the hardware traffic since the last FLOW_CLS_STATS poll is
-still lost.
+Should L2 base entries be skipped here? Alternatively, should
+mtk_foe_entry_commit_l2() set entry->hash to 0xffff?
 
-The common case, a flow expiring while its ct is still alive, looks
-fine. flow_offload_teardown() leaves the ct alive, and this update runs
-before the ct's own destroy event.
-
-Is the deleted-ct case meant to be covered by the "missing last stats
-sync" that the commit message describes?
-
-> +		if (stats[1].pkts)
-> +			nf_ct_acct_add(offload->flow->ct,
-> +				       FLOW_OFFLOAD_DIR_REPLY,
-> +				       stats[1].pkts, stats[1].bytes);
+> +		f->stats.pkts += diff.packets;
+> +		f->stats.bytes += diff.bytes;
 > +	}
 > +}
-
-[ ... ]
-
-> @@ -991,10 +1013,15 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
->  
->  static void flow_offload_work_del(struct flow_offload_work *offload)
+> +
+>  static int
+>  mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
 >  {
-> +	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
+> @@ -536,6 +554,8 @@ mtk_flow_offload_destroy(struct mtk_eth *eth, struct flow_cls_offload *f)
+>  	if (!entry)
+>  		return -ENOENT;
+>  
+> +	mtk_flow_offload_update_stats(eth, f, entry);
 > +
->  	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
-> -	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
-> +	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
->  	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> -		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
-> +		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY, &stats[1]);
-> +
-> +	flow_offload_update_stats(offload, stats);
+>  	mtk_foe_entry_clear(eth->ppe[entry->ppe_index], entry);
 
 [Severity: Medium]
-Won't stats[] still be all zero here for mlx5 and nfp?
+Is this snapshot really the final one for the flow?
 
-cls_flow is zero-initialised in nf_flow_offload_tuple(). If a driver's
-FLOW_CLS_DESTROY handler never writes f->stats, the memcpy() copies back
-zeroes, and flow_offload_update_stats() skips nf_ct_acct_add().
+mtk_flow_offload_update_stats() read-clears MIB[entry->hash] while the
+hardware FOE entry is still in BIND state. ppe_lock is dropped between
+the two steps. The entry is only invalidated later, under ppe_lock, in
+__mtk_foe_entry_clear():
 
-Later patches in this series convert mtk_ppe and airoha ("net: ethernet:
-mtk_ppe: update stats on flow deletion" and "net: airoha: update stats on
-flow deletion"). Two other in-tree consumers still report nothing on
-DESTROY at the end of the series.
+drivers/net/ethernet/mediatek/mtk_ppe.c:__mtk_foe_entry_clear() {
+	...
+		hwe->ib1 &= ~MTK_FOE_IB1_STATE;
+		hwe->ib1 |= FIELD_PREP(MTK_FOE_IB1_STATE, MTK_FOE_STATE_INVALID);
+		dma_wmb();
+		mtk_ppe_cache_clear(ppe);
 
-In mlx5, mlx5_tc_ct_block_flow_offload_del() drops the counter through
-mlx5_tc_ct_entry_put(). It never calls mlx5_fc_query_cached() or
-flow_stats_update().
-
-In nfp, nfp_fl_ct_handle_nft_flow() does:
-
-	case FLOW_CLS_DESTROY:
-		ct_map_ent = rhashtable_lookup_fast(...);
-		return nfp_fl_ct_del_flow(ct_map_ent);
-
-Both drivers report packet and byte deltas only from their
-FLOW_CLS_STATS handlers, mlx5_tc_ct_block_flow_offload_stats() and
-nfp_fl_ct_stats().
-
-Both register through act_ct, which turns on counter accounting:
-
-net/sched/act_ct.c:tcf_ct_flow_table_get() {
-    ...
-	ct_ft->nf_ft.flags |= NF_FLOWTABLE_HW_OFFLOAD |
-			      NF_FLOWTABLE_COUNTER;
-    ...
+		if (ppe->accounting) {
+			...
+			acct->packets = 0;
+			acct->bytes = 0;
+		}
+	}
+	entry->hash = 0xffff;
+	...
 }
 
-So with tc act_ct offload on mlx5 or nfp, traffic forwarded between the
-last FLOW_CLS_STATS poll and the hardware delete is still missing from
-the conntrack counters.
+Between the MIB read and the invalidation, the PPE keeps forwarding and
+counting packets for this flow. That traffic never reaches f->stats. It
+stays in the hardware MIB counter, because only the software acct_table
+is zeroed here.
 
-Given the Reported-by and Closes tags, should mlx5 and nfp be converted
-in this series as well? sfc doesn't seem to be affected, because
-efx_tc_ct_stats() only reports lastused.
+__mtk_foe_entry_commit() doesn't clear the MIB either. So the next
+read-clear of that index charges those packets to whichever flow binds
+the slot next.
 
-> +
->  	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
->  }
+This happens whenever an active flow is torn down, for example on a
+flowtable flush, a conntrack flush or a ruleset deletion.
+
+Would it work to invalidate the entry first and then drain
+MIB[saved hash]?
+
+>  	rhashtable_remove_fast(&eth->flow_table, &entry->node,
+>  			       mtk_flow_ht_params);
 
 [ ... ]
 
