@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794622545;
-	b=JBu0UboWi6Nu6XTZf4f244QToBnGyHrNNA+a2CZiqWmFAMPS/O2Ss24ODEuQ6ipKdrNB
-	 fSPbW3IrlG4fVN9hkF3lPYPK/Lug3+iY4un90uP6zsIyIgjJKR94p3Nk9XgI8jojTUuRq
-	 6GTmzrKsyM3k5HYbekOzU5MDKUZUhnNmzJBQ5rUjRjRN8NZq6ya+0iLoulFfcZNVDJ0HU
-	 JaV8Bp5ECtTclY5fZRUvsvw9/QqvZWeN99V3TclD7qDaTiioVBoycD0FjO5RVf1bg9WQ3
-	 jFsKTpyr039eZktI8JNITGSaHTcQEvg35hT5yps5Yfgno7QOgF+IrhPyg8sZPtduv8w==
+	t=1794622547;
+	b=XkPuQXvWMnuNo1bQMM3li/mhNPrL6SvTxOb3EHROrOGNCOxB31xpno2w6/XRS4a5Divc
+	 qATl3D2AlRKKViyQ4D82zFl7VtR6Uyf5eHij/yZwDKTvvsRbeUFM0TP/bemmYoGKVu414
+	 r6xfbgoLQqiPIEXZuLZdW3LfqRs591duWbOFmf5slFiolZsn8Ly1ayO7GQyzFKV6KRsda
+	 fjxd+dMBFRzLDpquWOd7MirVK2ad5qkywlmHO+1Ej8u9AY+MbHLbIHKO3mxgjvdZIz5P7
+	 0ZEOIVaH6EvNrEpGMTnAi0zjSMp0R1KaRMPcjbCkTxy/2Xb+y8O4TK/zoPP5lFqgg2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794622545;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794622547;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=z4i/fmyOqndkSOxwHcN+Hq4btJ3lhkQBCoXbXJdFXD8=;
-	b=GqANWuNNvcGsPLU1/5HkuJqlBBbu+z5n0heJWGAcOzunn/tD5bjNQrKt0Z8AiZpo72Gx
-	 4uZE22cqBalsvZGVT9mgMgUK5p54XKgerEF4vJn631Jsixz3yT/RasmepPsgKa2V6edfD
-	 2bDGy/5YauuP6pV+19RkS/DEYyxkr/8sJsVR1KL9yCpgCNsx9WbWDtVksM32lSK+BuAdf
-	 vENd/ui+5/kPMmdXQsrg0nIkV41nujGTVyBv2E/qVshJJH7/x6HNnmpywbXRSDmL1U7DK
-	 iBoOuqaF2vJciY5wY/ff6O9hSr7TWo1lxMuf0nQlmTYTuQrxJOO+53DUQWRigQoQjXA==
+	bh=R3lG4u0ogjfoUA7tJOEU4hFiSgjPKq7/ykUDDTKGVFM=;
+	b=b9b14qglFpFJMYuBD5hHCeMXwFeQ5VyzDixV4vcAcYQzJG72KsJq3S+4hbUUdJQGmgDS
+	 4c0ieU94FM26+pPKGPlOerGG/ZPHPk/lTMAGL2GVtnAzw/DkYzgyVEQDvAYiwUGq72og9
+	 lLQCXB9EHEoZYoN1Sd2c1gKijE+tW1FLATgR+Sihu9FskpPdsi16HUPNTBQgBDq93lvTt
+	 EDpds0IXStsMfNLVf4UeU0MU+TnPaQRHvF7j7EMDilOzrRlBhtGYgErqD+4RcPgLczK/L
+	 B76eRTK9qh0EopZMelSBqNxZjYQ4OUuPVlK5BC8xNUe+uaZ7BSmM1C+N1j89DjdiB2w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GFlktzmA;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OlUCd9Ed;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96DC606A8A8;
-	Sat, 14 Nov 2026 02:15:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF00606A329;
+	Sat, 14 Nov 2026 02:15:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GFlktzmA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E2971F000C4;
-	Sat, 14 Nov 2026 02:15:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OlUCd9Ed
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FD1C1F000C6;
+	Sat, 14 Nov 2026 02:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794622545;
-	bh=z4i/fmyOqndkSOxwHcN+Hq4btJ3lhkQBCoXbXJdFXD8=;
+	s=k20260515; t=1794622546;
+	bh=R3lG4u0ogjfoUA7tJOEU4hFiSgjPKq7/ykUDDTKGVFM=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=GFlktzmARnF8IIMt7e/TjUHjxOiRRPP2gcaNW9lPaSguum10pD7Tb4ZmhQeftrSdY
-	 HSG2zzztSDPxJHS4hn42eqmIZnUeu7s1F6K1wsyhjuJfDTiTfDGrfINIST1Tq4p6tM
-	 cz/jiy2agNCHpwcMaW1GqGh8bsB3rT9BZ7uAvS5TcoWhsovCAmYwaZv/CyKUPe1BkQ
-	 Dj24UsvKq1oAYBiPrJS2NTIZORx05w2zW8cwWMc++4SBb+robReZEeIFprgAdT/GNd
-	 /srKGaxPcYWM1E0I9KBXj8FQddptv6C36ofRkl0PDcmWv3Sl8nDyXqQu37RgkYTXjM
-	 YWgRE5kDH5qNA==
-Subject:
- Re: [PATCH net 08/15] ipvs: update flags and seqs in backup server under lock
+	b=OlUCd9Ed6LLcuKQuAZJ1QHie5KfkLMXIb4tXdYIvM1ODR8CM+/12f0vBkai+HaN6M
+	 LFgE9oh4SaevwAm3acsrWeQhnn2sh+nuFsnaMdVLE4/C2XtehDwCykjha3LPNr9tr+
+	 JYyhXwzOcy0C1EZhYdUSsmeS8zsA/JllYjaAmFFgDO4/MYcJ3zbt0OCq2yaFD89l1V
+	 RDl7vYjziumU9iLSknD2FVgSXetRFurHwemX4itiWi6xJevOnHf0kUH4loYkRwb1IA
+	 uW5CFu/9oOIN2/RU4alc5CoPwMuUkEtTj05TkgpoSVHuT1FXFjv3rKUnMKiHkjoqSN
+	 2+2Dr0f20sw+Q==
+Subject: Re: [PATCH net 10/15] ipvs: honor the overload state and do not enter
+ it forever
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 02:15:44 +0000
-Message-ID: <179462254476.2199510.10872735133163296509@kernel.org>
-In-Reply-To: <20261113011447.2357709-9-pablo@netfilter.org>
-References: <20261113011447.2357709-9-pablo@netfilter.org>
+Date: Sat, 14 Nov 2026 02:15:45 +0000
+Message-ID: <179462254584.2199510.7662022580962263385@kernel.org>
+In-Reply-To: <20261113011447.2357709-11-pablo@netfilter.org>
+References: <20261113011447.2357709-11-pablo@netfilter.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -70,65 +70,93 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The commit message overstates the old bug.
+- [Low] The commit message's reason for moving ip_vs_dest_set_min() after
+  the set_max/erase cleanup in ip_vs_lblcr_schedule()…
 
 --
 
-ipvs: update flags and seqs in backup server under lock
+ipvs: honor the overload state and do not enter it forever
 
-This patch extends the cp->lock critical section in ip_vs_proc_conn().
-On the backup server, cp->flags, in_seq/out_seq, state, old_state and
-timeout are now updated together. New connections also take cp->lock,
-and ip_vs_try_bind_dest() is called after the lock is dropped.
+This commit adds an smp_mb() and a re-read of totalconns in
+__ip_vs_dest_update_overload(), so a dest cannot stay in the overload
+state forever when it races with ip_vs_unbind_dest(). It also drops the
+overload parameter from ip_vs_dest_update_overload() and makes LBLC and
+LBLCR honor the overload state for cached dests. In LBLCR it moves the
+ip_vs_dest_set_min() call to after the set_max/erase cleanup.
 
-Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927220816.268206-1-pablo%40netfilter.org
+Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261019150249.1879516-2-pablo%40netfilter.org
 
-> Sashiko reports that we modify the conn flags and seq values in
-> the backup server without holding cp->lock. The same is true for
-> other fields such as state, old_state and timeout which are
-> modified by protocols under lock.
+> diff --git a/net/netfilter/ipvs/ip_vs_lblcr.c b/net/netfilter/ipvs/ip_vs_lblcr.c
+> index dfb5bf83750db..4046608922e7c 100644
+> --- a/net/netfilter/ipvs/ip_vs_lblcr.c
+> +++ b/net/netfilter/ipvs/ip_vs_lblcr.c
+
+[ ... ]
+
+> @@ -658,9 +659,6 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
+>  	if (en) {
+>  		en->lastuse = jiffies;
+>  
+> -		/* Get the least loaded destination */
+> -		dest = ip_vs_dest_set_min(&en->set);
+> -
+>  		/* More than one destination + enough time passed by, cleanup */
+>  		if (atomic_read(&en->set.size) > 1 &&
+>  		    time_after(jiffies, en->set.lastmod +
+> @@ -676,6 +674,9 @@ ip_vs_lblcr_schedule(struct ip_vs_service *svc, const struct sk_buff *skb,
+>  			spin_unlock_bh(&svc->sched_lock);
+>  		}
+>  
+> +		/* Get the least loaded destination */
+> +		dest = ip_vs_dest_set_min(&en->set);
+> +
+>  		/* If the destination is not overloaded, use it */
+>  		if (dest && !is_overloaded(dest, svc))
+>  			goto out;
 
 [Severity: Low]
-Is the first sentence accurate for cp->flags?
+This isn't a bug, and the code change looks right. The commit message
+explains the move this way:
 
-Before this patch, the existing-connection path in ip_vs_proc_conn()
-already updated cp->flags under cp->lock:
+  "Also, move the ip_vs_dest_set_min() call in LBLCR after the
+  ip_vs_dest_set_erase() call that removes the most-loaded
+  server because due to races we may work with dest that is
+  in process of removing, i.e. ip_vs_dest_set_min() and
+  ip_vs_dest_set_max() may return same dest."
 
-net/netfilter/ipvs/ip_vs_sync.c:ip_vs_proc_conn() {
-    ...
-		spin_lock_bh(&cp->lock);
-		...
-		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
-		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
-		cp->flags = flags;
-		spin_unlock_bh(&cp->lock);
-		if (!dest)
-			ip_vs_try_bind_dest(cp);
-    ...
-}
+Can the two helpers also return the same dest without any race?
 
-ip_vs_try_bind_dest() also takes cp->lock before ip_vs_bind_dest()
-changes cp->flags.
+ip_vs_dest_set_min() only replaces its candidate when another member is
+strictly less loaded:
 
-The fields written without the lock were the seqs, state, old_state
-and timeout, after spin_unlock_bh():
+    if (((__s64)loh * atomic_read(&dest->weight) >
+         (__s64)doh * atomic_read(&least->weight)) &&
+        (dest->cflags & IP_VS_DEST_CF_AVAILABLE)) {
 
-	if (opt) {
-		cp->in_seq = opt->in_seq;
-		cp->out_seq = opt->out_seq;
-	}
-	atomic_set(&cp->in_pkts, sysctl_sync_threshold(ipvs));
-	cp->state = state;
-	cp->old_state = cp->state;
+ip_vs_dest_set_max() only replaces its candidate when another member is
+strictly more loaded:
 
-So the IP_VS_CONN_F_SEQ_MASK bits were set under the lock, but the
-in_seq/out_seq values they describe were written outside it. The
-subject line and "update the fields atomically" describe this
-correctly.
+    if (((__s64)moh * atomic_read(&dest->weight) <
+         (__s64)doh * atomic_read(&most->weight))
+        && (atomic_read(&dest->weight) > 0)) {
 
-Could the first sentence say that flags and seqs were not updated
-together under the lock, instead of saying the flags were modified
-without it? The code change itself looks correct.
+Take two weight-1 members with the same ip_vs_dest_conn_overhead(), for
+example both idle. Both helpers then return the first list element.
+
+Before this patch, once the set had more than one member and was older
+than sysctl_lblcr_expiration, the sequence was:
+
+ip_vs_lblcr_schedule()
+    ip_vs_dest_set_min()     -> first member (tie)
+    ip_vs_dest_set_max()     -> same first member (tie)
+    ip_vs_dest_set_erase()   -> removes it from en->set
+    goto out                 -> returns the erased dest
+
+So on load ties the old code returned the dest it had just removed from
+the cache set, with no race involved.
+
+Could the commit message say that this also happens on ties, not only
+because of races?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113011447.2357709-2-pablo%40netfilter.org
