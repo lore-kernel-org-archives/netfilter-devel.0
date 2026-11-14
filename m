@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794622541;
-	b=4mKNhmXe7t9cODK6fK70JdNuEZcKof0SSVpqyqaJyvTu2LOmCI6KIxemPLHqIohRkvAx
-	 4ZMKpgZloJ8zfj7oxCAdBvO7hUcYnq0AX4R733qZyQMP1X2NVj4A2bQ/eQJz6Fgavql/2
-	 wqZFm3IpzSYBv34kmE3LteEMPUK4avAElq4KQhiOk1hB5EfGPioLL3Ycj1LVEXV7n+/8f
-	 0lNQZB27eW8hAoSEjXQRCj+dV+y48CUi5Ck7cfbdbT3+MN0Sp73CTZ/uzGLu3cbQH9SnO
-	 9JG7UbvH8lR1aiY0dHxFt2lzBCEABfGWwJ+GECGToClFpvFZbWufg+HyoQ3pgVWHC/w==
+	t=1794622542;
+	b=jwlmfa3C+BrT7qFjZlbjnIKiEznxSiRnPigTFIiwTdqtH48X/IhnIttpp0M6UiSgH6zU
+	 5cNV9ofKLLtXtifpLfhrMyyywjdYc15vW0K1HfZFjnGlr9Nr2LcG+Y9Gq0jk1vmDKfQQC
+	 2V7c5K9VA9lxCgWs7TxGd+v/vgwouYxwAUyvpd5pcahIk8QRMTK2JniMGlt6rp1Ie/3EG
+	 v2AzWBxFPBKwh/6E2oC2k/OOqAQOvnOyqYkDl/69JBSe2JQYcnrVWAmUrku3q5jlbTCra
+	 2iJhl0oQ3B5pqBQdEXW/YS9ehW1UMTKs2c7rdA6KPULzyguDjhjNGwRwRuZJpJNQGoQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794622541;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794622542;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=qjMlW8lVFUbLFa7qUa6mVrFGLqrLBZGEz0jBpfoq7hM=;
-	b=R7OPE3P6IkkNIJnSddotU5s/U/K5jVPp2Dazq8Jf7jJTBLmGKGig17JwbqWI1BiMfJwq
-	 n8V8CTuiD7M9DxXXPM0PlPLPOTklZWrE9zsiiMPUgsxOsPVMuoNkEEbAd5ZA8aLsinive
-	 uKBP4wEZDMANYSEzGC4kRVcpUYn1g0wBjGEUBEs5cAN9PeuxTm0J1v/MFv2PuTpqqrYDh
-	 AWs69lpB7ZkzPnSWMJsMljKdfTCXaFNRoVcTn7TixrLEHbnRQQ1qUBiXkQvadwGK+tIsc
-	 NU5TqvAqHNEmTxDXSIsrddBYASviICwDpwJq+pIKB8ejn0orPxD1d69zWu9f0wPJL8w==
+	bh=0QVVJaI//1zE2AiZWpjkhe1vPP+g8HZO/j+NbsfH7u4=;
+	b=I5rRoxphxKjF7G53iehvshGvPH9QTIMZda6ONCrgDfB6Eu9Eer3uVFH2hJ9oostv5PJw
+	 4ksuoubcThc5H+jfBbgQAxqIBlXPQyzJ3APK9UZKHVgjXfsIxJ2Zr5Xoqp9lA88QFLch0
+	 R4xBw8M4L4RGPJsqX9J6FABagLGPvtHE3nVz62U5gaoXRk6vrvUwnZFl1CGbJ59WeRWN8
+	 9Wdpv2YYxorIOYXFzlWO84avLn1iw0jbzRv2T4gL1Fod76hE4Zt6yW6Lzag/0fmdNzTaZ
+	 sc1zaAk/WsYciqxO+8sjH/f5vyv6FXn+5F5VnaUV7ZLwUqRKAJkE/nfRDGz/idNBfUw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ti0hXs6f;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="dCJHu4/Z";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8202E606A323;
-	Sat, 14 Nov 2026 02:15:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFDF606A883;
+	Sat, 14 Nov 2026 02:15:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Ti0hXs6f
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A743C1F000C4;
-	Sat, 14 Nov 2026 02:15:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dCJHu4/Z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6CA51F000C4;
+	Sat, 14 Nov 2026 02:15:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794622541;
-	bh=qjMlW8lVFUbLFa7qUa6mVrFGLqrLBZGEz0jBpfoq7hM=;
+	s=k20260515; t=1794622542;
+	bh=0QVVJaI//1zE2AiZWpjkhe1vPP+g8HZO/j+NbsfH7u4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Ti0hXs6fVswV9AFwWl/EDFU5/4u6sBVOvFnOuIZjR9MZcY6dfbcCrcsrBWPu7suyM
-	 dY6mpeWL+4DWprJ2bGQZMww2al9Q/Yk+xAf9K7zM9cIxafZ0YrMfD/8eD2P+cDnsVy
-	 Ukt6LvFvjEFDfzC+MXRcHuYtCzS8RF/F4tQiT6DnosM5mPdLOjsNx074TBZljCs84a
-	 A5BHNeoaIf5LWx1tPzMV49MEl1ChaCxjUqx8ObmD4uM3xh0rlCwBC3p5ofpmRq3iZ7
-	 hbloNu9Oo0ZSurUV+g3RLHC3twJh0Rn2jb7qeKk+LXy5J3N6rIQ9btJRu9OgusXwfv
-	 zCgDxVRjqNwDw==
-Subject: Re: [PATCH net 02/15] ipv6: update *offset for non-first fragments in
- ipv6_find_hdr()
+	b=dCJHu4/Z5W7DwcPNxjbcywzwIFsWDOE/3ZB5ct8DuCDV3UyZEyjcv/bHl0w3a7QMK
+	 cKTFTCkUqmE3VohVo41FNzfCioPr0APZXy39YSyj+il8g/mIBzd+mf/xyc26XBXb4T
+	 khk0OB2uiedsMFGMpkuVgCRLtVDHA8QaiucFxS8BhKRvXkrL09pUvICfsgj1rsBWBk
+	 tf1OAc367pRKllY4jcocDXKszKjwXHWrXmyTNYt5Zu1YB5lmLKPwqNfQB+X4cVix7w
+	 H5FLB4g24a6VE5L2UzkCoTrw1wCHaXlpgcSLZPKV5KrZYCGjKRJrMag3lQvQywQEVC
+	 cRaQ2xrY0Jssw==
+Subject: Re: [PATCH net 04/15] ipvs: avoid stack overflow from recursive
+ connection expiration
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Sat, 14 Nov 2026 02:15:40 +0000
-Message-ID: <179462254022.2199510.15164439972892652624@kernel.org>
-In-Reply-To: <20261113011447.2357709-3-pablo@netfilter.org>
-References: <20261113011447.2357709-3-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Sat, 14 Nov 2026 02:15:41 +0000
+Message-ID: <179462254139.2199510.10412248743488371357@kernel.org>
+In-Reply-To: <20261113011447.2357709-5-pablo@netfilter.org>
+References: <20261113011447.2357709-5-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,173 +64,92 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 3 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 2 · Low: 1
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] This patch adds a new success exit to ipv6_find_hdr():
-  `*offset = start + sizeof(struct frag_hdr)`, taken for a non-first…
-- [Medium] The commit message says "Other target < 0 callers check the
-  returned fragment offset or ignore *offset here." That is not true for…
-- [Low] The earlier patch in this series, "ipvs: avoid out-of-bounds
-  write in ip_vs_nat_icmp_v6", added a compensation block to…
+- [Low] The commit message says the recursive chain walk exhausts the
+  kernel stack "during namespace cleanup".
 
 --
 
-ipv6: update *offset for non-first fragments in ipv6_find_hdr()
+ipvs: avoid stack overflow from recursive connection expiration
 
-This commit makes ipv6_find_hdr() set *offset to the byte right after
-the Fragment header when it takes the early return for a non-first
-fragment with target < 0. Before this, that exit left *offset unchanged,
-and IPVS used the initial offset as if it had been updated.
+This commit replaces the recursive controller expiration in
+ip_vs_conn_expire() with an iterative walk. It no longer calls
+ip_vs_conn_del() on the controller. Instead, the new
+ip_vs_conn_del_reference() helper steals the controller's timer
+reference, and the function loops back with cp = ct inside a single
+rcu_read_lock() section.
 
-> Other target < 0 callers check the returned fragment offset
-> or ignore *offset here.
-
-[Severity: Medium]
-Does this hold for every consumer of the offset?
-
-ip6_packet_match() passes &acpar.thoff to ipv6_find_hdr(), and the result
-reaches xt targets as par->thoff. nft_set_pktinfo_ipv6() sets pkt->thoff
-the same way, and nft_compat forwards it to xt targets.
-
-synproxy_tg6() in ip6t_SYNPROXY.c and nft_synproxy_do_eval() in
-nft_synproxy.c do not check par->fragoff or pkt->fragoff:
-
-net/ipv6/netfilter/ip6t_SYNPROXY.c:synproxy_tg6() {
-    ...
-	if (nf_ip6_checksum(skb, xt_hooknum(par), par->thoff, IPPROTO_TCP))
-		return NF_DROP;
-
-	th = skb_header_pointer(skb, par->thoff, sizeof(_th), &_th);
-	...
-	if (th->syn && !(th->ack || th->fin || th->rst)) {
-		/* Initial SYN from client */
-    ...
-}
-
-Before this patch, thoff stayed at 0 for non-first fragments, so these
-targets parsed the IPv6 header as a TCP header. That was also wrong, but
-a sender had little control over it.
-
-With this change, thoff points at the fragment payload, and the sender
-controls all of it. Could SYNPROXY now treat a non-first fragment that
-carries a forged TCP SYN or ACK with a valid checksum as a real segment?
-It would then answer with a SYN-cookie SYN-ACK, or send a SYN to the
-server.
-
-Earlier port-filtering matches (tcp, multiport, payload) skip these
-fragments because they check fragoff. To reach SYNPROXY, the fragment has
-to get past nf_defrag_ipv6 without being reassembled. One way is notrack
-before defrag, which makes ipv6_defrag() return NF_ACCEPT for
-IP_CT_UNTRACKED.
-
-xt_ecn match_tcp() and xt_tcpmss tcpmss_mt() do check par->fragoff and
-are not affected. The missing fragoff check in SYNPROXY is older than
-this patch.
-
-> diff --git a/net/ipv6/exthdrs_core.c b/net/ipv6/exthdrs_core.c
-> index 764c694fb417a..12908d8ca370f 100644
-> --- a/net/ipv6/exthdrs_core.c
-> +++ b/net/ipv6/exthdrs_core.c
-
-[ ... ]
-
-> @@ -262,6 +265,7 @@ int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
->  				     hp->nexthdr == NEXTHDR_NONE)) {
->  					if (fragoff)
->  						*fragoff = _frag_off;
-> +					*offset = start + sizeof(struct frag_hdr);
-
-[Severity: Medium]
-Can this set *offset past the end of the skb?
-
-At this point only the first 4 bytes of the 8-byte Fragment header have
-been bounds checked. hp reads 2 bytes at start, and fp reads the 2-byte
-frag_off at start + 2. Nothing checks that the Identification field is
-inside the packet.
-
-Every other success exit runs this check before start advances:
-
-		if (!found) {
-			if (skb->len - start < hdrlen)
-				return -EBADMSG;
-
-Take a packet that ends 4 to 7 bytes into the Fragment header, for
-example with payload_len = 4. This path now returns success with *offset
-up to 4 bytes past skb->len. Before the patch, *offset kept its input
-value here.
-
-Remote input can reach this. ip6_rcv_core() only parses hop-by-hop
-options. PRE_ROUTING hooks see such packets when nf_defrag_ipv6 is not
-loaded, when a chain runs before defrag (priority < -400), or when the
-packet is marked notrack before defrag.
-
-nft_set_pktinfo_ipv6() only rejects thoff > U16_MAX. It therefore stores
-a pkt->thoff larger than skb->len and sets NFT_PKTINFO_L4PROTO. The
-subtraction in nf_trace_fill_pkt_info() then underflows:
-
-		len = min_t(unsigned int, skb->len - nft_thoff(pkt),
-			    NFT_TRACETYPE_TRANSPORT_HSIZE);
-
-skb_copy_bits() then fails and nft_trace_notify() jumps to
-nla_put_failure. That path hits DEBUG_NET_WARN_ON_ONCE(1) and drops the
-trace event.
-
-synproxy_tg6() and nft_synproxy_do_eval() also pass this thoff to
-nf_ip6_checksum() and nf_checksum(). For CHECKSUM_NONE and
-CHECKSUM_COMPLETE, these call skb_checksum(skb, 0, dataoff, 0) with a
-length past skb->len, which hits the DEBUG_NET_WARN_ON_ONCE(1) in
-skb_checksum(). They also pass skb->len - dataoff to csum_ipv6_magic(),
-and that value underflows.
-
-Would it be better to require the whole Fragment header before setting
-*offset? For example:
-
-	if (skb->len - start < sizeof(struct frag_hdr))
-		return -EBADMSG;
+> When a controlled IPVS connection expires, its controller may be expired
+> synchronously if it has no remaining controlled connections. A chain of
+> controlled connections can then recurse through ip_vs_conn_expire() and
+> exhaust the kernel stack during namespace cleanup.
 
 [Severity: Low]
-The earlier patch in this series, "ipvs: avoid out-of-bounds write in
-ip_vs_nat_icmp_v6", added a compensation block to ip_vs_out_icmp_v6()
-and ip_vs_in_icmp_v6(). Does this change make that block dead code?
+This isn't a bug, but is "during namespace cleanup" the only place the
+recursion can happen?
 
-net/netfilter/ipvs/ip_vs_core.c:ip_vs_out_icmp_v6() {
+ip_vs_conn_del_reference() is the only code that sets cp->timeout = 0,
+which arms the drop-controller chain. It is reached from runtime callers
+as well as from the netns flush.
+
+ip_vs_random_dropentry() runs from defense_work when drop_entry defense
+is active:
+
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_random_dropentry() {
     ...
-	/* ipv6_find_hdr() does not include the embedded header for
-	 * non-first fragments, add it so that ESP can pass and the
-	 * NAT writable checks cover the rewritten addresses
-	 */
-	if (ciph.len == ciph.off)
-		ciph.len += sizeof(struct ipv6hdr);
+drop:
+			IP_VS_DBG(4, "drop connection\n");
+			ip_vs_conn_del(cp);
     ...
 }
 
-ip_vs_fill_iph_skb_off() sets iphdr->len = offset, which is nonzero.
-ipv6_find_hdr() therefore starts at *offset + sizeof(struct ipv6hdr).
-Flags start at 0 and target is -1, so every success exit now sets
-*offset to at least ciph.off + 40. As a result, ciph.len == ciph.off can
-no longer be true.
+ip_vs_expire_nodest_conn_flush() runs when a real server becomes
+unavailable and expire_nodest_conn is set:
 
-The comment at both sites also describes behaviour that ipv6_find_hdr()
-no longer has, and it contradicts the kernel-doc added by this patch.
-Both copies are still there, unchanged, at the end of the series.
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_expire_nodest_conn_flush() {
+    ...
+			ip_vs_conn_del(cp);
+			if (cp_c && !atomic_read(&cp_c->n_control)) {
+				IP_VS_DBG(4, "del controlling connection\n");
+				ip_vs_conn_del(cp_c);
+			}
+    ...
+}
 
-For ESP non-first fragments, ciph.len now also covers the extension
-headers and the full 8-byte Fragment header, not just off + 40.
+The chain can also run from the timer softirq. If ip_vs_conn_unlink()
+fails because refcnt > 1, the expire_later path keeps timeout == 0 when
+n_control == 0:
 
-Should the block and its comment be removed or updated in both functions?
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_expire() {
+    ...
+  expire_later:
+    ...
+	if (cp->timeout || atomic_read(&cp->n_control))
+		cp->timeout = 60 * HZ;
+    ...
+	__ip_vs_conn_put_timer(cp);
+}
 
->  					return hp->nexthdr;
->  				}
->  				if (!found)
+The timer is then re-armed at jiffies + 0. The next callback walks the
+controller chain, and before this patch that walk recursed on the
+softirq stack.
+
+The loop in ip_vs_conn_expire() covers all of these entry points, so the
+code change itself looks fine. Could the commit message also mention the
+runtime paths, since stable and CVE triage will rely on the stated
+impact?
+
+The commit message also doesn't explain how a deep chain is built. The
+ip_vs_conn_expire_now() comment still says chains are at most
+DATA->CTL->TPL. Both points are handled by the follow-up patch in the
+series, "ipvs: reject FTP control ports as data ports". It rejects
+control ports as FTP data ports in ip_vs_ftp_out() and ip_vs_ftp_in(),
+which bounds the chain again.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113011447.2357709-2-pablo%40netfilter.org
