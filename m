@@ -1,57 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.126
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.82
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794755054;
-	b=OuXWQI6EvMzppVzBjJErN7YjXtBgH9khFYsOYIPl8sBYYbbUIHJjR+7l5yfOCzeeBFof
-	 Ysi/6TXy8PZ9NgUqq/6VOrT6Weexjo9sghSN6sy71QraFIHxkPesswSKKd32UXfpQiK8u
-	 RhoiWWTOHoJ8woFkdUt3KjM9Toq939MmL6tCJ2/U9N+72vWTEPnAqy4muIjJ6SP7lgpwc
-	 QyeM9+bp9fxmjoEHtv5L/pxvZeivW8le+CF1r1hQWxKSDCixzD/1BgaPjPcweNkKE9OPX
-	 5dnEYYHYX7wb/geK9VwJuM5ktvuuIgctZs6dvmYHvygeQcjkZwu3vK2kpT8BwLiIi9Q==
+	t=1794755061;
+	b=vFwHUF1fthn+jxanjU7TSC2mc0HkfZvp1b2vhc4H0VKRzUtlN735RvnQpyicTUQ7EGyb
+	 JqePplTE8u2hTtnorujCm5vUUQCroFNXkdZYv/9w6383tr2unGNmLfHHvKMWOXXHQL+y3
+	 X14uT5P+6iT+Q/QFZhbQiO1M4YdUt3e2XMmAgeK1C0/tWqt7s4TiZWbSyE7x26O5f3v3O
+	 aZM//N0suU3JtY722KidJaT2igEbMpc8U3d7pFjcE/fVgCYDeiZrcGYYH50cqMVCPy+G3
+	 4a6oKtzr6l/cgHrFypEeLUe391HC2qELvq4yEtVJZxDKzrjrUL/T2L0MHlYmQJsOMTQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794755054;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794755061;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=HiDPisOZyOIduZmnUhRVW5JY74WgEtaqxNUOXvPQ8TU=;
-	b=EbnrAEHo0AYW0v2JSb8hDZ7RmmAU7Msse9BGEgHi4Uk54H7V0MS+7253ro7/WH99Q1r7
-	 LL5kH3MUe5EoR80OqhS1q4cpJERcNrDqLQgF47qQXhxqT0MJqj+4EmpB/bPjhag4EvA6k
-	 Cdj1BSmRC5Qm/2xZKt3RytekCkzEj2mRxsiXsERLZ2ggD1oBrDt9zZ/DKEsF0aUOMmToN
-	 OA++i/Mf8qKuliUf2doCd8sz4YK2TtdFYQo0tjx1sWqC1NJgzknnyQQnqI0wBI2nMOhyS
-	 KVmRMhPhEPxG6e/pFBo0/fQ762xL9nhcHAPAIombJaWGxEEafPswWr8h3ZTIvePs2Bw==
+	bh=cMKp+vcLILUzhWf3jAnuN44BSG+X5CcQkbRiXC2JSDM=;
+	b=gsg0wu6yYgSB7BleJQIfdlrHUOQBQnMzBsNFCqfUJYS9LSTXwQZZEsdA3sKA53g3hfQE
+	 Sbsn87YwjAGznnHE+pS9znjcSLMKvNb/BRyYDHn0LitEblReWbGBueqtjsSXXa76omKH2
+	 4NuG7UgJVtfTk4RgJKwRsfzPLrKCdvfnw4WURZitEO5htulmxX2RY/Ru3EepagR/VTncf
+	 huMTVlTgl/Ag21hUyswYnhHbl1RT7702K76+Og9zpDtkPfLGrTj5IKPmwrMNeliNezYRG
+	 IKj3VgrYAir3CAw2iHYDliNmxXPSX9Mm3nM4ftM74dbC/3jNXJ9NRJQfuO/rUhKjXIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=XIV8Hlov;
-	arc=none smtp.remote-ip=91.218.175.126
-Received: from mta0.migadu.com (out-126.mta0.migadu.com [91.218.175.126])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=ZXkIt8uO;
+	arc=none smtp.remote-ip=95.215.58.82
+Received: from mta1.migadu.com (out-82.mta1.migadu.com [95.215.58.82])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9427F606A31D
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 15:04:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9427F606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9469606A31A
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 15:04:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A9469606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=XIV8Hlov
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=ZXkIt8uO
 X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=+K9Hb4MRmwiMEUMqDeUZbhPuWaRg7s0YswC97NiH0z0=;
+DKIM-Signature: a=rsa-sha256; bh=XRoN9Dk5DrS6pd/x1oVmP34KoFhpKoZoVgTzCJDKjFY=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794755051; v=1; x=1795359851;
- b=XIV8HlovRkMxi1EdW4sOq6V51gViQpcU9GWSpnWSQOr0BqpxYiUEWpOFzDOWwEymNZMxlhBz
- qTSmRA7Zn9/AtXn02YT28cFKMLUuSBTCSsXkRR3nNJ5bjLCd+eFAuL0RPnNGHxkT7xbASaJr9BZ
- kaU1NbVb6LmY2kDJayG1eL6c=
+ t=1794755058; v=1; x=1795359858;
+ b=ZXkIt8uOrw5Q4jd8b4ChcUG0WM5RbdTghHLL81+P4dSmWyKbRBsgywijSALQlq8PgY7+rP/0
+ /7uP85R1CaNFn/oL+mXPvx4IgIOi9xycuV6JNj3wKKkW/F998dG1bPwwQUwuKuCD0cKxArCAOX9
+ XX3ItsX7aLX6JJgbQIIqYZEk=
 X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id c01fbbf211867b0a;
-	Sun, 15 Nov 2026 15:04:11 +0000
-X-Mizu-Trace-ID: c01fbbf211867b0a
+Received: by smtp.migadu.com with ESMTPS id ffcfcc850375f4ed;
+	Sun, 15 Nov 2026 15:04:18 +0000
+X-Mizu-Trace-ID: ffcfcc850375f4ed
 X-Migadu-Flow: FLOW_OUT
 From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v2 2/3] netfilter: conntrack: annotate data-races around timeout and tcp sysctls
-Date: Sun, 15 Nov 2026 23:03:41 +0800
-Message-ID: <20261115150342.86521-2-jiayuan.chen@linux.dev>
+Subject: [PATCH nf-next v2 3/3] netfilter: bridge: annotate data-races around br_netfilter and nf_log sysctls
+Date: Sun, 15 Nov 2026 23:03:42 +0800
+Message-ID: <20261115150342.86521-3-jiayuan.chen@linux.dev>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20261115150342.86521-1-jiayuan.chen@linux.dev>
 References: <20261115150342.86521-1-jiayuan.chen@linux.dev>
@@ -66,268 +66,172 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The nf_conntrack_*_timeout* knobs, nf_flowtable_tcp_timeout,
-nf_flowtable_udp_timeout and nf_conntrack_tcp_{loose,be_liberal,
-max_retrans,ignore_invalid_rst} are read in the packet path without any
-lock while their sysctl handlers update them with WRITE_ONCE(). Add
-READ_ONCE() to the readers.
+bridge-nf-call-arptables, bridge-nf-call-iptables,
+bridge-nf-call-ip6tables, bridge-nf-filter-vlan-tagged,
+bridge-nf-filter-pppoe-tagged, bridge-nf-pass-vlan-input-dev and
+nf_log_all_netns are read in the packet path without any lock while their
+sysctl handlers update them, and brnf_sysctl_call_tables() normalizes the
+value with a plain write. Add READ_ONCE() to the readers and WRITE_ONCE()
+to that handler.
 
-KCSAN reports it when nf_conntrack_udp_timeout is changed while UDP
-traffic goes through conntrack:
+KCSAN reports it when bridge-nf-call-iptables is changed while packets
+are bridged:
 
-  BUG: KCSAN: data-race in nf_conntrack_udp_packet / proc_int_u2k_conv_uop
+  BUG: KCSAN: data-race in br_nf_pre_routing / do_proc_int_conv
 
-  write (marked) to 0xffffffffb0829bc4 of 4 bytes by task 436 on cpu 0:
-   proc_int_u2k_conv_uop+0x92/0xa0
-   sysctl_u2k_int_conv_hz+0x21/0x30
-   proc_int_conv+0xdf/0x130
-   do_proc_int_conv_jiffies+0x1b/0x30
+  write (marked) to 0xffff8d7242d8ec50 of 4 bytes by task 824 on cpu 0:
+   do_proc_int_conv+0xa9/0xd0
    proc_vec_conv+0x21/0x40
    proc_vec+0x21e/0x6f0
-   proc_dointvec_conv+0x21/0x40
-   proc_dointvec_jiffies+0x15/0x30
+   proc_dointvec+0x16/0x30
+   brnf_sysctl_call_tables+0x19/0x70
    proc_sys_call_handler+0x282/0x3a0
    proc_sys_write+0x13/0x20
    ...
 
-  read to 0xffffffffb0829bc4 of 4 bytes by task 439 on cpu 3:
-   nf_conntrack_udp_packet+0x27b/0x550
-   nf_conntrack_in+0x767/0xb20
-   ipv4_conntrack_local+0xb0/0x120
-   nf_hook_slow+0x7e/0x180
-   nf_hook+0x1fa/0x4e0
-   __ip_local_out+0x1ac/0x3f0
-   ip_send_skb+0x31/0x120
-   udp_send_skb+0x4bf/0x640
-   udp_sendmsg+0xdec/0x18a0
+  read to 0xffff8d7242d8ec50 of 4 bytes by interrupt on cpu 1:
+   br_nf_pre_routing+0x1a9/0x9d0
+   br_handle_frame+0x523/0x990
+   __netif_receive_skb_core.constprop.0+0x3b2/0x1cf0
+   __netif_receive_skb_one_core+0x51/0xe0
+   __netif_receive_skb+0x23/0xb0
+   process_backlog+0x27a/0x950
    ...
 
-  value changed: 0x00001d4c -> 0x00001e46
+  value changed: 0x00000001 -> 0x00000000
 
 Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
-Reviewed-by: Simon Horman <horms@kernel.org>
 ---
 v1: https://lore.kernel.org/netdev/20261109025425.328445-1-jiayuan.chen@linux.dev/
 Split out of the net-next series and sent to nf-next separately.
+Also annotate the read in brnf_sysctl_call_tables().
 ---
- net/netfilter/nf_conntrack_core.c         |  2 +-
- net/netfilter/nf_conntrack_proto_gre.c    |  4 +--
- net/netfilter/nf_conntrack_proto_icmp.c   |  2 +-
- net/netfilter/nf_conntrack_proto_icmpv6.c |  2 +-
- net/netfilter/nf_conntrack_proto_sctp.c   |  2 +-
- net/netfilter/nf_conntrack_proto_tcp.c    | 37 ++++++++++++-----------
- net/netfilter/nf_conntrack_proto_udp.c    |  6 ++--
- net/netfilter/nf_flow_table_core.c        |  4 +--
- 8 files changed, 31 insertions(+), 28 deletions(-)
+ net/bridge/br_netfilter_hooks.c | 22 +++++++++++-----------
+ net/bridge/netfilter/ebt_log.c  |  2 +-
+ net/netfilter/nf_log_syslog.c   |  2 +-
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5c7054753722e..8e332e407529e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1959,7 +1959,7 @@ static int generic_packet(struct nf_conn *ct, struct sk_buff *skb,
- 	if (!timeout)
- 		timeout = &nf_generic_pernet(nf_ct_net(ct))->timeout;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index e15355ff215a7..858c7fc43bde6 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -94,7 +94,7 @@ static inline bool is_vlan_ip(const struct sk_buff *skb, const struct net *net)
+ {
+ 	struct brnf_net *brnet = net_generic(net, brnf_net_id);
  
--	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
-+	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
- 	return NF_ACCEPT;
+-	return vlan_proto(skb) == htons(ETH_P_IP) && brnet->filter_vlan_tagged;
++	return vlan_proto(skb) == htons(ETH_P_IP) && READ_ONCE(brnet->filter_vlan_tagged);
  }
  
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 616ab1e2fc5ed..d8bca1e29797b 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -279,8 +279,8 @@ int nf_conntrack_gre_packet(struct nf_conn *ct,
+ static inline bool is_vlan_ipv6(const struct sk_buff *skb,
+@@ -103,14 +103,14 @@ static inline bool is_vlan_ipv6(const struct sk_buff *skb,
+ 	struct brnf_net *brnet = net_generic(net, brnf_net_id);
  
- 		/* initialize to sane value.  Ideally a conntrack helper
- 		 * (e.g. in case of pptp) is increasing them */
--		ct->proto.gre.stream_timeout = timeouts[GRE_CT_REPLIED];
--		ct->proto.gre.timeout = timeouts[GRE_CT_UNREPLIED];
-+		ct->proto.gre.stream_timeout = READ_ONCE(timeouts[GRE_CT_REPLIED]);
-+		ct->proto.gre.timeout = READ_ONCE(timeouts[GRE_CT_UNREPLIED]);
- 	}
- 
- 	status = READ_ONCE(ct->status);
-diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 330c6d83d670a..0f6ef0443c6fa 100644
---- a/net/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -98,7 +98,7 @@ int nf_conntrack_icmp_packet(struct nf_conn *ct,
- 	if (!timeout)
- 		timeout = &nf_icmp_pernet(nf_ct_net(ct))->timeout;
- 
--	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
-+	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
- 	return NF_ACCEPT;
+ 	return vlan_proto(skb) == htons(ETH_P_IPV6) &&
+-	       brnet->filter_vlan_tagged;
++	       READ_ONCE(brnet->filter_vlan_tagged);
  }
  
-diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index 803221781de39..e4eebf13950cb 100644
---- a/net/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -118,7 +118,7 @@ int nf_conntrack_icmpv6_packet(struct nf_conn *ct,
- 	/* Do not immediately delete the connection after the first
- 	   successful reply to avoid excessive conntrackd traffic
- 	   and also to handle correctly ICMP echo reply duplicates. */
--	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
-+	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
+ static inline bool is_vlan_arp(const struct sk_buff *skb, const struct net *net)
+ {
+ 	struct brnf_net *brnet = net_generic(net, brnf_net_id);
  
- 	return NF_ACCEPT;
+-	return vlan_proto(skb) == htons(ETH_P_ARP) && brnet->filter_vlan_tagged;
++	return vlan_proto(skb) == htons(ETH_P_ARP) && READ_ONCE(brnet->filter_vlan_tagged);
  }
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 49ec8478746ad..047bf69113bf9 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -523,7 +523,7 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 	if (!timeouts)
- 		timeouts = nf_sctp_pernet(nf_ct_net(ct))->timeouts;
  
--	nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[new_state]);
-+	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(timeouts[new_state]));
+ static inline __be16 pppoe_proto(const struct sk_buff *skb)
+@@ -124,7 +124,7 @@ static inline bool is_pppoe_ip(const struct sk_buff *skb, const struct net *net)
+ 	struct brnf_net *brnet = net_generic(net, brnf_net_id);
  
- 	return NF_ACCEPT;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b859e409f0796..0c61a16fca400 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -505,7 +505,7 @@ nf_tcp_store_invalid(const struct nf_conn *ct,
- 	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
- 	bool be_liberal;
- 
--	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
-+	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || READ_ONCE(tn->tcp_be_liberal);
- 	if (be_liberal)
- 		return NFCT_TCP_ACCEPT;
- 
-@@ -904,7 +904,7 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 			ct->proto.tcp.seen[0].td_end;
- 
- 		tcp_options(skb, dataoff, th, &ct->proto.tcp.seen[0]);
--	} else if (tn->tcp_loose == 0) {
-+	} else if (READ_ONCE(tn->tcp_loose) == 0) {
- 		/* Don't try to pick up connections. */
- 		return false;
- 	} else {
-@@ -979,7 +979,7 @@ void nf_conntrack_tcp_set_closing(struct nf_conn *ct)
- 		timeouts = tn->timeouts;
- 	}
- 
--	timeout = timeouts[TCP_CONNTRACK_CLOSE];
-+	timeout = READ_ONCE(timeouts[TCP_CONNTRACK_CLOSE]);
- 	WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
- 
- 	spin_unlock_bh(&ct->lock);
-@@ -1010,6 +1010,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	struct nf_tcp_invalid_log log = {};
- 	unsigned int index, *timeouts;
- 	bool lowered_timeout = false;
-+	unsigned int retrans, unack;
- 	enum nf_ct_tcp_action res;
- 	enum ip_conntrack_dir dir;
- 	const struct tcphdr *th;
-@@ -1235,7 +1236,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 				break;
- 
- 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack) &&
--			    !tn->tcp_ignore_invalid_rst) {
-+			    !READ_ONCE(tn->tcp_ignore_invalid_rst)) {
- 				/* Invalid RST  */
- 				spin_unlock_bh(&ct->lock);
- 				nf_ct_l4proto_log_invalid(skb, ct, state, "invalid rst");
-@@ -1322,22 +1323,24 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 	if (!timeouts)
- 		timeouts = tn->timeouts;
- 
--	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
--	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
--		timeout = timeouts[TCP_CONNTRACK_RETRANS];
-+	timeout = READ_ONCE(timeouts[new_state]);
-+	retrans = READ_ONCE(timeouts[TCP_CONNTRACK_RETRANS]);
-+	unack = READ_ONCE(timeouts[TCP_CONNTRACK_UNACK]);
-+
-+	if (ct->proto.tcp.retrans >= READ_ONCE(tn->tcp_max_retrans) &&
-+	    timeout > retrans)
-+		timeout = retrans;
- 	else if (unlikely(index == TCP_RST_SET &&
- 			  new_state == TCP_CONNTRACK_ESTABLISHED) &&
--		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
--		timeout = timeouts[TCP_CONNTRACK_UNACK];
-+		 timeout > unack)
-+		timeout = unack;
- 	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
- 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
--		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
--		timeout = timeouts[TCP_CONNTRACK_UNACK];
-+		 timeout > unack)
-+		timeout = unack;
- 	else if (ct->proto.tcp.last_win == 0 &&
--		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
--		timeout = timeouts[TCP_CONNTRACK_RETRANS];
--	else
--		timeout = timeouts[new_state];
-+		 timeout > retrans)
-+		timeout = retrans;
- 	spin_unlock_bh(&ct->lock);
- 
- 	if (new_state != old_state)
-@@ -1366,8 +1369,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
- 		 * pickup with loose=1. Avoid large ESTABLISHED timeout.
- 		 */
- 		if (new_state == TCP_CONNTRACK_ESTABLISHED &&
--		    timeout > timeouts[TCP_CONNTRACK_UNACK])
--			timeout = timeouts[TCP_CONNTRACK_UNACK];
-+		    timeout > unack)
-+			timeout = unack;
- 	} else if (!test_bit(IPS_ASSURED_BIT, &ct->status)
- 		   && (old_state == TCP_CONNTRACK_SYN_RECV
- 		       || old_state == TCP_CONNTRACK_ESTABLISHED)
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 9ea4062752238..99eedaa2b1183 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -116,12 +116,12 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
- 	 * stream. Set Assured.
- 	 */
- 	if (status & IPS_SEEN_REPLY) {
--		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
-+		unsigned long extra = READ_ONCE(timeouts[UDP_CT_UNREPLIED]);
- 		bool stream = false;
- 
- 		/* Still active after two seconds? Extend timeout. */
- 		if (time_after(jiffies, ct->proto.udp.stream_ts)) {
--			extra = timeouts[UDP_CT_REPLIED];
-+			extra = READ_ONCE(timeouts[UDP_CT_REPLIED]);
- 			stream = (status & IPS_ASSURED) == 0;
- 		}
- 
-@@ -135,7 +135,7 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
- 		if (stream && !test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
- 			nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	} else {
--		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[UDP_CT_UNREPLIED]);
-+		nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(timeouts[UDP_CT_UNREPLIED]));
- 	}
- 	return NF_ACCEPT;
+ 	return skb->protocol == htons(ETH_P_PPP_SES) &&
+-	       pppoe_proto(skb) == htons(PPP_IP) && brnet->filter_pppoe_tagged;
++	       pppoe_proto(skb) == htons(PPP_IP) && READ_ONCE(brnet->filter_pppoe_tagged);
  }
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 0d72dc8ae47a1..fa25a641e9c38 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -322,11 +322,11 @@ unsigned long flow_offload_get_timeout(struct flow_offload *flow)
- 	if (l4num == IPPROTO_TCP) {
- 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
  
--		timeout = tn->offload_timeout;
-+		timeout = READ_ONCE(tn->offload_timeout);
- 	} else if (l4num == IPPROTO_UDP) {
- 		struct nf_udp_net *tn = nf_udp_pernet(net);
+ static inline bool is_pppoe_ipv6(const struct sk_buff *skb,
+@@ -134,7 +134,7 @@ static inline bool is_pppoe_ipv6(const struct sk_buff *skb,
  
--		timeout = tn->offload_timeout;
-+		timeout = READ_ONCE(tn->offload_timeout);
+ 	return skb->protocol == htons(ETH_P_PPP_SES) &&
+ 	       pppoe_proto(skb) == htons(PPP_IPV6) &&
+-	       brnet->filter_pppoe_tagged;
++	       READ_ONCE(brnet->filter_pppoe_tagged);
+ }
+ 
+ /* largest possible L2 header, see br_nf_dev_queue_xmit() */
+@@ -442,7 +442,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb,
+ 
+ 	br = bridge_parent(dev);
+ 
+-	if (brnet->pass_vlan_indev == 0 || !skb_vlan_tag_present(skb))
++	if (READ_ONCE(brnet->pass_vlan_indev) == 0 || !skb_vlan_tag_present(skb))
+ 		return br;
+ 
+ 	vlan = __vlan_find_dev_deep_rcu(br, skb->vlan_proto,
+@@ -502,7 +502,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 	brnet = net_generic(state->net, brnf_net_id);
+ 	if (IS_IPV6(skb) || is_vlan_ipv6(skb, state->net) ||
+ 	    is_pppoe_ipv6(skb, state->net)) {
+-		if (!brnet->call_ip6tables &&
++		if (!READ_ONCE(brnet->call_ip6tables) &&
+ 		    !br_opt_get(br, BROPT_NF_CALL_IP6TABLES))
+ 			return NF_ACCEPT;
+ 		if (!ipv6_mod_enabled()) {
+@@ -514,7 +514,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 		return br_nf_pre_routing_ipv6(priv, skb, state);
  	}
  
- 	return timeout;
+-	if (!brnet->call_iptables && !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
++	if (!READ_ONCE(brnet->call_iptables) && !br_opt_get(br, BROPT_NF_CALL_IPTABLES))
+ 		return NF_ACCEPT;
+ 
+ 	if (!IS_IP(skb) && !is_vlan_ip(skb, state->net) &&
+@@ -740,7 +740,7 @@ static unsigned int br_nf_forward_arp(struct sk_buff *skb,
+ 	br = p->br;
+ 
+ 	brnet = net_generic(state->net, brnf_net_id);
+-	if (!brnet->call_arptables && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
++	if (!READ_ONCE(brnet->call_arptables) && !br_opt_get(br, BROPT_NF_CALL_ARPTABLES))
+ 		return NF_ACCEPT;
+ 
+ 	if (is_vlan_arp(skb, state->net))
+@@ -1177,8 +1177,8 @@ int brnf_sysctl_call_tables(const struct ctl_table *ctl, int write,
+ 
+ 	ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
+ 
+-	if (write && *(int *)(ctl->data))
+-		*(int *)(ctl->data) = 1;
++	if (write && READ_ONCE(*(int *)(ctl->data)))
++		WRITE_ONCE(*(int *)(ctl->data), 1);
+ 	return ret;
+ }
+ 
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index e2eea1daaf8ba..f360414a2814e 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -79,7 +79,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	unsigned int bitmask;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
++	if (!net_eq(net, &init_net) && !READ_ONCE(sysctl_nf_log_all_netns))
+ 		return;
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index c3fd398ffcd77..2907f47c83423 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -43,7 +43,7 @@ struct arppayload {
+ /* Guard against containers flooding syslog. */
+ static bool nf_log_allowed(const struct net *net)
+ {
+-	return net_eq(net, &init_net) || sysctl_nf_log_all_netns;
++	return net_eq(net, &init_net) || READ_ONCE(sysctl_nf_log_all_netns);
+ }
+ 
+ static void nf_log_dump_vlan(struct nf_log_buf *m, const struct sk_buff *skb)
 -- 
 2.43.0
 
