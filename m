@@ -1,98 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.170
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.182
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794780587;
-	b=2xDgjHRR9fppZMIROBYqn7WjqQCLSHbKrSHB8340+JdNcnI6LEVXMqYasVttP/01Uhdw
-	 HzoVgyNgZ4Qm3rsDlBoaPtwBoYaMu58tLDa6zCruRRntOsAY5ZvLii4srFlilJrwvn/dH
-	 2JccqpFkMUGNe1vPJpfwtH78atirrUHfoH4thFcidIfijN7WAVeYjX/AEmDGZ+ZzziKVH
-	 XV4ZWndeYU0uvenyAe3/DH2AkohIEOSs/UkYL3cBgWDje7819PmgOeLwCBR/Ur51lDtZn
-	 e+LtUppxxbNgB8xVKeNz1Ynt3guyEqJl95E8wOPEbsTt6D5w4Sxj3KhXV/rw/YXf+5Q==
+	t=1794780632;
+	b=uDZtXC76fLb+DyQtulJV2Jx+rGfR6Z9G/FMA/pPxUAt1SWG+SgmvjYrWrARhUwsYo5kP
+	 a3ypUqw0qogZMenneay3rOPZolHCg410oyBWmKIMaH3USXHoPqYIaMFq1xrAB3PCj8YCF
+	 xv17wVfbRubESABsJ3k15dz1Fu7O1WHdejusAgB0pYR/a4aFm0iyukZXYS6bulZLUM14S
+	 TYsGofQx55KsGjekroke/KCZjnTZuyP/KduANAOABwcel9k/Wp1Ich0ClZm8Vv+scwzrG
+	 jpjKGjTWbBER9mgyuTvCPW70ZXWcrTpCRL6vtAZ/0mAPPt4RVxJVsYBJtP4rwC7bhzA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794780587;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794780632;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
 	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
 	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=ho/wZGc1oAeiTgg3BwYQjWFIdQwxPbuaNNwg/HhMHZA=;
-	b=HmUWNKYA9zoTIEORKji610zvczvtO72EgxupAleGJl7X5zFcQZIBz4hrL2Bo9GgkNTS5
-	 F53dr3GHJuiIhLCahV8NNULfl5DXurWW1JMQDR4ekfv6QxA2Xtmbz8H9/4EO9kw4NNyEB
-	 8FYEJZMURZjwjoO1grla0vENmKZJb0L28ZpBd3OFM/cNkf8L9hGp8rkxLRE+GayuInhZ2
-	 51EGc5QvxQWDIfZ1WDhiDzOo2kApV0ebRnpBeFHyRbzNVUQuVKIGslOZnT707KYy6NSDs
-	 u+e8umoom/PWi6Ic+Cscx4sTGwyO9V4U3OyozgMJEhqpz08chsfu0Lc1HkaUowDzZXQ==
+	bh=k8AnZ18aru1FtW2cyKbe/6niu0aza/YFK7phDBGX51M=;
+	b=u1Lhs3TpRNtGy6IxMCbBxFVrjdGCjEtQ1XMQdhStLBy38yQYTvx03JroNElI5P+qEpTw
+	 18j+0cDxFeMAzkQ/OyU9igqM04Gp5qrEvKrB7n4EQI/Uo9x+ltj72h/zTyorAsIg0gjkL
+	 sjHj1TJVSnvJeE0VIOGx2f5vQpShV3/Rs1N9Rgkin1vcgwBV59rNOXN22Mi5yQSujS396
+	 wLk2nQ89cZIRxK2NU+uUFgw3/tl2FoXPcVXCtag0Czt2B0Lo3hN4uepaptZNM1f9wttfO
+	 g266z+KRtsSM/QgYAjBtEN9LpR8MwRzB3b0RKpoV2oa98UWhrrNflJ64pYIW/WBXvWw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=none header.from=mojatatu.com;
 	spf=none smtp.mailfrom=mojatatu.com;
-	dkim=pass header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=e0GCsMMO;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.170
-Received: from mail-pf1-f170.google.com (mail-pf1-f170.google.com [209.85.210.170])
+	dkim=pass header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=HSo9Q+0I;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.182
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6700E606A31F
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 22:09:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6700E606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C15BC606A323
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 22:10:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C15BC606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=e0GCsMMO
-Received: by mail-pf1-f170.google.com with SMTP id d2e1a72fcca58-8b600fae14dso1242092b3a.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 14:09:45 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794780584; cv=none;
+	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=HSo9Q+0I
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-8a070755c8cso1447164b3a.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 14:10:31 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794780631; cv=none;
         d=google.com; s=arc-20260327;
-        b=R6F1bZkMrsIr+2aYcnsQDedZbbUH863J5dJj4XzNnFF7R3Abm76dyBCxMsKoBd4/eE
-         KURm4IHc+jD9PxezHums9tLQHYqncaiXfW2PWVynTZG2yC62XW+30M52JHUg7fgIRWOL
-         RKhSreIuXMmblc6fMq4EBHaACrZEfKvHptOC+VJcIsfBIkBFYn6/xPZcsrZXQfcBGfKF
-         +prgY73tnIgioH4tlUkaDgzoxhOLRa+RQUoIejQNdATcXNbpQ4/t/vw28r+eFNFICJdZ
-         fBrlPhsIrd5BHlYBD2NC2txJc9+eRJ6yLa/sisV4SVwFh1UHdzm6W1W67OAweE4paBPq
-         cxFQ==
+        b=MzkuNAfaG/A7rulBkCjK0S5KrkWKLVxhetTvyDHqeYEB4Qq66j91+6snJLJdI9TyqP
+         rMAJ4c0Z2+MkcSZqyIS0Lme2ZpynefLnV5flCTUfSiHzSnHqrqpi2pxy6TOpWNL14IS1
+         YRgTcB4TwadiCzi1fqaolASSLMPzg6oDwdhZNo+Po2YIsMcMlubl/7a7ocei8py80i36
+         LX4CoAWUMQxAYAuuJ5QXx5ohvhhWlCRbT0qAXRtb1gJTgcQpI3g31er9SZrl2XF7qCFB
+         Kor1JhH8u82w7uZjNQBKaBCsLDp/020sipU8NQGJlH7pXqli5UTOMTCdrvngIYYS8PJz
+         Z+og==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=ho/wZGc1oAeiTgg3BwYQjWFIdQwxPbuaNNwg/HhMHZA=;
-        fh=qs2GyFWIreG8UrGl3El5hZADO/jQuHeHZDCieurMXTc=;
-        b=qK2SonbNmFMdm/DTb5ubnKqphOCbXKzdPACcS1F3YhKfFH8tnw57M8zEpryJOOXWFh
-         PkxiRqUjA5vuCC1IuPEcqt0IHbC52jJrzlL+9Q9D7FU33vUuylVU3s1qOn6OZzpdR4yz
-         ycX/I9wIe2klJPzct/BSVUsglDkvLjaGoFQJj6I42kzJdg2tjUe+VbxwbK/TYk+4QjSE
-         FM/48NTEO/+7LSYw+A1H+84KWBxqGDvF0oY4U3JQrAeIb6QYzC24z3mAMYD/3grv4UWd
-         VI4v6Am6230bEj5XmCDUD7O83apEQQy79JA6VLalwDAwbDYbEBBjoWxo4Mcz3wxWmg8P
-         IBmg==;
+        bh=k8AnZ18aru1FtW2cyKbe/6niu0aza/YFK7phDBGX51M=;
+        fh=6/j3lIw0I3Go1K6g29CcwzgObY+5kXGzvMLe4ynZy0o=;
+        b=fe53n3rfz/WthBrjMFSbyzou9JM9izPe1Xcu/KZ1o6vpHhYaNnot3dalGqvZN5YeCL
+         u53QXsdM7PzTIlXN5i2z7O1IRlE8NQXUaaV6tVqWc47+IRxRRr94uiZImlE6iVDTelma
+         fWi9Mx0XK5OXfcwcQLV46qMrFusV3V5rvicmQXynbHhNp4GQzjH2K5mmcBtjhjuGEwBd
+         kwcbkiUOSTjTCyQ4//2rKKVAIHhTIVkgfdNvEUVtPp910r2mW3twzq6Zgdn8cvpbmBMY
+         yn8ZkQrl2zen7jn2M/NbWulxyR9zhOCiEoWIb3oMqxyvw/eXeE18vBdKcbLLFD6q8iRK
+         4iCw==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu.com; s=google; t=1794780584; x=1795385384; darn=vger.kernel.org;
+        d=mojatatu.com; s=google; t=1794780631; x=1795385431; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:from:to:cc:subject
          :date:message-id:reply-to:content-type;
-        bh=ho/wZGc1oAeiTgg3BwYQjWFIdQwxPbuaNNwg/HhMHZA=;
-        b=e0GCsMMOp1Dao9zeusMhZYvci8yLuyBL4czmaO42yrtXUVn/Y8umMrreu4S4XmqbWx
-         H2HaZ9aAu57cwNLZETXntFNeo1neShIjyUys8qo6KJRAmfWdqxKstAqk/MItHnFd2iRt
-         Gtvtx6t+aQkmrEe4BOk4r6OvTlzYdPp0RgT7s=
+        bh=k8AnZ18aru1FtW2cyKbe/6niu0aza/YFK7phDBGX51M=;
+        b=HSo9Q+0I24bd2mov1qSQp+hL7lvePSwpVIA2XZ+sJqKoQRgPUfQJHVj5kLEvkJyaww
+         mPhVpF10QU9+BXYHzNj4zGg0xeGq+nKV7HCyqwz2dgJoq3DTRkz9YNx3nUDdr8mkRBMf
+         qMU7UP2KJh2E8aXAq1upy7pY2f3nOsjWJJxGc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794780584; x=1795385384;
+        d=1e100.net; s=20260707; t=1794780631; x=1795385431;
         h=content-transfer-encoding:content-type:cc:to:subject:message-id
          :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=ho/wZGc1oAeiTgg3BwYQjWFIdQwxPbuaNNwg/HhMHZA=;
-        b=fOt3LMaibzDesUZG6JukGWVufMYbpsr89hZLmv+VsJMFCg/MoRnCh9Nq9rB7SKE//K
-         ac3FiuFpOCXJcP3lhr1z3diYRS58ohtvCwU4Vj4KAhPDt+K2NykFDq8rnysrIGscDG5E
-         LsNCsBlevGtVzom66Qr607KUNKq2zeDaCOYcm0TA4TOl0AEw2VlFzViQAJqP1DfWwXYs
-         KQEL0z3CAlyBKwLmEp3jJksaTqZXTKqLUU53OvItpVbI7d89g2AV1bi+tKVF22MVDNEN
-         9GPPJJPKFAT5TsLJbRyYz8yE0VFxudHhZrwf7yzjXK1b2zBHpR3Qkaip7Njk05pZWafs
-         mgDg==
-X-Forwarded-Encrypted: i=1; AL+hErFmNnVKChMI0bsfz6bfJPHnT1rDtKfkP+1pvy8lRtgbYx0G04jutcGkAFAZKjBHaMynL8xslaFJthY9lB+TRgM=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/KXkOJynFu5skievsi1OvG5ib+AC8b24g1dYpB1ou57mzGfqwj
-	xmOfO4E0kNMp0SMaMl0rAdKjQc+cjYGPqKDIaompl/34FTs8M1YJ98D++T7e5qEHCe9IZqQ06Hb
-	fAEXK5fjlYOMa01zZl+6Pb4fe4p/W8ScLSreEzkE2sC4bV8ghU+s=
-X-Gm-Gg: AYBFou2dVknCrppbATg7mmX2Zm6m7meqJYQ9D0DQhD8d/Nfqho9vkR2SqSgVeWBryEw
-	6KQe+KebQ01DhBtihE4mIQAD+KdT4yxL1APhUgrspr8XAJjVYytPDF1Ntcqri5S9XlICapibPat
-	Ui3crSdi/rgVMEnKG3yFPfPuBqhKV8jpnRxq3U5rEjxfupcqJVegKe+4AIKunEtYtQuVCruUQ7d
-	tPnbtRIJ4Imm7FQZ8OR2a0NIXUflckcJ1F1Hs5c7tlORZNXe1kVwF8OlvzQyv2jWisIbN1N2x7c
-	3wA8JK7Ru4Tgg/eB/VzzCIPb48x6vMt1sMVEXCxGNqIANxMheJfwd+9P42M+wRde4yth8lOHT+W
-	BYhA9Tzw7ImeAQi49pDsrqEKsCXuzOR8fmO0Nv5z0wrvPB0ufNA425+luxLgS/zNh02fiDVBKzT
-	GreztESgIHbI6fbzKKfVia
-X-Received: by 2002:a05:6a00:4f90:b0:886:ead5:6d36 with SMTP id
- d2e1a72fcca58-8beb7442276mr7434876b3a.45.1794780584568; Sun, 15 Nov 2026
- 14:09:44 -0800 (PST)
+        bh=k8AnZ18aru1FtW2cyKbe/6niu0aza/YFK7phDBGX51M=;
+        b=LLdatxKA4CZZ/cq1vKk6WyPESB08uaWc2WnHpscjWYFvOqm1pv07QE4rVQa0PBZ/Ir
+         0GWoND+iP+bFPRRWXv6VnmatFxQ3JWzr0M5ToebEZNWFkuXpnVL30iAPM+ijavpViAgM
+         iwMMnctnUwQIfV8icQmmhOc6qZpbIXL0lXrhvqh63wAy1HNbXRm6I/EGb5X9jOvFagZS
+         cXEvALIyZrnjbnS0ArXQGgSW7NS7SE10U0DXZYP08+z7l3yOybCeSWxKSMbcQGBhu5nE
+         y0b0mKGd8WLEnZ63j8FfvImFCwj/x5b50X0yloovNHiX+OPRD8YdPsuFGEoI8ZOg8qy6
+         FWyg==
+X-Forwarded-Encrypted: i=1; AL+hErERHFhD8HkQrzPCqlN4FBhVbZaXX26LYXOKR7u0s1MYvPIBWlmzDytJ67zYmokE+2fgBHXodPjgLNVSQJ1a6w0=@vger.kernel.org
+X-Gm-Message-State: APuU4Z/7836E1LND79tTtDXQkhp66laqyUlHjuLBD723OYnkiOIQupyt
+	DmVJ9fZathm3ewq2MUD6OTE8Xi/LNuhH4uZJ81qEIENadpI/XXfHQic7zNZKhKgm179V6hjg534
+	D79iInADVYZmH2R0CiUV9MveUncwrTgIgavtqr7Kw
+X-Gm-Gg: AYBFou2QSNMpd2Zu1vMZBDLJxZpolDh4bIjpskoENq/BYW0V84lygbtt+lw4eTbBezK
+	FkTcsUTISMcuPFKdPKMeGeo6ZeC1EUXsjfkRjkat8FY5BjodqC5DkzbQFPCxvBL/laM+66knyT/
+	tgcerM2VEPWbQ4xS2YCmLOgUiqRq8Y7Zu1yQYfE1ZcPWPxgRgs9cIR3v6zVPTKRJaSXhfEEVmn1
+	189vNSnj9EXmciSqLj7wNQ18ri/17UTGnAZjd4oYxfp4STdIyrd98lrVHCJdHwH/UVVQWKx/xIq
+	6BE8pjIAPN5JMnHrRyy2n2W1Mx2Jwf2M26flSAwY60KOA4pk+EaRA9FFNSQZdLSyWoNuoEHECIQ
+	UfjM79ezL1hTY8LF15X6TkuHU9eMOeptyh/ICiQ4qnVqNwbEZlAOAIWy81GGahNz2p/8rVglw4T
+	9Sxp/K7K1ipI9LiiacJIumYji7h1kVuUYhXwy5JRpm6Q==
+X-Received: by 2002:a05:6a21:3989:b0:3fa:3e8f:4b3e with SMTP id
+ adf61e73a8af0-3fa3e8f4d04mr2650692637.44.1794780631111; Sun, 15 Nov 2026
+ 14:10:31 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -102,14 +102,14 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com> <179475377256.2199510.7063513352863534262@kernel.org>
-In-Reply-To: <179475377256.2199510.7063513352863534262@kernel.org>
+References: <CORE-9NOG.v1.r0.20261111073528-2@mojatatu.com> <179475377405.2199510.12212399228969931993@kernel.org>
+In-Reply-To: <179475377405.2199510.12212399228969931993@kernel.org>
 From: Jamal Hadi Salim <jhs@mojatatu.com>
-Date: Sun, 15 Nov 2026 17:09:32 -0500
-X-Gm-Features: AclHuK96qBlwP4faLIuMLL_7nmfrPum2P-_Cevt3cb_lwGWMT9vftm0n26OY5as
-Message-ID: <CAM0EoM=kEnHcDyuZNBNQDdJ67ZEOcYWESWKBDCy0V8Kqzi+ZMA@mail.gmail.com>
-Subject: Re: [PATCH net-next 1/2] netfilter: nft_fwd_netdev: drop the stale
- dst when steering to a device
+Date: Sun, 15 Nov 2026 17:10:20 -0500
+X-Gm-Features: AclHuK_z8aEVhc2FxuQy91-PkD3dMAVo6ObqLrhxcdxE1HSSwLwSHIP0MoO-QJE
+Message-ID: <CAM0EoMk6faX=as_jjwpna9wpv=LpC=PHEZRWDsjrZzj7Q7pCPQ@mail.gmail.com>
+Subject: Re: [PATCH net-next 2/2] bpf: drop the stale dst when redirecting to
+ an explicit nexthop
 To: netdev-bot+sashiko@kernel.org
 Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, 
 	davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, 
@@ -121,38 +121,40 @@ Content-Transfer-Encoding: quoted-printable
 On Sun, Nov 15, 2026 at 9:42=E2=80=AFAM <netdev-bot+sashiko@kernel.org> wro=
 te:
 >
-> Thank you for your contribution! Sashiko AI review found more severe
-> issue(s) in other patches of this series. This mail is only an FYI, in ca=
-se
-> you want to address the nit picks below when you respin.
+> Thank you for your contribution! Sashiko AI review found 2 potential
+> issue(s) to consider.
 >
-> Low priority / nit picks for your consideration:
+> Critical: 0 =C2=B7 High: 1 =C2=B7 Medium: 0 =C2=B7 Low: 1
 >
-> - [Low] The commit fixes a real wire-level bug in nft_fwd_neigh_eval()
->   (net/netfilter/nft_fwd_netdev.c) but has no Fixes: tag and no Cc:=E2=80=
-=A6
-> - [Low] The commit message says the rule supplies both the device and the
->   nexthop "so the route dst is never consulted", which implies dropping=
-=E2=80=A6
+> If you believe none of the issues are legitimate, please reply to each
+> issue of Medium severity or higher and explain why the AI is wrong.
+> If any of them are legitimate and you plan to respin, please let patchwor=
+k
+> know by including "pw-bot: cr" as a separate line at the end of your repl=
+y
+> (one such reply per series is enough).
 >
+> - [High] The new `else { skb_dst_drop(skb); }` branches in
+>   __bpf_redirect_neigh_v4() and __bpf_redirect_neigh_v6()=E2=80=A6
+> - [Low] The commit fixes a user-visible bug but has no Fixes: tag (and no
+>   stable Cc).
 
-You should be reviewing v3 bud. A bit rude to show up with v1 now...
-If you have something meaningful to say on v3 other than these
-comments then we can talk.
+Review v3, not this one.
 
 cheers,
 jamal
-
 > --
 >
-> netfilter: nft_fwd_netdev: drop the stale dst when steering to a device
+> bpf: drop the stale dst when redirecting to an explicit nexthop
 >
-> This patch makes nft_fwd_neigh_eval() drop the skb's dst before it
-> switches skb->dev to the configured output device and calls neigh_xmit().
-> Without the drop, a packet parked on an incomplete neighbour's arp_queue
-> can be re-resolved through the stale dst when the queue drains. It then
-> leaves the configured device carrying another device's link-layer
-> addresses.
+> With BPF_F_NEXTHOP, __bpf_redirect_neigh_v4() and __bpf_redirect_neigh_v6=
+()
+> skip the FIB lookup. They leave the packet's original dst attached while
+> skb->dev is switched to the target device. If the packet is parked on the
+> target's arp_queue, the drain looks the neighbour up again from that stal=
+e
+> dst and builds the frame with the wrong link-layer header, so the patch
+> drops the dst on the explicit-nexthop branch.
 >
 > Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mo=
 jatatu.com/
@@ -166,84 +168,106 @@ mojatatu.com/
 > > Signed-off-by: Jamal Hadi Salim <jhs@mojatatu.com>
 >
 > [Severity: Low]
-> Should this have a Fixes: tag and Cc: stable?
+> Should this patch carry a Fixes: tag? The explicit-nexthop branches in
+> __bpf_redirect_neigh_v4() and __bpf_redirect_neigh_v6() that keep the
+> original route dst came from:
 >
-> The skb->dev =3D dev; followed by neigh_xmit() in nft_fwd_neigh_eval(),
-> with the skb's dst still attached, came in with:
+> Fixes: ba452c9e996d ("bpf: Fix bpf_redirect_neigh helper api to support s=
+upplying nexthop")
 >
-> d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via ne=
-ighbour layer")
+> The related fix for the non-nexthop branch, commit 23f3770e1a53 ("bpf: Fi=
+x
+> metadata_dst leak __bpf_redirect_neigh_v{4,6}"), had a Fixes: tag.
+> Without one here, stable kernels that contain ba452c9e996d may not get
+> this fix.
 >
-> The bug became much easier to hit once nft_fwd_validate() allowed
-> NF_NETDEV_EGRESS, because egress skbs always carry the output route's
-> dst:
->
-> f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
->
-> The reproducer in the commit message uses an egress chain. Without a
-> Fixes: tag, stable backporters can't tell which trees need this fix.
->
-> > diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_net=
-dev.c
-> > index a48c2f765bbaa..ad4d61d64cdde 100644
-> > --- a/net/netfilter/nft_fwd_netdev.c
-> > +++ b/net/netfilter/nft_fwd_netdev.c
-> > @@ -175,6 +175,7 @@ static void nft_fwd_neigh_eval(const struct nft_exp=
-r *expr,
-> >               }
+> > diff --git a/net/core/filter.c b/net/core/filter.c
+> > index aca8160b26a1a..2af24f371648a 100644
+> > --- a/net/core/filter.c
+> > +++ b/net/core/filter.c
+> > @@ -2318,6 +2318,8 @@ static int __bpf_redirect_neigh_v6(struct sk_buff=
+ *skb, struct net_device *dev,
+> >               skb_dst_set(skb, dst);
+> >       } else if (nh->nh_family !=3D AF_INET6) {
+> >               goto out_drop;
+> > +     } else {
+> > +             skb_dst_drop(skb);
 > >       }
-> >
-> > +     skb_dst_drop(skb);
 >
-> [Severity: Low]
-> The commit message says:
+> [Severity: High]
+> Can this drop a metadata dst that was attached by
+> bpf_skb_set_tunnel_key()?
 >
->     Both lookup inputs the neighbour transmission needs, the device and
->     the nexthop, are supplied by the rule, so the route dst is never
->     consulted.
+> The new else branch drops any dst on the skb and does not check whether
+> it is a route dst. bpf_skb_set_tunnel_key() stores the TX tunnel info in
+> a DST_METADATA dst:
 >
-> Is that accurate? The arp_queue drain is not the only place that reads
-> the dst. If the target neighbour never resolves, the neighbour's
-> error_report hook also reads it:
->
-> neigh_xmit()
->   neigh->output()
->     ... resolution fails ...
->     arp_error_report() / ndisc_error_report()
->       dst_link_failure(skb)
->
-> include/net/dst.h:dst_link_failure() {
+> net/core/filter.c:bpf_skb_set_tunnel_key() {
 >     ...
->         if (dst && dst->ops && dst->ops->link_failure)
->                 dst->ops->link_failure(skb);
+>         skb_dst_drop(skb);
+>         dst_hold((struct dst_entry *) md);
+>         skb_dst_set(skb, (struct dst_entry *) md);
 >     ...
 > }
 >
-> Before this patch, an egress skb handled by "fwd ip to <nh> device <dev>"
-> whose nexthop never resolved still had its route dst. So
-> ipv4_link_failure() or ip6_link_failure() sent ICMP host unreachable or
-> ICMPv6 address unreachable back to the sender, and expired or
-> invalidated the original route.
+> Take a tc program that calls bpf_skb_set_tunnel_key() and then
+> bpf_redirect_neigh() to a collect_md vxlan or geneve device, using an nh
+> from bpf_fib_lookup().
 >
-> Once the dst is dropped, dst_link_failure() returns without doing
-> anything. __icmp_send() also needs skb_rtable(skb_in), so the packet is
-> now dropped silently. Local senders no longer get EHOSTUNREACH feedback,
-> and the route is not expired.
+> Before this patch the metadata dst stayed on the skb. vxlan and geneve
+> call netif_keep_dst(), so __dev_queue_xmit() keeps it. vxlan_xmit() then
+> finds skb_tunnel_info() with IP_TUNNEL_INFO_TX and encapsulates.
 >
-> The new behaviour is arguably more correct. The old ICMP and route
-> expiry applied to a route and device the packet was no longer using,
-> and the new behaviour matches the ingress hook, where skbs normally have
-> no dst.
+> After this patch skb_tunnel_info() returns NULL. In collect_md mode,
+> vxlan_xmit() then drops the packet:
 >
-> Could the commit message mention this change in user-visible behaviour?
+> drivers/net/vxlan/vxlan_core.c:vxlan_xmit() {
+>     ...
+>                         if (info && info->mode & IP_TUNNEL_INFO_TX)
+>                                 vxlan_xmit_one(skb, dev, cfg, vni, NULL, =
+false);
+>                         else
+>                                 kfree_skb_reason(skb, SKB_DROP_REASON_TUN=
+NEL_TXINFO);
+>     ...
+> }
 >
-> The follow-up patch "bpf: drop the stale dst when redirecting to an
-> explicit nexthop" makes the same claim for bpf_redirect_neigh(), so the
-> same question may apply there.
+> Geneve behaves the same way.
 >
-> >       skb->dev =3D dev;
-> >       skb_clear_tstamp(skb);
-> >
+> If the overlay neighbour is not yet resolved, arp_solicit() also reads
+> the tunnel metadata for the ARP request from the parked skb's dst:
+>
+> net/ipv4/arp.c:arp_solicit() {
+>     ...
+>         if (skb && !(dev->priv_flags & IFF_XMIT_DST_RELEASE))
+>                 dst =3D skb_dst(skb);
+>     ...
+> }
+>
+> With that dst now NULL, would the solicitation be dropped too, so the
+> neighbour never resolves?
+>
+> The commit message says:
+>
+>   That branch never consults the route dst, so nothing is lost
+>
+> That is true for a routing dst. The target device's xmit path does read
+> a metadata dst, though.
+>
+> Metadata dsts use dst_blackhole_ops, and dst_blackhole_neigh_lookup()
+> returns NULL. For those dsts, the arp_queue drain already falls back to
+> the parking neighbour.
+>
+> Would skipping the drop when skb_metadata_dst(skb) is set fix the
+> reported bug without this regression?
+>
+> The same question applies to the new else branch in
+> __bpf_redirect_neigh_v4().
+>
+> No selftest covers this case. test_tc_neigh_fib.c only redirects with a
+> FIB-derived nexthop and no tunnel key.
+>
+> [ ... ]
 >
 > --
 > Sashiko AI review =C2=B7 https://netdev-ai.bots.linux.dev/sashiko/#/patch=
