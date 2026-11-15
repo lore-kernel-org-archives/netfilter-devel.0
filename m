@@ -1,22 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.6.0.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794760755;
-	b=Fv1SIxHGICd0eT1ZMXS3Vv0I9PgVM/h+thAs0EGUboYkPx4hl0HGVz1CN8aENG6HzYl1
-	 pwGWYJPVE931bppYC+mAXDcmDTn6z+NbeXxpYW7KYruvKWCaKZfTRs8caS4BF5FAt3xQA
-	 1VNhfPYwLxro2ifqrTObuP2z3ANFubSirZT7vtC2zv30WD+Rrs0t0cOLCSv340c7kxN+x
-	 KuEZkt1NCJilrUeKHCEb/DQjhvnb0Mi7My8Mw9fWTkl19FKvRAJX010mmNZMO0wXL3Qav
-	 ea791wjRQq3DBnOuDCgbyiNVgGVBNGOenv0SWwQp2y4RT7xx/M8l8P61udai/uOg3kA==
+	t=1794761155;
+	b=4H+dEaMHySFMA67PAn5vAP7PSD5zpJMxy6pRXbMfgvid1Djc/wO7a2Ee/HkFnIrEpxHI
+	 fgjpMCYvQAywEIUZjQjmDAce+rU8TbNezcT+scUcVLQ+vwYyb2ThZcFla02EskhSxl28p
+	 jU2bXfx5/htEQqdn8N1JE64E6gCq4kz9EOMaRq6QMY1eFZ3wLtw9VCCl1LB0AaKuvTjmg
+	 1TISBfqbwVYuhsNugH3sX70Wy3x7hevtWrlU5sZh33+TMg0dv00fT2CSofXAlE+5mMWgH
+	 R9O3Rl39rgqVe3NfZvHeFgJrm3pOIXlNnnynVh+la6+xsEqXJcu0UTMhV6UiWHhxxrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794760755;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794761155;
 	h=DMARC-Filter:Received:X-Virus-Scanned:Received:Received:Received:
 	 Received:Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
 	 MIME-Version:Content-Type;
-	bh=FuzyLoeFEo3bh0yREmtlHFDtn5+8+hxAWDN0S5n9714=;
-	b=mGqdbdfKegbGF/1Wr3w1W5ogwsweUXUhrHGaBgKJsoOY4zkcaLpWpd400HIynvm295T8
-	 JJprTjJfAUZ6n85CwezZ+k/ahUHlsLBN3G9dQWW18AH9USYsZk4aaBYig+TzisK5ahUSG
-	 1ra/fmhy72sEpIEEvlMhbOpBQhN/o6tzMZ+AHd39f9eFSR7idFlfEpQXogx+bNWxsKc7x
-	 gSAxRjbCynfXknXUQqb21h13kbgQ4a0GNvmPuQbfoTKS+pXBbWfgB0cZqhpYi19CiGWTl
-	 I2KfiJrvGs2yhgIpYKLPZItNE/HkbcUYnyKT//6NHZUp4jNDwEvU5loTvw9DyMhInFA==
+	bh=piXu8kkCIcszJ86E8iPiuXPu+7XX7JPPLbQ3Oobk604=;
+	b=D0hYhrMUYH8A6Z4du7grlL6fzxstcPl0EmiRtkAygBaKaXkMeVl2u2iOYQPyzOTRORvU
+	 YOThdXe6JYrcmQkx+K7aDf8hrg2mI90pjRNK7789fmGkP0sgku8z91Jk2tOub+141yeAX
+	 wqiQsbQdfhEDhnrVB0F85YYWKSzx4o/5g9BVDvKYc7Uf0pDC4EdZF1TSLZ7EDlY2b9b3J
+	 QI/ZZpDagWYPF4G9i6Onydt6+KBARPORyCPKwvYyUfrRp9Gt10Wrjiw2PLLSYH1NTLw2Z
+	 fWRGFZi2fBWZq20FycCmza0jE/17dn9kQyuvrd7qtYTrce5uBdgdtjltUs0VQCY4Xsw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
@@ -25,35 +25,35 @@ Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD3F4606A31F
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 16:39:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BD3F4606A31F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36245606A31A
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 16:45:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 36245606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4jSGsj5BWwzGFDCV;
-	Sun, 15 Nov 2026 17:39:05 +0100 (CET)
+	by smtp1.kfki.hu (Postfix) with ESMTP id 4jSH1Y3BqCzGFDCV;
+	Sun, 15 Nov 2026 17:45:53 +0100 (CET)
 X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
 Received: from smtp1.kfki.hu ([127.0.0.1])
  by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id 54_KfubUW-ey; Sun, 15 Nov 2026 17:39:03 +0100 (CET)
+ id svP8dBQLqz33; Sun, 15 Nov 2026 17:45:51 +0100 (CET)
 Received: from mentat.rmki.kfki.hu (254C22F0.nat.pool.telekom.hu [37.76.34.240])
 	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4jSGsg4tQwzGFDCR;
-	Sun, 15 Nov 2026 17:39:03 +0100 (CET)
+	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4jSH1W3WLSzGFDCR;
+	Sun, 15 Nov 2026 17:45:51 +0100 (CET)
 Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 1F683140554; Sun, 15 Nov 2026 17:39:03 +0100 (CET)
+	id 19328140554; Sun, 15 Nov 2026 17:45:51 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 1C761140343;
-	Sun, 15 Nov 2026 17:39:03 +0100 (CET)
-Date: Sun, 15 Nov 2026 17:39:03 +0100 (CET)
+	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 15D59140343;
+	Sun, 15 Nov 2026 17:45:51 +0100 (CET)
+Date: Sun, 15 Nov 2026 17:45:48 +0100 (CET)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 cc: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH ipset] tests: hash:net,iface.t: add test case for wildcard
  matching behaviour
 In-Reply-To: <20261028130203.1398-1-fw@strlen.de>
-Message-ID: <86662718-9117-5c82-cd2e-74298a9a2c7f@netfilter.org>
+Message-ID: <9744e2bf-d71b-0a1e-a170-45b9025d1584@netfilter.org>
 References: <20261028130203.1398-1-fw@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -98,9 +98,12 @@ On Wed, 28 Oct 2026, Florian Westphal wrote:
 > +# The wildcard entry should still be there and match eth1 via its prefix.
 > +0 ipset test test 10.0.1.0/24,eth1
 
-The original code does not handle the case properly and the wildcard entry 
-can be deleted instead the specific one. If it passes for you then it's 
-just lucky ordering.
+Just for the record: this is a variant of specific entry/overlapping 
+wildcard matching and it fails in the original code, which is of 
+course wrong.
+
+Best regards,
+Jozsef
 
 > +0 ipset flush test
 > +# Same layout: specific entry first, wildcard entry second.
@@ -119,13 +122,13 @@ just lucky ordering.
 > +# eth0 is excluded by the nomatch entry; it must not match via the wildcard.
 > +1 ipset test test 10.0.3.0/24,eth0
 > +0 ipset destroy test
+>  # eof
+> -- 
+> 2.55.0
+> 
+> 
+> 
 
-This part also does not handled properly with the current code: it lacks 
-the ordering to match/delete first the specific and then the wildcard 
-records.
-
-Best regards,
-Jozsef
 -- 
 E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
 Address: Wigner Research Centre for Physics
