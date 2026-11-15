@@ -1,54 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.161.69
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794781357;
-	b=D/N3tzjz9A4nm52a8abA2p8sWszlWuIiyhfs9b/vQ45rJdGmS9xIuHPKFprXqpqeoLxs
-	 EcKOZrO9O6hOoTMl0VYvQkHE8t4UrYEUECfD+rLpJ9C2TyD6tptYJ2hHCMS2D/4jWotfU
-	 elND6DlYgQNLSd2fYLNgGvViVr6+CYjMCTAGaRv3FV+bot59fEIYM2p28ahv+sYm9vfFq
-	 IIeWjHywKr6KdUX6H26uiamJN5OpGIMjbtNM2oweDIsFzoxKdfEiqo2CDP3RqTo/4wZsm
-	 7VppRj5TwCB/uGsgrxRDPIcjWaTwa9D81Yeark73FIq+MS3nJzPt/D/d3Po74k5dICw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794781357;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:MIME-Version:X-Received:Date:In-Reply-To:
-	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
-	 Subject:From:To:Content-Type;
-	bh=j48R735f118eJ59p+9MBsl6aHMwkGoc0F1+DYRBFwdk=;
-	b=kVeAcOZlrYWTIps86vsegdRlgVznJlDogVjlcXVr/f9YdN2s5h7XJsipsV9spQyI37jK
-	 qGcQAxDjnGhdyUohxIMB6sKzzP/kB6IpU1oETwsLl854SNDhV0/vzT+wZHI/RBm8ET/XJ
-	 +1pWjPVIBPmdFw8mQmHSd+7KjXDTl4f85mp+Go19xN8VVzxyS9UIu5yDSveFy5kG5oc6N
-	 /GI/6jPS5nDAfrm7PtCfyjLm1GmHLKZ3zdhC/m2+DMlQbyE9gWwfinocOK6v9vHEk/MPG
-	 Q/lqCbJ2+tNsEaywz0OqkcO8gE/hHsPetntqaQ8+WAcc9ySLUk1RvHqBH6Dbt9/kyQw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=syzkaller.appspotmail.com;
-	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
-	arc=none smtp.remote-ip=209.85.161.69
-Received: from mail-oo1-f69.google.com (mail-oo1-f69.google.com [209.85.161.69])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794782084;
+	b=uVHWLzGWJ0KBmacQ93DtJmRrCWaaIf86kfEdlDATdANx6QYJ9kQr2c4C0uCRt4ANMeB3
+	 iQkrMnu6yUu71EYWmC3EDtWJhdKkWUkgQrCjiTXWwqhxBIL4Xu33qDFrmgoNGcpJrVpgG
+	 2aWy6cf2I1gZR3xrSI3xPfLSrYgBJ/b72brMOgH6FXGynWUY7K0frKxfst/dOD11vzZxC
+	 +Ha9lxt9kStABleja7XBYuX9NwOEBcUlXaZXOgEpY/OzoGlhZ8isZXbH2jt32E9Wzag8c
+	 YogPM64kBhPlPnNJ/V6TDlatfQmFOmCQwFmz/SFz6//LnpLKfmb44sKUnz5cm02ajdw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794782084;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=vKFwJFQVkE1SOt4l66iLRKSuv0tZWR+rY8jCMRsdO8w=;
+	b=NZ3L10stW1MyfqwzxhGvC1l+V2E92LwE4/Suqbo+mvnjYl5cZRfGySaChFbdn6MCNygA
+	 9c1L3DNHIGWRrJji/e2pH4/32QcI7T4EOhgZ1BIJVGtliXh5GZEnKR1UZ9uQM0NGqiVLm
+	 amB990Cusalx03b/RgTcfl1AGdn4XD63a2T+UkYkec9BHi4qiFgXdFFWs4rySwBFPdPXS
+	 itDPo6C9zlXYUTtUaZhWWmXPMhmYfmHJvn9p5pCuKYicOmIRwL2R+JXcQibrrRSu2ttLf
+	 lCvCgNXV+z1PXAnUSdmbakkfKCNqvIovwG17RmElBCkxRBw0aSgjrAN0RR/20AFKhXQ==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=X7naLAEK;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70233606A329;
+	Sun, 15 Nov 2026 22:34:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=X7naLAEK
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1794782084;
+	b=FenyRT3yhU6b1N2AfqKt5Vr6MpoL0rHA5R1RVo1Xu3ggW+QVtiCjdHjkAvaFPt3WdgNZ
+	 n78mgfIRbH7vjg7oBeyN8QmSJGxA0tCGpNgTwvGcFDVpqG2eqCMtn0Pzj4tKZ/u+9+weS
+	 1tKuhc9L2JED/eCG7m5O+iSMI8b7KzmXZ4hu1k7XnA6oas/7U467/Rbh49tza08DDwEb8
+	 r4/n2wAQNGwVVanuQ/6ynmJRSLFmRv+p30pRvP+BR750vmx0eOyPPoTwRzP6WzXeI15Do
+	 XX48JbRlSEdUMnKOCNS0HQotNtDu/LTqX0dwWEq+yrVSySAWLU0B3yMijhBYve1Z10Q==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1794782084;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=vKFwJFQVkE1SOt4l66iLRKSuv0tZWR+rY8jCMRsdO8w=;
+	b=l3pw+h0Uyi+bZVAPv8toyZcnHUeRKgmFVcL8xrI65/IHWEpp1eqTUaXnHcCdQWGFPtMs
+	 tnU8fB9l3XuPE7BJ+x2G/ZP9+0fZzc1CogN4Y36XdaZi5ggcbJuD7f+Bi1R1wehOdMkKM
+	 wP2ptfXcMhBqGBzQhyOuv//XVdAycX5R1cbkeYeuwZucCG/CfN5G9MnHm6nAIUsZYUDAn
+	 O9Nd9ZkopxscM2mwm2cfoaHjehvFVW79g268o+mGU72v6VcvjjAtOEBgpThOTuGNPLhPS
+	 43T6wdgnGj7z5KxkQ9w3gIvwLPdoChrDP0PnsJ3WyaGLOhOBk4CQaP/7Fl1kD6XOgFA==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94B3A606A323
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 22:22:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94B3A606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f69.google.com with SMTP id 006d021491bc7-71aca016fdcso2186761eaf.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 14:22:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794781356; x=1795386156;
-        h=content-type:to:from:subject:message-id:in-reply-to:date
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=j48R735f118eJ59p+9MBsl6aHMwkGoc0F1+DYRBFwdk=;
-        b=dZcVmnCRfEvaPjxdsppYoCiXlyn35wdIezIUjy9Te5E6bkBdtwV1yShRBwLtM7zGad
-         Kl22B5ZlJswm2pyGZGkeODBbukysnvpViFVUwLPFdyhFuBUj7/TPxgQMJHpS9Ov0riqn
-         onLa7LKqbGQwVWGK3kagDAwrThDXZW/Jm9WiIZgL3yP79xhUYOPPylnHz4k80uzyjy/J
-         BCXL0uKxQhdJTJcSCvE4+RTbR/+f+oT3YGWHbOj0DpeiwYBV71q8veLCXFu4fgCtzfgI
-         ZVtVXgahfaT67q1srwJQoNy0VDtV8TD0Cu95dgXtw9cPehBwkIYx0qnQvOr6Sj5ZDpXI
-         qsUg==
-X-Forwarded-Encrypted: i=1; AL+hErGm87FNPBilFZsIU4ORr39fxr/wXah7zvJKjXqyzjKmCdutR951Ri22cftpM/hKfbp+iB/Gkbu0G7Qq0Gj+gqQ=@vger.kernel.org
-X-Gm-Message-State: APuU4Z98qW82JWtd3sbfAeQoz0vyE+bNwMSiMTF8fkMUczjaBU3cUp2V
-	OVlFqr3oITQqFGuduSgzjeM/jf6kuJZx5yHFCrQtsKOWtORuq0j/IcgZN7jzWiQfwIDjfcoE+nD
-	1v2jD4JTWoHkp7e30lJ2erYLb68m76R18KbvitRY9jgSfjVKK0w3Pk1Nhw3s=
+	by smtp.kernel.org (Postfix) with ESMTPS id BAEAF1F000C5;
+	Sun, 15 Nov 2026 22:34:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794782084;
+	bh=vKFwJFQVkE1SOt4l66iLRKSuv0tZWR+rY8jCMRsdO8w=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
+	b=X7naLAEK6oirit7XszsuEpnhnwzUL+HlZXDoZ69WpabPeKtC+ge0LzI/oLPhciV7d
+	 sjrCgAip+/R3jOWmfA8Tvp7WL35tswKNMSF82yH8FU2pRZQFGHzcl0ISwZ91bLzs45
+	 a9KUFhpP2iIkyVY0HBKVEEppPmbXl+XytgE43KtboGz39SCw+nlprFAuL2N2Vu+LI5
+	 ckb/mAB/T4w+XFzqbsM2cCJ5DlHJg1S+LFPVoUWqTCKoyBLJ19hK5/ebPBLzuQlLs2
+	 U7NsE5x/Y10qD7OfY/hcGzZlRx2dALTroiE8S/Ik8R8rkJ6T03nX+EY/jiaB8XnXsd
+	 9xZCpMUX1ZAOA==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 4B4D54A244;
+	Sun, 15 Nov 2026 22:34:43 +0000 (UTC)
+From: Alireza Asgari via B4 Relay <devnull+alireza.asgari.net@kernel.org>
+Date: Sun, 15 Nov 2026 22:34:41 +0000
+Subject: [PATCH RFC nf-next 1/9] memcg: saturate deferred memory.high page
+ debt
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -58,158 +83,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:c44b:20b0:71a:f794:49cd with SMTP id
- 006d021491bc7-71af7944c7amr136480eaf.65.1794781356552; Sun, 15 Nov 2026
- 14:22:36 -0800 (PST)
-Date: Sun, 15 Nov 2026 14:22:36 -0800
-In-Reply-To: <674b53e8.050a0220.253251.00e0.GAE@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6afa30ac.920b2b3a.148c65.0047.GAE@google.com>
-Subject: Re: [syzbot] [mm?] INFO: rcu detected stall in sys_sendmmsg (7)
-From: syzbot <syzbot+53e660acb94e444b9d63@syzkaller.appspotmail.com>
-To: andrii@kernel.org, anna-maria@linutronix.de, ast@kernel.org, 
-	bpf@vger.kernel.org, daniel@iogearbox.net, davem@davemloft.net, 
-	edumazet@kernel.org, frederic@kernel.org, horms@kernel.org, jmaloy@redhat.com, 
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-mm@kvack.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	pabeni@redhat.com, pablo@netfilter.org, syzkaller-bugs@googlegroups.com, 
-	tglx@linutronix.de, tipc-discussion@lists.sourceforge.net, 
-	tung.quang.nguyen@est.tech
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261115-b4-nfqueue-memory-accounting-v1-1-b9cc30819997@asgari.net>
+References: <20261115-b4-nfqueue-memory-accounting-v1-0-b9cc30819997@asgari.net>
+In-Reply-To: <20261115-b4-nfqueue-memory-accounting-v1-0-b9cc30819997@asgari.net>
+To: netfilter-devel@vger.kernel.org, linux-mm@kvack.org
+Cc: Johannes Weiner <hannes@cmpxchg.org>, Michal Hocko <mhocko@kernel.org>, 
+ Roman Gushchin <roman.gushchin@linux.dev>, 
+ Shakeel Butt <shakeel.butt@linux.dev>, Muchun Song <muchun.song@linux.dev>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@kernel.org>, 
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, Shuah Khan <shuah@kernel.org>, 
+ Tejun Heo <tj@kernel.org>, Vladimir Davydov <vdavydov.dev@gmail.com>, 
+ Chris Down <chris@chrisdown.name>, 
+ Zhang Jiao <zhangjiao2@cmss.chinamobile.com>, Song Hu <husong@kylinos.cn>, 
+ cgroups@vger.kernel.org, netdev@vger.kernel.org, 
+ linux-kselftest@vger.kernel.org, Alireza Asgari <alireza@asgari.net>
+X-Mailer: b4 0.15.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794782082; l=2138;
+ i=alireza@asgari.net; s=alireza-kernel; h=from:subject:message-id;
+ bh=MFLqtuTtN7u8/DPQa2KEvRoRy7eP6Qdkj4IqlD51WpM=;
+ b=m98I55EK5DDGlH5OD7HSN8CrjP52A8a7eITltlcAQqwelzQ/Ji/0VnlVZwsHX3oQHyR75mAWM
+ RPrXccDRgy0DuW481S+kjEPQp4IqBc8At79t2aeJgNQhfDBRfENeSrn
+X-Developer-Key: i=alireza@asgari.net; a=ed25519;
+ pk=wuQ0/M69FqoVnrCMUJ13EQCwrCwVjCrtz75k15vW8tw=
+X-Endpoint-Received: by B4 Relay for alireza@asgari.net/alireza-kernel with
+ auth_id=1055
+X-Original-From: Alireza Asgari <alireza@asgari.net>
+Reply-To: alireza@asgari.net
+Content-Transfer-Encoding: 7bit
 
-syzbot has found a reproducer for the following issue on:
+From: Alireza Asgari <alireza@asgari.net>
 
-HEAD commit:    ad3fc05c7e65 arm64: suspend: Only track cpuidle context fo..
-git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
-console output: https://syzkaller.appspot.com/x/log.txt?x=1344e44d580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4e8e6c1701ad8af2
-dashboard link: https://syzkaller.appspot.com/bug?extid=53e660acb94e444b9d63
-compiler:       Debian clang version 22.1.8 (1~deb13u4), Debian LLD 22.1.8
-userspace arch: arm64
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16190411580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1730444d580000
+Repeated nonblocking charges can accumulate deferred memory.high work
+before the charging task returns to userspace. The unsigned-int page
+counter can wrap, including to zero, and erase that pending work. Large
+virtual capacity reservations can reach this range without allocating
+corresponding physical memory, including on 64-bit kernels.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/a30beb3b2b82/disk-ad3fc05c.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/2eaac3d8da90/vmlinux-ad3fc05c.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/212a161a069b/Image-ad3fc05c.gz.xz
+Saturate the addition at UINT_MAX. Ordinary additions retain their value;
+very large debt retains the pressure signal instead of wrapping. This does
+not change memory.max checks or promise exact debt beyond the saturation
+point.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+53e660acb94e444b9d63@syzkaller.appspotmail.com
+Found during AI-assisted source review of virtual capacity accounting.
+The accompanying KUnit patch calls the real GFP_NOWAIT charging path with
+an isolated counter fixture and a 65-page charge. It seeds debt near
+UINT_MAX to cover exact-boundary, crossing, and already-saturated cases;
+it does not allocate the corresponding large amount of physical memory.
 
-watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [syz.0.42:5008]
-Modules linked in:
-irq event stamp: 7423
-hardirqs last  enabled at (7422): [<ffff8000869575f4>] irqentry_exit_to_kernel_mode_after_preempt include/linux/irq-entry-common.h:511 [inline]
-hardirqs last  enabled at (7422): [<ffff8000869575f4>] __arm64_exit_to_kernel_mode+0xe4/0x140 arch/arm64/kernel/entry-common.c:99
-hardirqs last disabled at (7423): [<ffff800086954144>] __el1_irq arch/arm64/kernel/entry-common.c:566 [inline]
-hardirqs last disabled at (7423): [<ffff800086954144>] el1_interrupt+0x28/0x60 arch/arm64/kernel/entry-common.c:582
-softirqs last  enabled at (2824): [<ffff800084c751c0>] spin_unlock_bh include/linux/spinlock.h:407 [inline]
-softirqs last  enabled at (2824): [<ffff800084c751c0>] release_sock+0x150/0x228 net/core/sock.c:3950
-softirqs last disabled at (2830): [<ffff800084c894d0>] spin_lock_bh include/linux/spinlock.h:353 [inline]
-softirqs last disabled at (2830): [<ffff800084c894d0>] lock_sock_nested+0x70/0x110 net/core/sock.c:3927
-CPU: 0 UID: 0 PID: 5008 Comm: syz.0.42 Not tainted syzkaller #0 PREEMPT 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/06/2026
-pstate: 03400005 (nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
-pc : queued_spin_lock_slowpath+0x138/0xb5c kernel/locking/qspinlock.c:219
-lr : queued_spin_lock_slowpath+0x144/0xb5c kernel/locking/qspinlock.c:219
-sp : ffff80009b9174e0
-x29: ffff80009b917580 x28: ffff0000c8151d90 x27: 1fffe0001944c94b
-x26: 1fffe0001902a3b2 x25: ffff0000c8151d80 x24: dfff800000000000
-x23: ffff700013722ea0 x22: ffff700013722ec0 x21: ffff0000ca264a58
-x20: ffff0000ca264a60 x19: ffff0000ca264a50 x18: ffff800123625000
-x17: ffff0001ace95387 x16: ffff0000c8151d94 x15: 0000000020007000
-x14: 00000000005e6a88 x13: 0000000000000001 x12: 0000000000000000
-x11: 0000000000000000 x10: ffff60001944c94b x9 : 0000000000000000
-x8 : 0000000000000001 x7 : ffff800084c894d0 x6 : 0000000000000000
-x5 : 0000000000000000 x4 : 0000000000000001 x3 : ffff80008697b308
-x2 : 0000000000000000 x1 : 0000000000000001 x0 : 0000000000000001
-Call trace:
- __cmpwait_case_8 arch/arm64/include/asm/cmpxchg.h:231 [inline] (P)
- __cmpwait arch/arm64/include/asm/cmpxchg.h:259 [inline] (P)
- queued_spin_lock_slowpath+0x138/0xb5c kernel/locking/qspinlock.c:219 (P)
- queued_spin_lock include/asm-generic/qspinlock.h:115 [inline]
- do_raw_spin_lock+0x21c/0x2d0 kernel/locking/spinlock_debug.c:116
- __raw_spin_lock_bh include/linux/spinlock_api_smp.h:183 [inline]
- _raw_spin_lock_bh+0x50/0x60 kernel/locking/spinlock.c:205
- spin_lock_bh include/linux/spinlock.h:353 [inline]
- lock_sock_nested+0x70/0x110 net/core/sock.c:3927
- lock_sock include/net/sock.h:1717 [inline]
- tipc_sendstream+0x54/0x88 net/tipc/socket.c:1550
- sock_sendmsg_nosec net/socket.c:800 [inline]
- __sock_sendmsg+0xc8/0x188 net/socket.c:818
- ____sys_sendmsg+0x3f8/0x6c8 net/socket.c:2715
- ___sys_sendmsg+0x198/0x224 net/socket.c:2769
- __sys_sendmmsg+0x204/0x580 net/socket.c:2858
- __do_sys_sendmmsg net/socket.c:2885 [inline]
- __se_sys_sendmmsg net/socket.c:2882 [inline]
- __arm64_sys_sendmmsg+0xac/0xc8 net/socket.c:2882
- __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
- invoke_syscall+0x98/0x244 arch/arm64/kernel/syscall.c:49
- el0_svc_common+0xec/0x23c arch/arm64/kernel/syscall.c:121
- do_el0_svc+0x4c/0x5c arch/arm64/kernel/syscall.c:140
- el0_svc+0x60/0x1d8 arch/arm64/kernel/entry-common.c:797
- el0t_64_sync_handler+0x44/0x104 arch/arm64/kernel/entry-common.c:816
- el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:606
-Sending NMI from CPU 0 to CPUs 1:
-NMI backtrace for cpu 1
-CPU: 1 UID: 0 PID: 5009 Comm: syz.0.42 Not tainted syzkaller #0 PREEMPT 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 11/06/2026
-pstate: 83400005 (Nzcv daif +PAN -UAO +TCO +DIT -SSBS BTYPE=--)
-pc : should_resched arch/arm64/include/asm/preempt.h:80 [inline]
-pc : __local_bh_enable_ip+0x150/0x234 kernel/softirq.c:480
-lr : __local_bh_enable_ip+0x14c/0x234 kernel/softirq.c:478
-sp : ffff800096516740
-x29: ffff800096516740 x28: ffff800096516b80 x27: 000000007a3a32f3
-x26: ffff0000dd3d8780 x25: ffff800096516800 x24: ffff700012ca2d00
-x23: dfff800000000000 x22: 1fffe000191a6b11 x21: ffff800086493f3c
-x20: 0000000000000201 x19: ffff0000c8d35888 x18: 00000000ffffffff
-x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080d84024
-x14: 00000000027c6219 x13: 0000000000000001 x12: 0000000000000003
-x11: ffff80008b386328 x10: 0000000000000003 x9 : 0000000000000001
-x8 : 0000000002d1a4ce x7 : 0000000000000000 x6 : 0000000000000000
-x5 : 0000000000000000 x4 : 0000000000000008 x3 : ffff8000801546f4
-x2 : 0000000000000002 x1 : ffff0000c8d35880 x0 : ffff80012364b000
-Call trace:
- __daif_local_irq_enable arch/arm64/include/asm/irqflags.h:26 [inline] (P)
- arch_local_irq_enable arch/arm64/include/asm/irqflags.h:48 [inline] (P)
- __local_bh_enable_ip+0x150/0x234 kernel/softirq.c:478 (P)
- __raw_spin_unlock_bh include/linux/spinlock_api_smp.h:237 [inline]
- _raw_spin_unlock_bh+0x3c/0x4c kernel/locking/spinlock.c:245
- spin_unlock_bh include/linux/spinlock.h:407 [inline]
- tipc_skb_peek_port net/tipc/msg.h:1235 [inline]
- tipc_sk_rcv+0x2ec/0x13f0 net/tipc/socket.c:2506
- tipc_node_xmit+0x1c8/0xb9c net/tipc/node.c:1708
- tipc_node_xmit_skb+0x10c/0x178 net/tipc/node.c:1773
- tipc_sk_rcv+0x11c0/0x13f0 net/tipc/socket.c:2537
- tipc_node_xmit+0x1c8/0xb9c net/tipc/node.c:1708
- tipc_sk_push_backlog+0x3a0/0x788 net/tipc/socket.c:1314
- tipc_sk_filter_connect net/tipc/socket.c:2260 [inline]
- tipc_sk_filter_rcv+0xcb8/0x1fa4 net/tipc/socket.c:2379
- tipc_sk_enqueue net/tipc/socket.c:2460 [inline]
- tipc_sk_rcv+0x5b0/0x13f0 net/tipc/socket.c:2512
- tipc_node_xmit+0x1c8/0xb9c net/tipc/node.c:1708
- tipc_node_xmit_skb net/tipc/node.c:1773 [inline]
- tipc_node_distr_xmit+0x264/0x370 net/tipc/node.c:1788
- tipc_sk_backlog_rcv+0x17c/0x23c net/tipc/socket.c:2427
- sk_backlog_rcv include/net/sock.h:1194 [inline]
- __release_sock+0x174/0x2c0 net/core/sock.c:3341
- release_sock+0x174/0x228 net/core/sock.c:3940
- tipc_release+0xca8/0x10d0 net/tipc/socket.c:652
- __sock_release+0xa0/0x1d4 net/socket.c:735
- sock_close+0x24/0x38 net/socket.c:1529
- __fput+0x338/0x74c fs/file_table.c:512
- fput_close_sync+0x10c/0x278 fs/file_table.c:618
- filp_close_sync+0x7c/0xb4 fs/open.c:1573
- __range_close fs/file.c:919 [inline]
- __do_sys_close_range fs/file.c:1003 [inline]
- __se_sys_close_range fs/file.c:954 [inline]
- __arm64_sys_close_range+0x898/0xbdc fs/file.c:954
- __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
- invoke_syscall+0x98/0x244 arch/arm64/kernel/syscall.c:49
- el0_svc_common+0x19c/0x23c arch/arm64/kernel/syscall.c:121
- do_el0_svc+0x4c/0x5c arch/arm64/kernel/syscall.c:140
- el0_svc+0x60/0x1d8 arch/arm64/kernel/entry-common.c:797
- el0t_64_sync_handler+0x44/0x104 arch/arm64/kernel/entry-common.c:816
- el0t_64_sync+0x198/0x19c arch/arm64/kernel/entry.S:606
+The debt case passed on both 64-bit and 32-bit x86 KUnit kernels built
+from this series. The test exercises the production charging and debt
+update path; it does not reproduce end-to-end throttling.
+
+Fixes: b23afb93d317 ("memcg: punt high overage reclaim to return-to-userland path")
+Signed-off-by: Alireza Asgari <alireza@asgari.net>
+---
+ mm/memcontrol.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/mm/memcontrol.c b/mm/memcontrol.c
+index 84f4a8fd4d16..1980fb7431a8 100644
+--- a/mm/memcontrol.c
++++ b/mm/memcontrol.c
+@@ -2894,8 +2894,12 @@ static int try_charge_memcg(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ 			 * Target some best-effort fairness between the tasks,
+ 			 * and distribute reclaim work and delay penalties
+ 			 * based on how much each task is actually allocating.
++			 * Saturate so repeated nonblocking charges cannot erase
++			 * pending work by wrapping the counter back to zero.
+ 			 */
+-			current->memcg_nr_pages_over_high += batch;
++			current->memcg_nr_pages_over_high += min(
++				batch,
++				UINT_MAX - current->memcg_nr_pages_over_high);
+ 			set_notify_resume(current);
+ 			break;
+ 		}
+
+-- 
+2.34.1
+
+
