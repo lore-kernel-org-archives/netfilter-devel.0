@@ -1,78 +1,79 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794782086;
-	b=yLSb+QbAIqe8FiJAH6/4odMTtakCDHbQtztCYFdQqy61Fmj0+Sch+aS1FqOzcElRJ84z
-	 qHU5thyD/0AZcn1BCqgObOFOqYpEGV4GTbzKACB65auHme1jF5veRQ8Cy+G0TyPhjU3Iu
-	 H5AtYgsIIboQuKQvfJWlKl5seAKL8Zef8CqiWW7tdLS78Qj3+X9jN0a+MdGvWt3zdH4Na
-	 3IRPIvwlj+FG29LCCvqNXkjqhcN/qMmZsouKc5GJvgcA5gn41eebY1NQi+PLMQMU4BNRD
-	 eIHepxvgppUdiReMMOFSy8O65vIA0a8RVWhCdjnIrc8XcOYGW56g2HJzJgaGdafUcqQ==
+	t=1794782087;
+	b=CTY51wUoo+YCbZ8nwIy8IlFboBgamKAT9UmTeRLxABkk/8RjGRVpUQIvbakewUvs39I/
+	 f1dsgZcj83hjQUIPQFe9s7mhkrwS5h0z529ncbkN7Tf8OCKE+1jHfaJYFGWYeJRJcLguf
+	 ki3KQ2NsA7Pje5pDD/Cb9EH3Iwb6TJvvWVXZkRSvzMbOiK+TbBK/cspBrgMw2TCiNyFYz
+	 cX9haHeqs0IBj/jsvIsfsyr9IVJgxALYshUXE2qPbVsKCn6H5mcuZ45kaFZpmvqRlsjP7
+	 Rm/vSbFA69q426Pp5vz1wLjtrLEeDajX+cf2l9fYI9wnOzYFJhNFpDDsLgUfNik1+PA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794782086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794782087;
 	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=FaLPHI6QmzOizX2R7WI+RZFG5s4TESyYrXh8VTsFQ1M=;
-	b=Aa8UtblOWqKgnd4yL7VhQDvq2rhavjG1zuRihuOYWj8G9UsFY8uTcR0j9gIRWUViyhZo
-	 SAh9SibSxRK18fZAG93XuHePgvR36fD4tUnqljRumuOnQxWwSrJ50pP4JF5BdPA9Ic5wk
-	 ubpjkFK0i4SGl3VTnjiKR/lpIkpHUvdzyfIF5Lpvs26JBlKqRNCpKbTa/GFv2TBwCfNlS
-	 kz9DRClpzDXwD8UJQZZo5AQsISGU5Hed7eRIu9ucT+VAAR5joyNVkyzxAHAMHm2eDiKXk
-	 WT28PTArLU+PqWs5Ll6F0QTFT+GVacyb8odHBtVfeB8ICksReo8ekzeXHyLulKf7YEQ==
+	bh=23RmUgKwkzTjxTukTOuc5pfGxIXjdwf3dD8nTQxRrOU=;
+	b=uRswk/Vi38NttptqmvN/Dh3tIIYSwakpWn5iRDblv0YBAEGCpRK0NhSvWLLqs/tmilGJ
+	 fDHQ/Ky2FZVU2lfy/enCGx7R9pHDqBHmM+cFQmdBLSYkZy+BTTE7EZe4QLwzkSfr9s3V0
+	 +DwtWNHU4T8rISDNF2fqny1uxyecEbC4fVLEhOZbArqN0E4b2Hyr8l6Sv6vgy0H6ACYkU
+	 RxpYTDUZUCfLIZI5fy2cz82NUO+g9hRHdNrFeXHUl5oX6bVpIx9DnHtXZMlNwjHD9NozB
+	 Hi9KZWER0LA3KrMnDV4i6BicVmJjRsn5cdhyMCSsRh3DpzkI6m+f8gegVQbXykWd8GA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bISE3zh6;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=H2Odb1Wk;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 251DE606A33B;
-	Sun, 15 Nov 2026 22:34:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C330606A8A4;
+	Sun, 15 Nov 2026 22:34:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bISE3zh6
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=H2Odb1Wk
 Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
 ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1794782086;
-	b=Q4wbpYZFEgbru3vNPbFyCmn5+2zBhgwhkBgFwo0r9huEevalZtx20v1KJMSjVVDE3nTM
-	 PEM9LzdN/qglBnQcmVYstIO4NNK6Xnn2/niG1TO7Sx7gl3Vm7lrTAz3Q0GHeDhPcURmOU
-	 1HmMWGwZSi1kpAXIieTJD5FKYyWbH24iEnt4l+DfkcTVsIu2ZvoBzs235z/kSxN3fsURw
-	 JFBTT44ze3fzeIkM60VACfrH4fwbpt4KkmghwZukOLylCKPKs4ZGGzCSKWeY8WdC0eCbl
-	 n2z9ZruAIkYxNGsnRvI6MC2O8dCip+HAAPPYE6cXlDNq52kgzREUwBn/vCebhCF0JXQ==
+	t=1794782087;
+	b=T8nxya5dtrJJCzoSA+tmnlG+NiNzCkec3CTboIHrsBRTj/t5Df6Z5wHH/d4G/bg5WKEd
+	 DpGlhSRpjNCaiRLMmub9itmSLxN1EL0IRAirOGfLgaCivUNB58fowyvOC8fmkp2zd7bkO
+	 LLM5TG8aYqIh+ty5t1DGLGNVzj40Qg9oay3Wz1sUsSyvJEQv+tlP4AjSg5IJrGMBTxw+0
+	 lFa6MgTIVc0Cwp/afW/rv8t3K2SeAaentLU6NnZ48PcHaRbuJ/VdV/y/i9XqCGFZ8eTcf
+	 yL7CNRXPTOsKkwLsOx7QkIQslf0scNXVjRoO2h70HBGdlmsqmOJp1fikHDRCZses3GA==
 ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1794782086;
+	c=relaxed/relaxed; t=1794782087;
 	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
 	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=FaLPHI6QmzOizX2R7WI+RZFG5s4TESyYrXh8VTsFQ1M=;
-	b=NBbyvf40Niz5t2LYt6+77wFo9lBLjD50UIdGNNBKdUocNgdZq5enYKFF9zKhSd450vPD
-	 deCrPDLVmh7Lin2KrwbT58uGYAS+R9fyS8C9mvdbgUeP1dvNTHJ4VuCuIHWtq0GEvO7Pt
-	 GnPmm+jBQTUeGmYVwftw48RplrqSsej8kfbh4sXu6t7yw+csp+xubN4mPqNHedDmw3cYS
-	 Ax2NMVo0GP5kWeLYnVdYDLi2bHhtX3giWY4FzezoT++9T7OoPCW5aFsqWHz80Zkhea78W
-	 m/HmYmS+D/f3Rfa1Z4blSKQ4taZVoT+L4i1jkQ+/928LIXeAOQdbq2SHcHgnNXHSh2A==
+	bh=23RmUgKwkzTjxTukTOuc5pfGxIXjdwf3dD8nTQxRrOU=;
+	b=VRJBiqFeDsuy8veB1dSLYXarNMlYmOytfHuG+Ah5famFAtRn4ZuclAokXy8tDXU4WCsV
+	 Z7XVJ71Ek7sOetB+yKbNI/CdTVHw0zyVzLJUlI9PhtHweX5PpYYvvej4XHMoeT51MVPED
+	 9wOeRFFYRUK5VCAipuiB6wkdA00dhtER7T5XkrZRNNoLmZSpr7njR/y6Q4Ng6sIqkK1P7
+	 WYb1VHqlzu1L8sta5ySBFEgd2FzcOcWAL5WfjoIAy6yx2vqBcH6WI34pU+uwIrO3dGufy
+	 wXswXNoy4T88hCltDnNKLP3zM7YRsO9u+Zkm9Og6Spwf7qv2qaE7O1dElZZU/+Ui5LQ==
 ARC-Authentication-Results: i=1; smtp.kernel.org; 
 	arc=none smtp.remote-ip=100.80.115.77
 Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id D24141F000C6;
-	Sun, 15 Nov 2026 22:34:43 +0000 (UTC)
+	by smtp.kernel.org (Postfix) with ESMTPS id DA1821F000CB;
+	Sun, 15 Nov 2026 22:34:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794782085;
-	bh=FaLPHI6QmzOizX2R7WI+RZFG5s4TESyYrXh8VTsFQ1M=;
+	s=k20260515; t=1794782087;
+	bh=23RmUgKwkzTjxTukTOuc5pfGxIXjdwf3dD8nTQxRrOU=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
-	b=bISE3zh6v5YoUqO4iihTt3xCNizWtnZRLXYlw0YZm5SUXQw2PVXC1o36NG0jXqJwB
-	 zD5cbZD/Y+x2YVb1bvi0Ra6bTAOXHii1td465oztARAiXqnquIkVwy4eiAg709Bgjc
-	 nRSq4fN0jZOB1n5N5MKjIqFRPngwFk6QUgW60dGrH1MpYaNpgeDZgdhVCmooZz5NvM
-	 QuJQjBOw0UbY4w+KKDoWnBffMnZwU7kBc3W2M2RItnpKa01ws1ohNqjvH8cKOzc8de
-	 niLttdE2eJFFmyWcqagC8zBNE1EWMoXGSNYOdX1m1mBAVPigRK0WliGnI9ghW7DZVc
-	 h9g6iKv0ioWmw==
+	b=H2Odb1WkDoSKM1UxA1qcVX8uvxtmomGzb3zSTOtScGvVN3QWr3c9m+mgO8GnbGYFC
+	 oBO2aDBIkefxZGKKFteqk7g08FsLdvREQDNLxPPpXFAx5vonZqQWW0ujBV4cvztqVb
+	 A8nGAFruOyvIZ+4gF2a7E+v8qwy0oGA9KRMWSt8nfkRY7Xd62AX/AkN6WX67/ucwBa
+	 d7EP05LckGiDxsh2x+tMjZTukKwVtGxKKzEMYre7Lz1MCB9xcxTb87bnCaD+mTQabR
+	 62a3eV8l0FNmv/4hoJH8msvGgupdfnfB1YU7/gSTmPNNiEG/XjFFPFy5KtKJloQNFz
+	 lFo3NgemCzd5w==
 Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 629BF4A245;
+	by lkml.kernel.org (Postfix) with ESMTP id A811C4A251;
 	Sun, 15 Nov 2026 22:34:43 +0000 (UTC)
 From: Alireza Asgari via B4 Relay <devnull+alireza.asgari.net@kernel.org>
-Date: Sun, 15 Nov 2026 22:34:42 +0000
-Subject: [PATCH RFC nf-next 2/9] memcg: bound memory.high delay arithmetic
+Date: Sun, 15 Nov 2026 22:34:45 +0000
+Subject: [PATCH RFC nf-next 5/9] memcg: test capacity reservation rollback
+ and refunds
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -83,7 +84,7 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261115-b4-nfqueue-memory-accounting-v1-2-b9cc30819997@asgari.net>
+Message-Id: <20261115-b4-nfqueue-memory-accounting-v1-5-b9cc30819997@asgari.net>
 References: <20261115-b4-nfqueue-memory-accounting-v1-0-b9cc30819997@asgari.net>
 In-Reply-To: <20261115-b4-nfqueue-memory-accounting-v1-0-b9cc30819997@asgari.net>
 To: netfilter-devel@vger.kernel.org, linux-mm@kvack.org
@@ -100,11 +101,11 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>, Michal Hocko <mhocko@kernel.org>,
  cgroups@vger.kernel.org, netdev@vger.kernel.org, 
  linux-kselftest@vger.kernel.org, Alireza Asgari <alireza@asgari.net>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794782082; l=5496;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794782082; l=12013;
  i=alireza@asgari.net; s=alireza-kernel; h=from:subject:message-id;
- bh=w3ayk+U8FCJ6lXFONsO42X2e0VbfkJT2uJZSfO6L6nE=;
- b=7Z0tS5xgqA3bYLUfmPyREPp431QgCdAYI5U0LRMjsIixhzk90bkt7WUmUx5FBL8IKOplA3krb
- fdElWo/CNpRAFHKXE8tJFC0elxZLFFJXqMoF+ZXM1deKDCqsTXQLByw
+ bh=JloqzugReTrQDTmQ8+3w3kkQBiN+qr4RbrFYTkj8puY=;
+ b=gg11vMfGHX0ZXN6TpMvg36yRN9ncGpEk8plCsVJP9PFk5Y2as5paAhWF0bnq91G+PynzVjsEA
+ Y1JGes7kSe5CdUilOWpBrOq7AGkkAT/+kmim7jw6bR3Seu7vVVS31XK
 X-Developer-Key: i=alireza@asgari.net; a=ed25519;
  pk=wuQ0/M69FqoVnrCMUJ13EQCwrCwVjCrtz75k15vW8tw=
 X-Endpoint-Received: by B4 Relay for alireza@asgari.net/alireza-kernel with
@@ -115,125 +116,330 @@ Content-Transfer-Encoding: 7bit
 
 From: Alireza Asgari <alireza@asgari.net>
 
-The memory.high penalty can overflow while scaling the usage ratio,
-squaring the scaled ratio, or multiplying by the task's deferred page
-debt. An overflow can turn a large intended penalty into a small or zero
-one. On 32-bit kernels the unsigned-long intermediate is also truncated
-before two right shifts totaling 34 bits, making the delay zero.
+Add reservation-specific KUnit coverage for partial-growth rollback,
+reparented-root growth, range and architecture checks, and root refunds.
 
-Keep the intermediates in u64 and bound the relative excess at twice the
-high limit. At that bound even one page of debt exceeds the existing
-two-second final cap. A bound of one times the high limit would change
-valid one-page results. Below the bound, use wide multiplication and
-division so a large numerator with a modest ratio remains accurate.
+Transaction cases inject charge results through KUnit static stubs.
+The root-refund case uses temporary real root page-counter charges while
+other CPUs are stopped, and restores the counters even if the expected
+refund is absent. It models charges inherited after reparenting; the
+network selftest separately exercises real cgroup removal.
 
-Preserve the fixed-point rounding order. Bound each memory or swap
-component before converting to unsigned long, then retain the existing
-cap on their sum. With HZ below 12288, the bounded square times HZ fits
-below 2^56, and the later product with UINT_MAX pages fits below 2^54.
+Keep these tests separate from the generic memory.high suite and make
+all redirection conditional on the reservation KUnit option.
 
-This work was examined during AI-assisted source review of virtual
-capacity accounting. Song Hu previously reported the square overflow;
-Zhang Jiao proposed a fix for that overflow and the 32-bit intermediate.
-Johannes Weiner and Bingfang Guo also discussed multiplication and return
-width. This implementation addresses those problems and the numerator
-and debt-scaling boundaries. It is an alternative for discussion, not a
-claim of a newly discovered problem or a revision of Zhang's submission.
-
-The accompanying KUnit cases call the arithmetic helpers directly on
-32-bit and 64-bit kernels. They cover zero and sub-batch debt, ordinary
-rounding, large numerators, the cap boundary, and the prior zero-delay
-example. This isolates the arithmetic; it does not reproduce end-to-end
-reclaim or throttling with large physical allocations.
-
-Both arithmetic cases passed on 64-bit and 32-bit x86 KUnit kernels built
-from this series. They exercise the production arithmetic helpers without
-requiring large allocations or claiming an end-to-end throttling result.
-
-Fixes: 0e4b01df8659 ("mm, memcg: throttle allocators when failing reclaim over memory.high")
-Link: https://lore.kernel.org/20260818012115.65838-1-husong@kylinos.cn/
-Link: https://lkml.rescloud.iu.edu/hypermail/linux/kernel/2610.3/11270.html
-Link: https://lkml.rescloud.iu.edu/2610.3/12576.html
-Link: https://lkml.rescloud.iu.edu/hypermail/linux/kernel/2610.3/11904.html
 Signed-off-by: Alireza Asgari <alireza@asgari.net>
 ---
- mm/memcontrol.c | 27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ mm/Kconfig                       |  11 ++
+ mm/memcontrol.c                  |  16 +++
+ mm/memcontrol_reservation_test.c | 232 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 259 insertions(+)
 
+diff --git a/mm/Kconfig b/mm/Kconfig
+index dd763d3d0e36..39db388f193f 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -1541,6 +1541,17 @@ config MEMCG_HIGH_KUNIT_TEST
+ 	  fixed-point rounding and arithmetic bounds on 32-bit and 64-bit
+ 	  kernels. Say N unless developing memory cgroup high limit handling.
+ 
++config MEMCG_RESERVATION_KUNIT_TEST
++	bool "Memory cgroup capacity reservation tests" if !KUNIT_ALL_TESTS
++	depends on MEMCG && KUNIT=y
++	default KUNIT_ALL_TESTS
++	help
++	  Test capacity reservation transactions, including partial growth
++	  failure, architecture support, and uncharged growth after reparenting
++	  to root. Transaction tests inject charge results. The root refund test
++	  checks real counters with a temporary eight-page charge while other
++	  CPUs are stopped. Say N unless developing this interface.
++
+ source "mm/damon/Kconfig"
+ 
+ endmenu
 diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index 1980fb7431a8..665ce8dfb9ec 100644
+index 0227d9b411f5..d49ce5a92c1f 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
-@@ -2521,6 +2521,15 @@ static void high_irq_work_func(struct irq_work *work)
-  #define MEMCG_DELAY_PRECISION_SHIFT 20
-  #define MEMCG_DELAY_SCALING_SHIFT 14
+@@ -73,6 +73,10 @@
  
-+/*
-+ * An overage of twice the high limit gives a nominal delay of 256 * HZ.
-+ * Even one page of debt then exceeds the two-second cap. Bounding the
-+ * overage here keeps the delay products in u64: with HZ < 12288, the
-+ * square times HZ is below 2^56, and after scaling the product with
-+ * UINT_MAX pages of debt is below 2^54.
-+ */
-+#define MEMCG_MAX_HIGH_OVERAGE (2ULL << MEMCG_DELAY_PRECISION_SHIFT)
+ #include <linux/uaccess.h>
+ 
++#if IS_ENABLED(CONFIG_MEMCG_RESERVATION_KUNIT_TEST)
++#include <kunit/static_stub.h>
++#endif
 +
- static u64 calculate_overage(unsigned long usage, unsigned long high)
- {
- 	u64 overage;
-@@ -2535,8 +2544,12 @@ static u64 calculate_overage(unsigned long usage, unsigned long high)
- 	high = max(high, 1UL);
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/memcg.h>
+ #undef CREATE_TRACE_POINTS
+@@ -3264,6 +3268,10 @@ static int mem_cgroup_reservation_charge(struct obj_cgroup *objcg,
+ 	struct mem_cgroup *memcg;
+ 	int ret = 0;
  
- 	overage = usage - high;
--	overage <<= MEMCG_DELAY_PRECISION_SHIFT;
--	return div64_u64(overage, high);
-+	if (overage >= high && overage - high >= high)
-+		return MEMCG_MAX_HIGH_OVERAGE;
++#if IS_ENABLED(CONFIG_MEMCG_RESERVATION_KUNIT_TEST)
++	KUNIT_STATIC_STUB_REDIRECT(mem_cgroup_reservation_charge, objcg, pages,
++				   charged);
++#endif
+ 	memcg = get_mem_cgroup_from_objcg(objcg);
+ 	*charged = false;
+ 	/* Reparenting to root removes the limit, not previously held charges. */
+@@ -3291,6 +3299,10 @@ static void mem_cgroup_reservation_uncharge_batch(struct mem_cgroup *memcg,
+ 
+ static void mem_cgroup_reservation_uncharge(struct obj_cgroup *objcg, u64 pages)
+ {
++#if IS_ENABLED(CONFIG_MEMCG_RESERVATION_KUNIT_TEST)
++	KUNIT_STATIC_STUB_REDIRECT(mem_cgroup_reservation_uncharge, objcg,
++				   pages);
++#endif
+ 	while (pages) {
+ 		unsigned int batch = min_t(u64, pages, MEMCG_RESERVATION_BATCH);
+ 		struct mem_cgroup *memcg;
+@@ -6699,3 +6711,7 @@ void mem_cgroup_show_protected_memory(struct mem_cgroup *memcg)
+ #if IS_ENABLED(CONFIG_MEMCG_HIGH_KUNIT_TEST)
+ #include "memcontrol_high_test.c"
+ #endif
 +
-+	/* The scaled numerator may overflow u64 even for a small ratio. */
-+	return mul_u64_u64_div_u64(overage, 1ULL << MEMCG_DELAY_PRECISION_SHIFT,
-+				   high);
- }
- 
- static u64 mem_find_max_overage(struct mem_cgroup *memcg)
-@@ -2576,9 +2589,9 @@ static u64 swap_find_max_overage(struct mem_cgroup *memcg)
- static unsigned long calculate_high_delay(unsigned int nr_pages,
- 					  u64 max_overage)
- {
--	unsigned long penalty_jiffies;
-+	u64 penalty_jiffies;
- 
--	if (!max_overage)
-+	if (!nr_pages || !max_overage)
- 		return 0;
- 
- 	/*
-@@ -2589,6 +2602,7 @@ static unsigned long calculate_high_delay(unsigned int nr_pages,
- 	 * its crazy behaviour, so we exponentially increase the delay based on
- 	 * overage amount.
- 	 */
-+	max_overage = min(max_overage, MEMCG_MAX_HIGH_OVERAGE);
- 	penalty_jiffies = max_overage * max_overage * HZ;
- 	penalty_jiffies >>= MEMCG_DELAY_PRECISION_SHIFT;
- 	penalty_jiffies >>= MEMCG_DELAY_SCALING_SHIFT;
-@@ -2601,7 +2615,9 @@ static unsigned long calculate_high_delay(unsigned int nr_pages,
- 	 * MEMCG_CHARGE_BATCH pages is nominal, so work out how much smaller or
- 	 * larger the current charge patch is than that.
- 	 */
--	return penalty_jiffies * nr_pages / MEMCG_CHARGE_BATCH;
-+	penalty_jiffies =
-+		div_u64(penalty_jiffies * nr_pages, MEMCG_CHARGE_BATCH);
-+	return min_t(u64, penalty_jiffies, MEMCG_MAX_HIGH_DELAY_JIFFIES);
- }
- 
- /*
-@@ -2654,6 +2670,7 @@ void __mem_cgroup_handle_over_high(gfp_t gfp_mask)
- 	penalty_jiffies = calculate_high_delay(nr_pages,
- 					       mem_find_max_overage(memcg));
- 
-+	/* Each component is capped, so their sum also fits unsigned long. */
- 	penalty_jiffies += calculate_high_delay(nr_pages,
- 						swap_find_max_overage(memcg));
- 
++#if IS_ENABLED(CONFIG_MEMCG_RESERVATION_KUNIT_TEST)
++#include "memcontrol_reservation_test.c"
++#endif
+diff --git a/mm/memcontrol_reservation_test.c b/mm/memcontrol_reservation_test.c
+new file mode 100644
+index 000000000000..5ce4f05431b3
+--- /dev/null
++++ b/mm/memcontrol_reservation_test.c
+@@ -0,0 +1,232 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++
++#include <kunit/test.h>
++#include <linux/stop_machine.h>
++
++struct memcg_reservation_test {
++	struct obj_cgroup owner;
++	struct mem_cgroup_reservation res;
++	u64 refunds;
++	unsigned int calls;
++	unsigned int fail_call;
++	bool uncharged;
++};
++
++static int memcg_reservation_test_charge(struct obj_cgroup *objcg,
++					 unsigned int pages, bool *charged)
++{
++	struct memcg_reservation_test *ctx = kunit_get_current_test()->priv;
++
++	*charged = !ctx->uncharged;
++	if (++ctx->calls == ctx->fail_call)
++		return -ENOMEM;
++	return 0;
++}
++
++static void memcg_reservation_test_uncharge(struct obj_cgroup *objcg, u64 pages)
++{
++	struct memcg_reservation_test *ctx = kunit_get_current_test()->priv;
++
++	ctx->refunds += pages;
++}
++
++static int memcg_reservation_test_init(struct kunit *test)
++{
++	struct memcg_reservation_test *ctx;
++
++	ctx = kunit_kzalloc(test, sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++	/* Transaction cases stub accounting; the root refund case calls the batch. */
++	ctx->owner.is_root = true;
++	ctx->res.objcg = &ctx->owner;
++	test->priv = ctx;
++	kunit_activate_static_stub(test, mem_cgroup_reservation_charge,
++				   memcg_reservation_test_charge);
++	kunit_activate_static_stub(test, mem_cgroup_reservation_uncharge,
++				   memcg_reservation_test_uncharge);
++	return 0;
++}
++
++static void memcg_reservation_test_rollback(struct kunit *test)
++{
++	struct memcg_reservation_test *ctx = test->priv;
++	u64 original = 7;
++
++	if (!IS_ENABLED(CONFIG_64BIT)) {
++		kunit_skip(test,
++			   "Charged reservations require 64-bit counters");
++		return;
++	}
++	KUNIT_ASSERT_EQ(test,
++			mem_cgroup_reservation_resize(&ctx->res, original), 0);
++	ctx->calls = 0;
++	ctx->fail_call = 2;
++	KUNIT_EXPECT_EQ(test,
++			mem_cgroup_reservation_resize(
++				&ctx->res,
++				original + MEMCG_RESERVATION_BATCH + 1),
++			-ENOMEM);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, original);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, original);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, (u64)MEMCG_RESERVATION_BATCH);
++	KUNIT_EXPECT_EQ(test, ctx->calls, 2U);
++	mem_cgroup_reservation_destroy(&ctx->res);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, MEMCG_RESERVATION_BATCH + original);
++	KUNIT_EXPECT_PTR_EQ(test, ctx->res.objcg, NULL);
++}
++
++static void memcg_reservation_test_root_growth(struct kunit *test)
++{
++	struct memcg_reservation_test *ctx = test->priv;
++
++	if (!IS_ENABLED(CONFIG_64BIT)) {
++		kunit_skip(test,
++			   "Charged reservations require 64-bit counters");
++		return;
++	}
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 8), 0);
++	/* Simulate the charge helper observing reparenting to root. */
++	ctx->uncharged = true;
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 16), 0);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, 8ULL);
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 10), 0);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, 0ULL);
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 3), 0);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, 3ULL);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, 5ULL);
++	mem_cgroup_reservation_destroy(&ctx->res);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, 8ULL);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, 0ULL);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, 0ULL);
++}
++
++static void memcg_reservation_test_range(struct kunit *test)
++{
++	struct memcg_reservation_test *ctx = test->priv;
++
++	KUNIT_EXPECT_EQ(test,
++			mem_cgroup_reservation_resize(
++				&ctx->res, (u64)PAGE_COUNTER_MAX + 1),
++			-E2BIG);
++	KUNIT_EXPECT_EQ(test, ctx->calls, 0U);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, 0ULL);
++	mem_cgroup_reservation_destroy(&ctx->res);
++	/* Disabled/root ownership still records the logical reservation. */
++	KUNIT_EXPECT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 9), 0);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, 9ULL);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, 0ULL);
++	mem_cgroup_reservation_destroy(&ctx->res);
++}
++
++static void memcg_reservation_test_arch_support(struct kunit *test)
++{
++	struct memcg_reservation_test *ctx = test->priv;
++	bool supported = IS_ENABLED(CONFIG_64BIT);
++
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 0), 0);
++	KUNIT_EXPECT_EQ(test, ctx->calls, 0U);
++	KUNIT_EXPECT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 9),
++			supported ? 0 : -EOPNOTSUPP);
++	KUNIT_EXPECT_EQ(test, ctx->calls, supported ? 1U : 0U);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, supported ? 9ULL : 0ULL);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, supported ? 9ULL : 0ULL);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, 0ULL);
++	mem_cgroup_reservation_destroy(&ctx->res);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, supported ? 9ULL : 0ULL);
++	KUNIT_EXPECT_PTR_EQ(test, ctx->res.objcg, NULL);
++
++	/* An uncharged reservation remains usable on either architecture. */
++	KUNIT_ASSERT_EQ(test, mem_cgroup_reservation_resize(&ctx->res, 9), 0);
++	KUNIT_EXPECT_EQ(test, ctx->res.pages, 9ULL);
++	KUNIT_EXPECT_EQ(test, ctx->res.charged_pages, 0ULL);
++	KUNIT_EXPECT_EQ(test, ctx->calls, supported ? 1U : 0U);
++	mem_cgroup_reservation_destroy(&ctx->res);
++	KUNIT_EXPECT_EQ(test, ctx->refunds, supported ? 9ULL : 0ULL);
++}
++
++struct memcg_reservation_root_refund {
++	unsigned long memory_before, memory_shrunk, memory_after;
++	unsigned long memsw_before, memsw_shrunk, memsw_after;
++	bool memsw;
++};
++
++static void memcg_reservation_test_restore_counter(struct page_counter *counter,
++						   unsigned long before)
++{
++	unsigned long after = page_counter_read(counter);
++
++	if (after > before)
++		page_counter_uncharge(counter, after - before);
++	else if (after < before)
++		page_counter_charge(counter, before - after);
++}
++
++static int memcg_reservation_test_root_refund_stopped(void *data)
++{
++	struct memcg_reservation_root_refund *result = data;
++	struct mem_cgroup *memcg = root_mem_cgroup;
++
++	/* Model charged capacity inherited from a removed child. */
++	result->memory_before = page_counter_read(&memcg->memory);
++	result->memsw_before = page_counter_read(&memcg->memsw);
++	page_counter_charge(&memcg->memory, 8);
++	if (result->memsw)
++		page_counter_charge(&memcg->memsw, 8);
++	account_kmem_nmi_safe(memcg, 8);
++	memcg1_account_kmem(memcg, 8);
++
++	mem_cgroup_reservation_uncharge_batch(memcg, 3);
++	result->memory_shrunk = page_counter_read(&memcg->memory);
++	result->memsw_shrunk = page_counter_read(&memcg->memsw);
++	mem_cgroup_reservation_uncharge_batch(memcg, 5);
++	result->memory_after = page_counter_read(&memcg->memory);
++	result->memsw_after = page_counter_read(&memcg->memsw);
++
++	/* Leave no counter imbalance behind if the refund regression returns. */
++	memcg_reservation_test_restore_counter(&memcg->memory,
++					       result->memory_before);
++	if (result->memsw)
++		memcg_reservation_test_restore_counter(&memcg->memsw,
++						       result->memsw_before);
++	return 0;
++}
++
++static void memcg_reservation_test_root_refund(struct kunit *test)
++{
++	struct memcg_reservation_root_refund result = {
++		.memsw = do_memsw_account(),
++	};
++
++	if (mem_cgroup_disabled() || mem_cgroup_kmem_disabled()) {
++		kunit_skip(test, "Memory cgroup accounting is disabled");
++		return;
++	}
++	/* Exclude background charges while checking the actual root counters. */
++	KUNIT_ASSERT_EQ(test,
++			stop_machine(memcg_reservation_test_root_refund_stopped,
++				     &result, NULL),
++			0);
++	KUNIT_EXPECT_EQ(test, result.memory_shrunk, result.memory_before + 5);
++	KUNIT_EXPECT_EQ(test, result.memory_after, result.memory_before);
++	KUNIT_EXPECT_EQ(test, result.memsw_shrunk,
++			result.memsw_before + (result.memsw ? 5 : 0));
++	KUNIT_EXPECT_EQ(test, result.memsw_after, result.memsw_before);
++}
++
++static struct kunit_case memcg_reservation_test_cases[] = {
++	KUNIT_CASE(memcg_reservation_test_rollback),
++	KUNIT_CASE(memcg_reservation_test_root_growth),
++	KUNIT_CASE(memcg_reservation_test_range),
++	KUNIT_CASE(memcg_reservation_test_arch_support),
++	KUNIT_CASE(memcg_reservation_test_root_refund),
++	{}
++};
++
++static struct kunit_suite memcg_reservation_test_suite = {
++	.name = "memcg_reservation",
++	.init = memcg_reservation_test_init,
++	.test_cases = memcg_reservation_test_cases,
++};
++
++kunit_test_suite(memcg_reservation_test_suite);
 
 -- 
 2.34.1
