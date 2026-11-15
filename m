@@ -1,60 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794762224;
-	b=XScixOfAx34qx8kx3OeGxwlZbDe+IARpOB/8AEPR/5I9GqBepSBkeiTXommWFJe0pDVo
-	 96XsLXxVUnk4vwN6eKSMH7XdmvKmIlE2qVXcJRK2cJAIxliZ4+krnO/bFgTNtU2jsHcW6
-	 nIsgIJ1FDIKky72CfqAsQDoXRNILi8uRMSOKovbRRi0hv/VeWlWPGtDwtIm7gzQLqy3Yv
-	 XtA7gSgimS6m9rEvCQsEbE/2zIHs+MikAWcYV4ezW+a27wRDOpH1CRdpPeIOWcmqDp1zn
-	 r3lvsNZSgM/VD7t2ZG3AytndBYD7RwRKGMpP41ouQPsXM1ygiwtF0R5wTl7sfrUn7wg==
+	t=1794764165;
+	b=RuhJACAOi/5qb17zPD8ZkhumFy24ZtE2EcSXtQJVxGMUrvJf/sAMgi7fO48RDS0Ui0gH
+	 rI1m2PCYKoI3jtY/lnIwME8Weau6SGxLJK7U1MlVXCANgE5FaYnAwHKG6nRtDgx/B8Zh3
+	 vxRLuiiuZzeQhvFyvFvv5+W2TDxdCa1SRMztdNIbnRPaJC+7BoE/+N4A41IIC4xeXv+J1
+	 rRUV5KdXooA+F3QJwEeV/X8fCCpap/J2NRX412SY2wLg+TQg7NU7U3m1bLw/NXPPVMmA7
+	 4rRQ94WBZez0TzQSfruBZBHiYmREiUz8UgXpjoNp3gU+dCy3vBurvAENNE8dTCaYzHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794762224;
-	h=DMARC-Filter:Received:X-Virus-Scanned:Received:Received:Received:
-	 Received:Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type:X-deepspam;
-	bh=8KBw67ZCE1Ci43MhnD68N+LUrvLP85MpQC8hJRojZB4=;
-	b=fQAy3ofKzoT30XWymtMBWhV2gi6B0TI0qeb/1f7vJdGZw0x2SzQSj8zwdsYfdY2GayO/
-	 fOKTESbkOahu4fSclDDnn1fmPbL3BEkQeVjI2pQMl+beKktYml1xY0UaozcaVrunelU9j
-	 uU24e207v7BT3/luUYO9cDajSyj49ttV1pq1HZjv+Txr0DlgsTe/MfmQQ9pbqCpsuUyTh
-	 YkDLOpg1E9jU+a/ABvLCMhHd5Wsdm+s8ISmKk5oZtT3KT+PhSi21veCc32dxtTcPO/5I7
-	 2VuSlLb6UtlHc5v35gzp3HKb/DCiwVmlXmatuNQS9hqqbsNiery5WEURRGXji/WefoA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794764165;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
+	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
+	 Content-Type;
+	bh=T6qOwflWea7KdLAIgTT9JTg1M9zGsAYbHIASp0wel+k=;
+	b=4tIc90K4VpolnY/Myuxf97lEh2a80Z7+YeV+0z1g5PYSCR+peq5PQG2xLug3Z6IMkXu5
+	 Xa8L35h1PVSD6b6sCqmOmfIU71f6vpvP1P+3J1PWzj6m2+KWelKPG65nXatNnid0y2Lvw
+	 wKKe7MwqiIPofXnUATIszKxIvONm4TbOeE8mnb8o2tqu1B31Xhfr9HWv8PmApNg+sALS4
+	 6jt9BmtxRrqGhoio3pHDJy+KUzkjLmbEivdFcXs3dyZ0xThSpbibuZ60mbEXoZEEnsFjO
+	 cBGIlDuV43nq5X0JQaNg9kKwPtjbxr6uxrC3dKInwnd90VXbFGuGaXJyvL9WGco+D2w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	arc=none smtp.remote-ip=148.6.0.49
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=b7FNXJH9;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23A8B606A327
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 17:03:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 23A8B606A327
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4jSHQ637nmz3sb0T;
-	Sun, 15 Nov 2026 18:03:42 +0100 (CET)
-X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
- by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id h7H5WnpqsKqq; Sun, 15 Nov 2026 18:03:40 +0100 (CET)
-Received: from mentat.rmki.kfki.hu (254C22F0.nat.pool.telekom.hu [37.76.34.240])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4jSHQ40qzzz3sb0V;
-	Sun, 15 Nov 2026 18:03:40 +0100 (CET)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id A7A1B140554; Sun, 15 Nov 2026 18:03:39 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id A45FD140141;
-	Sun, 15 Nov 2026 18:03:39 +0100 (CET)
-Date: Sun, 15 Nov 2026 18:03:39 +0100 (CET)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v10 0/6] ipset: replace internal hash table with
- rhashtable
-In-Reply-To: <avbGlZBumFgTJyVY@strlen.de>
-Message-ID: <4075f44d-baca-ce2c-3892-81652ef19ce7@netfilter.org>
-References: <20261112143818.30638-1-fw@strlen.de> <9a882426-58aa-c14d-fe99-64538c98d293@netfilter.org> <avXuJ0GBdzyxK-_w@strlen.de> <bbc263cd-5ceb-f183-439b-44909adef4ed@netfilter.org> <avbGlZBumFgTJyVY@strlen.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34620606A323;
+	Sun, 15 Nov 2026 17:36:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 34620606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=b7FNXJH9
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id D9AE321B52;
+	Sun, 15 Nov 2026 19:36:00 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=T6qOwflWea7KdLAIgTT9JTg1M9zGsAYbHIASp0wel+k=; b=b7FNXJH9HoIT
+	HTYvpgsgGyRXUn7zlNiDAI1YJ4WvslUZfU+jOlyVxlG2DyPynm6LTLtROWimtGc0
+	HM48icwKxTj7CCIK8MYiMH85RxnDKEvN8/4cnqhZkCIaFAdNpJIitO0rWOGBXNoO
+	pMnePOyh2QtXbomEz/DjeYkcjkIoyi6kSDxItDSnGO1AyMdZXqCiwDaQD4gTJyG1
+	cvsLhubdqADDbmAjf26UXKNtumdSlKwA1viqddhXsi7u1kVHuA186DT99wyjvyN0
+	k+81q5sZ2suIoMVUht8ZuiFkSwAiY5v4r3DOXbsxuKzna+BqbaQoK6udnM62l6FK
+	Hb7vxKt+SMjYZHAdIBg7IsFappb44CpoGJ39YmMr5JqoxNvHLj+vfFwnjdLUduyq
+	9PVfsDrRtTz7LVSFr+ob7T0Zqj8GU9t3nPYDbtD6HrnrQW9gZZ8AwcrRvVBfMOKG
+	zy6g1+cJiGbHWCTlPGfM6HPewe+Z34Hxq+vuQtS5OHosK2YGqsX/dW3QIVedz2Ix
+	MAchd098m8rUHqMniTuJVFMrECIURDXp5cnqYUxz65FIvwr3jMyNmcNaMlw7D9VR
+	PSQTQAc+666dQz9BIOvVYIZ8IrgBcLD2jT3Es1tZXiuFWj235Kr0jdkoxVwWHNtJ
+	m4oNMmgGUU+oFUscN6NEKZ4+2VpiHQ8=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Sun, 15 Nov 2026 19:36:00 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 54EAE60FC3;
+	Sun, 15 Nov 2026 19:36:00 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6AFHZwWV127726;
+	Sun, 15 Nov 2026 19:35:58 +0200
+Date: Sun, 15 Nov 2026 19:35:58 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf v4] ipvs: pass correct sk to update_pmtu and on
+ tunneling
+In-Reply-To: <20261113121303.42549-1-ja@ssi.bg>
+Message-ID: <bb1aa08c-bc9e-9952-4e8e-82ef04fc196c@ssi.bg>
+References: <20261113121303.42549-1-ja@ssi.bg>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,43 +80,93 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-X-deepspam: ham 0%
 
-Hi Florian,
 
-On Fri, 13 Nov 2026, Florian Westphal wrote:
+	Hello,
 
-> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > I pushed a few of the test updates to ipset.git, but not this 
-> > > 3-part-series:
-> > > 
-> > > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20261111101603.22698-1-fw@strlen.de/
-> > > 
-> > > First one passes on either rhashtable branch or main, but I'm not sure
-> > > it should :-)
-> > > 
-> > > Resp. I'm not sure what the contract/expected behavior of net,iface set 
-> > > type is when the address matches the net/mask entry, but the interface 
-> > > doesn't.  I followed existing behaviour, so that test would enshrine 
-> > > that: it stops matching more candidates.
-> > 
-> > Hm, it shouldn't. The expected behaviour is as follows: if the net/mask 
-> > entry matches but the interface not, then the code should continue trying 
-> > to find matching entries but just with the same mask value and not with 
-> > other ones. That way the same net/mask entry behind multiple interfaces is 
-> > supported and matched.
+On Fri, 13 Nov 2026, Julian Anastasov wrote:
+
+> This commit fixes two cases of providing sk on tunneling,
+> one to the update_pmtu handler and the second case is to
+> the ip_local_out() call.
 > 
-> In that case a v11 might be needed; the conversion follows the observed
-> behavior.
+> For local clients, we can see at LOCAL_OUT a netfilter hook's
+> state->sk that is different from the protocol's skb->sk. This
+> can be the case for UDP_TUNNEL where different sk is provided to
+> ip_local_out. If such packet is then forwarded via IPVS tunnel
+> we may need to provide state->sk to the update_pmtu handler,
+> not skb->sk.
+> 
+> Fix that by passing the netfilter's hook state via the
+> packet_xmit and conn_schedule handlers to call the update_pmtu
+> handler with state->sk.
+> 
+> While here, change maybe_update_pmtu() to be family independent
+> by using dst and do not request neigh confirm via the last
+> update_pmtu arg because we do not generate the event based on
+> remote signal.
+> 
+> Sashiko has some warnings for the update_pmtu handlers because
+> we provide only sk, not skb:
+> 
+> - we do not provide skb because the handlers assume they are
+> called from tunnel transmitters where skb->dev is present
+> but for IPVS skb->dev is not set yet
+> 
+> - without skb, the zero destination address for unconnected
+> sockets can be blindly used for FIB nexthop or route exceptions.
+> So, we now restrict the sk to be for TCP_ESTABLISHED state
+> where the sk is connected to destination address.
+> 
+> - as we provide the original sk (from state->sk) for the original
+> IP header, make sure we do not provide sk from one family to
+> the update_pmtu handler for different family.
+> 
+> The second problem is that on tunnel forwarding we call
+> ip_local_out() with skb->sk. As we push our own outer IP header
+> in ip_vs_tunnel_xmit*(), the right thing is to provide NULL
+> instead.
+> 
+> For consistency, even if we do not walk the netfilter hooks and
+> just pass the packet with NF_ACCEPT, provide ip_vs_null_xmit_v6
+> handler to properly indicate that we are sending IPv6 packet.
+> Before now we used ip_vs_null_xmit for both families.
+> 
+> Link: https://sashiko.dev/#/patchset/20261103152550.60449-1-ja%40ssi.bg
+> Fixes: 79b16aadea32 ("udp_tunnel: Pass UDP socket down through udp_tunnel{, 6}_xmit_skb().")
+> Fixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okfn().")
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-This is strange because the current code does return the expected 
-behaviour. I have just updated the tests with a case which checks it.
- 
-> > I'll have a look at it.
+	We can improve the restrictions for calling update_pmtu based on:
 
-Best regards,
-Jozsef
--- 
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-Address: Wigner Research Centre for Physics
-         H-1525 Budapest 114, POB. 49, Hungary
+https://sashiko.dev/#/patchset/20261113121303.42549-1-ja%40ssi.bg
+
+	Will prepare v5 in the following days...
+
+pw-bot: changes-requested
+
+> ---
+>  Changes in v4
+>  * reorder the code in ip_vs_bind_xmit and ip_vs_bind_xmit_v6 to
+>    properly apply the change in ip_vs_bind_xmit_v6 as reported by
+>    the kernel test robot:
+>    https://lore.kernel.org/oe-kbuild-all/202611131204.pFzcf1WG-lkp@intel.com/
+> 
+>  Link to v3:
+>  https://lore.kernel.org/all/20261111200942.83226-1-ja@ssi.bg/
+> 
+>  include/net/ip_vs.h                     |  45 +++++++---
+>  net/netfilter/ipvs/ip_vs_conn.c         |  16 ++--
+>  net/netfilter/ipvs/ip_vs_core.c         |  41 +++++----
+>  net/netfilter/ipvs/ip_vs_proto_ah_esp.c |   2 +-
+>  net/netfilter/ipvs/ip_vs_proto_sctp.c   |   5 +-
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c    |   5 +-
+>  net/netfilter/ipvs/ip_vs_proto_udp.c    |   5 +-
+>  net/netfilter/ipvs/ip_vs_xmit.c         | 114 ++++++++++++++++--------
+>  8 files changed, 148 insertions(+), 85 deletions(-)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
