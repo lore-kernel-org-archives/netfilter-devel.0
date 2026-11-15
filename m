@@ -1,63 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794784388;
-	b=xlfOVcVD/EH+EJneaumzjvm1OQCREjFcT/wx+DggM8u9VeNuN3VO/KV27dW/R/1eqeWA
-	 UGZshq4510p4kjb4awgiGoQccfJjfTiGM3ivsoGgy2dss987V8h6DuTkX0e0/W3YXvKpN
-	 di5Bo6+vt9QK1qvJLrRHrSH75hmRXQ/eQP3VWrzSf+of7APutJ7XUOzlcJ6peCL72D3CB
-	 7ipX7oqYO8Ioh1Bo0fXfhYNIHkvqk/3jIqUADDT7Z6IPoSH+bQAPaMlEDmSt3yJ/Af5ta
-	 mnvdtnV00rH9Lmn5JfSnOzbTwn+GLgC2Osf0RIFp/bI0hwN37OlLJIR1sh1LFB82/oA==
+	t=1794784778;
+	b=CjDTleJxlCe8BFOOzZI+KHnQPO5qrS3t9QhYW3RKojIEb4p0ZQKmTNm93oqVSgES3ucV
+	 Q97w/nWWvd+ZapedgiqbpXYCFdWhXE/yCEwVxq37LEePticBmmf/DVfWtotmxOmf47Gyd
+	 qlFKVpMIfh+tjUVHOJhKUJgyk9VofIeyBalQITVsJ18aquNNGV/Uw3DvazZNBhvJ5Aupw
+	 +s2TNduejGoh7zw6YEDKLgqhCvagPCs7vsAjTcswKJXkmSVAbNHjd7GvbpGoG9c/AerhH
+	 /Q6CRmI8LQZlvz+bFYDLmCQDoJVmBj85oZr/EznvhBiEL8K7uiQVTkJPPre3ro2YltQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794784388;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794784778;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 Content-Transfer-Encoding:In-Reply-To:X-Spam-Status:
 	 X-Spam-Checker-Version;
-	bh=AZvjtH6H70KE39bWF+l9SI/XMWJOGMAp/FHL80ErtWU=;
-	b=Mq34XZfoTZFaHo+SmMldDXHpBTICsmMDM65az+1XQF9/zAHSESJaUv4FwDswJ7q94xh6
-	 1mm2hxm6fMZJKryO7BZTUt+2JXR3CLmyE963snR7Tpvo2vIpGquAuMoGt8mw7TuYhvvKK
-	 wtx/kd44exLgd662+aA1q1GTBRUZ4semR+CD1eV7WGRbTvdx6Ada29riwB2ybmSoj1ojQ
-	 XcwHZnIRG9HYzAoeBOdmyvaHEEwK3sqcdXQR0BYJqIe9j7tlksxxBix8H2zMz+id2/LXn
-	 HhzMzk5TJ7Ttec0KfSWUDW/OIl9HsY2MY13m0InRw+wwZQgsz6VaEJYS33qzkrSc3Dg==
+	bh=uc8P1WN0oEBzoMuAmpqfg6VE+HcJ5yFiYx/c04QtQw0=;
+	b=ol54fk3kabxQ611OkZOhdNWFqUK/M3bUACxn1OWnnCajfdiCWyCmFrw9xpxybCkwjMIx
+	 a0YFwub8+bvPv/zw4XI1oRIg5NKNn9KPQz4rct1KEXgubwLlo7qp+Mkm+/pifaz6xzC4u
+	 up2FTiWQneeMmJb8cDzzsU2Uo+1VhAmCs+LucW9UIec8MKdORARHwOYyH6jsh/YlsYKPA
+	 585bZiPe0Gf/p3hRU81BDbrd0mOYy6XXFbKBwQD0ONjcb/s51RoAPa6Nr731QX2Qvay8X
+	 5Ax65Ah80SUo6cdlP1uJ2ydkQ5izF0ToIca8BjMFoYfbGuGFQXnELLpKsV3dbmTUdPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=gUhPa12I;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b="qg/n64oF";
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id CB3A7606A323;
-	Sun, 15 Nov 2026 23:13:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CB3A7606A323
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id EC9F8606A323;
+	Sun, 15 Nov 2026 23:19:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EC9F8606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=gUhPa12I
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=qg/n64oF
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794784378;
-	bh=AZvjtH6H70KE39bWF+l9SI/XMWJOGMAp/FHL80ErtWU=;
+	s=2025; t=1794784775;
+	bh=uc8P1WN0oEBzoMuAmpqfg6VE+HcJ5yFiYx/c04QtQw0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gUhPa12IUp4JC2tSOOBn58UOFYI49T/jpnjOjq48fL1MFsGh670gnzRPNKJWR3zDt
-	 68XI5rn/ZwKLHTbqh+irmToiDY80AdCs7rOtXQYbmr/zGNG2wZUQa37EoF86cZa/NW
-	 uxdLNLBJR+soxumIHhOPeCBpWrBKFZH1OhkmDPuRskUZPdKH7DiNnY6oltFXI/gJZx
-	 phvme3WvmTLhxeDUlFMkeDQKomUyndT+On2pDOItAa+jfiZJkCze/79IShUyzem8YM
-	 S4jQ8kwODmGX5Qpa2342tDp9kPTnRhg4eWH8Wec/hGDVTzlutOJKQkWi9KmlNtCvlV
-	 snlQwcmU6Pmdg==
+	b=qg/n64oF33SygJZZEq0M85D66dWNulr+xnQiwJFkwNvACxz5XSSy+nVR4uNuPE+9e
+	 zzEpk9LtA3jRs7Zr8PEtxnq+COeVD9ekDkcveLFVWeXzQ6l2yx4kNHlf5VC0y2RU+U
+	 dO6YVk8vAVrVv651W/3GlJ+iTzfXyGsVeH/R/AQZyWvYDF3kSkf781DuOWLTUMedMz
+	 SokmjY/+0dgQFi3OIHWplms2AHz5Q50JkeqNRSp5gi9IHeA75W38hRgkNOT19FpOD+
+	 180y/OF4rmHWU6dLmMr1lLfavbnRuomIZw5ARgcw7yMb0eX17nGV9yDeMcXpYDa2IP
+	 35nFOoWktmhjQ==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id CE40760060;
-	Mon, 16 Nov 2026 00:12:57 +0100 (CET)
-Date: Mon, 16 Nov 2026 00:12:54 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 4A1A0601C9;
+	Mon, 16 Nov 2026 00:19:35 +0100 (CET)
+Date: Mon, 16 Nov 2026 00:19:32 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netdev-bot+sashiko@kernel.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
 	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net-next 01/15] netfilter: flowtable: do not hw offload
- flows in teardown state
-Message-ID: <avo8doGLhLtsvSIV@chamomile>
-References: <20261113031251.2437074-2-pablo@netfilter.org>
- <179462661878.2199510.10033227088688888386@kernel.org>
+Subject: Re: [PATCH net-next 02/15] netfilter: flowtable: fix pmtu discovery
+ in nf_flow_tunnel_ip6ip6_push()
+Message-ID: <avo-BLBOzttTrGLi@chamomile>
+References: <20261113031251.2437074-3-pablo@netfilter.org>
+ <179462661985.2199510.8150694515960866760@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -70,11 +70,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <179462661878.2199510.10033227088688888386@kernel.org>
+In-Reply-To: <179462661985.2199510.8150694515960866760@kernel.org>
 
-Hi,
-
-On Sat, Nov 14, 2026 at 03:23:38AM +0000, netdev-bot+sashiko@kernel.org wrote:
+On Sat, Nov 14, 2026 at 03:23:39AM +0000, netdev-bot+sashiko@kernel.org wrote:
 > Thank you for your contribution! Sashiko AI review found 2 potential
 > issue(s) to consider.
 > 
@@ -86,163 +84,135 @@ On Sat, Nov 14, 2026 at 03:23:38AM +0000, netdev-bot+sashiko@kernel.org wrote:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 > 
-> - [High] The patch only partly closes the packet-path refresh race.
-> - [Low] The commit fixes a race found by an automated reporter ('Sashiko
->   reports...') but carries no Fixes:, Reported-by: or Closes: tag.
+> - [High] The fix does nothing.
+> - [Low] The commit subject and body name nf_flow_tunnel_ip6ip6_push(),
+>   which does not exist in the tree being patched.
 > 
 > --
 > 
-> netfilter: flowtable: do not hw offload flows in teardown state
+> netfilter: flowtable: fix pmtu discovery in nf_flow_tunnel_ip6ip6_push()
 > 
-> This commit makes nf_flow_offload_refresh() check NF_FLOW_TEARDOWN again
-> after NF_FLOW_PENDING has been acquired. The goal is to stop the packet
-> path from queueing a hardware refresh for a flow that is going away. It
-> relies on GC skipping flows that have NF_FLOW_PENDING set, which came in
-> with commit 7c549fb7eecd.
+> This commit moves skb_dst_update_pmtu_no_confirm() ahead of
+> skb_scrub_packet() in nf_flow_tunnel_ip6_push(). The aim is to run the
+> PMTU update before skb_scrub_packet() drops the skb dst. The inner route
+> would then get the tunnel MTU, as it does in ip6_tnl_xmit().
 > 
-> > Sashiko reports that refreshing hw offload from packet path is racy
-> > since the flow might be already going away.
+> > netfilter: flowtable: fix pmtu discovery in nf_flow_tunnel_ip6ip6_push()
 > >
-> > Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
-> > status bit"), GC skips flow entries that are still pending to be
-> > offloaded. Let's just check for the teardown status bit after the
-> > pending bit is set on to address this race.
+> > nf_flow_tunnel_ip6ip6_push() invokes skb_scrub_packet() before updating
+> > the PMTU.
 > 
 > [Severity: Low]
-> This isn't a bug, but should this have Fixes:, Reported-by: and Closes:
-> tags for the report?
+> This isn't a bug, but there is no nf_flow_tunnel_ip6ip6_push() in this
+> tree. Commit 93cf357fa797 added it under that name, and it was later
+> renamed to nf_flow_tunnel_ip6_push(). It now also takes a dst argument and
+> handles an IPPROTO_IPIP inner protocol.
 > 
-> The fix only works on trees where nf_flow_offload_gc_step() already skips
-> flows with NF_FLOW_PENDING set:
+> Could the subject and body use the current name? It could also say that
+> the change touches 4in6 encapsulation (e.g. DS-Lite) as well as IP6IP6.
 > 
-> 	if (test_bit(NF_FLOW_PENDING, &flow->flags))
-> 		return;
-> 
-> That check came from commit 7c549fb7eecd. A stable backport to a tree
-> without that commit would leave the race open.
-> 
-> Could the message record this dependency? Could it also state the
-> consequence, which is offload work queued on a flow that GC frees, i.e. a
-> possible use-after-free?
-> 
-> > diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> > index 4365859220e6a..3a18fa48cadb0 100644
-> > --- a/net/netfilter/nf_flow_table_offload.c
-> > +++ b/net/netfilter/nf_flow_table_offload.c
-> > @@ -1120,6 +1120,12 @@ void nf_flow_offload_refresh(struct nf_flowtable *flowtable,
-> >  	if (!offload)
-> >  		return;
+> > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> > index 19cafae748abe..644e70fd6773b 100644
+> > --- a/net/netfilter/nf_flow_table_ip.c
+> > +++ b/net/netfilter/nf_flow_table_ip.c
+> > @@ -699,10 +699,10 @@ static int nf_flow_tunnel_ip6_push(struct net *net, struct sk_buff *skb,
+> >  	if (err)
+> >  		return err;
 > >  
-> > +	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-> > +		clear_bit(NF_FLOW_PENDING, &flow->flags);
-> > +		kfree(offload);
-> > +		return;
-> > +	}
-> > +
-> >  	flow_offload_queue_work(offload);
-> >  }
+> > -	skb_scrub_packet(skb, true);
+> >  	mtu = dst_mtu(dst) - sizeof(*ip6h);
+> >  	mtu = max(mtu, IPV6_MIN_MTU);
+> >  	skb_dst_update_pmtu_no_confirm(skb, mtu);
+> > +	skb_scrub_packet(skb, true);
 > 
 > [Severity: High]
-> Does this close the race for flows that are only in the NF_FLOW_CLOSING
-> state?
+> On the flowtable fast path, is there a dst on the skb at this point?
 
-This patch is intended to address the TEARDOWN race only as described.
+This should call:
 
-> GC also sends a hardware DESTROY for a CLOSING flow while TEARDOWN is
-> still clear. This happens in nf_flow_offload_gc_step():
-> 
-> 	} else if (test_bit(NF_FLOW_CLOSING, &flow->flags) &&
-> 		   test_bit(NF_FLOW_HW, &flow->flags) &&
-> 		   !test_bit(NF_FLOW_HW_DYING, &flow->flags)) {
-> 		nf_flow_offload_del(flow_table, flow);
-> 
-> On the packet path, flow_offload_refresh() is the only place that tests
-> CLOSING, and it does so before PENDING is taken:
-> 
-> 	if (likely(!nf_flowtable_hw_offload(flow_table)) ||
-> 	    test_bit(NF_FLOW_CLOSING, &flow->flags))
-> 		return;
-> 
-> 	if (test_bit(NF_FLOW_HW, &flow->flags))
-> 		nf_flow_offload_refresh(flow_table, flow);
-> 
-> Could this sequence happen?
-> 
-> CPU B (packet path)
-> flow_offload_refresh()
->   sees CLOSING == 0 and NF_FLOW_HW set
->   <stalls before test_and_set_bit(NF_FLOW_PENDING)>
-> 
-> CPU A
-> nf_flow_state_check() on FIN/RST
->   sets NF_FLOW_CLOSING
+  dst->ops->update_pmtu(dst, NULL, skb, mtu, false);
 
-It seems CPU A is also on packet path. Two TCP packets of the same
-flow going through different CPUs is unlikely to happen. This also
-assumes preemptible softirq, ie. PREEMPT_RT.
+instead given that skb_dst() is attached later.
 
-I will have closer look to search for possible issues with the CLOSING
-state but that this patch is specifically aiming at the TEARDOWN state
-only.
+The scrub ordering is wrong, but the dst is not attached to the
+skbuff.
 
-> GC
-> nf_flow_offload_gc_step()
->   nf_flow_offload_del()
->     takes PENDING, sets NF_FLOW_HW_DYING, queues DESTROY
-> flow_offload_work_del()
->   removes the rule, sets NF_FLOW_HW_DEAD
->   PENDING is cleared
+> Flowtable hooks can only be registered at netdev ingress:
 > 
-> CPU B resumes
-> nf_flow_offload_refresh()
->   nf_flow_offload_work_alloc() wins PENDING
->   test_bit(NF_FLOW_TEARDOWN) == 0
->   flow_offload_queue_work() with FLOW_CLS_REPLACE
+> net/netfilter/nf_tables_api.c:nft_flowtable_parse_hook() {
+>     ...
+> 	if (hooknum != NF_NETDEV_INGRESS)
+> 		return -EOPNOTSUPP;
+>     ...
+> }
 > 
-> flow_offload_work_add() does not check NF_FLOW_HW_DYING or
-> NF_FLOW_HW_DEAD. It installs the hardware rule again and sets
-> IPS_HW_OFFLOAD_BIT.
-> 
-> Nothing clears HW_DYING or HW_DEAD after that. When the flow later
-> expires, the teardown branch in nf_flow_offload_gc_step() goes straight
-> to flow_offload_del() and sends no new DESTROY:
-> 
-> 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
-> 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
-> 				nf_flow_offload_del(flow_table, flow);
-> 			else if (test_bit(NF_FLOW_HW_DEAD, &flow->flags))
-> 				flow_offload_del(flow_table, flow);
-> 
-> Would the re-installed rule then stay in the driver and hardware after
-> the flow and its conntrack entry are freed? Its cookie is the address of
-> the freed tuple, so a new flow allocated at the same address could
-> collide with it.
-> 
-> There seems to be a worse interleaving as well:
-> 
-> 1. GC reads PENDING == 0 at the top of nf_flow_offload_gc_step().
-> 2. CPU B wins PENDING and reads TEARDOWN == 0.
-> 3. GC calls flow_offload_teardown(). HW_DYING and HW_DEAD are already set
->    from the CLOSING DESTROY, so GC frees the flow through
->    flow_offload_del() without taking PENDING.
+> This means nf_flow_offload_ipv6_hook() runs before ip6_route_input(), so
+> no routing dst is attached yet.
 >
-> Can the queued REPLACE work then run on a flow that was freed via
-> call_rcu()?
+> The outer tunnel dst only comes in as the
+> dst argument:
 > 
-> The window is narrow. It still looks reachable on PREEMPT_RT, where
-> softirq is preemptible, or under vCPU preemption. The FIN/RST that starts
-> it comes from the network.
-
-A follow up patch could possibly discard refreshing entries for
-fin/rst packets, but this is unrelated to this patch.
-
-> NF_FLOW_HW_DYING is set while PENDING is held, and it is published before
-> PENDING is cleared. Would re-checking NF_FLOW_HW_DYING (and/or
-> NF_FLOW_CLOSING) here, after PENDING is acquired, cover every state in
-> which GC has already issued the DESTROY?
+> nf_flow_offload_ipv6_hook()
+>   nf_flow_queue_xmit6()
+>     nf_flow_tunnel_push(state->net, skb, other_tuple,
+>                         tuplehash->tuple.dst_cache, &ip_addr)
+>       nf_flow_tunnel_ip6_push()
 > 
-> Later patches in the series don't appear to change
-> nf_flow_offload_refresh() or flow_offload_refresh().
+> The skb only gets that dst after the push returns, and only for
+> FLOW_OFFLOAD_XMIT_NEIGH:
+> 
+> net/netfilter/nf_flow_table_ip.c:nf_flow_queue_xmit6() {
+>     ...
+> 		xmit.dest = neigh->ha;
+> 		skb_dst_drop(skb);
+> 		skb_dst_set_noref(skb, &rt->dst);
+> 		break;
+> 	case FLOW_OFFLOAD_XMIT_DIRECT:
+>     ...
+> }
+> 
+> skb_dst_update_pmtu_no_confirm() does nothing when skb_dst(skb) is NULL:
+> 
+> include/net/dst.h:skb_dst_update_pmtu_no_confirm() {
+> 	struct dst_entry *dst = skb_dst(skb);
+> 
+> 	if (dst && dst->ops->update_pmtu)
+> 		dst->ops->update_pmtu(dst, NULL, skb, mtu, false);
+> }
+> 
+> So the mtu computed from dst_mtu(dst) looks like it is thrown away both
+> before and after this change.
+> 
+> Ingress sometimes attaches a metadata dst (collect_md or tunnel_key).
+> That dst uses dst_blackhole_ops, and dst_blackhole_update_pmtu() is
+> empty. It is also not the flow's inner route.
+> 
+> There also doesn't seem to be an inner route left to update, because
+> nft_dev_forward_path() replaces it with the tunnel dst:
+> 
+> net/netfilter/nf_flow_table_path.c:nft_dev_forward_path() {
+>     ...
+> 	dst_release(route->tuple[dir].dst);
+> 	route->tuple[dir].dst = info.tun_dst;
+>     ...
+> }
+> 
+> The ip6_tnl_xmit() comparison depends on ip6_forward() having already put
+> the inner route on the skb. The flowtable fast path skips that step.
+> 
+> If that reading is right, the patch reorders a call that never has any
+> effect. The PMTU update described as "silently lost" would still be lost
+> on every fast-path packet.
+> 
+> Would one of these work better: dropping the call, updating an
+> explicitly stored inner dst, or relying on (and documenting) the
+> nf_flow_exceeds_mtu() check in nf_flow_offload_ipv6_forward()? That check
+> already sends oversized packets to the slow path, and ip6_tnl_xmit()
+> handles PMTU there.
+> 
+> At the end of the series the code still does the skb_dst(skb) based
+> PMTU update, followed by skb_scrub_packet(skb, false), so later patches
+> don't seem to fix this either.
 > 
 > -- 
 > Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113031251.2437074-2-pablo%40netfilter.org
