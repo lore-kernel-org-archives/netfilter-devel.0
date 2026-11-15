@@ -1,57 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.125
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.126
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794755040;
-	b=sXAnWzRQa6/ljnxnCc5865JzEgXoKLD7PRChZ/UD/owLjoUdvbr7Ow+QY/ekvovv5gnX
-	 Q/CxaN8+2cuO8uiyVPp3Z8UIu4yVM++VO/iToOFsiw5d6T2swhM1ezZkM7QcbQ60w0X6r
-	 Tbj4jg1v0Wi/IdM6OJ5yDXYpb2Ed3EEbfcGOWydcnwtI1h3CwQVRWTcKJF4S7boroU94V
-	 nCfIfjtP9x+9bmSrjzhh5tehZKP1iBlPL9ub3CyGx1wilD0fS+KQ671b1+R/2/1BqLI63
-	 wt2ymCgUFcS0Paa1iaAfbB7oRJ0+DtToFRca5Xw6isgMcgj6Oss7KER2I0SoJKsvcsA==
+	t=1794755054;
+	b=OuXWQI6EvMzppVzBjJErN7YjXtBgH9khFYsOYIPl8sBYYbbUIHJjR+7l5yfOCzeeBFof
+	 Ysi/6TXy8PZ9NgUqq/6VOrT6Weexjo9sghSN6sy71QraFIHxkPesswSKKd32UXfpQiK8u
+	 RhoiWWTOHoJ8woFkdUt3KjM9Toq939MmL6tCJ2/U9N+72vWTEPnAqy4muIjJ6SP7lgpwc
+	 QyeM9+bp9fxmjoEHtv5L/pxvZeivW8le+CF1r1hQWxKSDCixzD/1BgaPjPcweNkKE9OPX
+	 5dnEYYHYX7wb/geK9VwJuM5ktvuuIgctZs6dvmYHvygeQcjkZwu3vK2kpT8BwLiIi9Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794755040;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794755054;
 	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
 	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=532i/bG/6bgU/Qx7BjHvFfDGqADAt9yzpQ8usFi7AE4=;
-	b=Bgj7hA/rhuIOezN8XIeA3JCM2MjySueiJ+gw0kELQHEfL36F7Ab+UpJZ0mdr57+R49sL
-	 ysqAQmPXoZRr9rCnjz+cQCTR5i/zFLW2bjPxrANA0+GPsywE4gRuiv+1zb0S2GON5iokS
-	 aZRLN3XlrI4SQTXNWPspUlVCepdY8UavlWaR9aS7BRXVO6+lEXhshrZz0XIqG8Qwwym7M
-	 XCc0e/TOVHMnZHU+OVF8yBcdoBDZmTSlOJd10ztI1a+3iynOHYHgMpWmLDiegRdaQCo3Z
-	 WnwRCSzQDIf26SxJOh2KDx9tq3UP5WFD0dmXYVWCQa75CXABoAbOCnSwYr1O9ASFHRg==
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=HiDPisOZyOIduZmnUhRVW5JY74WgEtaqxNUOXvPQ8TU=;
+	b=EbnrAEHo0AYW0v2JSb8hDZ7RmmAU7Msse9BGEgHi4Uk54H7V0MS+7253ro7/WH99Q1r7
+	 LL5kH3MUe5EoR80OqhS1q4cpJERcNrDqLQgF47qQXhxqT0MJqj+4EmpB/bPjhag4EvA6k
+	 Cdj1BSmRC5Qm/2xZKt3RytekCkzEj2mRxsiXsERLZ2ggD1oBrDt9zZ/DKEsF0aUOMmToN
+	 OA++i/Mf8qKuliUf2doCd8sz4YK2TtdFYQo0tjx1sWqC1NJgzknnyQQnqI0wBI2nMOhyS
+	 KVmRMhPhEPxG6e/pFBo0/fQ762xL9nhcHAPAIombJaWGxEEafPswWr8h3ZTIvePs2Bw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linux.dev;
 	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=viDw1emv;
-	arc=none smtp.remote-ip=91.218.175.125
-Received: from mta0.migadu.com (out-125.mta0.migadu.com [91.218.175.125])
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=XIV8Hlov;
+	arc=none smtp.remote-ip=91.218.175.126
+Received: from mta0.migadu.com (out-126.mta0.migadu.com [91.218.175.126])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37BF606A31A
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 15:03:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E37BF606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9427F606A31D
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 15:04:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9427F606A31D
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=viDw1emv
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=XIV8Hlov
 X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=OMC7H5pGSV1cvbo4FBVlff9QG8S2skAFgdr47JJ6Gfg=;
+DKIM-Signature: a=rsa-sha256; bh=+K9Hb4MRmwiMEUMqDeUZbhPuWaRg7s0YswC97NiH0z0=;
  c=simple/simple; d=linux.dev;
  h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1794755037; v=1; x=1795359837;
- b=viDw1emvxD8kIOcnAqaEIOFOsXcdca/zWYaM2U33bSi6NEp2+oYSSsldA4i6oEuxTh4i4rQ1
- dm2HH/xe2mvVibDt+Z5eikhN8t0iTp+TIyLr5S0VlWslOy07rGmfHGxdWkz5FlxS3BTJ5AJJ01M
- Qr40nHSsjWpgqqKUogKGXZEA=
+ t=1794755051; v=1; x=1795359851;
+ b=XIV8HlovRkMxi1EdW4sOq6V51gViQpcU9GWSpnWSQOr0BqpxYiUEWpOFzDOWwEymNZMxlhBz
+ qTSmRA7Zn9/AtXn02YT28cFKMLUuSBTCSsXkRR3nNJ5bjLCd+eFAuL0RPnNGHxkT7xbASaJr9BZ
+ kaU1NbVb6LmY2kDJayG1eL6c=
 X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 27a4e190672cde65;
-	Sun, 15 Nov 2026 15:03:57 +0000
-X-Mizu-Trace-ID: 27a4e190672cde65
+Received: by smtp.migadu.com with ESMTPS id c01fbbf211867b0a;
+	Sun, 15 Nov 2026 15:04:11 +0000
+X-Mizu-Trace-ID: c01fbbf211867b0a
 X-Migadu-Flow: FLOW_OUT
 From: Jiayuan Chen <jiayuan.chen@linux.dev>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next v2 1/3] netfilter: conntrack: annotate data-races around conntrack sysctls
-Date: Sun, 15 Nov 2026 23:03:40 +0800
-Message-ID: <20261115150342.86521-1-jiayuan.chen@linux.dev>
+Subject: [PATCH nf-next v2 2/3] netfilter: conntrack: annotate data-races around timeout and tcp sysctls
+Date: Sun, 15 Nov 2026 23:03:41 +0800
+Message-ID: <20261115150342.86521-2-jiayuan.chen@linux.dev>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20261115150342.86521-1-jiayuan.chen@linux.dev>
+References: <20261115150342.86521-1-jiayuan.chen@linux.dev>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,38 +66,43 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nf_conntrack_acct, nf_conntrack_events, nf_conntrack_timestamp,
-nf_conntrack_checksum, nf_conntrack_log_invalid, nf_conntrack_max and
-nf_conntrack_expect_max are read without any lock while their sysctl
-handlers update them with WRITE_ONCE(), and nf_ct_set_acct() stores
-sysctl_acct with a plain write. Add READ_ONCE() to the readers and
-WRITE_ONCE() to nf_ct_set_acct().
+The nf_conntrack_*_timeout* knobs, nf_flowtable_tcp_timeout,
+nf_flowtable_udp_timeout and nf_conntrack_tcp_{loose,be_liberal,
+max_retrans,ignore_invalid_rst} are read in the packet path without any
+lock while their sysctl handlers update them with WRITE_ONCE(). Add
+READ_ONCE() to the readers.
 
-KCSAN reports it when nf_conntrack_checksum is changed while packets go
-through conntrack:
+KCSAN reports it when nf_conntrack_udp_timeout is changed while UDP
+traffic goes through conntrack:
 
-  BUG: KCSAN: data-race in nf_conntrack_icmpv4_error / proc_dou8vec_minmax
+  BUG: KCSAN: data-race in nf_conntrack_udp_packet / proc_int_u2k_conv_uop
 
-  write (marked) to 0xffffffff8ee29b6d of 1 bytes by task 568 on cpu 0:
-   proc_dou8vec_minmax+0x1ab/0x1f0
+  write (marked) to 0xffffffffb0829bc4 of 4 bytes by task 436 on cpu 0:
+   proc_int_u2k_conv_uop+0x92/0xa0
+   sysctl_u2k_int_conv_hz+0x21/0x30
+   proc_int_conv+0xdf/0x130
+   do_proc_int_conv_jiffies+0x1b/0x30
+   proc_vec_conv+0x21/0x40
+   proc_vec+0x21e/0x6f0
+   proc_dointvec_conv+0x21/0x40
+   proc_dointvec_jiffies+0x15/0x30
    proc_sys_call_handler+0x282/0x3a0
    proc_sys_write+0x13/0x20
    ...
 
-  read to 0xffffffff8ee29b6d of 1 bytes by interrupt on cpu 2:
-   nf_conntrack_icmpv4_error+0xb3/0x240
-   nf_conntrack_in+0xa85/0xb20
+  read to 0xffffffffb0829bc4 of 4 bytes by task 439 on cpu 3:
+   nf_conntrack_udp_packet+0x27b/0x550
+   nf_conntrack_in+0x767/0xb20
    ipv4_conntrack_local+0xb0/0x120
    nf_hook_slow+0x7e/0x180
    nf_hook+0x1fa/0x4e0
    __ip_local_out+0x1ac/0x3f0
-   ip_push_pending_frames+0x65/0x160
-   icmp_push_reply+0x17a/0x200
-   __icmp_send+0xb7d/0x1a10
-   udp_rcv+0x95c/0x14e0
+   ip_send_skb+0x31/0x120
+   udp_send_skb+0x4bf/0x640
+   udp_sendmsg+0xdec/0x18a0
    ...
 
-  value changed: 0x00 -> 0x01
+  value changed: 0x00001d4c -> 0x00001e46
 
 Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 Reviewed-by: Simon Horman <horms@kernel.org>
@@ -102,227 +110,224 @@ Reviewed-by: Simon Horman <horms@kernel.org>
 v1: https://lore.kernel.org/netdev/20261109025425.328445-1-jiayuan.chen@linux.dev/
 Split out of the net-next series and sent to nf-next separately.
 ---
- include/net/netfilter/nf_conntrack_acct.h      | 6 +++---
- include/net/netfilter/nf_conntrack_timestamp.h | 2 +-
- net/netfilter/nf_conntrack_core.c              | 6 +++---
- net/netfilter/nf_conntrack_ecache.c            | 2 +-
- net/netfilter/nf_conntrack_expect.c            | 2 +-
- net/netfilter/nf_conntrack_netlink.c           | 2 +-
- net/netfilter/nf_conntrack_proto.c             | 6 +++---
- net/netfilter/nf_conntrack_proto_icmp.c        | 2 +-
- net/netfilter/nf_conntrack_proto_icmpv6.c      | 2 +-
- net/netfilter/nf_conntrack_proto_sctp.c        | 2 +-
- net/netfilter/nf_conntrack_proto_tcp.c         | 2 +-
- net/netfilter/nf_conntrack_proto_udp.c         | 2 +-
- 12 files changed, 18 insertions(+), 18 deletions(-)
+ net/netfilter/nf_conntrack_core.c         |  2 +-
+ net/netfilter/nf_conntrack_proto_gre.c    |  4 +--
+ net/netfilter/nf_conntrack_proto_icmp.c   |  2 +-
+ net/netfilter/nf_conntrack_proto_icmpv6.c |  2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c   |  2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c    | 37 ++++++++++++-----------
+ net/netfilter/nf_conntrack_proto_udp.c    |  6 ++--
+ net/netfilter/nf_flow_table_core.c        |  4 +--
+ 8 files changed, 31 insertions(+), 28 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_acct.h b/include/net/netfilter/nf_conntrack_acct.h
-index a120685cac932..4e5a46b628831 100644
---- a/include/net/netfilter/nf_conntrack_acct.h
-+++ b/include/net/netfilter/nf_conntrack_acct.h
-@@ -33,7 +33,7 @@ struct nf_conn_acct *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_conn_acct *acct;
- 
--	if (!net->ct.sysctl_acct)
-+	if (!READ_ONCE(net->ct.sysctl_acct))
- 		return NULL;
- 
- 	acct = nf_ct_ext_add(ct, NF_CT_EXT_ACCT, gfp);
-@@ -51,7 +51,7 @@ struct nf_conn_acct *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
- static inline bool nf_ct_acct_enabled(struct net *net)
- {
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
--	return net->ct.sysctl_acct != 0;
-+	return READ_ONCE(net->ct.sysctl_acct) != 0;
- #else
- 	return false;
- #endif
-@@ -61,7 +61,7 @@ static inline bool nf_ct_acct_enabled(struct net *net)
- static inline void nf_ct_set_acct(struct net *net, bool enable)
- {
- #if IS_ENABLED(CONFIG_NF_CONNTRACK)
--	net->ct.sysctl_acct = enable;
-+	WRITE_ONCE(net->ct.sysctl_acct, enable);
- #endif
- }
- 
-diff --git a/include/net/netfilter/nf_conntrack_timestamp.h b/include/net/netfilter/nf_conntrack_timestamp.h
-index 57138d974a9f7..59751be856ce9 100644
---- a/include/net/netfilter/nf_conntrack_timestamp.h
-+++ b/include/net/netfilter/nf_conntrack_timestamp.h
-@@ -29,7 +29,7 @@ struct nf_conn_tstamp *nf_ct_tstamp_ext_add(struct nf_conn *ct, gfp_t gfp)
- #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
- 	struct net *net = nf_ct_net(ct);
- 
--	if (!net->ct.sysctl_tstamp)
-+	if (!READ_ONCE(net->ct.sysctl_tstamp))
- 		return NULL;
- 
- 	return nf_ct_ext_add(ct, NF_CT_EXT_TSTAMP, gfp);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 931b76aacd934..5c7054753722e 100644
+index 5c7054753722e..8e332e407529e 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -1508,7 +1508,7 @@ static void gc_worker(struct work_struct *work)
+@@ -1959,7 +1959,7 @@ static int generic_packet(struct nf_conn *ct, struct sk_buff *skb,
+ 	if (!timeout)
+ 		timeout = &nf_generic_pernet(nf_ct_net(ct))->timeout;
  
- 	i = gc_work->next_bucket;
- 	if (gc_work->early_drop)
--		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
-+		nf_conntrack_max95 = READ_ONCE(nf_conntrack_max) / 100u * 95u;
+-	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
++	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
+ 	return NF_ACCEPT;
+ }
  
- 	if (i == 0) {
- 		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
-@@ -1658,7 +1658,7 @@ __nf_conntrack_alloc(struct net *net,
- 	/* We don't want any race condition at early drop stage */
- 	ct_count = atomic_inc_return(&cnet->count);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 616ab1e2fc5ed..d8bca1e29797b 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -279,8 +279,8 @@ int nf_conntrack_gre_packet(struct nf_conn *ct,
  
--	if (unlikely(ct_count > nf_conntrack_max)) {
-+	if (unlikely(ct_count > READ_ONCE(nf_conntrack_max))) {
- 		if (!early_drop(net, hash)) {
- 			if (!conntrack_gc_work.early_drop)
- 				conntrack_gc_work.early_drop = true;
-@@ -1793,7 +1793,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
- 
--	if ((ecache || net->ct.sysctl_events) &&
-+	if ((ecache || READ_ONCE(net->ct.sysctl_events)) &&
- 	    !nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
- 				  ecache ? ecache->expmask : 0,
- 				  GFP_ATOMIC)) {
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index fb731ee235d89..2846511c5318c 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -321,7 +321,7 @@ bool nf_ct_ecache_ext_add(struct nf_conn *ct, u16 ctmask, u16 expmask, gfp_t gfp
- 	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *e;
- 
--	switch (net->ct.sysctl_events) {
-+	switch (READ_ONCE(net->ct.sysctl_events)) {
- 	case 0:
- 		 /* assignment via template / ruleset? ignore sysctl. */
- 		if (ctmask || expmask)
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 06242c86e1dc8..43594283bcc76 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -518,7 +518,7 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 		/* initialize to sane value.  Ideally a conntrack helper
+ 		 * (e.g. in case of pptp) is increasing them */
+-		ct->proto.gre.stream_timeout = timeouts[GRE_CT_REPLIED];
+-		ct->proto.gre.timeout = timeouts[GRE_CT_UNREPLIED];
++		ct->proto.gre.stream_timeout = READ_ONCE(timeouts[GRE_CT_REPLIED]);
++		ct->proto.gre.timeout = READ_ONCE(timeouts[GRE_CT_UNREPLIED]);
  	}
  
- 	cnet = nf_ct_pernet(net);
--	if (cnet->expect_count >= nf_ct_expect_max) {
-+	if (cnet->expect_count >= READ_ONCE(nf_ct_expect_max)) {
- 		net_warn_ratelimited("nf_conntrack: expectation table full\n");
- 		ret = -EMFILE;
- 	}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1f8d94a052403..0f1d42a10b347 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2591,7 +2591,7 @@ ctnetlink_stat_ct_fill_info(struct sk_buff *skb, u32 portid, u32 seq, u32 type,
- 	if (nla_put_be32(skb, CTA_STATS_GLOBAL_ENTRIES, htonl(nr_conntracks)))
- 		goto nla_put_failure;
- 
--	if (nla_put_be32(skb, CTA_STATS_GLOBAL_MAX_ENTRIES, htonl(nf_conntrack_max)))
-+	if (nla_put_be32(skb, CTA_STATS_GLOBAL_MAX_ENTRIES, htonl(READ_ONCE(nf_conntrack_max))))
- 		goto nla_put_failure;
- 
- 	nlmsg_end(skb, nlh);
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 7a40e4e0e33e6..83dc169f87df5 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -51,12 +51,12 @@ void nf_l4proto_log_invalid(const struct sk_buff *skb,
- 			    u8 protonum,
- 			    const char *fmt, ...)
- {
-+	u8 log_invalid = READ_ONCE(state->net->ct.sysctl_log_invalid);
- 	struct net *net = state->net;
- 	struct va_format vaf;
- 	va_list args;
- 
--	if (net->ct.sysctl_log_invalid != protonum &&
--	    net->ct.sysctl_log_invalid != IPPROTO_RAW)
-+	if (log_invalid != protonum && log_invalid != IPPROTO_RAW)
- 		return;
- 
- 	va_start(args, fmt);
-@@ -86,7 +86,7 @@ void nf_ct_l4proto_log_invalid(const struct sk_buff *skb,
- 	lockdep_assert_not_held(&ct->lock);
- 
- 	net = nf_ct_net(ct);
--	if (likely(net->ct.sysctl_log_invalid == 0))
-+	if (likely(READ_ONCE(net->ct.sysctl_log_invalid) == 0))
- 		return;
- 
- 	va_start(args, fmt);
+ 	status = READ_ONCE(ct->status);
 diff --git a/net/netfilter/nf_conntrack_proto_icmp.c b/net/netfilter/nf_conntrack_proto_icmp.c
-index 32148a3a8509a..330c6d83d670a 100644
+index 330c6d83d670a..0f6ef0443c6fa 100644
 --- a/net/netfilter/nf_conntrack_proto_icmp.c
 +++ b/net/netfilter/nf_conntrack_proto_icmp.c
-@@ -217,7 +217,7 @@ int nf_conntrack_icmpv4_error(struct nf_conn *tmpl,
- 	}
+@@ -98,7 +98,7 @@ int nf_conntrack_icmp_packet(struct nf_conn *ct,
+ 	if (!timeout)
+ 		timeout = &nf_icmp_pernet(nf_ct_net(ct))->timeout;
  
- 	/* See nf_conntrack_proto_tcp.c */
--	if (state->net->ct.sysctl_checksum &&
-+	if (READ_ONCE(state->net->ct.sysctl_checksum) &&
- 	    state->hook == NF_INET_PRE_ROUTING &&
- 	    nf_ip_checksum(skb, state->hook, dataoff, IPPROTO_ICMP)) {
- 		icmp_error_log(skb, state, "bad hw icmp checksum");
+-	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
++	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
+ 	return NF_ACCEPT;
+ }
+ 
 diff --git a/net/netfilter/nf_conntrack_proto_icmpv6.c b/net/netfilter/nf_conntrack_proto_icmpv6.c
-index e508b3aa370a7..803221781de39 100644
+index 803221781de39..e4eebf13950cb 100644
 --- a/net/netfilter/nf_conntrack_proto_icmpv6.c
 +++ b/net/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -198,7 +198,7 @@ int nf_conntrack_icmpv6_error(struct nf_conn *tmpl,
- 	}
+@@ -118,7 +118,7 @@ int nf_conntrack_icmpv6_packet(struct nf_conn *ct,
+ 	/* Do not immediately delete the connection after the first
+ 	   successful reply to avoid excessive conntrackd traffic
+ 	   and also to handle correctly ICMP echo reply duplicates. */
+-	nf_ct_refresh_acct(ct, ctinfo, skb, *timeout);
++	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(*timeout));
  
- 	if (state->hook == NF_INET_PRE_ROUTING &&
--	    state->net->ct.sysctl_checksum &&
-+	    READ_ONCE(state->net->ct.sysctl_checksum) &&
- 	    nf_ip6_checksum(skb, state->hook, dataoff, IPPROTO_ICMPV6)) {
- 		icmpv6_error_log(skb, state, "ICMPv6 checksum failed");
- 		return -NF_ACCEPT;
+ 	return NF_ACCEPT;
+ }
 diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 71cc920f68568..49ec8478746ad 100644
+index 49ec8478746ad..047bf69113bf9 100644
 --- a/net/netfilter/nf_conntrack_proto_sctp.c
 +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -304,7 +304,7 @@ static bool sctp_error(struct sk_buff *skb,
- 		goto out_invalid;
- 	}
- 	if (state->hook == NF_INET_PRE_ROUTING &&
--	    state->net->ct.sysctl_checksum &&
-+	    READ_ONCE(state->net->ct.sysctl_checksum) &&
- 	    skb->ip_summed == CHECKSUM_NONE) {
- 		if (skb_ensure_writable(skb, dataoff + sizeof(*sh))) {
- 			logmsg = "nf_ct_sctp: failed to read header ";
+@@ -523,7 +523,7 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
+ 	if (!timeouts)
+ 		timeouts = nf_sctp_pernet(nf_ct_net(ct))->timeouts;
+ 
+-	nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[new_state]);
++	nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(timeouts[new_state]));
+ 
+ 	return NF_ACCEPT;
+ 
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index ad6f1986d52a6..b859e409f0796 100644
+index b859e409f0796..0c61a16fca400 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -856,7 +856,7 @@ static bool tcp_error(const struct tcphdr *th,
- 	 * because the checksum is assumed to be correct.
- 	 */
- 	/* FIXME: Source route IP option packets --RR */
--	if (state->net->ct.sysctl_checksum &&
-+	if (READ_ONCE(state->net->ct.sysctl_checksum) &&
- 	    state->hook == NF_INET_PRE_ROUTING &&
- 	    nf_checksum(skb, state->hook, dataoff, IPPROTO_TCP, state->pf)) {
- 		tcp_error_log(skb, state, "bad checksum");
+@@ -505,7 +505,7 @@ nf_tcp_store_invalid(const struct nf_conn *ct,
+ 	const struct nf_tcp_net *tn = nf_tcp_pernet(nf_ct_net(ct));
+ 	bool be_liberal;
+ 
+-	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || tn->tcp_be_liberal;
++	be_liberal = sender->flags & IP_CT_TCP_FLAG_BE_LIBERAL || READ_ONCE(tn->tcp_be_liberal);
+ 	if (be_liberal)
+ 		return NFCT_TCP_ACCEPT;
+ 
+@@ -904,7 +904,7 @@ static noinline bool tcp_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			ct->proto.tcp.seen[0].td_end;
+ 
+ 		tcp_options(skb, dataoff, th, &ct->proto.tcp.seen[0]);
+-	} else if (tn->tcp_loose == 0) {
++	} else if (READ_ONCE(tn->tcp_loose) == 0) {
+ 		/* Don't try to pick up connections. */
+ 		return false;
+ 	} else {
+@@ -979,7 +979,7 @@ void nf_conntrack_tcp_set_closing(struct nf_conn *ct)
+ 		timeouts = tn->timeouts;
+ 	}
+ 
+-	timeout = timeouts[TCP_CONNTRACK_CLOSE];
++	timeout = READ_ONCE(timeouts[TCP_CONNTRACK_CLOSE]);
+ 	WRITE_ONCE(ct->timeout, timeout + nfct_time_stamp);
+ 
+ 	spin_unlock_bh(&ct->lock);
+@@ -1010,6 +1010,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	struct nf_tcp_invalid_log log = {};
+ 	unsigned int index, *timeouts;
+ 	bool lowered_timeout = false;
++	unsigned int retrans, unack;
+ 	enum nf_ct_tcp_action res;
+ 	enum ip_conntrack_dir dir;
+ 	const struct tcphdr *th;
+@@ -1235,7 +1236,7 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 				break;
+ 
+ 			if (before(seq, ct->proto.tcp.seen[!dir].td_maxack) &&
+-			    !tn->tcp_ignore_invalid_rst) {
++			    !READ_ONCE(tn->tcp_ignore_invalid_rst)) {
+ 				/* Invalid RST  */
+ 				spin_unlock_bh(&ct->lock);
+ 				nf_ct_l4proto_log_invalid(skb, ct, state, "invalid rst");
+@@ -1322,22 +1323,24 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 	if (!timeouts)
+ 		timeouts = tn->timeouts;
+ 
+-	if (ct->proto.tcp.retrans >= tn->tcp_max_retrans &&
+-	    timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
+-		timeout = timeouts[TCP_CONNTRACK_RETRANS];
++	timeout = READ_ONCE(timeouts[new_state]);
++	retrans = READ_ONCE(timeouts[TCP_CONNTRACK_RETRANS]);
++	unack = READ_ONCE(timeouts[TCP_CONNTRACK_UNACK]);
++
++	if (ct->proto.tcp.retrans >= READ_ONCE(tn->tcp_max_retrans) &&
++	    timeout > retrans)
++		timeout = retrans;
+ 	else if (unlikely(index == TCP_RST_SET &&
+ 			  new_state == TCP_CONNTRACK_ESTABLISHED) &&
+-		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
+-		timeout = timeouts[TCP_CONNTRACK_UNACK];
++		 timeout > unack)
++		timeout = unack;
+ 	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
+ 		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
+-		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
+-		timeout = timeouts[TCP_CONNTRACK_UNACK];
++		 timeout > unack)
++		timeout = unack;
+ 	else if (ct->proto.tcp.last_win == 0 &&
+-		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
+-		timeout = timeouts[TCP_CONNTRACK_RETRANS];
+-	else
+-		timeout = timeouts[new_state];
++		 timeout > retrans)
++		timeout = retrans;
+ 	spin_unlock_bh(&ct->lock);
+ 
+ 	if (new_state != old_state)
+@@ -1366,8 +1369,8 @@ int nf_conntrack_tcp_packet(struct nf_conn *ct,
+ 		 * pickup with loose=1. Avoid large ESTABLISHED timeout.
+ 		 */
+ 		if (new_state == TCP_CONNTRACK_ESTABLISHED &&
+-		    timeout > timeouts[TCP_CONNTRACK_UNACK])
+-			timeout = timeouts[TCP_CONNTRACK_UNACK];
++		    timeout > unack)
++			timeout = unack;
+ 	} else if (!test_bit(IPS_ASSURED_BIT, &ct->status)
+ 		   && (old_state == TCP_CONNTRACK_SYN_RECV
+ 		       || old_state == TCP_CONNTRACK_ESTABLISHED)
 diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index a7edfefd6fd14..9ea4062752238 100644
+index 9ea4062752238..99eedaa2b1183 100644
 --- a/net/netfilter/nf_conntrack_proto_udp.c
 +++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -82,7 +82,7 @@ static bool udp_error(struct sk_buff *skb,
- 	 * because the checksum is assumed to be correct.
- 	 * FIXME: Source route IP option packets --RR */
- 	if (state->hook == NF_INET_PRE_ROUTING &&
--	    state->net->ct.sysctl_checksum &&
-+	    READ_ONCE(state->net->ct.sysctl_checksum) &&
- 	    nf_checksum(skb, state->hook, dataoff, IPPROTO_UDP, state->pf)) {
- 		udp_error_log(skb, state, "bad checksum");
- 		return true;
+@@ -116,12 +116,12 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+ 	 * stream. Set Assured.
+ 	 */
+ 	if (status & IPS_SEEN_REPLY) {
+-		unsigned long extra = timeouts[UDP_CT_UNREPLIED];
++		unsigned long extra = READ_ONCE(timeouts[UDP_CT_UNREPLIED]);
+ 		bool stream = false;
+ 
+ 		/* Still active after two seconds? Extend timeout. */
+ 		if (time_after(jiffies, ct->proto.udp.stream_ts)) {
+-			extra = timeouts[UDP_CT_REPLIED];
++			extra = READ_ONCE(timeouts[UDP_CT_REPLIED]);
+ 			stream = (status & IPS_ASSURED) == 0;
+ 		}
+ 
+@@ -135,7 +135,7 @@ int nf_conntrack_udp_packet(struct nf_conn *ct,
+ 		if (stream && !test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+ 			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	} else {
+-		nf_ct_refresh_acct(ct, ctinfo, skb, timeouts[UDP_CT_UNREPLIED]);
++		nf_ct_refresh_acct(ct, ctinfo, skb, READ_ONCE(timeouts[UDP_CT_UNREPLIED]));
+ 	}
+ 	return NF_ACCEPT;
+ }
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 0d72dc8ae47a1..fa25a641e9c38 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -322,11 +322,11 @@ unsigned long flow_offload_get_timeout(struct flow_offload *flow)
+ 	if (l4num == IPPROTO_TCP) {
+ 		struct nf_tcp_net *tn = nf_tcp_pernet(net);
+ 
+-		timeout = tn->offload_timeout;
++		timeout = READ_ONCE(tn->offload_timeout);
+ 	} else if (l4num == IPPROTO_UDP) {
+ 		struct nf_udp_net *tn = nf_udp_pernet(net);
+ 
+-		timeout = tn->offload_timeout;
++		timeout = READ_ONCE(tn->offload_timeout);
+ 	}
+ 
+ 	return timeout;
 -- 
 2.43.0
 
