@@ -1,111 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.41
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794704178;
-	b=ErFiWtV1HBK7/mbmryxyEnmdNROTaHpLmUFa9R4Z9aeN/CzcBNU5+vUuxwZiOKTQ5l5d
-	 C+XDob+xRX+W3iRA7ZCa5f/ibrQEYGJOmNa1NlbexS9RPpNMngW1lBCgduQMa4YYQpDDl
-	 G2o0J9xOYhuE4Yy9vS2YquB/fy/vzj1zZ6rwPhx8jIzs3FP+q6n1NBkL8d6s9gW6LQCKc
-	 rIgBVDZwii3nG8d7v2cmWd0ZPyBJstkaEfcnB97iOom2lhzd4zaAiXiRA9NYLUzOyWS4/
-	 W8qXUbGv/EO6Inmvdh5P+hbXEo7npN7du1YYQKcwvNOPJLtjOd8z8tL4xSsrjM50ExQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794704178;
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.50
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794716276;
+	b=sCcWbAHq53eDxe8YXCQNVF86zV5wSrsGqX0SogdUI7SIpBq8pwjrrRRGetUY0/IjOju2
+	 usG+A6A5dJKlStYwFx/WWcUvn5cXxc0a4r24HyNP6FpE2C3ZDzoS4fvuqJ0oHrtvrmfMg
+	 J39kZREgTt8cUpzycJLxD333rZb3Pg/3yu3YVfU31HMZDpFvS6QHTZECMUD4dzn5EfI/v
+	 GOTtUK4fYykWrlLOP7/BbfQ4OSJBlIONFQ01E2WEonQSjehvVGlxYu1lBMzUDobvTMzCd
+	 xz0pKWyDG0LGHF30GAhkB54IT6TItsXeHPrBgjuOEDO2UPsFi1pcaFgcgH8+bJkGoXA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794716276;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=Uog2DUXpaE9MlsvIhp7brTPyfcLl2qmPjN0vFybGnao=;
-	b=UgsjUbGqcbhzlqZmTHKFAYNMoLR14/EikjbzSKPDloohT+sXGzF+WU+q2BFF3WFKUzIm
-	 PJpYqEznznIgXVg9q/WxCp/avfOOqBPSEt5osI89J75VAPqAuPvfT8g22beQ4cKYIaezP
-	 bvfDxlQge4nd2JMh6BTzmRU+k/7K2rDVfRqP0XGadbQUPCOdEz3QN0TwUmaRe5WSoKFPk
-	 oDuz5oFbrM+jUHE4srl9jpbYhXxCcgPlTYmYtH34qUyo3ddzjof0sqo+RpI5WcpKOjssX
-	 mvIzMhw58vFpH1jfhYCfl0Gh6NmzVVE/m8Mcvl2HJxXECNyfpU3zbFNPMGQ+aGL7ZwQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bairaktaris.de;
-	spf=pass smtp.mailfrom=bairaktaris.de;
-	dkim=pass header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=ycuiTXa1;
-	arc=none smtp.remote-ip=209.85.218.41
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:MIME-Version:From:
+	 X-Google-Nh-Sender:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=OTGSDI/qurNNnWJ5DD9+nhsFrBdHNtZLnM8Snb9crt8=;
+	b=tPLdjzgV8S/xg+WIKRogdfYKPlTeK7lt3sC1EZeC+MoNmoOl2c1O2+cK1GjO7Q1Slpwy
+	 O6JY6E8cbrTFjFF1FybVXwvjOLfgxqs+A9k46IGVUO8LL/TfM0xVRlsvFve34ccjqrKWU
+	 BMM7Lh/sbM91HzUWZOXcwqatQ+y6FVeKs5xpiF7e9h3v0i0kd2yceeXGV+m4O9JkNzQat
+	 IUeMBoiV46GT+w2U8gTLyQyCxybzjBLWcfmuPfAJtNk5VCuefWvtpGjNWCAIkKhCFiFSi
+	 KdYJBznOx1ICyywR7OiIzB9Bgh7tkoSftHQ+EtwhcDCV8E2E+wmYt0sF2teoSZyKF2g==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=aRE7IsF9;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.167.50
+Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C73606A893
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 00:56:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28C73606A893
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB8B606A327
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 04:17:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CEB8B606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=ycuiTXa1
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-c50abd5b4fcso168935666b.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2026 16:56:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=aRE7IsF9
+Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-5c07c7306e1so2671720e87.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2026 20:17:55 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794716274; cv=none;
+        d=google.com; s=arc-20260327;
+        b=huR2yE5piT89/DOizYTD3VF5S5FbKwpnhJ26soWrI0yJvm4nsmRKoL0iKL+cg7yFC/
+         frvHMG3tzZyxNop+zuOxO00gN9VRHbZ0dJ+vajOftmEayd9/GW4Y8qrZz4G1dEgyhk9t
+         5qFZZsiauwevvq9lZbW7dP6DITGGPMO9/lvQRl0hD5lgFRgfJB5YefbYwVrW2tvU/nvw
+         piBt7xLC8Im+QB5e9BgQO2LsWqgs7iL7ePe40BO09z1I/2IeSsPS8WAbArGlqDnNUNOy
+         sKfEHQvRbtX3nlO0tObFOIbTnGTqYd2sBG7L6aXUGVbusK/hzL3Pi/trOLjDFH0mPEO8
+         47tg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:dkim-signature;
+        bh=OTGSDI/qurNNnWJ5DD9+nhsFrBdHNtZLnM8Snb9crt8=;
+        fh=IpVcWSIOrDusFgXqUT7wMetSHhonRzBbtUv3cr73LzY=;
+        b=saLNO0VJLGFUEYDrQ/QlCAjcN/69eAmRav4FJC4u7pQVZzay4yFOEhs4XMEnOcz6ML
+         sTZNP5+7+z3gzdGf6iW9mNJnj8fxcfYBmFPBO6HJBYRUud7NUDGeDTzdAUYbQevPIt8S
+         WuZr+FZrsEenqmDnN5T/6Pc5OqgCAsZ3Pp9bWrRd+ApkdsNrywQZy6hnerHXPw+8tqMU
+         rezIwd6M1gPmObsqkKbc3koEIdoRCFzBOi9PkdBZU9bDxAO1OGVStgbnpKDbfVs6NdfA
+         Wd/YwER9l5sv1eT/IsgdNGC9Ov3bBp8XsxVGPuDLfOSTN0BjtS8t6VIeA1Fh8DL/gzqK
+         TkzA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1794704175; x=1795308975; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=Uog2DUXpaE9MlsvIhp7brTPyfcLl2qmPjN0vFybGnao=;
-        b=ycuiTXa1MAM5lRMTWMtvjlVPMwTTuWOj7vJObAa2/tujat7iI21TXdAx5DMNXXcikF
-         ThbJQK7409FWPK4AwZwJrflqN5AjK44+qXXV8BtJJCjMEbBZiqYb7OOJRKJIL1ygZozs
-         vrW2ExfWeZP3FTOEcPUavwequI5rjwzODV1JN5YG01nMC/5pVM7POPtyGbau16HBWjl4
-         VroAaK+WRIxuv/zKsAKSQLdrH0/ZKPBYAs2T1VTygnMlFzdnw1WekPvb4VuBMnBJH2bm
-         8JVH59FEP/W+r01BV9CI0Nxf5xTVd1FSQUMLQH3Dcll86nZvcHRrfFnqw/1dwWOPjFKw
-         wtIg==
+        d=gmail.com; s=20260707; t=1794716274; x=1795321074; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=OTGSDI/qurNNnWJ5DD9+nhsFrBdHNtZLnM8Snb9crt8=;
+        b=aRE7IsF92SI8t+TuK5d0zyOXz0O+iemvkZDOqEzd/ywsiIEfWGodBqcEja8EsMuLdh
+         Z81kKgVC1X8LJBeVezb7J+tzp7ZBHVm/izO0afLM/Go8KZQloiGWJbJWnzAEno3lj+Wv
+         8TGBzwmCzT+MHdxjJOr3Y6Ezu26pGaxZJaXhn8FAgdKfnY1DhygdIxs2Ewg3HIvYgocy
+         k8vqMlG9xPQBmvryGDKywluxZ2IKk6JQ/4r9jFKaMQ85jBN4cVzEDg40BHpRIt6TunBr
+         djL/9Oq7Ilq7oubBBMBF1lOC52O4TYUj7YxweITsyrTW/E2P9LvhT0fXyEiLzkE1ZGXC
+         IEyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794704175; x=1795308975;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=Uog2DUXpaE9MlsvIhp7brTPyfcLl2qmPjN0vFybGnao=;
-        b=MQNo6BMji7GSiq3dNSvwM4k1wDrKLv1XP8ZAJpurn7ukEG0ffICu5LpmbPaFgoddbh
-         fy2y7beC22C2O3HE8jPmAHf3pUgMtduc23B6KU37X9xN+BAPTQiytRqAmo708oDWw2mV
-         XHiJZEPGN/rxqwISOt87S5RIcj6utTgBJrXW1+M5scrRbRvNYAtyt0S0VJL4szIpwl/u
-         xm5ExdPftYFpxSrxJu38GYz1tjKNU80+PNi5mVHbZEt2w144dzwD5740ihh1vGAHFV/T
-         7aNOa++HMolJTH8QdEj8t1FpiqZ01rIXt/czKALWSEEDZB9yv+wUj45fRby9Ka0bAWZg
-         ZJBw==
-X-Gm-Message-State: APuU4Z9wDUbBvcInMKTr7J8zPHfYeS2JYuFak4NMSMu8xemqBVrc/nZw
-	Og2dn/flfEQl+6dTkC2dQ2I5lOmv3mtpJ4D5mMh3MQA9GCCnyjEXV/APgxKcY2TSeqeIj0ivRU3
-	dkdpm4XLU
-X-Gm-Gg: AYBFou3YwQOfZAeL/t1y99q3ngIUzAw8BLbX+4qQi1sLKSjBHbE8JoN/oo68aHpOcg7
-	N5CncQZBQvQebG4Jy6X3EXcNbUdRESqZpPR1n45mUdNR/1T0MTMap4Hf2SqTgmh7F9bH90OQ7c9
-	ISbnwAGT+CTaw1lloGMCjBLm9GmhQeeLtkuYZEYi4kDfL/V7flgsGF6xqiVKWS6yaOwErdmoMoc
-	c6YMJC1hyDGZc/6u54RYqzy4TNSoMcJbNmUhnD1MqHZ/vbRSR9j1OQMhsekX4Uh/UXYusqSCaLk
-	AgHRVLElKmq/b0+oy4IBtjbRGyaaPqsu3xxgMUStJegHXGJU4EijS6faztwpz1gG08Kl/nzW2Nd
-	zSviHVlNqdMCNb99BDhLzDuA9YE/XFI47sU/v80vB8bLlZXsooraQwloAD5vHqGx9x179q6d4BS
-	nCAdhbMgM+gOrUEVQpXssJaXnpqLUO6DYQ+kaROILR9vXUgsCgYK6CTx0PLy+nj47QS1HMS1xwF
-	uP3/yk8h9xMiogI3GokT8ZMDQSrZlx8JF2SctHZhLRGt7XoaguyLJ9zuY4ml+jflXXrn0scWfXb
-	rV/NsGXxzrGL1qs62sSqreMEEv5RvuGwuRnj7dP25vOdKb5/x88+qPkHwwtszLnllu/ilHpdwTa
-	hQVmXL1IAQx7UwR0cQ9A+CBpaJ2m9NyCNvLnVTU1Efq5MneAWeDcK1+WN0wKc/IobUaxwVRxCvJ
-	Uf/0W9tWyX15AnYhDwSuxkVrXIHKVSlUUW8wNr+3cGlSk/ejzMFc1eGH/Vv+NYTw5eGWqb1XSak
-	L+LH8ROaU7do5p03w1SM2c0t6UGNYUqqIR2hopHpPkWEzVjTTfSccRKneIzeY9Dst0/vPKsfqa4
-	kwafk/xbfAumKzAO7J0iD0NHuUh4X2F2VEdshpwMAPfu22hwXgzK+3vo7kLezDfYRgamlERk
-X-Received: by 2002:a17:907:ea91:b0:c4d:2cb4:7bbd with SMTP id a640c23a62f3a-c50963fae13mr575498666b.47.1794704175500;
-        Sat, 14 Nov 2026 16:56:15 -0800 (PST)
-Received: from Desktop (p200300f2470a670069e45948b1a17361.dip0.t-ipconnect.de. [2003:f2:470a:6700:69e4:5948:b1a1:7361])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c5095b921d4sm266313166b.83.2026.11.14.16.56.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 14 Nov 2026 16:56:14 -0800 (PST)
-From: Julius Bairaktaris <julius@bairaktaris.de>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Shuah Khan <shuah@kernel.org>,
-	Eric Woudstra <ericwouds@gmail.com>,
-	netdev@vger.kernel.org,
-	bridge@lists.linux.dev,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org
-Subject: [PATCH nf-next v10 3/3] selftests: netfilter: nft_flowtable.sh: roam a host between two bridge ports
-Date: Sun, 15 Nov 2026 01:55:55 +0100
-Message-ID: <20261115005555.645727-4-julius@bairaktaris.de>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261115005555.645727-1-julius@bairaktaris.de>
-References: <20261115005555.645727-1-julius@bairaktaris.de>
+        d=1e100.net; s=20260707; t=1794716274; x=1795321074;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=OTGSDI/qurNNnWJ5DD9+nhsFrBdHNtZLnM8Snb9crt8=;
+        b=D0yjkIgx4jw18wHpk2fInHmeInHrCvpkXXMesP5rJmovJWo0F1eTXmwB9kyTUR97bp
+         aWW685qgR9/MitPjEV32AKfmhh0/pSWwuyHg2knE0YDNC66KvsW5PC5IJIaRu3uL2UhC
+         lvF477W+9RsDiLxrj6UmTipwbaV0/8e9KV4J9nVUqMBrWjf6RBfLf9JfJ/gYzJ8Y22Ap
+         7wUWiLng/uDX0896JJTcFrUXHjiSbiedXyKKS/n/JBKSlS/xqVFUiaeC0t3gwS4MaAoB
+         9CX99YMQlvdeGGI4RFDXynHlg5yVXMzPMQIG4uqKSO8vencFiwvcQEdNVMOHZ+4ejdmQ
+         v2Jg==
+X-Gm-Message-State: APuU4Z91mv5udvZZhtI4Im49D4mn6O/s5yTIyCCSy312O0FVJsIFoVM/
+	s1x0ub+9lKATPGNtlXV5iCyIBZfK1NIIktxgxXi0c6/JkCbdmpha9mOJ1GSC3JfL/m73ksW3/tf
+	izNieCxpNp/FtP/w2+NIh4hhp/PmKLPRKuA==
+X-Gm-Gg: AYBFou3GenCjmiChgBJgGR7Cj8NE4WG/e0a8ShX5Vn/V2pFUi7aBaYeXfXq6xLDbZi/
+	wX0w3H3fGxIuhxUfqwM99vkAQq5FvYUOBpx1lrfkZlaAZSLa73jLzKMPlh+6WZktZpPg2YUmwdx
+	QlISgi2E2tePmxW+HEX8QPfMzZvhWSQPO3tgMfV+8Iwc+0bVsNvM3OA/hkl/W8DprV3A4oQt9s9
+	i4mbcejw3OMwDPQBt9Jh2m4jymc7EDq6suUuLzZYI1fL8IpPmTv+jGGiX9i3eyl5S6/c3rRycZ4
+	FBqJOMdtkrSxIu2y+ryWssAa8QsHMvX3tqBzi+DbYcparm2fi4eZTgJ2dkoF5FtqDEaOA60tNIv
+	BsbzJsTp9Syr9QimfLFR2nlct1GKiA5tGRmP4vOLqmf+OcfyPue3R5HpVmnIzBTF6VFT06AYZOd
+	56WHh366B3KQU1qA==
+X-Received: by 2002:a05:6512:1114:b0:5c1:598c:bacb with SMTP id
+ 2adb3069b0e04-5c170a14af9mr2444775e87.64.1794716273492; Sat, 14 Nov 2026
+ 20:17:53 -0800 (PST)
+Received: from 77377267392 named unknown by gmailapi.google.com with HTTPREST;
+ Sat, 14 Nov 2026 22:17:53 -0600
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -115,415 +105,367 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Oxunjon Ubaydullayev <oxunjonub@gmail.com>
+X-Google-Nh-Sender: AW_J_UpxuDYtlwE80IAW0D3i6-CrljUXbm9QE8ySP31-YCaqfwdAOrjXNsEejnoZYU4JZ5oi1mj-pA5J0LQxg_WiRnD0AFiEcLxsVbCNnJ1-Vkfu90xQX59LaQFtGSou5OoB1GTT5wLO6rU2f6S4MeC_urDkg_XeEUkQNI-x6C_dCDfEJfcsNGqn8JFpVISKZb3CGTnNXWM2skuVflzVkTRWtNvbRwWO6qj8QRVVw04IABiRtonoCSCrVXkEnCSB4O_YvJmzwn2xfIZCGu6o8xCP3P7-0y6i
+Date: Sat, 14 Nov 2026 22:17:53 -0600
+X-Gm-Features: AclHuK8fUvRWwTTwaTkXhXC6Aagn6c63IAyfWb_CXjeoL70hN2MnlhmHSkn_bhg
+Message-ID: <nh-4b1325cc-21a6-492b-a331-3713f9d61db1@google.com>
+Subject: nft_payload: a static transport-store check is enforced at runtime,
+ and 14 nft spellings die silently (`tcp flags set` regressed in v7.3)
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org, kadlec@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Move a host to another port of a bridge on the router while its flow is
-offloaded, and check that the transfer continues and is offloaded again.
-The cases are plain and vlan bridge ports, vlan ports whose real devices
-are ports of another bridge, "bridge fdb replace", a pinned and then
-deleted fdb entry, an aged out entry (the flow must stay), the plain
-case over IPv6, and a vlan_filtering bridge with untagged ports, with
-tagged plain and vlan ports, and with the router address on a vlan
-device on the bridge. Two cases give the ports vid 10 untagged while
-their pvid stays 1, with a host that tags what it sends: the router
-address on a vlan device on the bridge, and on the bridge with pvid 10.
-With "stack" the bridge port is a vlan device of another bridge, and
-with "stackout" the host moves from behind that bridge to a port of the
-outer one. Three cases check that the flow follows what the bridge
-delivers: the host's port is disabled and its vlan leaves the port
-(the flow must stop in both), and vlan_filtering is turned off before
-the host roams.
+STATUS: NOT SENT. Draft held by the reporter; nothing below has been posted=
+.
 
-Without the gc check the transfer stalls when the host moves.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+1. Summary
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
 
-Signed-off-by: Julius Bairaktaris <julius@bairaktaris.de>
----
-v10: cases for an untagged vlan that is not the port pvid, a move from
-behind the inner to a port of the outer bridge, a disabled port, a vlan
-leaving the port and vlan_filtering turned off; IPv6 off on the host for
-the IPv4 cases, whose router solicitations refreshed the fdb entry of
-the "age" case; lines wrapped to 80 columns; rns1, rnsr and rns2
-initialised for shellcheck
-v9: https://lore.kernel.org/netfilter-devel/20261108155344.35845-3-julius@bairaktaris.de/
+Since 112e447d17f7 ("netfilter: validate L4 headers after userspace packet
+writes", first release v7.3), nft_th_write_ok() refuses any transport-heade=
+r
+payload store whose [offset, offset+len) range covers TCP header byte 12 =
+=E2=80=94 the
+byte that holds the data offset in its high nibble. It refuses by returning
+NFT_BREAK at runtime. Three consequences, all measured on 7.2.15, 7.3, 7.3.=
+4:
 
- .../selftests/net/netfilter/nft_flowtable.sh  | 364 ++++++++++++++++++
- 1 file changed, 364 insertions(+)
+  a) the documented `tcp flags set` operator silently stops working: nft
+     installs it (rc 0, no message), the packet is forwarded unchanged. Thi=
+s
+     is a regression: on 7.2.15 the same rule sets the flag and fixes the
+     checksum.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 449c518bd947d..80caf262f1112 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -851,6 +851,370 @@ test_ipip
- 
- test_bridge
- 
-+# set by setup_ns, which reuses a name it already holds
-+rns1="" rnsr="" rns2=""
-+
-+# Roam a host between two ports of a bridge on the router while its flow is
-+# offloaded, as a station moving between two access points attached to ports
-+# of one bridge. The host keeps its address and mac on a bridge of its own and
-+# roams by moving that bridge's port, so only the fdb changes. With a vid the
-+# bridge ports are vlan devices, whose ifindex differs from the device the
-+# flow transmits on. With "replace" the router's fdb entry is sticky and the
-+# move is a "bridge fdb replace". With "del" the host stays, its entry is
-+# pinned to the other port and then deleted, and a ping relearns it. With
-+# "age" the host stays and its entry ages out, which must not tear the flow
-+# down. A flow that stays on the fast path leaves no more than a few packets
-+# in the forward chain, the counter tells offloaded from slow path. The plain
-+# roam also runs over IPv6, and on a vlan_filtering bridge: with untagged
-+# ports ("vf"), whose fdb entries are keyed by the pvid of the port, with
-+# tagged ports ("tag"), and with untagged ports and the router address on a
-+# vlan device on the bridge ("upper"). "asym" and "asymkeep" give the ports
-+# vid 10 untagged while their pvid stays 1 and the host tags what it sends,
-+# with the router address on a vlan device on the bridge or on the bridge with
-+# pvid 10. With "stack" the port of br0 is a vlan device on br1, whose ports
-+# the host moves between; with "stackout" the host moves from behind br1 to a
-+# port of br0. With "block" the host's port is set to the disabled state,
-+# which must stop the flow. With "vdel" the host's vlan leaves its port, which
-+# must stop the flow, and with "toggle" vlan_filtering is turned off before
-+# the host roams.
-+test_bridge_roam()
-+{
-+	local vid=$1 how=$2 fam=${3:-4} vf=$4 trunk=$5
-+	local p0=sr0 p1=sr1 r0=rr0 r1=rr1 rbr=br0
-+	local mac=02:00:00:09:01:99
-+	local what="roaming on bridge${vf:+ with vlan_filtering}"
-+	[ "$vf" = tag ] && what="$what and tagged ports"
-+	[ "$vf" = upper ] && what="$what and a vlan device on the bridge"
-+	[ "$vf" = asym ] && what="$what, a vlan device on the bridge"
-+	[ "$vf" = asymkeep ] && what="$what and the bridge pvid"
-+	[ "${vf#asym}" != "$vf" ] && what="$what untagged on ports of pvid 1"
-+	what="$what${vid:+ with vlan ports}"
-+	case "$how" in
-+	block) what="$what, the host's port disabled" ;;
-+	vdel) what="$what, the vlan leaving the port" ;;
-+	toggle) what="$what, vlan_filtering turned off" ;;
-+	?*) what="$what by fdb $how" ;;
-+	esac
-+	[ "$trunk" = trunk ] &&
-+		what="$what whose real devices are ports of another bridge"
-+	[ "$trunk" = stack ] && what="$what on a vlan device of another bridge"
-+	[ "$trunk" = stackout ] &&
-+		what="$what from a vlan device of another bridge to a port"
-+	local ftdevs="rr0, rr1, rw0"
-+	local hn=10.9.1 wn=10.9.2 dot=. len=24 nodad="" ip6="" srv=10.9.2.99
-+	local min=10000000
-+	local dev old new slow fdb lpid cpid win=2
-+
-+	if [ "$fam" = 6 ]; then
-+		hn=dead:9:1 wn=dead:9:2 dot=:: len=64 nodad=nodad ip6=-6
-+		srv="[dead:9:2::99]"
-+		what="$what over IPv6"
-+	fi
-+
-+	setup_ns rns1 rnsr rns2
-+	# router solicitations of the host would pass the bridge and refresh
-+	# its fdb entry
-+	if [ "$fam" = 4 ]; then
-+		ip netns exec "$rns1" sysctl -q \
-+			net.ipv6.conf.all.disable_ipv6=1 \
-+			net.ipv6.conf.default.disable_ipv6=1
-+	fi
-+
-+	if ! ip -net "$rnsr" link add br0 type bridge \
-+	     ${vf:+vlan_filtering 1} 2>/dev/null; then
-+		echo "SKIP: could not add bridge for $what"
-+		[ "$ret" -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	ip link add sr0 netns "$rns1" type veth peer name rr0 netns "$rnsr"
-+	ip link add sr1 netns "$rns1" type veth peer name rr1 netns "$rnsr"
-+	ip link add rw0 netns "$rnsr" type veth peer name w0 netns "$rns2"
-+	if [ "$trunk" = stackout ]; then
-+		ip link add sr2 netns "$rns1" type veth peer name rr2 \
-+			netns "$rnsr"
-+		ip -net "$rns1" link set sr2 up
-+		ip -net "$rnsr" link set rr2 up
-+		ftdevs="$ftdevs, rr2"
-+	fi
-+	for dev in sr0 sr1; do
-+		ip -net "$rns1" link set "$dev" up
-+	done
-+	for dev in rr0 rr1; do
-+		ip -net "$rnsr" link set "$dev" up
-+	done
-+
-+	if [ -n "$vid" ]; then
-+		for dev in sr0 sr1; do
-+			ip -net "$rns1" link add link "$dev" name "$dev.$vid" \
-+				type vlan id "$vid"
-+			ip -net "$rns1" link set "$dev.$vid" up
-+		done
-+		p0=sr0.$vid; p1=sr1.$vid
-+	fi
-+	if [ -n "$vid" ] && [ "${trunk#stack}" = "$trunk" ]; then
-+		for dev in rr0 rr1; do
-+			ip -net "$rnsr" link add link "$dev" name "$dev.$vid" \
-+				type vlan id "$vid"
-+			ip -net "$rnsr" link set "$dev.$vid" up
-+		done
-+		r0=rr0.$vid; r1=rr1.$vid
-+	fi
-+	if [ -n "$trunk" ]; then
-+		ip -net "$rnsr" link add br1 type bridge
-+		ip -net "$rnsr" link set rr0 master br1
-+		ip -net "$rnsr" link set rr1 master br1
-+		ip -net "$rnsr" link set br1 up
-+	fi
-+	if [ "${trunk#stack}" != "$trunk" ]; then
-+		ip -net "$rnsr" link add link br1 name br1.$vid \
-+			type vlan id "$vid"
-+		ip -net "$rnsr" link set br1.$vid up
-+		r0=br1.$vid; r1=br1.$vid
-+	fi
-+	# the host moves from behind br1 to a port of br0
-+	[ "$trunk" = stackout ] && { r1=rr2; p1=sr2; }
-+
-+	ip -net "$rnsr" link set "$r0" master br0
-+	[ "$r1" != "$r0" ] && ip -net "$rnsr" link set "$r1" master br0
-+	ip -net "$rnsr" link set br0 up
-+	if [ "$vf" = tag ]; then
-+		for dev in "$r0" "$r1"; do
-+			bridge -n "$rnsr" vlan add vid 10 dev "$dev"
-+		done
-+		bridge -n "$rnsr" vlan add vid 10 dev br0 self pvid untagged
-+		for dev in "$p0" "$p1"; do
-+			ip -net "$rns1" link add link "$dev" name "$dev.10" \
-+				type vlan id 10
-+			ip -net "$rns1" link set "$dev.10" up
-+		done
-+		p0=$p0.10; p1=$p1.10
-+	elif [ "$vf" = upper ]; then
-+		for dev in "$r0" "$r1"; do
-+			bridge -n "$rnsr" vlan add vid 10 dev "$dev" \
-+				pvid untagged
-+		done
-+		bridge -n "$rnsr" vlan add vid 10 dev br0 self
-+		ip -net "$rnsr" link add link br0 name br0.10 type vlan id 10
-+		ip -net "$rnsr" link set br0.10 up
-+		rbr=br0.10
-+	elif [ "$vf" = asym ] || [ "$vf" = asymkeep ]; then
-+		# vid 10 leaves the ports untagged but is not their pvid; the
-+		# host tags what it sends, so the entry is learned in vid 10.
-+		for dev in "$r0" "$r1"; do
-+			bridge -n "$rnsr" vlan add vid 10 dev "$dev" untagged
-+		done
-+		if [ "$vf" = asym ]; then
-+			bridge -n "$rnsr" vlan add vid 10 dev br0 self
-+			ip -net "$rnsr" link add link br0 name br0.10 \
-+				type vlan id 10
-+			ip -net "$rnsr" link set br0.10 up
-+			rbr=br0.10
-+		else
-+			bridge -n "$rnsr" vlan add vid 10 dev br0 self \
-+				pvid untagged
-+		fi
-+	fi
-+	ip -net "$rnsr" addr add $hn${dot}1/$len dev $rbr $nodad
-+	ip -net "$rnsr" addr add $wn${dot}1/$len dev rw0 $nodad
-+	ip -net "$rnsr" link set rw0 up
-+	ip netns exec "$rnsr" sysctl -q net.ipv4.ip_forward=1
-+	ip netns exec "$rnsr" sysctl -q net.ipv6.conf.all.forwarding=1
-+
-+	# the host takes untagged frames into vid 10 and sends it tagged
-+	host_port() {
-+		ip -net "$rns1" link set "$1" master stbr
-+		if [ "$vf" = asym ] || [ "$vf" = asymkeep ]; then
-+			bridge -n "$rns1" vlan add vid 10 dev "$1" pvid
-+			bridge -n "$rns1" vlan del vid 1 dev "$1"
-+		fi
-+	}
-+	ip -net "$rns1" link add stbr type bridge
-+	if [ "$vf" = asym ] || [ "$vf" = asymkeep ]; then
-+		ip -net "$rns1" link set stbr type bridge vlan_filtering 1
-+		bridge -n "$rns1" vlan add vid 10 dev stbr self pvid untagged
-+		bridge -n "$rns1" vlan del vid 1 dev stbr self
-+	fi
-+	ip -net "$rns1" link set stbr address $mac
-+	host_port "$p0"
-+	ip -net "$rns1" link set stbr up
-+	ip -net "$rns1" addr add $hn${dot}99/$len dev stbr $nodad
-+	ip $ip6 -net "$rns1" route add default via $hn${dot}1
-+
-+	ip -net "$rns2" addr add $wn${dot}99/$len dev w0 $nodad
-+	ip -net "$rns2" link set w0 up
-+	ip $ip6 -net "$rns2" route add default via $wn${dot}1
-+
-+	# no neighbour probes, so the host only sends when it receives
-+	ip -net "$rnsr" neigh replace $hn${dot}99 lladdr $mac nud permanent \
-+		dev $rbr
-+	ip -net "$rns1" neigh replace $hn${dot}1 nud permanent dev stbr \
-+		lladdr "$(ip -net "$rnsr" -br link show br0 | awk '{print $3}')"
-+
-+	if ! ip netns exec "$rnsr" nft -f - <<EOF
-+table inet filter {
-+  counter roam_repl { }
-+  flowtable f1 { hook ingress priority 0; devices = { $ftdevs }; }
-+  chain forward {
-+    type filter hook forward priority 0; policy accept;
-+    meta oif "rw0" tcp dport 12345 flow add @f1
-+    meta iif "rw0" tcp sport 12345 counter name roam_repl flow add @f1
-+  }
-+}
-+EOF
-+	then
-+		echo "SKIP: could not load ruleset for $what"
-+		[ "$ret" -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	# the host discards what it receives, its socket byte counter is read
-+	rx_bytes() { ip netns exec "$rns1" ss -tin "dst $srv" 2>/dev/null |
-+		grep -o 'bytes_received:[0-9]*' | head -1 | cut -d: -f2; }
-+	rx_started() { local n; n=$(rx_bytes); [ "${n:-0}" -gt 0 ]; }
-+	# forward chain packets of the reply direction since the last call
-+	slow_pkts() { ip netns exec "$rnsr" \
-+			nft reset counter inet filter roam_repl |
-+		grep -o 'packets [0-9]*' | cut -d' ' -f2; }
-+	roam_listener_ready() {
-+		ss -N "$rns2" -lnt -o "sport = :12345" | grep -q 12345
-+	}
-+
-+	roam_stop() {
-+		kill "$cpid" "$lpid" 2>/dev/null
-+		wait "$cpid" "$lpid" 2>/dev/null
-+	}
-+
-+	timeout $((SOCAT_TIMEOUT * 5)) ip netns exec "$rns2" socat -u \
-+		OPEN:/dev/zero TCP$fam-LISTEN:12345,reuseaddr &
-+	lpid=$!
-+	if ! busywait "$BUSYWAIT_TIMEOUT" roam_listener_ready; then
-+		echo "FAIL: $what: listener did not start" 1>&2
-+		ret=1
-+		kill "$lpid" 2>/dev/null; wait "$lpid" 2>/dev/null
-+		return
-+	fi
-+	timeout $((SOCAT_TIMEOUT * 5)) ip netns exec "$rns1" socat -u \
-+		TCP$fam:$srv:12345 OPEN:/dev/null &
-+	cpid=$!
-+
-+	if ! busywait "$BUSYWAIT_TIMEOUT" rx_started; then
-+		echo "FAIL: $what: transfer did not start" 1>&2
-+		ret=1
-+		roam_stop
-+		return
-+	fi
-+	sleep 2
-+	slow_pkts > /dev/null
-+	old=$(rx_bytes)
-+	sleep 2
-+	new=$(rx_bytes)
-+	slow=$(slow_pkts)
-+	if [ -z "$slow" ] || [ $((${new:-0} - ${old:-0})) -lt $min ] ||
-+	   [ "$slow" -gt 100 ]; then
-+		echo "FAIL: $what: not offloaded before the roam:" \
-+		     "$((${new:-0} - ${old:-0})) bytes," \
-+		     "${slow:-no} forward chain packets" 1>&2
-+		ret=1
-+		roam_stop
-+		return
-+	fi
-+
-+	if [ "$how" = age ]; then
-+		# ageing_time is in centiseconds
-+		ip -net "$rnsr" link set br0 type bridge ageing_time 200
-+		win=10
-+	elif [ "$how" = del ]; then
-+		bridge -n "$rnsr" fdb replace $mac dev "$r1" \
-+			master static sticky
-+		sleep 2
-+		bridge -n "$rnsr" fdb del $mac dev "$r1" master static
-+		ip netns exec "$rns1" ping $ip6 -c 2 -W 1 -q $hn${dot}1 \
-+			>/dev/null 2>&1
-+	elif [ "$how" = block ]; then
-+		# the bridge no longer delivers there, nor may the flow; the
-+		# disabled state sticks without STP and keeps the fdb
-+		bridge -n "$rnsr" link set dev "$r0" state 0
-+	elif [ "$how" = vdel ]; then
-+		# the bridge no longer delivers to the host, nor may the flow
-+		bridge -n "$rnsr" vlan del vid 1 dev "$r0"
-+	else
-+		# roam: move the host bridge to the other port and send on it
-+		if [ "$how" = toggle ]; then
-+			ip -net "$rnsr" link set br0 type bridge \
-+				vlan_filtering 0
-+			sleep 2
-+		fi
-+		if [ "$how" = replace ]; then
-+			bridge -n "$rnsr" fdb replace $mac dev "$r0" \
-+				master static sticky
-+		fi
-+		ip -net "$rns1" link set "$p0" nomaster
-+		host_port "$p1"
-+		ip netns exec "$rns1" ping $ip6 -c 2 -W 1 -q $hn${dot}1 \
-+			>/dev/null 2>&1
-+		if [ "$how" = replace ]; then
-+			bridge -n "$rnsr" fdb replace $mac dev "$r1" \
-+				master static sticky
-+		fi
-+	fi
-+
-+	# the bytes in flight at the roam drain within the first seconds; a
-+	# stale flow delivers nothing after that, a torn down one resumes and
-+	# is offloaded again.
-+	sleep 4
-+	old=$(rx_bytes)
-+	sleep 4
-+	new=$(rx_bytes)
-+	slow_pkts > /dev/null
-+	sleep $win
-+	slow=$(slow_pkts)
-+	# before the host's FIN passes the bridge and relearns the entry
-+	fdb=$(bridge -n "$rnsr" fdb show br br0 | grep "$mac.*master")
-+	roam_stop
-+
-+	if [ "$how" = vdel ] || [ "$how" = block ]; then
-+		if [ $((${new:-0} - ${old:-0})) -gt 0 ]; then
-+			echo "FAIL: $what: $((${new:-0} - ${old:-0})) bytes" \
-+			     "delivered to a port that does not forward" 1>&2
-+			ret=1
-+		else
-+			echo "PASS: flow offload for $what"
-+		fi
-+	elif [ "$how" = age ] && [ -n "$fdb" ]; then
-+		echo "FAIL: $what: the host's fdb entry did not age out" 1>&2
-+		ret=1
-+	elif [ $((${new:-0} - ${old:-0})) -lt $min ]; then
-+		echo "FAIL: $what: transfer stalled after the roam" 1>&2
-+		ret=1
-+	elif [ "$slow" != 0 ]; then
-+		echo "FAIL: $what: $slow forward chain packets after the roam" \
-+			1>&2
-+		ret=1
-+	else
-+		echo "PASS: flow offload for $what"
-+	fi
-+}
-+
-+test_bridge_roam ""
-+test_bridge_roam 100
-+test_bridge_roam "" replace
-+test_bridge_roam "" del
-+test_bridge_roam "" age
-+test_bridge_roam "" "" 6
-+test_bridge_roam "" "" 4 vf
-+test_bridge_roam "" "" 4 tag
-+test_bridge_roam 100 "" 4 tag
-+test_bridge_roam 100 "" 4 "" trunk
-+test_bridge_roam 100 "" 4 "" stack
-+test_bridge_roam 100 "" 4 "" stackout
-+test_bridge_roam "" block
-+test_bridge_roam "" vdel 4 vf
-+test_bridge_roam "" toggle 4 vf
-+test_bridge_roam "" "" 4 upper
-+test_bridge_roam "" "" 4 asym
-+test_bridge_roam "" "" 4 asymkeep
-+
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
- KEY_AES="0x"$(ps -af | md5sum | cut -d " " -f 1)
- SPI1=$RANDOM
--- 
-2.53.0
+  b) the break swallows the rest of the rule. In a chain with `policy drop`=
+,
+     `tcp flags set syn counter accept` DROPS every packet: the counter sta=
+ys
+     0 and the accept is never evaluated. A rule that was a no-op becomes a
+     drop rule.
 
+  c) the condition is static. `offset` and `len` are netlink attributes and
+     cannot change between packets, and this very init function already
+     rejects another static combination with a visible error
+     (NFT_PAYLOAD_CSUM_NONE with a non-zero csum_offset is -EINVAL,
+     "nonsensical", nft_payload.c:1239). So the same check can be made wher=
+e
+     the user can see it, instead of failing at runtime where nobody can.
+
+It is not one operator. It is every nft spelling whose compiled store cover=
+s
+byte 12: 14 of them, three TCP fields out of the ten nft knows, plus the ra=
+w
+`@th` escape hatch. Two of those spellings provably cannot change the data
+offset at all =E2=80=94 and they die just the same.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+2. The class: 14 spellings, measured
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+Instrument: nft 1.1.7 (static build) installs the rule in a forward chain;
+nft itself prints the netlink message with --debug=3Dnetlink; the frame is
+captured on the far side of a veth pair; a `counter` (or `counter accept`
+under policy drop) placed after the store reports whether the kernel ran pa=
+st
+it. One frame: IPv4, TCP, doff 5, PSH|ACK, 16 bytes of 0x77.
+
+  spelling (rule text)                       nft's own message  counter
+
+7.2.15/7.3/7.3.4
+  tcp doff set 6                             2b @ +12           1 / 0 / 0
+  tcp doff set 5                             2b @ +12           1 / 0 / 0
+  tcp reserved set 1                         2b @ +12           1 / 0 / 0
+  tcp flags set syn                          2b @ +12           1 / 0 / 0
+  tcp flags set tcp flags & (fin|syn|rst|...) 2b @ +12          1 / 0 / 0
+  tcp flags set tcp flags | ecn | cwr        2b @ +12           1 / 0 / 0
+  @th,96,8 set 0x50                          1b @ +12           1 / 0 / 0
+  @th,96,8 set 0x58                          1b @ +12           1 / 0 / 0
+  @th,96,16 set 0x5018                       2b @ +12           1 / 0 / 0
+  @th,96,32 set 0x50180000                   4b @ +12           1 / 0 / 0
+  @th,88,16 set 0x4450                       2b @ +11           1 / 0 / 0
+  @th,80,24 set 0x334450                     3b @ +10           1 / 0 / 0
+  @th,64,64 set 0x1122334455665018           8b @ +8            1 / 0 / 0
+  @th,0,128 set 0x112233445566778899aabb...  16b @ +0           1 / 0 / 0
+
+On 7.3 and 7.3.4 every one of the 14 leaves the captured frame byte-identic=
+al
+to the control frame (nft returns 0 and prints nothing). On 7.2.15 every on=
+e
+of the 14 runs, and the bytes on the wire are the bytes the rule named.
+
+The inventory is closed by construction, not by search: in nftables 1.1.7 t=
+he
+only production that writes the packet is `payload_stmt : payload_expr SET
+stmt_expr` (parser_bison.y:5856), so the space of spellings is every field =
+of
+every protocol table plus `@base,offset,length`. The TCP table has exactly =
+ten
+fields (src/proto.c:602-617); only doff (bits 12*8, 4), reserved (12*8+4, 4=
+)
+and flags (13*8, 8) cover byte 12. The other seven start or end outside it.
+
+Note for the raw form: `@th,<off>,<len>` counts its offset in BITS. Measure=
+d:
+`@th,12,8` lands on transport byte 1, `@th,96,8` on byte 12. Writing byte 1=
+2
+by hand is possible, and it is refused exactly like the keyword forms.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+3. The check is coarser than the sentence it implements
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+The commit message says: "For nft payload writes, reject transport-header
+stores that overlap TCP doff. ... keeping doff stable prevents nft payload
+writes from changing the TCP header length underneath conntrack and helper
+users."
+
+The guard is `priv->offset > 12 || priv->offset + priv->len <=3D 12` =E2=80=
+=94 purely
+geometric. It never looks at the value or the mask, and nft hands it masks
+that make the overlap harmless:
+
+  tcp flags set syn    ->  payload load 2b @12
+                           bitwise reg =3D (reg & 0xff00) ^ 0x0002
+                           payload write 2b @12
+     The high byte of the written word is taken from the packet itself
+     (mask 0xff00): this store CANNOT change doff. It is refused anyway.
+
+  tcp reserved set 1   ->  bitwise (reg & 0xf0ff) ^ 0x0100
+     Only the reserved nibble is written; the high nibble is preserved by
+     the mask. Refused anyway.
+
+  tcp doff set 5       ->  bitwise (reg & 0x0fff) ^ 0x5000
+     Writes the value the packet already has. Refused anyway.
+
+Measured: `tcp doff set 5` and `tcp reserved set 1` are dead on 7.3/7.3.4
+exactly like `tcp doff set 6`.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+4. The predicate, measured by sweep
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+A second battery writes the store at the netlink level (no nft), in a chain
+with `policy drop` followed by `accept`, so delivery of the packet is the
+answer "the guard let it through". 33 arms, offsets 0..14, lengths 1..16:
+
+  7.2.15 : 33 delivered,  0 refused
+  7.3    : 17 delivered, 16 refused
+  7.3.4  : 17 delivered, 16 refused
+
+Refused exactly when off <=3D 12 < off+len. Arms that end exactly at byte 1=
+2
+(off 8 len 4, off 9 len 3, off 4 len 8, off 10 len 2, off 11 len 1) are
+delivered; arms that start at 12 (any length) are refused. Two arms write
+values that cannot change anything =E2=80=94 0x50 (the byte already there) =
+and 0x51
+(doff kept, one reserved bit set) =E2=80=94 and both are refused on 7.3/7.3=
+.4.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+5. The regression, in one line each
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+7.2.15 : `tcp flags set syn`  ->  captured flags byte 0x18 -> 0x02, checksu=
+m
+                                  valid (word d849).
+7.3    : same rule, nft rc 0, no kernel message  ->  capture byte-identical
+         to the no-rule control (word d833).
+7.3.4  : identical to 7.3.
+
+Verdict consequence (chain with policy drop, one packet):
+  `tcp flags set syn counter accept` : dropped on 7.3/7.3.4 (counter 0),
+                                       delivered and counted on 7.2.15.
+  `counter accept` (control)         : delivered on all.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+6. Proposal
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+(a) Move the check where its inputs live. `offset`, `len` and `base` are
+    known at nft_payload_set_init(); refusing there with -EOPNOTSUPP (and t=
+he
+    existing extack channel) turns a silent runtime death into an error the
+    user sees at `nft add rule` time. This does not change behaviour for an=
+y
+    packet that is served today; it only makes the refusal observable.
+
+(b) If `tcp flags set` (and the reserved/doff-preserving stores) should kee=
+p
+    working, compare the nibble instead of the range: accept a store that
+    covers byte 12 iff the byte it writes keeps the packet's doff nibble.
+    15 lines, measured on 7.3.4 + P:
+
+      7.3.4        : 12 of the 14 spellings dead
+      7.3.4 + (b)  : 12 of the 14 alive again (including all three
+                     `tcp flags set` forms, `tcp reserved set`, `tcp doff
+                     set 5`, and the raw stores that keep doff)
+                     `tcp doff set 6` and `@th,0,128` (byte 12 =3D 0xdd)
+                     are still refused =E2=80=94 the property the guard was=
+ written
+                     for is preserved.
+      The one-byte store at offset 13 (flags only) is also admitted by (b);
+      on 7.2.15/7.3/7.3.4 that store exists but leaves an invalid checksum
+      (see item 2 below), so it is not a workaround.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+7. Reproduction
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+Kernels: 7.2.15 (last release without the guard), 7.3, 7.3.4, each built fr=
+om
+the release tarball with the same .config; guest =3D QEMU/TCG, nftables 1.1=
+.7
+static, one veth pair, one forward chain, one crafted frame (doff 5,
+PSH|ACK, 16 bytes of 0x77, dport 9999).
+
+  # 7.3.4
+  nft add table ip p
+  nft 'add chain ip p c { type filter hook forward priority 0; policy accep=
+t; }'
+  nft add rule ip p c 'tcp flags set syn counter'
+  # send one frame; `nft list chain ip p c` -> counter packets 0
+  # capture on the far side -> byte-identical to the frame sent without rul=
+e
+
+The full batteries (14 language spellings + 33 raw arms + verdict chains),
+the logs of five boots, the reference verifier (1034 checks) and a selftest
+that mutates each log line to prove the verifier notices are available on
+request. Nothing here needs a patch to reproduce; everything runs on stock
+releases.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+8. Five more defects found with the same instrument
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+Each of these is independent of the one above and is included because the
+same method produced it: one number the kernel states about itself against =
+a
+second number measured on the wire.
+
+1. `csum type inet` at an odd store offset writes a byte-swapped delta
+   (F21/F26). nft_payload_set_eval() takes fsum/tsum from the start of the
+   STORE range, while the checksum field covers 16-bit words aligned to the
+   HEADER. Measured: a 1-byte store of 0xa0 at TCP offset 19 and the same
+   store at offset 18 leave the identical word 0x3833 at TCP+16; the correc=
+t
+   word for 19 is 0xd793, and the captured segment does not verify. A
+   10 000-rule fuzzer over `payload set` produces 41 packets with a wrong L=
+4
+   checksum on 7.3.4 =E2=80=94 all 37 random cases at odd offsets =E2=80=94=
+ and 0 with a
+   3-line fix, with every other counter identical (2024 accepted, 7976
+   -EINVAL, 1935 forwarded). Still present in master (nft_payload.c is
+   byte-identical to 7.3.4 there). Reachable only with a custom netlink
+   client: stock nft does not emit a 1-byte transport store (dscp is widene=
+d
+   to 2 bytes at offset 0).
+
+2. `nft_inner`'s tunnel-parse cache is keyed on the descriptor type alone
+   (F22/F23). Two `inner` expressions of the same type in one chain share o=
+ne
+   parse, so the second one's hdrsize and flags are silently ignored.
+   Measured in both directions: a second expression with its own hdrsize
+   reads the first one's position; a second with its own flags does not fir=
+e.
+   Not expressible in nft 1.1.7's grammar (three forms rejected, and nft
+   prints a rule it cannot itself print back), but any custom netlink clien=
+t
+   can send the pair =E2=80=94 the kernel accepts it (rc 0) and the dump re=
+turns
+   both.
+
+3. The set element counter lags the contents by up to one GC period (F24).
+   `delete @s` in the packet path only marks the element dead; set->nelems
+   is decremented later, in the GC batch's RCU callback. Measured window on
+   a `flags dynamic` set with a 1 s GC: 6-861 ms over 12 measurements, plus
+   `size 4  # count 4` printed next to a single element. Four backends as
+   controls (rbtree, pipapo, hash, concat) all show count =3D=3D live, so t=
+his is
+   a window, not a general counter defect.
+
+4. The catchall element is not counted, by construction (F25). NFT_SET_ELEM=
+_
+   CATCHALL is excluded from set->nelems by two guards and returned by the
+   dump. A set whose only element is `*` reports count 0, dumps one element=
+,
+   and matches every packet (3 of 3). `size 4` accepts 5 elements and refus=
+es
+   the 6th. `nft delete set` deletes such a set without complaint because
+   1.1.7 never sets NLM_F_NONREC.
+
+5. A guard that silently disables a field it was meant to protect (F27) is
+   item (a)/(b) above; this is the same function, one level up.
+
+None of these is a memory-safety bug, and all of them need CAP_NET_ADMIN in
+the initial user namespace; nft_payload_set_init() returns -EPERM otherwise=
+.
+They are correctness defects with user-visible consequences, which is why
+they are reported together.
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+9. Provenance
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+
+Everything above was measured on release kernels built from kernel.org
+tarballs (sha256 compared with the published sums) inside disposable QEMU
+guests; no patches were applied to the measured kernels. The fix in (b) was
+built as a separate tree so the measured releases stay untouched. Full logs=
+,
+per-arm captures, the verifier and its selftest are available.
