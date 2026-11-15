@@ -1,21 +1,22 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794766721;
-	b=TqcQ6W9Yo5Cjk1pjLfEk6iMG6SpxCMIz2rAomekHCKNyFyROe9sCnPK3TkCW3TYLNxyR
-	 wz4X+5osJguUoCNLoChk5sZUASA/87WgbnTmoCiYfN4GozqI4PG48HApAQArTV7UzcU2K
-	 Xz0n2pLmlDs1vIW4VKiMtNE1NcG8RREjMFRIzWGPGrN8uC+XE3Gf8UnVhzafZzHL1MQJk
-	 1l9VtUgvZ2kmgOh5oDnN2Aw/HjzzLXS3AGWrpKXvl1Mc5+LXOM0oCN9sFW/3Sl+eXupqc
-	 a+JhxZHRm/O751Bz+/P2/sl8PBtSqACTRkmKuDTDWn7J7XjVN9w1CuQxKhD3zWdafiw==
+	t=1794766892;
+	b=EzpseB61x5IdiOvVq+N/SbHPcEjsS/e9JvdYcBixl54RWJXQ5UnqBQOclu+s9TcDitKg
+	 a7sktKQyL5HWaULhpHVOA9HT5+fv4kDw5/igLhlsp7+nq0B7DjKaUFUw8DPioPxXyJLJt
+	 M9M0nNhvv2jPPHC8CC1XkfqQL5POwG7Rv5L/rxLuVh6B5x0+X+VoJcdihvrRyrHCwhnQY
+	 IoYGq7Y4LrL32L1DSFg6ibGErA26To10UL9j6aIlnSq632GDRa42ndBnkyNLcGkPylhzz
+	 sKDrsXjFSXL9odlvrrbiWiLbrteVKBiCqC5wcsNaC7VroO8OdAgeHDDiN/eIkegmXRw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794766721;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794766892;
 	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=1On2wFuhrsrFz+cCwtUpF+vNJ1lq0zP48pW/+qijtss=;
-	b=ghr1iqGxOrxzrbWgVSnIUoBb3FATMHYPyGtwK5OmbDarM5tGfRqYQ2/a44+3DwV6PwJy
-	 NMyywD37uEYVParNoy3Wx/6r9OrNPZ1hOc3Yigk0Qj2MkUitWOOrsFNKcr4nhQo6LBwz2
-	 kK0QJZSTgyWn7fWpzMi9eTV8mr4MVgv5lZo4vfAFufU41yAj0Br1LpsBCWQuHOvkHghOg
-	 49TnhewoPSJjEURwKDH57lo35LnycNxB17OqcMMZiRlw4byIrxushcGUj0DcLS0Q5W50X
-	 ZOLBWDPUsFT4Ju1zOYkUXT9TZoI+2uE45vJvJ5u/6FwWcsq6GaRBzFtt1VGCcJTvyZw==
+	 MIME-Version:Content-Type:Content-Disposition:
+	 Content-Transfer-Encoding:In-Reply-To;
+	bh=pfCoP456eSqY0ZG5/g/+tt3M/cNjnjpilUw7D+4CL5o=;
+	b=Khh+H5+F4bsv+B9LCND2w/+AnSbtdQtowRBFpDG8Vb3cm42tDR9afcVJdpkPQFptgh3c
+	 XIEZW1TgW9XZ3Zrh9zOsztBx6eM2AVXgf8et51KV4GkUmjVwMoHt6isBtFBIMEEMommf+
+	 VG64++IYZRUxpDcjZl9ER73AHlbMDrVEowYsZhVC50IORvWx5fTkbwIK/0rtvlnShTnV6
+	 b5XhirCcDZlqQ5hloweHlCSkYbXJtSzfOEH/GePBKbUecXTkjTxhcmXgTC7VYnJvG7HQg
+	 jGvq8TiOaDemhUC05ToqYZzTy0qOuVPho+BXv0k358UL3XfUrR12PBxmq8RegcJPO8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=strlen.de;
@@ -24,26 +25,22 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C42606A31D
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 18:18:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D7C42606A31D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07C4606A31A
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 18:21:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F07C4606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 14AED6055A; Sun, 15 Nov 2026 19:18:32 +0100 (CET)
-Date: Sun, 15 Nov 2026 19:18:31 +0100
+	id A08706055A; Sun, 15 Nov 2026 19:21:28 +0100 (CET)
+Date: Sun, 15 Nov 2026 19:21:28 +0100
 From: Florian Westphal <fw@strlen.de>
 To: Jozsef Kadlecsik <kadlec@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v10 0/6] ipset: replace internal hash table with
- rhashtable
-Message-ID: <avn3d1TtvftVLoDc@strlen.de>
-References: <20261112143818.30638-1-fw@strlen.de>
- <9a882426-58aa-c14d-fe99-64538c98d293@netfilter.org>
- <avXuJ0GBdzyxK-_w@strlen.de>
- <bbc263cd-5ceb-f183-439b-44909adef4ed@netfilter.org>
- <avbGlZBumFgTJyVY@strlen.de>
- <4075f44d-baca-ce2c-3892-81652ef19ce7@netfilter.org>
+Subject: Re: [PATCH ipset] tests: hash:net,iface.t: add test case for
+ wildcard matching behaviour
+Message-ID: <avn4KIth2ics2YkS@strlen.de>
+References: <20261028130203.1398-1-fw@strlen.de>
+ <86662718-9117-5c82-cd2e-74298a9a2c7f@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -55,34 +52,35 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4075f44d-baca-ce2c-3892-81652ef19ce7@netfilter.org>
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <86662718-9117-5c82-cd2e-74298a9a2c7f@netfilter.org>
 
 Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
-> > > > I pushed a few of the test updates to ipset.git, but not this 
-> > > > 3-part-series:
-> > > > 
-> > > > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20261111101603.22698-1-fw@strlen.de/
-> > > > 
-> > > > First one passes on either rhashtable branch or main, but I'm not sure
-> > > > it should :-)
-> > > > 
-> > > > Resp. I'm not sure what the contract/expected behavior of net,iface set 
-> > > > type is when the address matches the net/mask entry, but the interface 
-> > > > doesn't.  I followed existing behaviour, so that test would enshrine 
-> > > > that: it stops matching more candidates.
-> > > 
-> > > Hm, it shouldn't. The expected behaviour is as follows: if the net/mask 
-> > > entry matches but the interface not, then the code should continue trying 
-> > > to find matching entries but just with the same mask value and not with 
-> > > other ones. That way the same net/mask entry behind multiple interfaces is 
-> > > supported and matched.
-> > 
-> > In that case a v11 might be needed; the conversion follows the observed
-> > behavior.
-> 
-> This is strange because the current code does return the expected 
-> behaviour. I have just updated the tests with a case which checks it.
+> > +# Delete the specific entry.
+> > +0 ipset del test 10.0.1.0/24,eth0
+> > +# The wildcard entry should still be there and match eth1 via its pref=
+ix.
+> > +0 ipset test test 10.0.1.0/24,eth1
+>=20
+> The original code does not handle the case properly and the wildcard entr=
+y=20
+> can be deleted instead the specific one. If it passes for you then it's=
+=20
+> just lucky ordering.
 
-Thanks, passes for me both with main and rhashtable_v10, I just
-mis-parsed what you wrote...
+Yes, it passes both on main and rhashtable_v10.
+
+> > +# eth0 is excluded by the nomatch entry; it must not match via the wil=
+dcard.
+> > +1 ipset test test 10.0.3.0/24,eth0
+> > +0 ipset destroy test
+>=20
+> This part also does not handled properly with the current code: it lacks=
+=20
+> the ordering to match/delete first the specific and then the wildcard=20
+> records.
+
+Lucky coincidence, then?
+What do we do now?  Will you make test cases that demonstrate the
+expected behaviour and I respin a v11 that passes those tests?
+
