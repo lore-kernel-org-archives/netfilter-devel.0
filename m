@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794743166;
-	b=uaPdD6/tQFCtyBm2NjYS/5cAu6I8HTYbgTVpQ22D05IIYdLpGyqUSQ6rDNx2CsipsmX2
-	 IzUecoCVq9SfmeJFm/f8Er3Zs27n3I8q/ymI4njOcXd19dcJ4f2K/l1pyQrJ6w22u6+f4
-	 ZxLmi/m8Gug5pPfpIrrym57ffAzI9Ofsj6xXAVRi1HLOfdVgZpIgIVqhkZtx/47bd/KEk
-	 kYQHrYdCdvj5PXQ6LVh3v6GbC9KNDGv5E02D8IIBEgDq6AlZhgo8bwKpiTCJ2/06o0BgO
-	 SAt7HaPmgv1kzO1ySKS3g547H/QuSbl3qm+MLIONCbBu+EAd93fhVzMHpPczQbXVDuw==
+	t=1794743238;
+	b=CmF2MyLaiDXNWMyr3n18/Kb+eUmCSoCs2tM+VaawxXuv6drpxjT3jS+gfYTIn9WuecTq
+	 1SrfFSRxVEO9BkxGLo/oI3hz/EXEvmqkyjyBBC8bY0Dtkco2CuK+Zl4erhz2lntEKmWvE
+	 Fe8TFRP+LuXNnIFMyacom/EU3HrvylSv4UruKi0cEfUvkDFmMzvab7W6DaOYTGkZPIutr
+	 PAZkYkiHND/RmSGHbZ1iNJOSp1/6+T2MOpdQUTI759GpnSRc264tiG6xtTlfWpRa54vIh
+	 zAlxpI8y8R2+hSR7SU3IS5GyobcdqlNeWaUA26Vba5OVcfO9Ws7KUlPK33KWn76P+FA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794743166;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794743238;
 	h=DMARC-Filter:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:DKIM-Signature;
-	bh=E2qAcR3rEBfe73Lo3oxL5x8qblh3Zs/YTkiFBzYgfAo=;
-	b=0Ij3Q0RF5N9n50iQsPp0tZHbld3GFj1XalfG/0BuUuU1h74d+EQX7Ki6Fal00ptOAdlK
-	 qrIPrr2yLcnNOhTMRPULH52R2nN+Fq3ZQTQ+YslOC1D6eTBZRCLfCZPi//GW1EgdIGbDl
-	 9HRxnQoTwjCOv4SWf3LlLs4IQl/6SNAgxK0Zp1BtfvuaaMhRh96m3S1ikPVRQqSeLLDn4
-	 A73HkuuFy5UIwZp6yJrvqKh1DE5MI09FWCJcG+HQC/PxUGBkusnO3H2t13+HVFsRPc3e0
-	 mBENIldLwxeMhJfwQ492aGX4E944op9o4OfHXvKth0HQwbmBJqVydrT5Ld7zDx1KjRw==
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
+	 DKIM-Signature;
+	bh=GAr23D9nNi7WaHhPmdqYBMIdEmHnJfaXPVTLJAkqPSA=;
+	b=Q4INP5+oIgFprUe0WxsHkesFyIINwxewlccPofRDN+rNr4SnZCC3wJop88rdxVTfLzxf
+	 dPGPNIBZffl2cuIdlyWCA2QlMwq+CIn7NyR3AT1HVgfNusmCWgfQ0Gs0JTxg92w+vweVp
+	 wgLT+a1vB5As1Z6GocbDg7+SdF5NNuPXNH7gEdFmj79rJlAocR8Jy95AH0eXHLgN72XEx
+	 iqKcjvFtlvGncuip26FMaaFeKe0GUpQMA8uxP2sRPOeSrOPDYi3JyEFZ0qH1tnytH98wU
+	 b4u8lXlEcQ7wbZilwHpdw3bMGP/Yj5qBmQ4/krIMDx3fD2tYA+REyT6kv4B+DFpMuVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=lausen.nl;
 	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=hBMYvwQt;
+	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=n8e082mi;
 	arc=none smtp.remote-ip=95.143.172.20
 Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC8F606A329
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 11:46:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CEC8F606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B79606A31A
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 11:47:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 39B79606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=hBMYvwQt
+	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=n8e082mi
 Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 331E960D41
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 12:45:56 +0100 (CET)
-Received: (qmail 18858 invoked by uid 990); 15 Nov 2026 11:45:55 -0000
+	by mailgate01.uberspace.is (Postfix) with ESMTPS id 9961860D50
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 12:47:16 +0100 (CET)
+Received: (qmail 20124 invoked by uid 990); 15 Nov 2026 11:47:16 -0000
 Authentication-Results: devico.uberspace.de;
 	auth=pass (plain)
 Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Sun, 15 Nov 2026 12:45:55 +0100
+	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Sun, 15 Nov 2026 12:47:16 +0100
 From: Leonard Lausen <leonard@lausen.nl>
 To: netdev@vger.kernel.org
 Cc: leonard@lausen.nl,
@@ -60,10 +61,12 @@ Cc: leonard@lausen.nl,
 	coreteam@netfilter.org,
 	linux-kselftest@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH net v2 0/2] ipv6: honor prefix-length suppression in raw FIB lookups
-Date: Sun, 15 Nov 2026 11:44:30 +0000
-Message-ID: <20261115114434.10343-2-leonard@lausen.nl>
+Subject: [PATCH net v2 1/2] ipv6: honor prefix-length suppression in raw FIB lookups
+Date: Sun, 15 Nov 2026 11:44:32 +0000
+Message-ID: <20261115114434.10343-4-leonard@lausen.nl>
 X-Mailer: git-send-email 2.55.0
+In-Reply-To: <20261115114434.10343-2-leonard@lausen.nl>
+References: <20261115114434.10343-2-leonard@lausen.nl>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -74,71 +77,76 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -
-X-Rspamd-Report: MID_CONTAINS_FROM(1) BAYES_HAM(-2.996479) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -1.596479
+X-Rspamd-Bar: -----
+X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.999999) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
+X-Rspamd-Score: -5.599999
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
 	d=lausen.nl; s=uberspace;
 	h=from:to:cc:subject:date;
-	bh=wAe5ZC7Fm6uGqNNB9AvG9s41KNLGeyY8d6FFjcwChUQ=;
-	b=hBMYvwQtliYC27OwjBCkct5rQ5I9TOX82SHf5qDl1W8KWgAMU8Dwo3hKcwL2oSc4E4HUo0y0ZQ
-	/KcaJsGFQDKhnf+Hkx+PJnhV5289P5LXk58ma+9qsebA9sEkhcEZdvQpEshq9R+mq6WrV4ZlXWLi
-	evq4QHZOlv6A1AQD84xXR7UV9sX/UwYmGI3Lkb1pg/jOeufGDxvkBOgdHytO3nLGuZrQk9bWRLUa
-	XVgxc40D2krSPa0VykTp6y/KGb3qjfdlATHCQnnMIFT3GW4oU31Rz/CsqC85YPtEH1oowlJba+6a
-	Pr6ohGrjMwDWEz6+dH7AzUa4vxKucYWJ9FyAd52N6Yd+kwYXARZqXVFJj7XTXcyqEEd9sIA/7Pv1
-	L5TZanwBKVIfYBiT5bRZEd4rKVnU+TMGx+zDFeMowNcPgDaT6uKQQMmbDpCBbutCdq/SroHWNwvE
-	hHF9wW/9Ug6y1FM5Co0MLOnuOFyBDwU7Tamufr5sK+V6qQqUKzPSEwiFGs/jfe1fqOKTGWSbfdVJ
-	4qtc4hMFGyfaUlGFc/yM61ya/08xigQCGrgQM77mWtv/CAnmxrCGAPTb9alG7KvTMHqIxQoq21xl
-	g5bbjy93bmLZHfA1c3bfSyPT9m+eSVPgEQkQn/eIj8MeesAwS4YQTDwoGurDFoLmn1auhJOGLxWc
-	M=
+	bh=GnUi2hnE6trAibYh7rXsZTD1pr9yyipJAU4UexF4GbU=;
+	b=n8e082miTxM4FvKJ5NF/KkjTncoELCe5Xg8PIyjGgh5f1330jUikC+oyHhcxe0FvgfVUwauVvI
+	p18aFen7uaHiNCh8x1MNX/6QCD1MNV/idzOu19jrHLeV9b4ya17qwThuzo5yCY3IhRJFOeBb39wk
+	6VvL01vSq2Ad4uXdVEHept/yJVNbdljFnHarQ1aPjgR2vJjuq+rax2zzx+w83hx4kZVYHnxmNLUc
+	mhcX5RL7hDmJGnwhz23o4g8clDjsPaA0FmU9zaNoZtHs0Z2erIqClvzDmObNMrm9q9WuOfrCj8vP
+	Mk3Rqz6Dph9qiCYJVEun8ocA3r4yCsN9FqirqFgoZd/DmXNC/jnVyIUkLkPkZ6nNXv9nRgWNptgJ
+	fXt4WZg5cx71OTUkvpMYIN/l6N26ahuKICrBig51O9HiDGykFUdv7nEJnji89qLlZGooTJZrkkGF
+	UnorecimBZmp3QB0df5LZ9YWXH3QZ/kIgKJl8sAJqikw5dXyJysN4+JgrUNmNcX/bzWOE+pR/i7F
+	bwspCRnfmp3Ipr4n/qtiX2xNV2A9OGPBxJRd9EldkSOw+racZUv5E2Jc7xaDxay/Vf56bsCCcgyl
+	YPbALgJyM5riQli2KViSxEfL/OnuLhcpLaJqpqSWWOzO22Q21yhiEpY0pBaipvA7Jk1QeJw4txm1
+	o=
 
-Following Sashiko's automated review, v2 is limited to
-suppress_prefixlength. The review identified that v1 evaluated
-suppress_ifgroup before final multipath selection; I reproduced the
-resulting disagreement between raw and ordinary lookups. Interface-group
-suppression needs separate work and is left unchanged in this revision.
+IPv6 raw FIB lookups populate f6i and nh in fib6_result, but not rt6.
+fib6_rule_suppress() only examines rt6, so fib6_lookup() ignores
+suppress_prefixlength.
 
-Prefix suppression is sufficient for the reported VPN failure: nftables
-can otherwise return a main-table default that an ordinary lookup
-suppresses before continuing to the VPN table. Strict reverse-path
-filtering then drops replies arriving through the VPN.
+With a policy rule that suppresses the main-table default before looking
+in a VPN table, an ordinary route lookup selects the VPN while an nftables
+FIB lookup returns the suppressed default. Strict reverse-path filtering
+can then drop replies arriving over the VPN.
 
-Patch 1 adds a raw prefix-length check while preserving RTF_REJECT results
-and leaving dst-based handling unchanged. Patch 2 extends nft_fib.sh with
-six checks using its existing topology and counter helper.
+For raw lookups, evaluate suppress_prefixlength against the FIB entry's
+destination prefix length. Preserve results marked RTF_REJECT: raw lookups
+can return zero with a rejection encoded in the result, while dst-based
+lookups return an error and skip suppression. Check the result flags so
+blackhole nexthop objects are covered as well.
 
-Changes since v1:
-- Drop raw suppress_ifgroup support and its tests. Table lookup can return
-  a different nexthop from the final multipath selection used by ordinary
-  routing and BPF, so suppression cannot safely use that initial device.
-- Install the router's logging RPF rules after the suppression checks and
-  policy-rule cleanup. This prevents neighbour advertisements from being
-  logged and dropped during intentionally different reverse-route states.
-- Add a blackhole nexthop-object case, which distinguishes rejection flags
-  in the lookup result from those in the FIB entry.
+Keep the dst-based path unchanged. Raw suppress_ifgroup handling also
+remains unchanged because the table lookup's nexthop need not be the
+final multipath selection.
 
-V1: https://lore.kernel.org/netdev/20261110131638.15004-3-leonard@lausen.nl/
+Fixes: 138118ec96cb ("net/ipv6: Add fib6_lookup")
+Link: https://github.com/firewalld/firewalld/issues/1600
+Assisted-by: LLM
+Signed-off-by: Leonard Lausen <leonard@lausen.nl>
+---
+Investigated with AI assistance after VPN failures. Reproduced on
+unmodified v7.4-rc2 and verified with nft_fib.sh on the rebuilt kernel.
 
-Tested on the rebuilt v7.4-rc2-based kernel: all six added checks pass,
-and the full nft_fib.sh run exits 0. A run with an eight-second delay also
-passes, allowing neighbour discovery to complete. Separate probes confirm
-that reject routes remain terminal and raw interface-group suppression
-is unchanged.
+ net/ipv6/fib6_rules.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-OpenAI Codex assisted with investigation, reproduction, implementation,
-tests and descriptions. The prompts asked it to investigate the
-Wireguard VPN failure.
-
-Leonard Lausen (2):
-  ipv6: honor prefix-length suppression in raw FIB lookups
-  selftests: netfilter: cover IPv6 FIB prefix suppression
-
- net/ipv6/fib6_rules.c                         |  9 ++-
- .../selftests/net/netfilter/nft_fib.sh        | 63 ++++++++++++++++++-
- 2 files changed, 70 insertions(+), 2 deletions(-)
-
-
-base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+diff --git a/net/ipv6/fib6_rules.c b/net/ipv6/fib6_rules.c
+index 0ffd7b47a046..ceb4180bcf2f 100644
+--- a/net/ipv6/fib6_rules.c
++++ b/net/ipv6/fib6_rules.c
+@@ -283,9 +283,16 @@ INDIRECT_CALLABLE_SCOPE bool fib6_rule_suppress(struct fib_rule *rule,
+ 						struct fib_lookup_arg *arg)
+ {
+ 	struct fib6_result *res = arg->result;
+-	struct rt6_info *rt = res->rt6;
++	struct rt6_info *rt;
+ 	struct net_device *dev = NULL;
+ 
++	if (arg->lookup_ptr == fib6_table_lookup) {
++		/* Raw lookups report reject routes without an error. */
++		return !(res->fib6_flags & RTF_REJECT) &&
++		       res->f6i->fib6_dst.plen <= rule->suppress_prefixlen;
++	}
++
++	rt = res->rt6;
+ 	if (!rt)
+ 		return false;
+ 
 -- 
 2.55.0
 
