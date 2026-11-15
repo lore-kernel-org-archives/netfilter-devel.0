@@ -1,72 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794743253;
-	b=v5MYnPCrAO1NEbbVsLMiLz3xik9c2VpJOttnUYWrjxOUvZyb6x2neyXqjTzAceS7BakJ
-	 q3QBsLttYRFtmkiXUtKO8NhJIVyhIIim9avw5YrQBT2MRlAHkQcnDus3ValkpDnvUNnoT
-	 NDs5eyZ+65EfKaynD67SLJbjh0/mVRKSAn+SLAjmrkl0yA+L+BCCzs4UbZ+bpoyBM5u7c
-	 n9kU3bwyluoiLBoN9VAHMYXnwyYWGnwgROpEaxYdjqEx1tGJ4AF13IhN1McHuYxO5k8e+
-	 k2hsxsPiR6TS9q3YUKWSGixxVGNc6Eo54lIibEvLXanGs5yxblszcbMk5zp2xeHI0Ig==
+	t=1794753774;
+	b=n0YdbZanrPDtoUUB5bSxQ8nqIrx83hytp00c4DdjSbz5IWQZxA0JqSrhoDwhkWYTLMTx
+	 wBvn3egaCu7TGBHOrzwrOQpRZm7QCvTQdiuxHzRV0Hb7aCtj1wY9kW8bKj8upIsCWJ0AP
+	 pqOIGCZyGPT94iDp0K1YKyakF0TooZ+wxJcrCvLUqHc6TUArKFwa8NX7bUQbSzNGn22sy
+	 ychCk6T501bf0z8mHTYD2hYPCIRtR2WOihhbQVhkby90LjWdofmyH1vqm0cbV/cWqeEkb
+	 c1XaplpzvNtvcEYa6+GOCl7bDrQhyRA0s6o2llUhWbYeBLMTIBQgunEPK507duYYOAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794743253;
-	h=DMARC-Filter:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
-	 DKIM-Signature;
-	bh=mSFcKbS1lQeyS6RR9MoTbLC9bCn56H/LcHcx2WJyRaI=;
-	b=Z6aVTiyzWm81V8chXXenJDBmDE7XIeo9LWmb0KRKL438YZRa7IKIj5lEG8VOtsNN7d1V
-	 Dxf93jfDbFSpU8YjVJrorRQzXuRwNzp6NPrEzQ9WScYCNRjo9ZPngLTSkspNcQDsBCF0A
-	 d0go3XbHpFS+OYu/XT0tqbYXAdVOPqITSOvlQlRrWrJoMY87X1gJlC3LH9sx0XYY6hn5X
-	 46yBoOJtc/L7Lezfc3gS86OHNJ34cp3fXkSAmej2WpvAxKVQwNpbfgCHNsd6gWhCtSA6V
-	 aMUB3o2LUMoc8IXrkmprZ6W93GzGf3hfsQ1zS6b2vu7k0alGML+ERhKsO/tgehVjNRg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794753774;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=Dl9/HggcS4fydY7rUkoqQ91fLGnVu7gHe7o/RWfBPTw=;
+	b=T2X3N+FPM/2VsRM5eNetL6jblonCxMHtzJEXLkXe/xedenCntLbrySf9rgPhViGgUAoi
+	 7Wd1EMxW1YAUhdQZg/9oT9zomJmSh/mu1OkWKOQ+grXvQuTWCLzQhcOrsPtFCHKKTHiOR
+	 WP+ZxwZc/ohp+IJlEyGtEt512WO2eoCZq4Ylswbs2JFCn2O1Fprmd2fk+wrh0vO00xVvl
+	 hwAr8bXxLmPYQgCgLDHQlWgM9LXYIcoxF1egSGlERzteTKPXmhnVyqX5dE+xn7NkqYr4V
+	 NbPKe8NsYVPaX9/lJ9s74ZqiuyssYWwN0E77PAuYf8FBt9R+pSVt2T0Fz1LVfGsbSCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lausen.nl;
-	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=MQVHfyjn;
-	arc=none smtp.remote-ip=95.143.172.20
-Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ngW8qcHJ;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D239606A31F
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 11:47:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6D239606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08B09606A323;
+	Sun, 15 Nov 2026 14:42:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=MQVHfyjn
-Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 2194F60D50
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Nov 2026 12:47:32 +0100 (CET)
-Received: (qmail 20332 invoked by uid 990); 15 Nov 2026 11:47:31 -0000
-Authentication-Results: devico.uberspace.de;
-	auth=pass (plain)
-Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Sun, 15 Nov 2026 12:47:31 +0100
-From: Leonard Lausen <leonard@lausen.nl>
-To: netdev@vger.kernel.org
-Cc: leonard@lausen.nl,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v2 2/2] selftests: netfilter: cover IPv6 FIB prefix suppression
-Date: Sun, 15 Nov 2026 11:44:34 +0000
-Message-ID: <20261115114434.10343-6-leonard@lausen.nl>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261115114434.10343-2-leonard@lausen.nl>
-References: <20261115114434.10343-2-leonard@lausen.nl>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ngW8qcHJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A961F000C4;
+	Sun, 15 Nov 2026 14:42:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794753773;
+	bh=Dl9/HggcS4fydY7rUkoqQ91fLGnVu7gHe7o/RWfBPTw=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=ngW8qcHJg1cVNvohnVIydcn8FsmI4aJqDtKuzhWyG87Sm2K5abN53oIg0B/W6F6JN
+	 DGqJ8wTwwA1qJKMUn/HJC0UuswV3os2cI86nf16I1wu7RSSZ7t+J0jR+Y59EKeUUkD
+	 OlrvawLkuvGGKzkerCnhwz8bWmVrOuHZQqtRMOF/XbzC+bAg5rR6Bnf9MJc0C+BQc2
+	 LSehEmb2mOWR4mCQJhP3nqwAvJLwrT0Uk4FeRYYQHwkEaBoN1VX8CUfGrKgh2h/0QR
+	 USR1vcVh8muW9GSWH+E93P/YYoWPWJJ0noJIPuVXRy4q2DzGAcHyOlH+Zqs7hYS86u
+	 UxU/dAW6yi6Qw==
+Subject: Re: [PATCH net-next 1/2] netfilter: nft_fwd_netdev: drop the stale
+ dst when steering to a device
+From: netdev-bot+sashiko@kernel.org
+To: jhs@mojatatu.com
+Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ victor@mojatatu.com, jiri@resnulli.us, sashiko-bot@kernel.org
+Date: Sun, 15 Nov 2026 14:42:52 +0000
+Message-ID: <179475377256.2199510.7063513352863534262@kernel.org>
+In-Reply-To: <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com>
+References: <CORE-9NOG.v1.r0.20261111073528-1@mojatatu.com>
+X-sashiko-severity: Low
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -76,125 +64,113 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -----
-X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.999997) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -5.599997
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-	d=lausen.nl; s=uberspace;
-	h=from:to:cc:subject:date;
-	bh=SYO3awDBeB5+65vjU95aaGWIQtWLWSpyrg4LOxfZCZE=;
-	b=MQVHfyjnLRA1ukUj9w+LpSUejjRiPHHUD/SVTZzBZK7J9A/UqmSrGw8KI6zCvkDqYhGNANXq4S
-	S2IuHcTGrnkiRE8ZFesckV3jRCzrdXg8vcGo1XWaoIazeSWDGCEq3k6H62YvbclyT5VreKVQJ3f9
-	ItaE23zjPknOmvtE9JDtoycj0//Yp1EckXq1hUnNPHmyge9toPcqpBLIAwvNzUD/Wlq/AtrGFkSM
-	YX6LuBnJCcorsbU4y7mK9Os368A6WxfO+Zdbol8GFUOxP3IlPzqFIGQ5r8SAlGbqTdkmOHKySJod
-	gX5F1rcAy92xR3A3oxMGIuevVhp7lkYTiE6mYg635nJzqS6V8AYUk6uiomNFCODlOIgWurholDmA
-	80vs4QyL7d5mcyNluQYVYgkLd89m91uf546KE+gKb1vdiImBrC6YdwyCzpRxjWtv3oAGLdu2w5D6
-	FXdfC7QfZZfeBPYt01ZdEacQUi4bf8t+Nh/yPdXVj1krm8bpUGrJxNRVsCC0sgB/9Vea+zBFvHoW
-	/XHJiWnQmE65mT/+SVhemhVy7k2IgS2zDw/Y69urB3DPMXxZJGmWqKUph4A/c0KuH6dCuky7pOJ4
-	JPuDanDYL7qdHvX7hjmuSdP2qCfemvU5BKVrjZibTxx8dk9atdMf+wxm22z9Znf2cW2vHCiLXgUq
-	A=
 
-Extend nft_fib.sh using its existing namespaces and counter helper to
-check that suppress_prefixlength 0 suppresses a default route while
-retaining a more-specific route. Check that blackhole, unreachable and
-prohibit routes remain terminal despite a usable route in a later table.
-Include a blackhole nexthop object to distinguish result reject flags
-from flags on the FIB entry.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Require a positive packet counter for the expected nftables FIB result
-and compare it with an ordinary route lookup. Install the router's
-logging RPF rules after these checks and their policy-rule cleanup, so
-neighbour advertisements cannot be logged and dropped while intentionally
-different reverse routes are installed.
+Low priority / nit picks for your consideration:
 
-Assisted-by: LLM
-Signed-off-by: Leonard Lausen <leonard@lausen.nl>
----
- .../selftests/net/netfilter/nft_fib.sh        | 63 ++++++++++++++++++-
- 1 file changed, 62 insertions(+), 1 deletion(-)
+- [Low] The commit fixes a real wire-level bug in nft_fwd_neigh_eval()
+  (net/netfilter/nft_fwd_netdev.c) but has no Fixes: tag and no Cc:…
+- [Low] The commit message says the rule supplies both the device and the
+  nexthop "so the route dst is never consulted", which implies dropping…
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 04544905c216..65d4687622e2 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -202,7 +202,38 @@ check_fib_counter() {
- 	return 0
- }
- 
--load_ruleset "$nsrouter"
-+# Count probes matching the expected FIB result, then drop them.
-+test_fib_suppress() {
-+	local label="$1" expected="$2"
-+	local result="${3:-oifname}" err=0
-+
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF || return 1
-+flush table ip6 filter
-+table ip6 filter {
-+	chain prerouting {
-+		type filter hook prerouting priority -1;
-+		ip6 saddr dead:1::99 icmpv6 type echo-request \
-+			fib saddr . mark $result "$expected" counter drop
-+	}
-+}
-+EOF
-+	ip netns exec "$ns1" ping -6 -c 1 -W 0.1 -q dead:1::1 > /dev/null 2>&1
-+	if [ "$result" = type ]; then
-+		ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 > /dev/null 2>&1 && err=1
-+	else
-+		ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 |
-+			grep -q "dev $expected " || err=1
-+	fi
-+	if check_fib_type_counter_family ip6 1 "$nsrouter" prerouting "$result" "$label" &&
-+	   [ "$err" -eq 0 ]; then
-+		echo "PASS: $label"
-+	else
-+		echo "FAIL: $label"
-+		ret=1
-+		return 1
-+	fi
-+}
-+
- load_ruleset "$ns1"
- load_ruleset "$ns2"
- 
-@@ -724,6 +755,36 @@ test_fib_vrf()
- 	check_fib_veth_vrf_type "fib expression address types match (iif in vrf)"
- }
- 
-+# Test prefix suppression before installing the router's logging RPF rules.
-+# Neighbour discovery must remain usable even when reverse routes differ.
-+ip -net "$nsrouter" -6 route add table 128 default dev veth1 || exit 1
-+ip -net "$nsrouter" -6 route add table 129 dead:1::/64 dev veth0 || exit 1
-+ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 suppress_prefixlength 0 || exit 1
-+ip -net "$nsrouter" -6 rule add pref 101 to dead:1::99 table 129 || exit 1
-+ip netns exec "$nsrouter" nft add table ip6 filter || exit 1
-+
-+test_fib_suppress "suppress default route" veth0 || ret=1
-+ip -net "$nsrouter" -6 route add table 128 dead:1::/64 dev veth1 || exit 1
-+test_fib_suppress "retain non-default route" veth1 || ret=1
-+ip -net "$nsrouter" -6 route del table 128 dead:1::/64 dev veth1 || exit 1
-+
-+for type in blackhole unreachable prohibit; do
-+	ip -net "$nsrouter" -6 route replace "$type" default table 128 || exit 1
-+	test_fib_suppress "retain $type" "$type" type || ret=1
-+done
-+
-+ip -net "$nsrouter" -6 nexthop add id 1 blackhole || exit 1
-+ip -net "$nsrouter" -6 route replace default nhid 1 table 128 || exit 1
-+test_fib_suppress "retain blackhole nexthop" blackhole type || ret=1
-+
-+ip -net "$nsrouter" -6 rule del pref 100
-+ip -net "$nsrouter" -6 rule del pref 101
-+ip -net "$nsrouter" -6 route del table 128 default
-+ip -net "$nsrouter" -6 route flush table 129
-+ip -net "$nsrouter" -6 nexthop del id 1
-+ip netns exec "$nsrouter" nft delete table ip6 filter
-+load_ruleset "$nsrouter"
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
+--
+
+netfilter: nft_fwd_netdev: drop the stale dst when steering to a device
+
+This patch makes nft_fwd_neigh_eval() drop the skb's dst before it
+switches skb->dev to the configured output device and calls neigh_xmit().
+Without the drop, a packet parked on an incomplete neighbour's arp_queue
+can be re-resolved through the stale dst when the queue drains. It then
+leaves the configured device carrying another device's link-layer
+addresses.
+
+Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com/
+
+> Reported-by: Sashiko (nipa) <sashiko-bot@kernel.org>
+> Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com
+> Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com/
+> Reviewed-by: Victor Nogueira <victor@mojatatu.com>
+> Signed-off-by: Jamal Hadi Salim <jhs@mojatatu.com>
+
+[Severity: Low]
+Should this have a Fixes: tag and Cc: stable?
+
+The skb->dev = dev; followed by neigh_xmit() in nft_fwd_neigh_eval(),
+with the skb's dst still attached, came in with:
+
+d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer")
+
+The bug became much easier to hit once nft_fwd_validate() allowed
+NF_NETDEV_EGRESS, because egress skbs always carry the output route's
+dst:
+
+f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
+
+The reproducer in the commit message uses an egress chain. Without a
+Fixes: tag, stable backporters can't tell which trees need this fix.
+
+> diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+> index a48c2f765bbaa..ad4d61d64cdde 100644
+> --- a/net/netfilter/nft_fwd_netdev.c
+> +++ b/net/netfilter/nft_fwd_netdev.c
+> @@ -175,6 +175,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+>  		}
+>  	}
+>  
+> +	skb_dst_drop(skb);
+
+[Severity: Low]
+The commit message says:
+
+    Both lookup inputs the neighbour transmission needs, the device and
+    the nexthop, are supplied by the rule, so the route dst is never
+    consulted.
+
+Is that accurate? The arp_queue drain is not the only place that reads
+the dst. If the target neighbour never resolves, the neighbour's
+error_report hook also reads it:
+
+neigh_xmit()
+  neigh->output()
+    ... resolution fails ...
+    arp_error_report() / ndisc_error_report()
+      dst_link_failure(skb)
+
+include/net/dst.h:dst_link_failure() {
+    ...
+	if (dst && dst->ops && dst->ops->link_failure)
+		dst->ops->link_failure(skb);
+    ...
+}
+
+Before this patch, an egress skb handled by "fwd ip to <nh> device <dev>"
+whose nexthop never resolved still had its route dst. So
+ipv4_link_failure() or ip6_link_failure() sent ICMP host unreachable or
+ICMPv6 address unreachable back to the sender, and expired or
+invalidated the original route.
+
+Once the dst is dropped, dst_link_failure() returns without doing
+anything. __icmp_send() also needs skb_rtable(skb_in), so the packet is
+now dropped silently. Local senders no longer get EHOSTUNREACH feedback,
+and the route is not expired.
+
+The new behaviour is arguably more correct. The old ICMP and route
+expiry applied to a route and device the packet was no longer using,
+and the new behaviour matches the ingress hook, where skbs normally have
+no dst.
+
+Could the commit message mention this change in user-visible behaviour?
+
+The follow-up patch "bpf: drop the stale dst when redirecting to an
+explicit nexthop" makes the same claim for bpf_redirect_neigh(), so the
+same question may apply there.
+
+>  	skb->dev = dev;
+>  	skb_clear_tstamp(skb);
+>
+
 -- 
-2.55.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/CORE-9NOG.v1.r0.20261111073528%40mojatatu.com
