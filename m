@@ -1,58 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.51
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794842925;
-	b=ryTpqcewFXLV4hAP/0z9ZCfyAAcCg+i5Rz0B7X32JXmbchKPDTIU6CgcIumvceli0Jri
-	 Jm+GQPiCPokivEsGSM3PDbkAIngVijyopZYfPsJ4iVaEG9VSBk9q5Eriz88OuTW8G4KMH
-	 D+CHSTLXJvtLOCFaAjjB88TpkhM9Sn98b5Xsyk2SHXP7iVjoAtgN9NdYlAUo2e3ncR+eC
-	 7rVx1Pq3SB0U9XAMiGHtvf9q5vfhG4H/ZgokESGTcTkZI96h/th6dCf5Eb2ewZJqDwvbC
-	 M9oQ3ikL+pkvroDj0NIpRzcupOOZ4Ho7VvHz7FRnOOZGGUWH5avSsJEqdoJAZc0kzqA==
+	t=1794842938;
+	b=Ky+8zTP7LKMk5u+Jlft0NOgSZOzsNWuCQH3CwPhocPkQUKHwdcCJdaFOMJO9u/2ZeNNI
+	 tgDaJkXoQl0IzzB+pvqbTho5yjv6HFc54jdTUuFtEa03mlcpibirkeYFKVtM9sMz97F7/
+	 0HkvLSOc64bRXkkBPulkU2LLy5e+P7hnEsE9Nm/ryNxJDSM8u7N4wXwActw+onhXdrHGF
+	 AkCMvyPm+MEMlnaDPIldPE4SGyfBjX+YtnkcK599cjXDOV9ab5FWSoFBGVLwDqZBpqelk
+	 q9c2tQIqV+9S4H0Er1QG64/j7C70ujraJc3LH1z8CpQbffskyi16uK+ozSdOb2y+OLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794842925;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794842938;
 	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
 	 X-Rspamd-Queue-Id;
-	bh=qMz+RAf4b7f2BcmkRLvRo5r6beNIKQGAsILjdn7aN30=;
-	b=WMxmR3u7KyF6m4MyQ88cbghnfklUyxrb3tBIULWzlinyU1JWuWQfipnCTS9Xl9CzRkH3
-	 Bz0Joyus7rSLfWRRvAUGP2++H69fxMhDREN8d8jSXaptZ6aGLTQoGPeGB2JlzJ3W+SZch
-	 5fgf37Gsj+TwBcw+M5Mtl8QLlHY92TN7wxGKjudEdKI2+zU3yY99gOosxISGMmsAJNj5z
-	 asxA3laouRnPzQ1cgFrWD9loBzSHFsam6+ynFrteyzQXclBr4aYqgi4f29gnZkLcheboM
-	 mZVNPPjgZJMO4nPR7Eo/Nimta+0yW/dfrZLPHBcRUbX7+pYdqFHVJpia06m2PqSmk9Q==
+	bh=qgq7YnCBcok5WbYWigXkKnODjLVkKuJrVGmAH0aqxkg=;
+	b=BJnGFRelcpvgCszqgWsdFCTtpL8GyD/Yl2gYS/DrZ4qnJ4DvLrGLW435gkWL1RqYHSm+
+	 KkQ/yf6ExlzJLItWIK65CQoA+RlhP37LpfyCvQEoe/wV795V3QxUGR5xsBCuPunJ5WtaI
+	 oT7Vi2qM37Jsev20t5pBmv9t5c8fyw8r/WkOdbFeANfW+thJcAPorfDXsT9aqivly6p25
+	 1S+8UEOgTKvFzld53dW/bNkjGBwpAT/+96F3omM5fbvZR67uyLgI+zgNrbhNijun+kkfL
+	 Xw+LuaiBRz9ekMbdfKc81wCKbruTuywDEXAvC5Ht/xtCiF1f+TX41W4sl4oN7hybsgg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=mandelbit.com;
 	spf=pass smtp.mailfrom=mandelbit.com;
-	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=tGXr9hsn;
-	arc=none smtp.remote-ip=195.10.208.50
-Received: from mout-b-105.mailbox.org (mout-b-105.mailbox.org [195.10.208.50])
+	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=MJI30NdF;
+	arc=none smtp.remote-ip=195.10.208.51
+Received: from mout-b-206.mailbox.org (mout-b-206.mailbox.org [195.10.208.51])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4820F606A334;
-	Mon, 16 Nov 2026 15:28:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4820F606A334
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8743606A883;
+	Mon, 16 Nov 2026 15:28:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C8743606A883
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=tGXr9hsn
-Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
+	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=MJI30NdF
+Received: from smtp102.mailbox.org (smtp102.mailbox.org [IPv6:2001:67c:2050:b231:465::102])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mout-b-105.mailbox.org (Postfix) with ESMTPS id 4jSsFy5nwQz9rxT;
-	Mon, 16 Nov 2026 16:28:38 +0100 (CET)
+	by mout-b-206.mailbox.org (Postfix) with ESMTPS id 4jSsG70LzYzTF;
+	Mon, 16 Nov 2026 16:28:47 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
-	s=MBO0001; t=1794842918;
+	s=MBO0001; t=1794842927;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding;
-	bh=qMz+RAf4b7f2BcmkRLvRo5r6beNIKQGAsILjdn7aN30=;
-	b=tGXr9hsngJwMNm43mLYcy6bnDJGzqGWJL1NsrfitHYH8NhgNKJ0okvua/eWDAlI2oe3Jci
-	hXzH47GZbKRRpKPFjBEa7sPcOekRuRmS946U+mc2/SMvv6K283Fw5rBmdWDk2LySStKmYE
-	V6t+P451BZlHDOOLgMwt072/JA9SSrBoqkzHddx3DJWsw3emXy7GDuf2NRTWAfzngA3IC+
-	+fVzTAWN+RHCqEyviYJ6ABELmOtOukp9//8H0xDLBnimgYxDLYGFKXO2xErrZGxyvL6ELf
-	7Z9De3CNrTggJEM6NtRcydroSeDp03SAre7QSO3om7jqn13vQC5/mNoZBEEjVg==
+	bh=qgq7YnCBcok5WbYWigXkKnODjLVkKuJrVGmAH0aqxkg=;
+	b=MJI30NdFZxGZ9yQ00NZzSqwmM2Ncb5mHU4vU9a8awcrDDQoCStVIMDbOUYa7Q9Orqz9Tr8
+	Vd6QLHztWwG0ShS5wvvxnVGrB6TuSb8s8zwOaS64faDABh2Wrc+fFBcY8jVJR65ruQpwof
+	ObAbqecrixbBqEMd14m+6m9O+kuoU/va8PR4dhOvRAuo2Uipbtd5vAGeu/hQ84axXAnGnD
+	djmLdTPAxsp5+zj7JItufkEg4I3HcBEdgDouwdfFNksu3X8AkGbgGzGEHX79tpc0KVUDrA
+	ZQ62ZdBqZ4enlepmp+YrdJU31PQcNeUX3nFiQJRKNfWFtShhyrSDoD+6zz7mQw==
 Authentication-Results: outgoing_mbo_mout;
 	dkim=none;
-	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::2 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
+	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::102 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
 From: Antonio Quartulli <antonio@mandelbit.com>
 To: stable@vger.kernel.org
 Cc: Antonio Quartulli <antonio@mandelbit.com>,
@@ -60,9 +60,9 @@ Cc: Antonio Quartulli <antonio@mandelbit.com>,
 	Florian Westphal <fw@strlen.de>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-Subject: [PATCH 6.6.y] netfilter: flowtable: ensure sufficient headroom in xmit path
-Date: Mon, 16 Nov 2026 16:28:24 +0100
-Message-ID: <20261116152826.2997774-1-antonio@mandelbit.com>
+Subject: [PATCH 6.12.y] netfilter: flowtable: ensure sufficient headroom in xmit path
+Date: Mon, 16 Nov 2026 16:28:43 +0100
+Message-ID: <20261116152844.2998474-1-antonio@mandelbit.com>
 X-Mailer: git-send-email 2.56.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -74,7 +74,7 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 4jSsFy5nwQz9rxT
+X-Rspamd-Queue-Id: 4jSsG70LzYzTF
 
 commit ef4f741e8627512cb8c82f59a1fc7aacd854aadf upstream.
 
@@ -84,7 +84,7 @@ forwarding this packet as suggested by sashiko.
 
 Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-[ aq: the upstream commit does not apply to 6.6: 6.6 predates
+[ aq: the upstream commit does not apply to 6.12: 6.12 predates
   b5964aac51e0, and FLOW_OFFLOAD_XMIT_NEIGH flows are still sent through
   neigh_xmit() from nf_flow_offload_ip_hook() and
   nf_flow_offload_ipv6_hook(). Do the same headroom check there, before
@@ -97,18 +97,18 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
   have since been hardened individually, 6LoWPAN has not:
   lowpan_header_create() stores struct lowpan_addr_info (32 bytes) in
   front of skb->data after a mere WARN_ON_ONCE(), i.e. an out-of-bounds
-  write before the skb head. Seen on v6.6.162 with IPv6 forwarded by a
+  write before the skb head. Seen on v6.12.117 with IPv6 forwarded by a
   flowtable from a veth to a 6LoWPAN interface:
 
-    WARNING: CPU: 1 PID: 3974 at net/ieee802154/6lowpan/tx.c:21 lowpan_header_create+0x165/0x1b0 [ieee802154_6lowpan]
+    WARNING: CPU: 1 PID: 4719 at net/ieee802154/6lowpan/tx.c:21 lowpan_header_create+0x165/0x1b0 [ieee802154_6lowpan]
     Call Trace:
-     neigh_connected_output+0xa6/0xf0
-     neigh_xmit+0xb4/0x1e0
-     nf_flow_offload_ipv6_hook+0x544/0x7c0
+     neigh_connected_output+0xa3/0xf0
+     neigh_xmit+0xbb/0x210
+     nf_flow_offload_ipv6_hook+0x540/0x7c0
      nf_hook_slow+0x39/0xe0
-     __netif_receive_skb_core.constprop.0+0xd8a/0xf40
+     __netif_receive_skb_core.constprop.0+0xe4c/0x1010
      __netif_receive_skb_one_core+0x37/0xa0
-     process_backlog+0x75/0x130
+     process_backlog+0x77/0x140
 
   Before e67c577d8989 ("ipv4: ip_gre: make ipgre_header() robust") the
   same path panicked with multipoint GRE (DMVPN) output devices:
@@ -119,12 +119,12 @@ Fixes: 7a27f6ab4135 ("netfilter: flowtable: use dev_fill_forward_path() to obtai
 Link: https://vyos.dev/T7549
 Signed-off-by: Antonio Quartulli <antonio@mandelbit.com>
 ---
-Reproducer (run on v6.6.162: WARNING without this patch, clean with it).
-Needs CONFIG_MAC802154_HWSIM and CONFIG_IEEE802154_6LOWPAN, plus nft,
-conntrack and python3. The 6LoWPAN neighbour is static and the conntrack
-entry is inserted with SEEN_REPLY, so the very first packet matches "ct
-state established" and the flow is offloaded; no 802.15.4 peer is
-needed. If udev renames wpan0, use the name of the first
+Reproducer (run on v6.12.117: WARNING without this patch, clean with
+it). Needs CONFIG_MAC802154_HWSIM and CONFIG_IEEE802154_6LOWPAN, plus
+nft, conntrack and python3. The 6LoWPAN neighbour is static and the
+conntrack entry is inserted with SEEN_REPLY, so the very first packet
+matches "ct state established" and the flow is offloaded; no 802.15.4
+peer is needed. If udev renames wpan0, use the name of the first
 ARPHRD_IEEE802154 (type 804) interface. Run it in a throwaway VM.
 
   modprobe mac802154_hwsim; modprobe ieee802154_6lowpan
@@ -200,7 +200,7 @@ ip6_finish_output2() expands the headroom.
  			tuplehash->tuple.out.h_source, skb->len);
 @@ -452,6 +472,9 @@
  	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = (struct rtable *)tuplehash->tuple.dst_cache;
+ 		rt = dst_rtable(tuplehash->tuple.dst_cache);
  		outdev = rt->dst.dev;
 +		skb = nf_flow_xmit_headroom(skb, outdev);
 +		if (!skb)
