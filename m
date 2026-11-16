@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794826777;
-	b=zkOz59KDlLobqnYwniM3xNtGOcqtag01HFeCDhO6hGCnqMXz2G90g01XipQJnCOp0T3z
-	 7d4vpi3Q8oO8+3AWp5Xsn8cZ79120Xtn/Vthpbvqhbx+DRSUNi72RBNUE76t4LIeZzR0Q
-	 HcImtMyzXxt1z4B40A+iBckLGSjncxgxiCgces2IWmGrNDO4vvIJq6BZyq3yTD/eh61I0
-	 X6xWQoAjQrpsD9RP+mGZ8HRbAr5x6WQYT6i5mBK2C1fzrAUqpwdMF9jZ9xRx3lZPag5uF
-	 FdmJftHsXxGc+2CP/RChxVc5cb7Gy7y3j2hxfq7RvEGKC6s6UrAjYsH1cyI/NuvJh6w==
+	t=1794826778;
+	b=eoubcp+5syJD5agIZ5tVXFRNVVzHBvHtz6wHbZxkCbKScQatJSQV10PT7wDDPYg+OW1i
+	 L6ANu/3/GeKPcnHnzw8Md7EqM6EZJ090xSO7EJmhzLac0pEULkasMMtyqCgILzfYR0rSe
+	 7svlu6G+7W+6gcnS20odwgiX3J3DXR660YkQ7MAeixZashm5/7ioUl9d/PDZjtdWBOaus
+	 7KCWCKYO+w1jW9Ps6Z843xF+Pajiekwh1cd7pE5/FyHT8+FwSRV1UcUJfPnFb3MHmoqMS
+	 2aE1EeGJ5hA7z7pAis4bLBJP0lsnc/eOjb8rMX98hZL1dNb6X8h8qGLL8tA4+O4gVxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794826777;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794826778;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=82I7kFUFpkbRNmyNzFJ5JQteM+PM3fTS8C9PqcZHi4g=;
-	b=oyzmmNYIn11Zy2ab+YcvTkv3MR5RhFKfawm5IHbVZXcpN0FljeLBnHi9zE/h0ZFUwWrf
-	 3ae5Nc74DizQ9dcT5HdmTPPVlq8e0cEutg1Ax/t4Z/47Rzx148nZucSsvabbrQmbouv4w
-	 1nzAdGhNnEwuJyCFTh51TiVkAWRGZFIX8DG6aloKQ2Bw9aO8gIwiU0T8j5quYiVsa96UN
-	 FT8JJUwTJGdNqnFmPP7d8kxDDbPMEm0oW76RAajNlLSOv674d+vN3BguU3xisCNSCleaq
-	 S3yweIWwOlliOQO2a/YY0r0eeNFkgMxrvvfeEBzwRiJdVFsD+ah9lcc2bkw2MYZiUoA==
+	bh=0d5QsG3ML31bWEDKUgwziYCJyLbXWH3qNaWcj07yK4s=;
+	b=E2T5y1hzpbFLG1MwtTU14wkzPxHUolpsw3IXwgMqeW7Gq9Yj5eG4BlKubkVpxR3eeqw/
+	 Dq5SeF0Q2ciQbbgLkis62X27FNpzVw1G70tDjzTALPb1XYDBZdd1sSboS1ab4X287HrSf
+	 GKm1jcS25tUsSUqVQmccqds7WwFQ7MllNwQGeoPnYt1pxq77+JzxuW9gqBA+64VUreYsH
+	 pGqscWbHGiKX5wRmkdklAT5Ye3s7pu56iNvJi9207M0QxSto7hHBMg+jZnTegu2jTcZ+N
+	 qUu/AlnApzh3KSXEniWArkN5kYBE4RwtAg7xpAzjaOnpCHLIseovwEzthpvHAzbwWsw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=LV6lDmIT;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=d5OsPuoH;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01251606A334
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 10:59:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 01251606A334
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D80E606A323
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 10:59:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4D80E606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=LV6lDmIT
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=d5OsPuoH
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794826775;
-	bh=82I7kFUFpkbRNmyNzFJ5JQteM+PM3fTS8C9PqcZHi4g=;
+	s=2025; t=1794826776;
+	bh=0d5QsG3ML31bWEDKUgwziYCJyLbXWH3qNaWcj07yK4s=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=LV6lDmIT+/oAp4PgNATC9/2pI0pXnWJBgdPSS70kZ7GczIC1vQPT5l9yCbaJOwx52
-	 6pU4TllczyrPK7AWoROodsilHFahSHa92qiDxtCXdrr6pPZmVT/i679AbJCK9SbSF0
-	 ylLh1AeYFSKhdwZXjsZUZ/DEokDn7DmMaLv4LjOtw8z6u9wt9BBv95IESbXgHDTRBL
-	 u5+srgBf8iH5wcbZC4+cEZ5kXqegXfNKLv2SPf0E9ezPFszzFyurIiH011bqYOgqOf
-	 emxAX6QK5ZDb9BDeqBmw8OD3fTTBMdCXOSsTbJeHg2cut4+Mrm1Bb9j9zuKCItTkKv
-	 yhWS2tpwUtNDg==
+	b=d5OsPuoHbjldgNEc0nE8OJSYhoyKzDplL1WX6VBRX8iMRnZTLtMQsIraBAixJsUdb
+	 cT9vaRocB9MYFyBx+AS3m0HUPP1uM8TE27sl8NTuiDyQdD4uSJeSEGzHttyTVrHXX4
+	 woF5IRkarwVblOg3ne+m7THx17odVXqZsEXiWW1tjblRw31dAd875TUund5BRW2/tq
+	 FBUXADSPczx4h89ruOEQnlUYVdC4CqI4Hyy1LG8MPnXmKj65pSPC1tcs3BTkc/PHjp
+	 MVvVpT7+iBvvbuhuB3UofdgtQrVs7TN/MPdedQhDfD5PSomfteFBjwMYVoh02ta22I
+	 N83yqsh+b2E4g==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 61DAD60091
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 11:59:35 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 65ED360092
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 11:59:36 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v9 2/7] netfilter: nfnetlink_queue: add helper function to retrieve hook entries
-Date: Mon, 16 Nov 2026 11:59:26 +0100
-Message-ID: <20261116105931.2866911-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,v9 3/7] netfilter: nfnetlink_queue: consolidate access to hook entries on reinjection
+Date: Mon, 16 Nov 2026 11:59:27 +0100
+Message-ID: <20261116105931.2866911-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261116105931.2866911-1-pablo@netfilter.org>
 References: <20261116105931.2866911-1-pablo@netfilter.org>
@@ -65,105 +65,150 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add nf_queue_hook_entry() and nf_queue_hook_entries() helper functions
-to retrieve hook entries and use them.
+Fetch struct nf_hook_entries and nf_hook_ops only once then pass it on
+to reinject path. Otherwise re-fetching the pointer breaks atomicity
+when checking for the conntrack hook type since hook (un)registration
+might occur while following nfqueue reinjection path.
 
-This comes in preparation for a fix to restrict expectation creation to
-nfnetlink_cthelper.
-
-No functional changes are intended.
+This is a preparation patch, not behaviour change is intended.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v9: no changes
+v9: use READ_ONCE() after index validation
 
- net/netfilter/nfnetlink_queue.c | 44 ++++++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 11 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 68 ++++++++++++++++++++++++++-------
+ 1 file changed, 55 insertions(+), 13 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a8aa7ad832c3..9929240e819e 100644
+index 9929240e819e..c9773c4fb816 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -360,17 +360,36 @@ static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
- 	return ret;
+@@ -382,9 +382,11 @@ nf_queue_hook_entry(const struct nf_hook_entries *hooks,
  }
  
-+static const struct nf_hook_entries *
-+nf_queue_hook_entries(struct nf_queue_entry *entry)
-+{
-+	const struct net *net = entry->state.net;
-+	u8 pf = entry->state.pf;
-+
-+	return nf_hook_entries_head(net, pf, entry->state.hook);
-+}
-+
-+static const struct nf_hook_entry *
-+nf_queue_hook_entry(const struct nf_hook_entries *hooks,
-+		    struct nf_queue_entry *entry)
-+{
-+	unsigned int i = entry->hook_index;
-+
-+	if (i >= hooks->num_hook_entries)
-+		return NULL;
-+
-+	return &hooks->hooks[i];
-+}
-+
  /* caller must hold rcu read-side lock */
- static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+-static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
++static void nf_reinject(struct nf_queue_entry *entry,
++			const struct nf_hook_entries *hook_entries,
++			const struct nf_hook_ops *hook,
++			unsigned int verdict)
  {
-+	const struct nf_hook_entries *hook_entries;
+-	const struct nf_hook_entries *hook_entries;
  	const struct nf_hook_entry *hook_entry;
--	const struct nf_hook_entries *hooks;
  	struct sk_buff *skb = entry->skb;
  	bool old_in_nf_duplicate;
--	const struct net *net;
- 	unsigned int i;
- 	int err;
--	u8 pf;
+@@ -400,13 +402,6 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
  
- 	DEBUG_NET_WARN_ONCE(current->in_nf_duplicate &&
- 			    !entry->in_nf_duplicate,
-@@ -379,20 +398,23 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	local_bh_disable();
- 	old_in_nf_duplicate = current->in_nf_duplicate;
- 
--	net = entry->state.net;
--	pf = entry->state.pf;
--
  	current->in_nf_duplicate = entry->in_nf_duplicate;
--	hooks = nf_hook_entries_head(net, pf, entry->state.hook);
  
--	i = entry->hook_index;
--	if (!hooks || i >= hooks->num_hook_entries) {
-+	hook_entries = nf_queue_hook_entries(entry);
-+	if (!hook_entries) {
+-	hook_entries = nf_queue_hook_entries(entry);
+-	if (!hook_entries) {
+-		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
+-		nf_queue_entry_free(entry);
+-		goto out;
+-	}
+-
+ 	hook_entry = nf_queue_hook_entry(hook_entries, entry);
+ 	if (!hook_entry) {
  		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
- 		nf_queue_entry_free(entry);
- 		goto out;
- 	}
+@@ -515,7 +510,10 @@ static bool nf_bridge_ports_valid(const struct nf_queue_entry *entry)
+ 	return true;
+ }
  
--	hook_entry = &hooks->hooks[i];
-+	hook_entry = nf_queue_hook_entry(hook_entries, entry);
-+	if (!hook_entry) {
-+		kfree_skb_reason(skb, SKB_DROP_REASON_NETFILTER_DROP);
-+		nf_queue_entry_free(entry);
-+		goto out;
-+	}
+-static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
++static void __nfqnl_reinject(struct nf_queue_entry *entry,
++			     const struct nf_hook_entries *hook_entries,
++			     const struct nf_hook_ops *hook,
++			     unsigned int verdict)
+ {
+ 	const struct nf_ct_hook *ct_hook;
+ 
+@@ -562,8 +560,32 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		if (nf_ct_drop_unconfirmed(entry, NULL))
+ 			verdict = NF_DROP;
+ 	}
++	nf_reinject(entry, hook_entries, hook, verdict);
++}
++
++static void nfqnl_reinject(struct nf_queue_entry *entry,
++			   unsigned int verdict)
++{
++	const struct nf_hook_entries *hook_entries = nf_queue_hook_entries(entry);
++	struct nf_hook_ops **hooks, *hook;
++	unsigned int i;
++
++	if (!hook_entries)
++		goto drop;
++
++	hooks = nf_hook_entries_get_hook_ops(hook_entries);
 +
 +	i = entry->hook_index;
++	if (i >= hook_entries->num_hook_entries)
++		goto drop;
++
++	hook = READ_ONCE(hooks[i]);
  
- 	/* Continue traversal iff userspace said ok... */
- 	if (verdict == NF_REPEAT)
-@@ -406,7 +428,7 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	if (verdict == NF_ACCEPT) {
- next_hook:
- 		++i;
--		verdict = nf_iterate(skb, &entry->state, hooks, &i);
-+		verdict = nf_iterate(skb, &entry->state, hook_entries, &i);
- 	}
+-	nf_reinject(entry, verdict);
++	__nfqnl_reinject(entry, hook_entries, hook, verdict);
++	return;
++drop:
++	kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
++	nf_queue_entry_free(entry);
+ }
  
- 	switch (verdict & NF_VERDICT_MASK) {
+ static void
+@@ -1866,14 +1888,16 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
+ {
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(info->net);
+ 	u_int16_t queue_num = ntohs(info->nfmsg->res_id);
++	const struct nf_hook_entries *hook_entries;
+ 	const struct nfnl_ct_hook *nfnl_ct;
+ 	struct nfqnl_msg_verdict_hdr *vhdr;
++	struct nf_hook_ops **hooks, *hook;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nfqnl_instance *queue;
+ 	struct nf_queue_entry *entry;
+ 	struct nf_conn *ct = NULL;
+ 	unsigned int verdict;
+-	int err;
++	int err, i;
+ 
+ 	queue = verdict_instance_lookup(q, queue_num,
+ 					NETLINK_CB(skb).portid);
+@@ -1890,6 +1914,23 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (entry == NULL)
+ 		return -ENOENT;
+ 
++	hook_entries = nf_queue_hook_entries(entry);
++	if (!hook_entries) {
++		kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
++		nf_queue_entry_free(entry);
++		return -ENOENT;
++	}
++
++	hooks = nf_hook_entries_get_hook_ops(hook_entries);
++
++	i = entry->hook_index;
++	if (i >= hook_entries->num_hook_entries) {
++		kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
++		nf_queue_entry_free(entry);
++		return -ENOENT;
++	}
++	hook = READ_ONCE(hooks[i]);
++
+ 	/* rcu lock already held from nfnl->call_rcu. */
+ 	nfnl_ct = rcu_dereference(nfnl_ct_hook);
+ 
+@@ -1924,7 +1965,8 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (nfqa[NFQA_PRIORITY])
+ 		entry->skb->priority = ntohl(nla_get_be32(nfqa[NFQA_PRIORITY]));
+ 
+-	nfqnl_reinject(entry, verdict);
++	__nfqnl_reinject(entry, hook_entries, hook, verdict);
++
+ 	return 0;
+ }
+ 
 -- 
 2.47.3
 
