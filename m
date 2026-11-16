@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794788223;
-	b=h8RIc9KFK3Ql0YgFHg8NZ5TEzcWSI0mCQP8qDY2gyPBwo2zAGqh6/NISuLC7w9U8v+04
-	 3bEiqzo9KKZDB/WYcNReIW8wFuAnNLK/Vbb1uUaMpOmvHAI2XxcjMraHShCP59ETa86qd
-	 ai8/CXGLseoNgtIE5EZ+oKnJYT5C97fuJwPIVu9q572zl2LzR7U8FLlQFoEWNx4ZJSNXR
-	 mQM+OuLr2z8R6OsN/u1xyURSx84gGvs3r+JM9BwzmD5XUpy6fmZYJk2IYQUMhCgmWk9Co
-	 CV0iNXu9bQfvQmmD3ObbVGfpPiVJg+6QoUieqecmWhL87DUcxnnz2TjQIkD1xISaIsg==
+	t=1794788224;
+	b=2DpYnK7GufsTeeS020bq7A8OMR0i1sr044cyFS190I1l4KU2cDMsgI7i263kqVkvA8Qh
+	 LTpuSeFevPGxhoWXlILwss+nLi/oq1+idEiuQxTgYPpfJVI5eA1XBA6uKzl6JM5mMWpw4
+	 ilwUN6qxV3ZSdhbbqeDCKfPfyKYEbunhuz5s4nCice5R9FgPaPm80p/mjkEQSNx5egSkG
+	 8LbKEI4agAhnT9HgW7KN/CRAfuz55hDFmVeNiKpAxLAFKx3Mx7GY4TVQarURyysk0ej5X
+	 mSDuKus8qfS/gsCGQMsXG1e2GhHXzDlzpPC+fRuQdEXBvqBsXz9z56aMzxgEnK9ghpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794788223;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794788224;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=orRTKP56HqqLAcK89zHcol773EV7iC+AYKFyW+Mo1rs=;
-	b=iq5ixAyfUYg1FmqK+qvtRiAPAz1FEClCIOf5wDY/k7lnViULqkdvNMMebl/oUeWulugW
-	 uqWt8WNz2H1RJ4ZhtichDnUKeGWJbM38D77gJs9osrgSu+/J4p/y+zQOkf2WQFf1VXj+y
-	 bRtCKxcCfcAspFxxqEo5gN2CWQwjAf6MOukF4E2DdB7LJq9UIr2OGjpp3A8zuCGUIfH6S
-	 yEpKshvV3bbbmqXoldWVFVgSqUXJVkVjxfgq0xqoX0g9iD21eIfuKfcT19aV/90QrgJBn
-	 jBD0WFUqVNfHqPbwfnyg7GZKkTvaE3WuWzaUKnfruK/BHykSXCrFGONVkOsTZTfnzTQ==
+	bh=FTn/RvjjO0JCLwm4jGgHFzh7s3V+fumwtuQ0U//+dls=;
+	b=kc7a1JSWZhU8dYy0N7NYeixrjl3vS2Hlz337txXmEdwG1uEwQy1Qdcs9XjgUxkGEpBku
+	 n2x7KpmX3ja1GkroZsb/l43R7WwWia/rojxQZ/UWPZ6W9Cz4kaoNrVeyLOUZOye9lf+oH
+	 RlEUxKhAc7A0OoTkb84W7O2/m2j7twkAlpSzprbX4UsHPN/9ZsrE61EcvJXXc0ZlbZG84
+	 OMfRHGd/unQHRUjw+y6lWmycwGJssrfTEjgz0LgCAfMNVBXjS7HlKZttfgPbZtixGMoYk
+	 adCn4J5o9x1CSX5S2powfVmaz2pfelZZ/DUzropb208iEZtEUurqi1/8tthLjMxHJ7Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=IMQ84b17;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Jd7tU1rk;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5531606A339;
-	Mon, 16 Nov 2026 00:17:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B5531606A339
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4B03606A33E;
+	Mon, 16 Nov 2026 00:17:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4B03606A33E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=IMQ84b17
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Jd7tU1rk
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794788220;
-	bh=orRTKP56HqqLAcK89zHcol773EV7iC+AYKFyW+Mo1rs=;
+	s=2025; t=1794788222;
+	bh=FTn/RvjjO0JCLwm4jGgHFzh7s3V+fumwtuQ0U//+dls=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=IMQ84b17y+9cduAbpOihKdvTCBVLXIxwY7tsuQ58zLujTtZG7m+ZXPaF8s9EPsTo0
-	 szdgjrEzA+ityFcaRVasd620gLtZRH4D1YI9QlEPul2SBl7tBG8IY0nr4vLbl5FvYf
-	 lyR/4OcZm163KgRU5Pb4rh2+ASsp0X5Y5pSkVC1aA+kuVO3XwPdsrB/Iwba745QyZw
-	 u2y+BKn7VbiAHugHM3fFmiP6QUl6IC+uxhtY4t0JlmrtJaFHuuC9IFwWkE7Y4eAlKQ
-	 HsiNmeykKaz9eZHswyWgAjNJS9C+FDdVLcgixU7aOHWTbGHlYapCTVt1m6eFUhAqlw
-	 5fuRqo7GIIjGg==
+	b=Jd7tU1rktL/q5LTl8i1u7W8D72sXbzfyrwZMXWW6nm1dmZyclCNKGoboPwO7HhfUI
+	 bEQnJBVl3qXFkx7lftPxCnWxleIyg4SAp1e1nWbVrO321DZR/PLKqGVCpnahPalptL
+	 veLEUjvapeRCLqFXMG8nZacMPfT7I20VjO1hunXpzEeE2qfCQWC0Wn0bAW7VOcVmtU
+	 v6VrTx4M20WoQ7zbqfL7Aa8Ru60DdDm8K3yuVkpugWV/Ac7II0eH4SHkSFC8mKnRUq
+	 Fzxg/xocJwqLpMwio4RpSqlw7wUWtTc9hWNwOJEI69OOk4kAbUfO/b5PGoSgeLjmXG
+	 f86xFI5Lna4Zw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E98B56008C;
-	Mon, 16 Nov 2026 01:16:59 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B35746008B;
+	Mon, 16 Nov 2026 01:17:01 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 10/13] netfilter: flowtable: tunnel device poisons h_source of fast-path frames
-Date: Mon, 16 Nov 2026 01:16:09 +0100
-Message-ID: <20261116001612.2806263-11-pablo@netfilter.org>
+Subject: [PATCH net-next 11/13] netfilter: flowtable: do not clear the offload bit twice
+Date: Mon, 16 Nov 2026 01:16:10 +0100
+Message-ID: <20261116001612.2806263-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261116001612.2806263-1-pablo@netfilter.org>
 References: <20261116001612.2806263-1-pablo@netfilter.org>
@@ -71,71 +71,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Marek Majkowski <marek@lysk.ai>
+From: João Silva <jgc3silva@gmail.com>
 
-When a flow enters an IP tunnel, the forward path discovered by
-dev_fill_forward_path() starts with a DEV_PATH_TUN entry for the tunnel
-device, followed by whatever carries the outer packet.
-nft_dev_path_info() handles DEV_PATH_TUN in the same switch case as the
-Ethernet-like path types and copies path->dev->dev_addr into
-info->h_source if it is still unset. For a tunnel device dev_addr is not
-an Ethernet address: ip6_tunnel stores the 16-byte local IPv6 there and
-ip_tunnel the 4-byte local IPv4. The tunnel entry is the first one on
-the path, so its "address" wins and poisons h_source: every fast-path
-frame is transmitted with the first bytes of the tunnel local IP address
-as the Ethernet source MAC.
+An expired hardware flow remains in the flowtable until its asynchronous
+hardware deletion completes. Teardown clears IPS_OFFLOAD_BIT, so a packet
+can create a replacement flow referencing the same conntrack entry while
+the old flow is still waiting for deletion.
 
-Seen on a DS-Lite setup, LAN -> ip6tnl (IPv4 inside IPv6) -> PPPoE ->
-802.1Q VLAN -> Ethernet, with conntrack flows offloaded through an
-nftables flowtable ('flow add @ft'). The first packets of a flow, still
-on the slow path, and the fast-path packets of the same flow differ only
-in the Ethernet source address:
+The next GC pass calls flow_offload_teardown() on the expired old flow
+again, clearing the replacement's offload bit. More packets can then
+create additional flows for the same conntrack entry. A pending hardware
+work item can also delay deletion and expose the same repeated teardown.
 
-  slow path:  d8:58:d7:00:2e:bd > 80:ac:ac:39:ef:c2, 802.1Q vlan 35,
-              PPPoE [ses 0x454] IP6 2a01:110f:4328:c400::1 >
-              2a01:1000:0:1::2216 next-header IPIP, 192.0.0.2.40010 >
-              1.1.1.1.53
-  fast path:  2a:01:11:0f:43:28 > 80:ac:ac:39:ef:c2, same frame otherwise
+Commit d2d31ea8cd80 ("netfilter: conntrack: fix erronous removal of
+offload bit") closed this window for software flows by unlinking them in
+the same GC pass and made the conntrack state fixup one-shot, but
+hardware flows stay linked until NF_FLOW_HW_DEAD is set.
 
-As you can see 2a:01:11:0f:43:28 is the start of 2a01:110f:4328:c400::1,
-the tunnel local address. The PPPoE endpoint binds the session to the
-subscriber MAC and silently drops the frames, the effect is that every
-TCP/UDP flow dies the moment it is offloaded, while ICMP, which is never
-offloaded, keeps working. Received traffic is unaffected.
+Make clearing IPS_OFFLOAD_BIT part of the existing one-time teardown
+transition, alongside the conntrack state fixup. Subsequent teardown calls
+must not alter the offload state now owned by a replacement flow.
 
-Do not let DEV_PATH_TUN poison h_source: skip the assignment for it. The
-real link-layer device appears later on the same path and provides the
-correct address; for a path with no Ethernet device the address stays
-zero as before.
-
-Fixes: ab427db17885 ("netfilter: flowtable: Add IPIP rx sw acceleration")
-Signed-off-by: Marek Majkowski <marek@lysk.ai>
-Reviewed-by: Lorenzo Bianconi <lorenzo.bianconi@oss.qualcomm.com>
+Fixes: e5eaac2beb54 ("netfilter: flowtable: fix TCP flow teardown")
+Signed-off-by: João Silva <jgc3silva@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_flow_table_path.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index 841f099434d9..4ca6e09c7f8e 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -121,7 +121,12 @@ static int nft_dev_path_info(struct net_device_path_stack *stack,
- 		case DEV_PATH_PPPOE:
- 		case DEV_PATH_TUN:
- 			info->dev = path->dev;
--			if (is_zero_ether_addr(info->h_source))
-+			/* A tunnel device has no Ethernet address: its dev_addr
-+			 * is the tunnel local IP address. Take h_source from the
-+			 * real link-layer device further down the path.
-+			 */
-+			if (path->type != DEV_PATH_TUN &&
-+			    is_zero_ether_addr(info->h_source))
- 				memcpy(info->h_source, path->dev->dev_addr, ETH_ALEN);
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 733107180d56..d5652e45ee04 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -398,9 +398,11 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
  
- 			if (path->type == DEV_PATH_ETHERNET ||
+ void flow_offload_teardown(struct flow_offload *flow)
+ {
++	if (test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
++		return;
++
+ 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
+-	if (!test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
+-		flow_offload_fixup_ct(flow);
++	flow_offload_fixup_ct(flow);
+ }
+ EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 
 -- 
 2.47.3
 
