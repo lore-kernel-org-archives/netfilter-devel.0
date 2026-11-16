@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794789466;
-	b=Lq6cZJ1sILNemNT9NBZNVa+1HZb5USsFcZu2ewjejl+n0weX4Qb8T/8cDuoOfl6NMfMd
-	 PZVn8UH/uCQPRUUBKfajy+37C3h/VrjYAoHEY6Id8NdM7b8x6qXAfCtFYAaUE1GmMZGN+
-	 EoJ+W5CCTMxQ38j5Bo/wIOwiVJAVaVO9sTK23bLwzbzo/Gs0sMr1c3JnCwyLkLATn8jdt
-	 Q2GV2oVqN+nMytWnisxzPuvYeSvnimeHZVv9wXCtrrXvNKNunG5JxG1rHlA/6LPgbZIlN
-	 KeqcAvFuDWcjt0BbXHMui9YA7b/5oEDjWVycn9EbLn9pfU/N85YGdoiOdtKTQtfABHg==
+	t=1794789467;
+	b=GRYYVntQeCW1bYptJe57Wd3xHHdIwG+qULEF/HR4HerYSJ1ZnM/rOvX/auwQjvDVp11L
+	 ir+J0m6eoQln0lGZpisCDHqssH2Tf1VbzR5uyFCpKrFoEcuPjyxhtrA9Fl2GlQJoZHrHW
+	 i7Uq8yS6NyWDgZAttYtYhSBRm6ZK4HgXPULUWWA1quADeLw845hZ8OOT8WoAvfL7bYzYB
+	 mMPLyySdO1Jrc75NOmtkcIGpUmJJDRKNqRlLIZtBRm+j/GzkkTyZgHlyvCS4J+JsjrI/u
+	 1dzcdkM94X7eJ5FeTYjTrLidfaYAmSyh/PDv4KsMNzfLgSV2ugHnWvBRi1IbkOiB+AQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794789466;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794789467;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=X3ptxyAEZ1pIvJDKGN+LRJWHzIWzZPGUii5Z+BeWnus=;
-	b=pvV4OwzPsA386ULUm7RC8QV1XAeSAWI3lqJYKg2/Y/yjvxZymXdZSdOzv5XgYpAPcC33
-	 pPAzSs0vn97fxBc8Vdoek8dR+UzAhKYvO+2gflB/P1onc4s6b/YyovU9g1az7dxYnxcc1
-	 GT5P3muuCI/0BkfYmz52sR8QKY9cTRieGtPWYkeqDbUtS1+JIs6918xwsRf5cK/lrpfp7
-	 caBhx/cJxL+x3IW3d95eVis5+mXqMgE1IDsj6InysBfQZyLqICbWQsBmMEhQiYURKSsBA
-	 B6KDp7Worx2BUcUZcSXN/I9By8fmftrako3t7BCnPrrgOX8AMF9qM2iHnNwO75j/qDg==
+	bh=YXjMNPBIs81jsvfjPCmsnFds016p5XXPf1faKWCguKE=;
+	b=K3ffFz3u4zfuptE62eLpTKhP0yO8gHFYmc4QA68WDhFz6IEHqxlX+W+iz9JV9AzE/2II
+	 atK/xQhTX577s997S7pWHs8ZiA0/dntMvxLHVoIVPq/7eJWFR1WX72le30WoCBerrRCfb
+	 xvaz9Oy1VW7scG1eb5DcQNxm10isRN4bwLSJKwzELNguMsJYuSsh1siZpl32oR1wiFoOz
+	 c3r/9hIPN4hlc284wEEiVj4OAC9ChUuFH828hcGvVC0tZcMNahXf/2LGj7Bz6WiLXDTg+
+	 tBsoWa343Smvxgex7X0yz8crI6jJWX1B497dP3feUIMyKYxj9oUPLnuXDHucNE2GQnA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UVlJg9Ng;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=U74qGIIK;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7E7606A331
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 00:37:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB7E7606A331
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC863606A332
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 00:37:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CC863606A332
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=UVlJg9Ng
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=U74qGIIK
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794789464;
-	bh=X3ptxyAEZ1pIvJDKGN+LRJWHzIWzZPGUii5Z+BeWnus=;
+	s=2025; t=1794789465;
+	bh=YXjMNPBIs81jsvfjPCmsnFds016p5XXPf1faKWCguKE=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=UVlJg9NgIwmunRK850+EfY9RHvRQfn6H/Gva+vL25JOCzvpmefsP2AcnV9eEKWKiz
-	 nPsVt0NpyjT7HtCgSMydVzNgvHbXXhGOQ7ZU3V9zW2Pu6ripYuQVNimq9eqpjwk9uY
-	 thI1cArtiaSlLsNLnQwOhDzSFl6myXdJgv9yE6V89U+IYcs3i5ZTGZ0jr9jshmDjAb
-	 Euj6p0pX6ZhsHQwdNyMxfVPUlllpy8atDdvBio/ySvWUI+Mbl4kkswQwxtOURGTyt8
-	 GbBYZ4AvVkVMqVCpaA+54Zxz2zEaZXmoDs9yhvb5AM8Fzt+NErO/mrrg46D4Wh2Id0
-	 qr40URa6uKvgA==
+	b=U74qGIIKJas7QglpLNL9MksPKoOGt245UiMonbr6JDt/iDEGwAd4lA9c+eiJhmYHQ
+	 bhx1PSoXSDIto18bdvz/kP43OvQusnseitq/qyR3v/Gy5DsAHPIAPUf8QJrLvnzTdq
+	 b/HiE9DzliZn2lpm2XQP1yV82Kg1R5j1ybp8XKF/pk+9TippONohrClPxkf97s8VGN
+	 wDnaMHOEVOGFB1Vgv2vT57DgEzl46RABo4DZjaBLWE2UXQC/kSmdin153eye7VFWwm
+	 RMLtDy+00W+vngVEYGbLFejnkm93CjMUfgxp31iWcCO4e5S/H7IIy7KpQ+rnL2+fi5
+	 uIcH9UQYrHjfA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1316460076
+	by mail.netfilter.org (Postfix) with ESMTPSA id 028EF60077
 	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 01:37:44 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v8 6/7] netfilter: nfnetlink_queue: restrict upper verdict bitmask to queue and drop
-Date: Mon, 16 Nov 2026 01:37:32 +0100
-Message-ID: <20261116003733.2820132-6-pablo@netfilter.org>
+Subject: [PATCH nf-next,v8 7/7] netfilter: nfnetlink_queue: do not skip ct confirmation with userspace ct helpers
+Date: Mon, 16 Nov 2026 01:37:33 +0100
+Message-ID: <20261116003733.2820132-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261116003733.2820132-1-pablo@netfilter.org>
 References: <20261116003733.2820132-1-pablo@netfilter.org>
@@ -65,45 +65,110 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-NF_QUEUE and NF_DROP use upper bits in the verdict mask to store
-the bypass flags as well as the queue numbers. Reject any other use.
+There are a two more issues with the existing userspace ct helpers:
 
+- Disallow re-queueing packets in userspace ct helpers, none of the
+  existing helper in userspace use this feature.
+
+- nf_conntrack_update() should only be called if this is the confirmation
+  hook, there is a new helper function to check this, use it.
+
+While at this, nfqnl_reinject() is already called from a rcu read lock
+section, remove the redundant rcu_read_{un,lock}().
+
+Remove #ifdef around nfqnl_hook_exp_support() so this function can be
+used regardless conntrack supported to address a compilation warning.
+
+Fixes: ee04805ff54a ("netfilter: conntrack: make conntrack userspace helpers work again")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v8: no changes
 
- net/netfilter/nfnetlink_queue.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 37 ++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 2e0081fbcc5e..c52ac4a3dd80 100644
+index c52ac4a3dd80..1f6d7d25881d 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -1768,15 +1768,21 @@ static struct nfqnl_msg_verdict_hdr*
- verdicthdr_get(const struct nlattr * const nfqa[])
- {
- 	struct nfqnl_msg_verdict_hdr *vhdr;
--	unsigned int verdict;
-+	unsigned int verdict, verdict_mask;
- 
- 	if (!nfqa[NFQA_VERDICT_HDR])
- 		return NULL;
- 
- 	vhdr = nla_data(nfqa[NFQA_VERDICT_HDR]);
--	verdict = ntohl(vhdr->verdict) & NF_VERDICT_MASK;
--	if (verdict > NF_MAX_VERDICT || verdict == NF_STOLEN)
-+	verdict = ntohl(vhdr->verdict);
-+	verdict_mask = verdict & NF_VERDICT_MASK;
-+	if (verdict_mask > NF_MAX_VERDICT || verdict_mask == NF_STOLEN)
- 		return NULL;
-+	if (verdict_mask != NF_QUEUE &&
-+	    verdict_mask != NF_DROP &&
-+	    verdict & ~NF_VERDICT_MASK)
-+		return NULL;
-+
- 	return vhdr;
+@@ -381,7 +381,6 @@ nf_queue_hook_entry(const struct nf_hook_entries *hooks,
+ 	return &hooks->hooks[i];
  }
  
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ static bool nfqnl_hook_exp_support(const struct nf_hook_ops *ops)
+ {
+ 	return (ops->hook_ops_type == NF_HOOK_OP_CONNTRACK &&
+@@ -392,7 +391,6 @@ static bool nfqnl_hook_exp_support(const struct nf_hook_ops *ops)
+ 		 (ops->pf == NFPROTO_BRIDGE &&
+ 		  ops->hooknum == NF_BR_POST_ROUTING)));
+ }
+-#endif
+ 
+ /* caller must hold rcu read-side lock */
+ static void nf_reinject(struct nf_queue_entry *entry,
+@@ -528,31 +526,38 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
+ 			     const struct nf_hook_ops *hook,
+ 			     unsigned int verdict)
+ {
+-	const struct nf_ct_hook *ct_hook;
++	unsigned int verdict_mask = verdict & NF_VERDICT_MASK;
+ 
+ 	if (!nf_bridge_ports_valid(entry))
+-		verdict = NF_DROP;
++		goto drop;
+ 
+-	if (verdict == NF_ACCEPT ||
+-	    verdict == NF_REPEAT ||
+-	    verdict == NF_STOP) {
+-		unsigned int ct_verdict = verdict;
++	if (verdict_mask == NF_ACCEPT ||
++	    verdict_mask == NF_REPEAT ||
++	    verdict_mask == NF_STOP ||
++	    verdict_mask == NF_QUEUE) {
++		const struct nf_ct_hook *ct_hook;
+ 
+-		rcu_read_lock();
+ 		ct_hook = rcu_dereference(nf_ct_hook);
+-		if (ct_hook)
+-			ct_verdict = ct_hook->update(entry->state.net, entry->skb);
+-		rcu_read_unlock();
++		if (ct_hook && nfqnl_hook_exp_support(hook)) {
++			if (verdict_mask == NF_QUEUE ||
++			    verdict_mask == NF_REPEAT)
++				goto drop;
++
++			verdict_mask = ct_hook->update(entry->state.net, entry->skb);
++		}
+ 
+-		switch (ct_verdict & NF_VERDICT_MASK) {
++		switch (verdict_mask) {
+ 		case NF_ACCEPT:
+ 			/* follow userspace verdict, could be REPEAT */
+ 			break;
+ 		case NF_STOLEN:
+ 			nf_queue_entry_free(entry);
+ 			return;
++		case NF_QUEUE:
++			/* follow userspace verdict too */
++			break;
+ 		default:
+-			verdict = ct_verdict & NF_VERDICT_MASK;
++			verdict = verdict_mask;
+ 			break;
+ 		}
+ 	}
+@@ -574,6 +579,10 @@ static void __nfqnl_reinject(struct nf_queue_entry *entry,
+ 			verdict = NF_DROP;
+ 	}
+ 	nf_reinject(entry, hook_entries, hook, verdict);
++	return;
++drop:
++	kfree_skb_reason(entry->skb, SKB_DROP_REASON_NETFILTER_DROP);
++	nf_queue_entry_free(entry);
+ }
+ 
+ static void nfqnl_reinject(struct nf_queue_entry *entry,
 -- 
 2.47.3
 
