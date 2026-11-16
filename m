@@ -1,78 +1,117 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.217.51
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794854896;
-	b=mrnwgtiTdpLAZoAczRrnJWomf8kFmouNxN424jNW+YBjq/Xnlw6jpD1it9i4Cgin1ke+
-	 NpwqGL67y0R1JQR+36rviwo7xq+csGFsxu8YLqLRIPVI8Qadu4q2B/N4mrp8Y2vTI6qll
-	 JJFWhhyDdhz52T5+mQGdO4kqlWC4L5WhDBA3pOWXWSSfTsCbZ9P88N8l9daqSJ62CxJEF
-	 +06XDpb6QwRHvuOVK/2Ob+RveMwbf60Sthky+cCIupED6kTrYS2/LN+juPMfCdaKRCXTE
-	 dWTFFaGaZ0kE0pLhFsggZqiLyaaIJGLccKP5aDxwKrWMUA69+/1WRKhNf513IxKvobQ==
+	t=1794855709;
+	b=jTkXr8XOnzAvIATHm7yBTlAnDVr2jnRXSyHhW82XhP0ayLNQKQc3zc8sf7wluEcsAgdI
+	 QzH4mh+d9d7m2P2zKfTaQi/cPluUnE0V0Rfg7KdhZhUuxfdmMsb8PK5bf9BZEQo/1cIlk
+	 y4t7fWINtCHukbd1T3qfSAy3aNdFeBcQ94eDuF+iulDVQMdQrL6Oini36bC+u7NYRsBIt
+	 iRv0WwviwsNfdNABL05jEuS/OD8vgfS63yIlCjORqZqJo8dTfS8qBKuCQrZn1zrxOVrYY
+	 gb1B6B2LxlnkEF+qmJZfdmpctrgRPX461d4COEDqhN7AmXHwthGWIjQozurJWgLMWcg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794854896;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:
-	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794855709;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=GyA/FrB7iGytTyKmZYu5bx6WXQLhnH+dbx83tfTfnog=;
-	b=TRNHdHfZ4PDmoaL9wRDzl5W5gEY4bfXHFB7tt8Ce9cFbu/b14NJhX91ewDGsnAB87Ck8
-	 TF3Kw+ZZ8cbig292X0KqWjg36Sansu9YrurqJAKIRD0sZeF5/B96XlGhafv0DPhuUDuka
-	 6vIJf9rxQsHnW/9NatFK7gKgHW5a5CYvsBKZeUIm9Sg6lQhl56yOdsI98wmhgsKtkgxBF
-	 R4n8wCxTRvrbtWKqhkPIkuj0eYVl/svmrT+vE6HKU2g2+0QhXrl50/GRgGskAQ0S3lt45
-	 eeojsxv/DLjxnSSkHCmLRhAFcH57J/lhilCbnEjUrzyAJnMQcc58xBSDJjdpOmefwrw==
+	bh=Cw/BVa7eJbiscvjL5aeyO7U6YquYlPCCRzpuqZhRipc=;
+	b=gBGseHX/WB9YoQC8R+FhJ1SQCs51ymIA7B6DkSXrdK2fsy0G6yh87JPQasHBKRp2RPaW
+	 D0kuZil/KtJrQ7dKYtT/INwrHp04K8hDeL3cqPveOojFkWL8py3GdaC7Z/laEJYQBFir/
+	 AcBtjRX11IY4kvqnx0oTPBsyUglqu7bv4vzeewDrXdKFvanequt+dhzzLabXEXBNMKz5E
+	 TkJHwR5sNIuCZqKZ/zL8nIG2j9rh/wjuS/BNh/FKRsRWgRebgkoSg1ET6dAORJqVvRetm
+	 krcDwU5YVcWQwEX58ke1tS1xgo7iNfNeq/nKi8nHBnJPBDn3SccF6ziMetlfdgZSqCg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=7ZAUZJ5b;
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=mojatatu.com;
+	spf=none smtp.mailfrom=mojatatu.com;
+	dkim=pass header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=QbCiUXtZ;
+	arc=none smtp.remote-ip=209.85.217.51
+Received: from mail-vs1-f51.google.com (mail-vs1-f51.google.com [209.85.217.51])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20C35606A32C;
-	Mon, 16 Nov 2026 18:48:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 20C35606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B876606A323
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 19:01:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2B876606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=7ZAUZJ5b
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id C0C2B21B52;
-	Mon, 16 Nov 2026 20:48:11 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=GyA/FrB7
-	iGytTyKmZYu5bx6WXQLhnH+dbx83tfTfnog=; b=7ZAUZJ5bZrViRzz3IPdNSI+k
-	ZTbsScCCxoiOnfTzgwl4RmeVLH7Xy24G5JE3K7q+uczdkGLykGt4ykNorR6HC5fP
-	iumhSrTIxm7IfIXyyhGxFPKCpbVmvIWib/5+MBlJuqBLJzERbcKl48uBvdgb+Fmx
-	BnmA0HFZRiKXZvbn2+u+RMbzCjXCwOklWz5hyj4DwFr2PRlUhtox6QCKTDvTtWBc
-	Fb4840XGKXqDX1CrZhl8FN/BwVIjm+y8ocmjTIJQ7XRaregNQECR5gxI2gtKuReD
-	rFJSDuIK35xuRYpDFGdZZ3W55SnJI7pkbcApLeKYHpP1Ifn1xOyUE1Do2XZQLl4o
-	n2gycg9XvWEM9a7c6TMK2jZ+UcBKxfozCrEe5rAdQEVtvLYtKA7z0JRJpeNwe5iM
-	yyoj+PCj55+XlrI0vgElqJQ6J6n46I3AxOORmLIeW5fAi/qsnK10fpMhGcMuHH73
-	a7zo9PnE08it3x4sQfnxyE4ODzxSC1LlirBW+ZGGjY6dF3+qvSlbBNMU6rgb2GE8
-	Y+WM9HtWHsXTP01zey3xB+wpvo7onYk5CBYcm19hU7iBZZEHIf7jMO6XQWclyPCj
-	NceFWqMivsENIiiruJQqzOWGdE1RTRYqqI/ximMG1Stg4DV39swMgtnlvVNZUyeO
-	XUStMtFJN7jjdtpMjw4=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Mon, 16 Nov 2026 20:48:11 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 5A268600D7;
-	Mon, 16 Nov 2026 20:48:11 +0200 (EET)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6AGIm9E8110174;
-	Mon, 16 Nov 2026 20:48:09 +0200
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.2/8.18.2/Submit) id 6AGIm6o1110169;
-	Mon, 16 Nov 2026 20:48:06 +0200
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Yalagada Pavan Kumar <pavankumaryalagada@gmail.com>,
-        Wei Wang <weiwan@google.com>
-Subject: [PATCH nf] ipvs: do not delay the dst_release calls
-Date: Mon, 16 Nov 2026 20:47:58 +0200
-Message-ID: <20261116184758.110151-1-ja@ssi.bg>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (1024-bit key) header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=QbCiUXtZ
+Received: by mail-vs1-f51.google.com with SMTP id ada2fe7eead31-7d2db6408cfso3071083137.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 11:01:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu.com; s=google; t=1794855707; x=1795460507; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Cw/BVa7eJbiscvjL5aeyO7U6YquYlPCCRzpuqZhRipc=;
+        b=QbCiUXtZRVTJMzuv6PPfz7FP+kPrzpr1DUAFHg0qC5gbMW7INX8qE/0WMc3jqiNgu9
+         DFbIw1TVw/2/Uob51/UUg7m467jgrfcEXwJz7UVImI/hpGrt2KTAS3PeuyVb+9Gh7DgR
+         NJnazUsU9fqboHYIFEH3jOaRVZ91UIBTnguU8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794855707; x=1795460507;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Cw/BVa7eJbiscvjL5aeyO7U6YquYlPCCRzpuqZhRipc=;
+        b=GUMDd7QOIVRTwDyeYWnlDMrhg5AxgvcqLgZTnf5mkP9yJi9R41jnwbLcketXnEyUry
+         /v16cougde1Ifu+caSrHI1wFMJ1VibdYmdxzHw6AH6aaa+d0gCkQnRI1l8y+9M2dL3h9
+         aBjviQXyAoZVf41OcWuRJAsZiS6Uel0T5SY9+H90b61gEJg0WQokKdesX2s5Zv2sHNFi
+         WqCDTr9NE7FwHY0C7BYUkr1bao1tSkixmaQhxrzWPJ46ak/ZJmUxUuiYRJhh9meZJFh9
+         1KlxYRvFf5yqn85ZPVoPzpzO1oEr4+N0z9yzIh6EcdmH9f9ZQFfp7h8/YyUcmgy3bZtd
+         IuPg==
+X-Forwarded-Encrypted: i=1; AL+hErFD1B9uREVwbHjfvtsgiAcbRu97+5dVcFNyHqclL8WnPTmL/b61yAo+mHwQXsuQsc8f314FIq0nXpC8QY9cQdc=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9mCWUFKXkWfDQbBWWMDBp5GAvZdiZ4Bjnn+QbR7FOVlfkAzJRo
+	mU/yrdZ5FbFtmwQR5tyvsIRbzjro7F+CsU8OkPs/D4kXnRThBTNOpNmUvJ+leC9CKg==
+X-Gm-Gg: AYBFou3Ys1NNGl00eu0gAOqwwkv/O1q3e7Oi7ulGA4kaCnVQ4l7KOh6SVQS6H++pUJ6
+	6nLdIw4NI93wgVU3z6XwRaJixGmLSpF05mabmgik1OnZvTUGcqVlNc0e6/CELTbNjURN/x4Cjca
+	nP3+uVC2WUS5k9IQhqzNt+qHMXJL+pCquQ4MO5vo8wHQOlQvqtQ2khmuz//Nsg/U1BqPiKVdW4h
+	Z5zZ2YgRcyy/VR3wM13M2dJHjWoxkeiT5VbbLBBrOXUP8VfiX6nSRrpYK0Jj873O18dTx2ZgW2P
+	+glRA9RlCIft5hi1Qs8tlUpy/MRqm8WaNwDxAIwxRXfpwh7f1nof8jJD0xRPq8nAL+PDfxNVWVi
+	hnxkQ+uoT3dSeC9ToxuEgTpvDcbm9vKCTev2wwYb1iol4DUc/4c9YyHP1ZmRqog1+7Y6tE3dmdH
+	uZo0SMTS+FseUVfWkqT6usgps31DeWah5ix02PXwrOl0VU3jYjK6rid5J3gSMVSwjxsCjX+ynrK
+	qwZ700gicFiZI5t9Em7hrU1gbI1lh6v3PwxXksXMwQdMmC5VpDkX/3of4khNIU4fMI8+5FlrVdw
+	j8UteQQuR/OnWAWWRIDKPA+RmgKLvogwlQ+GxtGb7wr7YcYNZkNXJkhjRyapsbtscOidImwpCj8
+	=
+X-Received: by 2002:a67:e7c1:0:b0:7b2:f3ff:6b34 with SMTP id ada2fe7eead31-7d64d468432mr4302490137.1.1794855706870;
+        Mon, 16 Nov 2026 11:01:46 -0800 (PST)
+Received: from mbili.waya ([64.203.83.2])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91f23d453casm91997386d6.10.2026.11.16.11.01.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Nov 2026 11:01:45 -0800 (PST)
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+To: netdev@vger.kernel.org
+Cc: Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	ipsec@lists.linux.dev,
+	bpf@vger.kernel.org,
+	Jiri Pirko <jiri@resnulli.us>,
+	Victor Nogueira <victor@mojatatu.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	Sashiko <sashiko-bot@kernel.org>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Emil Tsalapatis <emil@etsalapatis.com>,
+	Ihor Solodrai <ihor.solodrai@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Stanislav Fomichev <sdf@fomichev.me>
+Subject: [PATCH net-next v4 0/4] net: drop the stale dst when steering to another device
+Date: Mon, 16 Nov 2026 14:01:37 -0500
+Message-Id: <CORE-9NOG.v4.r0.20261116135311@mojatatu.com>
+X-Mailer: git-send-email 2.34.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -84,290 +123,162 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-syzbot is reporting [1] for a crash when IPVS initiates delayed
-dst_release calls from its pernet subsys cleanup handler.
+This patchset is created to address constant whining by both sashikos
+about this being an issue when fixing a UAF on a teql issue, see:
+https://lore.kernel.org/netdev/QDISC-6HS9.v4.r0.20261111094338@mojatatu.com/
 
-Yalagada Pavan Kumar proposed a new rcu_barrier() to be added
-but the problem is different: the FIB layer started to replace
-the dst->dev with a blackhole_netdev before the NETDEV_DOWN
-event is delivered to the ip_vs_dst_event() handler. As
-ip_vs_forget_dev() matches the dst->dev and not the ifindex,
-IPVS can miss the event and to defer the dst_release() call
-from the pernet device phase to the pernet subsys phase
-where ip6_route_net_exit() already destroyed the per-CPU
-destination counters.
+Two producers steer a packet to a network device of their choosing and
+then hand it to the neighbour layer for link-layer resolution:
 
-Fix the dst_release delays in two ways:
+  3/4 netfilter: the neighbour variant of nft `fwd`, on the netdev egress
+      hook
+  4/4 bpf: `bpf_redirect_neigh()` when the program supplies the nexthop
 
-1. Cache the ifindex together with the dst and match it on
-NETDEV_DOWN event to protect against dst->dev being replaced
-with blackhole_netdev. As result, dst_release will not be
-left for the dest server removal. This problem can delay the
-dst_release for long time if the used device was marked down
-independently and not used actively in IPVS before the dest
-server is removed.
+Both rewrite `skb->dev` to the target device and leave the skb's dst
+pointing at the route the packet arrived through. When the target
+device's neighbour for the nexthop is incomplete the packet is parked on
+that neighbour's arp_queue, and draining the queue re-looks the neighbour
+up from the stale dst. The frame is therefore built with the original
+device's link-layer header and then transmitted on the target device: the
+packet leaves with another device's addresses, and the sender never
+learns that its nexthop was unreachable.
 
-2. Do not call dst_release from our own RCU callback, dst_release
-uses its own RCU callback to destroy the dst, so we can call it
-immediately. This allows rcu_barrier to destroy the dst during
-the pernet device cleanup.
+This is explicit: the steer-to-another-device path never worked in this
+respect, so there is nothing here to regress. Both producers shipped with
+`skb->dev` swapped to the target device and the route's dst still
+attached, and the arp_queue drain has re-derived the neighbour from that
+dst for as long as either producer has existed; the invariant "the skb's
+dst describes where the skb is going", which the routing path keeps when
+it steers, was never established for these two entry points. With no
+commit to anchor with a `Fixes:` tag and no crash, UAF or lockup
+involved, the series targets net-next and does not nominate `Cc: stable`:
+a backport would change long-standing redirect behaviour for no
+crash-class benefit.
 
-[1]
-BUG: unable to handle page fault for address: ffff8880d456e000
-PGD 1d131067 P4D 1d131067 PUD 0
-Oops: Oops: 0000 [#1] SMP KASAN NOPTI
-CPU: 1 UID: 0 PID: 0 Comm: swapper/1 Tainted: G             L      syzkaller #0 PREEMPT(full)
-Tainted: [L]=SOFTLOCKUP
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-RIP: 0010:percpu_counter_add_batch+0x4b/0x230 lib/percpu_counter.c:98
-Code: 8d 45 58 48 89 c2 48 89 44 24 08 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 9f 01 00 00 4d 8b 65 58 4c 89 ff <65> 49 63 2c 24 4a 8d 54 35 00 48 89 6c 24 10 48 89 eb 48 89 d0 48
-RSP: 0018:ffffc900006b0d68 EFLAGS: 00010246
-RAX: dffffc0000000000 RBX: ffff88803e0cf400 RCX: 0000000000000101
-RDX: 1ffff11007045bab RSI: ffffffff85702e00 RDI: 0000000000000020
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000003 R11: 0000000000000001 R12: 0000000000000000
-R13: ffff88803822dd00 R14: ffffffffffffffff R15: 0000000000000020
-FS:  0000000000000000(0000) GS:ffff8880d456e000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: ffff8880d456e000 CR3: 0000000025b53000 CR4: 0000000000352ef0
-DR0: 0000000000000010 DR1: 00000000fffffffd DR2: 400000000001001d
-DR3: fffffffffffffff6 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Call Trace:
- <IRQ>
- dst_entries_add include/net/dst_ops.h:59 [inline]
- dst_count_dec net/core/dst.c:163 [inline]
- dst_count_dec net/core/dst.c:160 [inline]
- dst_release net/core/dst.c:177 [inline]
- dst_release+0x2aa/0x330 net/core/dst.c:166
- ip_vs_dest_dst_rcu_free+0x32/0x50 net/netfilter/ipvs/ip_vs_ctl.c:1081
- rcu_do_batch kernel/rcu/tree.c:2650 [inline]
- rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
- handle_softirqs+0x216/0xa20 kernel/softirq.c:669
- __do_softirq kernel/softirq.c:703 [inline]
- invoke_softirq kernel/softirq.c:542 [inline]
- __irq_exit_rcu+0x178/0x220 kernel/softirq.c:786
- irq_exit_rcu+0x9/0x30 kernel/softirq.c:809
- instr_sysvec_apic_timer_interrupt arch/x86/kernel/apic/apic.c:1062 [inline]
- sysvec_apic_timer_interrupt+0xa3/0xc0 arch/x86/kernel/apic/apic.c:1062
- </IRQ>
- <TASK>
+More context: this came out of the review of the fix for a parked skb
+being resolved against the wrong device in sch_teql, posted separately and
+not part of this series. The neighbour code's queue drain is doing the
+right thing there, it re-derives the neighbour from the skb, so the repair
+belongs with the producers rather than with the drain path. Both
+producers are fixed in the same series so neither is left behind; each
+patch that changes a producer carries its own reproduction recipe.
 
-Reported-by: syzbot+84e27adb95fd2a1fe9bb@syzkaller.appspotmail.com
-Fixes: 95c47f9cf5e0 ("ipv4: call dst_dev_put() properly")
-Cc: Wei Wang <weiwan@google.com>
-Cc: Yalagada Pavan Kumar <pavankumaryalagada@gmail.com>
-Cc: stable@vger.kernel.org
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+The reproduction for both arms is a pair of veth devices, one of them
+with an unresolved neighbour, plus a capture on the target's peer: the
+captured frame's source and destination addresses name the device whose
+neighbour was used to build it.
+
+v2 drops the dst only when it describes a route, and keeps what the route
+carries (thanks to Pablo for catching this). A `DST_METADATA` dst is the
+tunnel template a tunnel helper attached to the packet, not a route, and
+dropping it would discard the encapsulation parameters, so it is left in
+place. A route carries encapsulation parameters too when it was installed
+with an ip, ip6 or xfrm encapsulation; 2/4 adds a helper that moves them
+onto a metadata dst before the route is released, so a producer that
+steers into an external tunnel device still finds them in
+`skb_tunnel_info()`, and one that steers into a `collect_md` xfrm interface
+still finds its `if_id` and underlying device. Neither case weakens the fix:
+a metadata dst resolves neighbours through `dst_blackhole_ops`, whose lookup
+returns NULL, so the queue drain keeps the parking (target-device) neighbour
+exactly as it does with no dst at all.
+
+1/4 is a prerequisite on the xfrm path turned up after Pablo's comment.
+The interface that consumes that metadata puts the original route back on the
+skb before the xfrm lookup, which needs its family, and installing a
+reference counted route over a dst slot that is still occupied trips the
+slot assertion; the slot is cleared first. The same overwrite is in the
+tc-bpf helper that attaches the metadata, so both sites are fixed in that patch.
+
+The Sashiko reviews of v3 raised two questions about the release, one on
+3/4 and one on 4/4: what the target device's transmit path sees once the
+route is gone, and whether the older fallback to skb_rtable() in the tunnel
+transmit paths is reachable from it. Neither needs the release narrowed,
+and both are answered here.
+
+A target device's transmit path still sees the route of the device the
+packet arrived on, for the few consumers that read it on the way out. A
+tunnel with no configured remote takes its outer endpoint from that route,
+so a packet whose route carried no encapsulation parameters is left with no
+dst, counted as a transmit error and dropped, rather than encapsulated
+towards an endpoint that belongs to another device's path. The route realm
+goes with it: a realm is a property of the route the packet took, so nft
+meta rtclassid and nft rt classid stop matching on that packet, and
+bpf_get_route_realm() returns 0. Encapsulation parameters are not among
+what is lost: they moved onto the metadata dst, so a tunnel or an xfrm
+interface downstream still builds its outer header. Taking the outer
+endpoint or the realm from another device's route is the same cross-device
+reuse the release removes at the neighbour lookup, so these are the
+intended consequences, not gaps.
+
+The skb_rtable() fallback is older than this series. When a tunnel cannot
+take an endpoint from the skb, ip_tunnel_xmit() and ip6_tnl_xmit() cast
+whatever dst the skb carries to an rtable, and a metadata dst is not one.
+A tc-bpf program that calls bpf_skb_set_tunnel_key() with no remote
+already hands an NBMA tunnel such a dst, so the cast is reachable without
+this series; the release can also leave one behind when a route's
+encapsulation parameters are not usable for the payload. Repairing the cast
+is a separate change, and 3/4 and 4/4 say so.
+
+Closes: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com
+Link: https://lore.kernel.org/netdev/20261026160747.283702-1-horms@kernel.org/
+Link: https://lore.kernel.org/netdev/QDISC-6HS9.v4.r0.20261111094338@mojatatu.com/
+Link: https://lore.kernel.org/netdev/avTfQjFQYR2NNdRg@chamomile/
+Link: https://sashiko.dev/#/patchset/CORE-9NOG.v3.r0.20261115050625%40mojatatu.com
+Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/CORE-9NOG.v3.r0.20261115050625%40mojatatu.com
+
 ---
- include/net/ip_vs.h             |  3 ++-
- net/netfilter/ipvs/ip_vs_ctl.c  | 14 ++++------
- net/netfilter/ipvs/ip_vs_xmit.c | 45 +++++++++++++++++++++++++--------
- 3 files changed, 42 insertions(+), 20 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 398d748f01ec..289e4c7ae5ee 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -964,6 +964,7 @@ struct ip_vs_service {
- struct ip_vs_dest_dst {
- 	struct dst_entry	*dst_cache;	/* destination cache entry */
- 	u32			dst_cookie;
-+	int			dst_ifindex;	/* dev ifindex or 0 */
- 	union nf_inet_addr	dst_saddr;
- 	struct rcu_head		rcu_head;
- };
-@@ -2007,7 +2008,7 @@ int ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
- 		    struct ip_vs_protocol *pp, unsigned int toff,
- 		    const struct nf_hook_state *state,
- 		    struct ip_vs_iphdr *ciph);
--void ip_vs_dest_dst_rcu_free(struct rcu_head *head);
-+void ip_vs_dest_dst_rcu_free(struct ip_vs_dest_dst *dest_dst);
- 
- #ifdef CONFIG_IP_VS_IPV6
- int ip_vs_null_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index ce9fe20d6106..b0b8b4f770f8 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1072,14 +1072,10 @@ struct ip_vs_dest *ip_vs_find_dest(struct netns_ipvs *ipvs, int svc_af, int dest
- 	return dest;
- }
- 
--void ip_vs_dest_dst_rcu_free(struct rcu_head *head)
-+void ip_vs_dest_dst_rcu_free(struct ip_vs_dest_dst *dest_dst)
- {
--	struct ip_vs_dest_dst *dest_dst = container_of(head,
--						       struct ip_vs_dest_dst,
--						       rcu_head);
--
- 	dst_release(dest_dst->dst_cache);
--	kfree(dest_dst);
-+	kfree_rcu(dest_dst, rcu_head);
- }
- 
- /* Release dest_dst and dst_cache for dest in user context */
-@@ -1090,7 +1086,7 @@ static void __ip_vs_dst_cache_reset(struct ip_vs_dest *dest)
- 	old = rcu_dereference_protected(dest->dest_dst, 1);
- 	if (old) {
- 		RCU_INIT_POINTER(dest->dest_dst, NULL);
--		call_rcu(&old->rcu_head, ip_vs_dest_dst_rcu_free);
-+		ip_vs_dest_dst_rcu_free(old);
- 	}
- }
- 
-@@ -2246,13 +2242,13 @@ void ip_vs_service_nets_cleanup(struct list_head *net_list)
- 
- /* Put all references for device (dst_cache) */
- static inline void
--ip_vs_forget_dev(struct ip_vs_dest *dest, struct net_device *dev)
-+ip_vs_forget_dev(struct ip_vs_dest *dest, const struct net_device *dev)
- {
- 	struct ip_vs_dest_dst *dest_dst;
- 
- 	spin_lock_bh(&dest->dst_lock);
- 	dest_dst = rcu_dereference_protected(dest->dest_dst, 1);
--	if (dest_dst && dest_dst->dst_cache->dev == dev) {
-+	if (dest_dst && dest_dst->dst_ifindex == dev->ifindex) {
- 		IP_VS_DBG_BUF(3, "Reset dev:%s dest %s:%u ,dest->refcnt=%d\n",
- 			      dev->name,
- 			      IP_VS_DBG_ADDR(dest->af, &dest->addr),
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index c777493eee74..cdbab1e81635 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -70,7 +70,7 @@ static inline void ip_vs_dest_dst_free(struct ip_vs_dest_dst *dest_dst)
-  */
- static inline void
- __ip_vs_dst_set(struct ip_vs_dest *dest, struct ip_vs_dest_dst *dest_dst,
--		struct dst_entry *dst, u32 dst_cookie)
-+		struct dst_entry *dst, int oif, u32 dst_cookie)
- {
- 	struct ip_vs_dest_dst *old;
- 
-@@ -79,12 +79,13 @@ __ip_vs_dst_set(struct ip_vs_dest *dest, struct ip_vs_dest_dst *dest_dst,
- 
- 	if (dest_dst) {
- 		dest_dst->dst_cache = dst;
-+		dest_dst->dst_ifindex = oif;
- 		dest_dst->dst_cookie = dst_cookie;
- 	}
- 	rcu_assign_pointer(dest->dest_dst, dest_dst);
- 
- 	if (old)
--		call_rcu(&old->rcu_head, ip_vs_dest_dst_rcu_free);
-+		ip_vs_dest_dst_rcu_free(old);
- }
- 
- static inline struct ip_vs_dest_dst *
-@@ -331,9 +332,11 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- {
- 	struct net *net = ipvs->net;
- 	struct ip_vs_dest_dst *dest_dst;
-+	struct net_device *rt_dev;
- 	struct rtable *rt;			/* Route to the other host */
- 	int mtu;
- 	int local, noref = 1;
-+	int oif;
- 
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
-@@ -345,25 +348,35 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			dest_dst = ip_vs_dest_dst_alloc();
- 			spin_lock_bh(&dest->dst_lock);
- 			if (!dest_dst) {
--				__ip_vs_dst_set(dest, NULL, NULL, 0);
-+				__ip_vs_dst_set(dest, NULL, NULL, 0, 0);
- 				spin_unlock_bh(&dest->dst_lock);
- 				goto err_unreach;
- 			}
- 			rt = do_output_route4(net, dest->addr.ip, rt_mode,
- 					      &dest_dst->dst_saddr.ip);
- 			if (!rt) {
--				__ip_vs_dst_set(dest, NULL, NULL, 0);
-+				__ip_vs_dst_set(dest, NULL, NULL, 0, 0);
- 				spin_unlock_bh(&dest->dst_lock);
- 				ip_vs_dest_dst_free(dest_dst);
- 				goto err_unreach;
- 			}
-+			rt_dev = dst_dev_rcu(&rt->dst);
-+			if (rt_dev) {
-+				if (rt_dev != blackhole_netdev)
-+					oif = rt_dev->ifindex;
-+				else
-+					oif = 0;
-+			} else {
-+				oif = -1;
-+			}
- 			/* It is forbidden to attach dest->dest_dst if
- 			 * device is going down or if server is removed and
- 			 * stored in dest_trash.
- 			 */
--			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
-+			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) && oif &&
- 			    dest->cflags & IP_VS_DEST_CF_AVAILABLE)
--				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, oif,
-+						0);
- 			else
- 				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
-@@ -505,10 +518,12 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- {
- 	struct net *net = ipvs->net;
- 	struct ip_vs_dest_dst *dest_dst;
-+	struct net_device *rt_dev;
- 	struct rt6_info *rt;			/* Route to the other host */
- 	struct dst_entry *dst;
- 	int mtu;
- 	int local, noref = 1;
-+	int oif;
- 
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
-@@ -522,7 +537,7 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			dest_dst = ip_vs_dest_dst_alloc();
- 			spin_lock_bh(&dest->dst_lock);
- 			if (!dest_dst) {
--				__ip_vs_dst_set(dest, NULL, NULL, 0);
-+				__ip_vs_dst_set(dest, NULL, NULL, 0, 0);
- 				spin_unlock_bh(&dest->dst_lock);
- 				goto err_unreach;
- 			}
-@@ -530,20 +545,30 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 						      &dest_dst->dst_saddr.in6,
- 						      do_xfrm, rt_mode);
- 			if (!dst) {
--				__ip_vs_dst_set(dest, NULL, NULL, 0);
-+				__ip_vs_dst_set(dest, NULL, NULL, 0, 0);
- 				spin_unlock_bh(&dest->dst_lock);
- 				ip_vs_dest_dst_free(dest_dst);
- 				goto err_unreach;
- 			}
- 			rt = dst_rt6_info(dst);
- 			cookie = rt6_get_cookie(rt);
-+			rt_dev = dst_dev_rcu(dst);
-+			if (rt_dev) {
-+				if (rt_dev != blackhole_netdev)
-+					oif = rt_dev->ifindex;
-+				else
-+					oif = 0;
-+			} else {
-+				oif = -1;
-+			}
- 			/* It is forbidden to attach dest->dest_dst if
- 			 * device is going down or if server is removed and
- 			 * stored in dest_trash.
- 			 */
--			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
-+			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) && oif &&
- 			    dest->cflags & IP_VS_DEST_CF_AVAILABLE)
--				__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, oif,
-+						cookie);
- 			else
- 				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
+v3 -> v4 (no patch changes code in this revision):
+- Answer the two Sashiko review questions about the release: what the
+  target device's transmit path still sees, and whether the older
+  skb_rtable() fallback in the tunnel transmit paths is reachable from it.
+- Patch 1/4: comment and commit-log change, no code change. The conditions
+  to recreate the bug are rewritten around the two arms, and the comment on
+  the dst slot swap says what owns the reference it clears.
+- Patch 2/4: kernel-doc comment and commit-log change, no code change. The
+  docstring's Return: section is corrected, and the log says the helper has
+  no caller of its own at this commit.
+- Patch 3/4: commit-log change only, the diff is unchanged from v3. The log
+  gains the section on what the target device's transmit path still sees and
+  the note on the older skb_rtable() fallback.
+- Patch 4/4: commit-log change only, the diff is unchanged from v3. Same two
+  sections in the log.
+
+v2 -> v3:
+- Patch 2/4: Document the return value of skb_dst_drop_keep_metadata() in
+  its kernel-doc comment. The missing `Return:` section was caught by
+  NIPA CI.
+
+v1 -> v2:
+- Do not drop a dst that is not a route: a DST_METADATA dst is the tunnel
+  template a tunnel helper attached to the packet, and dropping it discards
+  the encapsulation parameters (Pablo Neira Ayuso).
+- Keep a route's encapsulation parameters as well: a route installed with an
+  ip, ip6 or xfrm encapsulation carries them in dst->lwtstate, which a drop
+  would discard before a downstream tunnel or xfrm device could use them.
+  The dst release now goes through a helper that moves them onto a metadata
+  dst first (new 2/4).
+- Fix the dst slot the xfrm consumer restores: a collect_md xfrm interface
+  puts the original route back before the xfrm lookup, and installing it
+  over a dst that is still there trips the slot assertion.  New 1/4 clears
+  the slot first at both that site and in the tc-bpf helper that attaches
+  the metadata.
+
+Jamal Hadi Salim (4):
+  net: xfrm: interface: restore dst_orig on every xfrm interface
+  net: dst: keep the LWT metadata of a dropped route
+  netfilter: nft_fwd_netdev: drop the stale dst when steering to a
+    device
+  bpf: drop the stale dst when redirecting to an explicit nexthop
+
+ include/net/dst_metadata.h     |  1 +
+ include/net/xfrm.h             |  2 -
+ net/core/dst.c                 | 79 ++++++++++++++++++++++++++++++++++
+ net/core/filter.c              | 12 ++----
+ net/netfilter/nft_fwd_netdev.c |  6 +++
+ net/xfrm/xfrm_interface_bpf.c  | 19 ++++----
+ net/xfrm/xfrm_interface_core.c | 22 +++++-----
+ 7 files changed, 110 insertions(+), 31 deletions(-)
+
 -- 
-2.56.1
-
-
+2.43.0
