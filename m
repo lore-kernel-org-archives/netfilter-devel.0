@@ -1,98 +1,97 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.175
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.64
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794830787;
-	b=0GuBUO93r0NhlkLpl6KtRITWOV8OtupRfPaYRoJcpHRw7CyKQOStXI5StU8fyTx6NK5o
-	 zY2vP5sxROMC2xgnobMSVxiM06VNRdPo7h9rZ+s/VTXAeZN1EtrvBBe4buuRzeq11Q428
-	 0/+XSZHCmIdRlLo+faCSwwlsyHVhwGqqG9skIag98krfbcv/DNy9P5xeNaE1uvFA30TW0
-	 +c3EW5oAdr0GeKw0lZAMNEcEdE7t/+FUMSIqUG0LHPEH5unaCmp7U2SRge+bWu2Z84QbX
-	 VWV3jUf15yri6nWG1PDbYXYewSp+F0jMWsraeLG/MLoVpyDN14NslA8uEPuFkzkWQqw==
+	t=1794833469;
+	b=Ftz7SJBdwlttpZuizKK9bmB1qhNXwZ8LbI6HgbvY1UOCmbMrx7x+9rRqyLfKLWaP2Jsy
+	 zQsBVOfyoyIS4tPjrP7g77NRI6i5nVCO5rgxZfg9mKg17jIGD0dJRbDd4qO+Pw0QfaeJ0
+	 S4YeCAZwhDAVEWyGXvpIMDBcxxEgwDB7x+fpfMWHEZx3/pyfUcXzSHeiaL8b4zXvny/5m
+	 pDPwZNI7JEZ69N3wN14eVb29A034lGnBmraJKdLXXZ0541B9OG52EYFVvM7AOPLb60lab
+	 swiBlAdgQTwr7PrESsbW1Jzo1ywcSxwKPu/t7Zm5CK7zJN8SCrMsByVpJwsx9FJRWFw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794830787;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
-	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
-	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=rPPFh6fS1YXim6NZpoxuPDCahiP9PcoFMX4GJs+IA80=;
-	b=zqE7QbJhbKDzZ6bKx50Gz2f5SLkZa+PYNT5wi6tF0AncFs9Vtmxpsww/w9qURVvHpjSI
-	 /V1onvJTlqCa+mbFibx7gDBHYJ0iHwJnW3RYuZTNdlUHvDFMwZIPN5IXS/6AYgPqagPS5
-	 BO8Rv/GIlGE8Uni1ZXcoW0mCLdhiicGGmbJTePjd1CniSIwgtwcw0tX4UBe4j+miQSbgZ
-	 nyUFgx6Jms+hlc+1XKDkXqATPtGwsqMVzXNR7qyXMvho02AXiI2qrbET4sRKprzmMbAhQ
-	 s1DUZp/vC0T4ofespoPtRw2U49+UBl8feavv5W6dOZu8bOV0pl7iteCnyx0LxjBnONg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794833469;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:Content-Type:Content-Disposition:
+	 In-Reply-To:X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
+	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
+	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
+	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
+	 X-Forefront-Antispam-Report:
+	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
+	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
+	 X-MS-Exchange-CrossTenant-Network-Message-Id:
+	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
+	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
+	 X-MS-Exchange-CrossTenant-FromEntityHeader:
+	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
+	 X-MS-Exchange-CrossTenant-UserPrincipalName:
+	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
+	bh=aMNNkFGAX04I4nDB/kvsKnTIayvtZmcRz9qtXTbAeDQ=;
+	b=xs1nGD4D3k99szA2F6hoZ0aeCdKFG2OTZb00cY5/qN5SaqPXkRf0/X5YjMV7HoP6iwZv
+	 gN0JYsW83w4aMle3mvS/VBUQNbdkObDKMfRVpshkRkEdYkj8Zdi6KAjLSp0oUktjHLms+
+	 mtb8F962yUGftT0wqh7k+SwD2HZWlABHveevsSEq2KHcw8WsG5O2sqBNajjPtXHQxAEPm
+	 WkANSo1R0Eds9DT6u334HNMvDUSRBya81iyZbfj6HfcLcyPYAu9SUiztzdZslxur9XERd
+	 kf+bZzF1ARJcYw/ZX2e+HWCpSSPOggFGl+tVkitQ9amOPAjJdSE9LZRbzgXiiwC06Tw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=none header.from=mojatatu.com;
-	spf=none smtp.mailfrom=mojatatu.com;
-	dkim=pass header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=xyVb4HaK;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.210.175
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=nvidia.com;
+	spf=fail smtp.mailfrom=nvidia.com;
+	dkim=pass header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=EeDxi68a;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=52.101.57.64
+Received: from BN8PR05CU002.outbound.protection.outlook.com (mail-eastus2azon11011064.outbound.protection.outlook.com [52.101.57.64])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF5E4606A329
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 12:06:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CF5E4606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F29A606A329;
+	Mon, 16 Nov 2026 12:51:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4F29A606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=mojatatu.com header.i=@mojatatu.com header.a=rsa-sha256 header.s=google header.b=xyVb4HaK
-Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-8a39e5161c1so3614491b3a.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 04:06:26 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794830786; cv=none;
-        d=google.com; s=arc-20260327;
-        b=UIBE3XLhqOQZzHiYsh/BlfHSdIh+1yX+LcTN+00drGd1mFvYc3MWGoeIW0ccHaXica
-         trKLFbwGpw9teMFoq5isq7gbPy31H/b6vd55B9cT1ohx8WAn1peeFGxm5ishMz0ND9vR
-         vdn34ICIp1rI8cD1tIsIV04gx4oJIz1ElGfNEzNRiRAESYmPRG6KhVfMZnKFLs7qChvP
-         SeK9ekCoVpDl2oLR6kuilbC7WkcPJani2tponkbVuYs+dB8BKPvXaa8RijXSgVF9+MUu
-         R0WQAEa5uJV1DVMJt45rEGaawpm7t8Nr2eybVc8x1get9KsYV1QzNzl2BEeTr7kNK8yn
-         +NAA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=rPPFh6fS1YXim6NZpoxuPDCahiP9PcoFMX4GJs+IA80=;
-        fh=/nMyRQscq/ooAiGZVBaxbbdRaGnwoDej9usZGNrpNkY=;
-        b=XuxA+HRra+jJlFoipoBVU7EsJN7nCdVViO2TyUUuahfKflZphe1me6GIq85p/Rj00j
-         sL43idz8Jr+6f7+3W93eJHNX6458/Nn+TuV/xKdBDO0QMcUUiCnL/BNruR5JKO5P/3IW
-         ameytP5WE3UemfO7LzFpaa0yY9tvBfIeN5GS/YFyjAqU2scInLr2Rfmye1DbIElMPNy6
-         K5JYSS/3/GxyyvtsMSeBNQR/I9iVTgarZ6g5YW8O7fQKIBcqSl34Cw4OQWf6vQB6EM3f
-         io6onflCOb/4RF99Yz6P9VDbfBJsNgbFknueROGpPDXnHyWshe8lKJm/wznFxxDnbqj3
-         aCkA==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu.com; s=google; t=1794830786; x=1795435586; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=rPPFh6fS1YXim6NZpoxuPDCahiP9PcoFMX4GJs+IA80=;
-        b=xyVb4HaKEPx6w/4dT+pRmRrxl6DGkSJG07mOE0XQmjlK1woMgeJHw26rqFspk5IfuX
-         WG8OWFwJ9+WfBnWBY2DgIRIsuM7XGZGCwYCyX51EVmpVkqUgDWrrOBlPw9H8N2mZiAmv
-         jabbh/qRKPlCIHibQnelRIPb0QgN8+0lNOpEU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794830786; x=1795435586;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=rPPFh6fS1YXim6NZpoxuPDCahiP9PcoFMX4GJs+IA80=;
-        b=CF6DAYHGxlTqcJWTFUzS+lzyyFIKt9WHYc55MfTtVX7AehaXEXSLiPcWw2KUk4Sbh/
-         HNnSjVkKwOZvppsNxq0KfGOI1QzmzKdCW+zrDffKUanzMoU1wpNyE6RESI6RNXEX9ACn
-         UZfrO8Qq/ShmByy/dZ+wubp3CnrB38KD0PtZj5n1mFRuLjSQ3ypvc0IKtSXpXrAnpmuv
-         5jq3VSB0fp+KRqE4z/B69eHnL6lsgbEHdmoctnU7ymRJuiprGY04dOw2m5frKCsA7yc3
-         kT4KyTw6+edu1K2NGoe8RAci9bjGWSHZDGp6UEB5ELQ4lzlGai+tttM20JMhVUlE8d4c
-         VdJQ==
-X-Forwarded-Encrypted: i=1; AL+hErE702ge0a8tToNBOgX7kkYhBLtirSFmfWa7H4cBJgUZF2WPxj4+tgxcmwAwNKkShf24eASnVvIqHzgaFPKxuSE=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9Uophm4wT3qi6Bnl9yI2qCQGfRoJgiQLzdXpfgZzBCd1qj5vAj
-	NFnvUTEYrR5OgE77nuoeiUYcwZAYTTj7XoxDVTeMeGg4iVDJgqgnTJkdkjuxMjTklVUNIp5NluG
-	heDB3rQOtmJEz1VW0mW06grH/54tgYy/m6cmkOxX0
-X-Gm-Gg: AYBFou2E1Yld74yNLh7RMGbMJ4Rqa7HgVOLBFvL8vElpTMhf+CTTkAzOSoKPFhr7Ht1
-	p0tTz26H4b7LNGCYfiAfRC+CZod02A0J1/A4yptP1jKkXIcuNYrajyFAFvG5dv+RKXXMiOexRNQ
-	cfvQTORl+YaoMhJVCFla4v7T2/7ViLYVoyIZlYW6D9KMJZIJhZvRe9HBgn99LdDapLWiwTO+YxS
-	A0NoYjueVT/R4PU5JVTAzl3KiC4hAhe8UnwS0hA6mBwFkD32jHo2Da/7u62PIkqn8fouCd+reCe
-	W/6mhhFWznIqn1huh/VCcGVC32QeQCbxTrOsZqn86OmWtemyKzQ0VL3ThPT23cuyaYqEZFlJiQu
-	3WrsDsalUbZfIC3QlOw3S1HoK12VfM3ZXZeYiUdxikyMzSkjoKn+gKB2J3f32EkLYD4MoP+IEie
-	4I+nL+0MR7CSwtsvI=
-X-Received: by 2002:a05:6a00:2d1b:b0:89e:37b0:d1bc with SMTP id
- d2e1a72fcca58-8beb658dfa5mr9915498b3a.28.1794830785927; Mon, 16 Nov 2026
- 04:06:25 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=Nvidia.com header.i=@Nvidia.com header.a=rsa-sha256 header.s=selector2 header.b=EeDxi68a
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=s34WermatOTgBCy34RZqtv9s8/gVkc0dnRBgdjPTLQlGiQMa+G5KLAXM0mgyy/6xIG9yL2kgcC51gP5kanfzpWa6IGFAqZ3Bqy0YOIu9laMS0KfVD6TVfiWLTWLeWuQCnhU9l1StaCLTf07qzlto5FlO4ILBwT8ySOFsvBmwgjRFtu1lzPRx4HxZuKB5Ff/v1Eb6ldUDbWRt+6pHoa4oWaHzWYQn5iBEvTUzm8jlSFzTOrB8GI9igpZkr97hDRidu82nYAl3aOOS4MioPlVv+em6piP6HYEdfGRJaEz3RdSoPHVVq9PrMt/CTgsfaC726ldQSty9LpldN0uOFQuhbA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=aMNNkFGAX04I4nDB/kvsKnTIayvtZmcRz9qtXTbAeDQ=;
+ b=lnG4RQUi8/uhbEZ5GUxD4i/C8Wt2G01ktR+/qcq7cYI9s47X6JDxXDgebnnojtKyScx+TPZ+msFf0UjT8P4iD7WnjiM0zx7SiOkLypC6qVMIwEZW83h4rZ0rIQo5Ban8Nihn9PQY1ofKSkb5hg0OrvbqiheTj6MZrNB32BdVUBcbTL9xXwy7loj4hYCNny6Fw24HfNgJsd118pYCix8rGWYtJHQAQqBx0TXfDhNC5U7cFhM/kYb9449MmGmcv3Bb/st7N7tDiVDXg/v3nmBj8GaGP15G6fu5Lvuf09WR8b2uiNJBAZSl7q8z28PxLfVS5U3wRuPoVgm1eeZetUt2qQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aMNNkFGAX04I4nDB/kvsKnTIayvtZmcRz9qtXTbAeDQ=;
+ b=EeDxi68aQKVMgW64+h7M7ci8UPPnQzvbOdAmWsm3G6WsDiVfHZIdNUdK6+DN3g6gyAOlVgHuiV+ECwd2mGz48HJfSJ9ouq0vLLA+bumU/7U/+pkd2cgVPAolgaIWvDiuYqsvRT8Uue1CZPrkcMWatzt5HfT05r5rHuzv0R1HydSQ0Fx6ckNq44TMRLlr8Drb0NZmsSR1sJqHjcdvFGc+xeYrtuLdNKjYa7GQygZjx2uukyjCU1/9CNvRM/pqOkkeNaabEKoMrIyFFTpD/VisJYnBgcQyQHDcXtLevIWfkdmrV9L8oqv5fUIqXcqyJA4x6XjNQcYZ3M4D5i3Au7XK4Q==
+Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV8PR12MB9407.namprd12.prod.outlook.com (2603:10b6:408:1f9::13)
+ by DS5PPF7671D5CC0.namprd12.prod.outlook.com (2603:10b6:f:fc00::653) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.615.13; Mon, 16 Nov
+ 2026 12:51:04 +0000
+Received: from LV8PR12MB9407.namprd12.prod.outlook.com
+ ([fe80::208b:424e:47e9:8a96]) by LV8PR12MB9407.namprd12.prod.outlook.com
+ ([fe80::208b:424e:47e9:8a96%4]) with mapi id 15.21.0615.009; Mon, 16 Nov 2026
+ 12:51:04 +0000
+Date: Mon, 16 Nov 2026 14:50:56 +0200
+From: Ido Schimmel <idosch@nvidia.com>
+To: netdev-bot+sashiko@kernel.org
+Cc: leonard@lausen.nl, netdev@vger.kernel.org, dsahern@kernel.org,
+	davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, horms@kernel.org, pablo@netfilter.org,
+	fw@strlen.de, phil@nwl.cc, shuah@kernel.org, daniel@iogearbox.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v2 1/2] ipv6: honor prefix-length suppression in raw
+ FIB lookups
+Message-ID: <20261116125056.GA275796@shredder>
+References: <20261115114434.10343-4-leonard@lausen.nl>
+ <179482978100.3136.17418106822071501090@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <179482978100.3136.17418106822071501090@kernel.org>
+X-ClientProxiedBy: MR1P264CA0203.FRAP264.PROD.OUTLOOK.COM
+ (2603:10a6:501:57::18) To LV8PR12MB9407.namprd12.prod.outlook.com
+ (2603:10b6:408:1f9::13)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -102,227 +101,99 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <CORE-9NOG.v3.r0.20261115050625-4@mojatatu.com> <179482609749.3136.1445693542374471720@kernel.org>
-In-Reply-To: <179482609749.3136.1445693542374471720@kernel.org>
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Date: Mon, 16 Nov 2026 07:06:14 -0500
-X-Gm-Features: AclHuK8iJFEUq6Q_26gVf20P94raQrsg_d6PBEON853um224-7FS-5CpbIubgr0
-Message-ID: <CAM0EoMmk5kKHNHMw6HOUJoDa-vjM-uFqG6==yUF8V4inpYZ9wQ@mail.gmail.com>
-Subject: Re: [PATCH net-next v3 4/4] bpf: drop the stale dst when redirecting
- to an explicit nexthop
-To: netdev-bot+sashiko@kernel.org
-Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, 
-	davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, 
-	horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	jiri@resnulli.us, victor@mojatatu.com, sashiko-bot@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV8PR12MB9407:EE_|DS5PPF7671D5CC0:EE_
+X-MS-Office365-Filtering-Correlation-Id: e5cd978e-d88e-42f0-d59b-08df43e04634
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam:
+	BCL:0;ARA:13230040|366016|376014|7416014|1800799024|23010399003|10067099003|11063799006|4143699003|56012099006|261021121427099003|261009223027099003|261102123227099003|261026121527099003|20052099010|18002099003|22082099003;
+X-Microsoft-Antispam-Message-Info:
+	z+EIwRz4oI42Yo52ZvHdZBL5+9WpHNJ862ewagWt9ab1Aw8lXtuu53r1uu4TW/a9BFsEYj4pAYMc57pZGfYTW4/werdLy6CWFG9iPM3SfYwLX7QNHVOPojLRC9Dc0nMMQ24BUDZNu7JlD+k3R4v1kVeJZSmwVsKjqOvYi2F7uj5eyzGQppVguN9AsYDpdZ4dXwWs670hWoCjbywRkJuMmya520uJwoTbKhpKrtAoUHuMDa41vBb/nofGPdwDmrw1zuFTM9xxATRld5Kxi2hyINVJOV4BkFDjXPr36K9RmDViewVsbla2ooBc8jXszkimlfcVQ0VkpJvKt3XaLgtMMkPnCrQUKM2JRLzd1uhVdgHd0VTCfZSoqLG1ILs1stmIXiQFIpqj9wbLNC1ndyr9dSJ7pbwqLPool3+VWX58qvkl9eBiFzTP1PeIdALDLr4LGiEG63ViCPQBrPCBXUhaaBCgmoAtotYnhMkqn1FaLPCXZQZpmzTIFP+ZIF1OB+uiE+1MpuVLHKX5EKshdDNmO9vavB+PsNHASj15okJWkeItbKoe22O0qcKmXMG9bOXLtBWIiFxnNIERlT9KX4LR+vMW2nyUZAckASeWzG+wmYSlblPkYohbNJmSr1Ft7cIV4Cz9MQXpU5Y3AkRdpD8q7kZIv+K/3/LRPCcX7Rz25Zc=
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV8PR12MB9407.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024)(23010399003)(10067099003)(11063799006)(4143699003)(56012099006)(261021121427099003)(261009223027099003)(261102123227099003)(261026121527099003)(20052099010)(18002099003)(22082099003);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?Ty3pQTLlQ8BBSseTmbuAoSSdD7yjPMA8wWWjD3zrikhTgeKOihsXlr1mPH+I?=
+ =?us-ascii?Q?0rSU2sWq3Hkh69b8nrzWbCWi1TnzH3qxHdK1w8ysRCKCTD4HchcM7COUeI/T?=
+ =?us-ascii?Q?h76GVyTrjfwaJzk5F3zyqJSwggu5Sv+wMpTkUBe77T1FGd+dWGKsKK1xYaVo?=
+ =?us-ascii?Q?ub2QObrCwUqfdkdAsSJSC95hLHNeSKNB63evw50r/K5Z3binYsLIOcSG5IUY?=
+ =?us-ascii?Q?kEWW/4IXudN3CwBOCJ3Env4NzeBY+nWBpt5znO9htZ02gkzQP7RqNeMujL5w?=
+ =?us-ascii?Q?mWQl+/BET88bvvcYiB1FuYxOyB86hvNOO3i8OKlIv4LO6LJ+7++Glmaz06UA?=
+ =?us-ascii?Q?5W7tQdA+irfz95/vmNobawg69MCqvoibdcrcug9VVVs0cGePBrxvX0si4YOd?=
+ =?us-ascii?Q?PFMmT0iMNu9G0aRilhyKt0Ti3pfVcMl64H6grd/kfmGcnmpbBsGpwiJARnEr?=
+ =?us-ascii?Q?QCj7LLOLl50rsLUfZKxiRhhjiZ3pSVhlzBpS1nxCF4G+AZqtLUd2nGNKOtfM?=
+ =?us-ascii?Q?OBz/DGgdYbIOMX+m/rjHopQ/0lib1/SoDLcMMVthIGlAaUKvSS9kPOY6QzEc?=
+ =?us-ascii?Q?Jt0QsaarslrLlTVoXbMcM1xJreMXkCp3aJy17/B040yNo0E0P/mtbasuEabk?=
+ =?us-ascii?Q?32A2RbATS84pm0V86M5dOb5AHc0JKCSrunYAgN6zP8R2DMGB7JljyBZ8ZM0o?=
+ =?us-ascii?Q?h3r89szHcs91pP5aIQeYCjawNUKiQPD4C7SGGCHe/ZHAyRYArHFa+Hw0kTJc?=
+ =?us-ascii?Q?24MqfCOCndTnRN3e4UCsFCwqINZTNDfAnGL+Ktt0no8wxP8sTQ9webjWa2jd?=
+ =?us-ascii?Q?P+Pyv8dmWt8L9/MlzVsR9Aft9vVXe5jS90wR856MjO1B0Zq+a47zoa3GRXow?=
+ =?us-ascii?Q?6bnhnkEQo80mBFiKOSXhvL6Sb0TGBOJegRYMrlImPHycm8HbUYQKi67lKH3y?=
+ =?us-ascii?Q?bNd+BM5JK22lnYOrZ/5Y0KBrasoIfuSaOyH3mZKk/s9Ed+cgRtg0TQoJ5LIL?=
+ =?us-ascii?Q?ARutAdIIRjCwqinS2JKx8znzU4Cs8qm5Ohez/d0o+xAAE014eIu7mvuNnyvU?=
+ =?us-ascii?Q?FXV+V3SbqNav5Rt2pJb+LbQJohNaYu4ctkjPG4qLAUbdNgg05qzRglyBhIgN?=
+ =?us-ascii?Q?U5YHsxE8A1mRGmTHdGYEnKMy3rWynwaP6F3h8iSvwRhDPxKXlvElG21jQXNV?=
+ =?us-ascii?Q?ugrlzp9TiMf1/c7oOzPyZsQHsuMYjPVjRlcVdUCovkkB/zEWtw4dLnTNld+X?=
+ =?us-ascii?Q?GjoE2DIiI9+DhfyuVhKa4E0tRiZ9WkyU/A2MG+9vqNgt30rMZmmcaNaxOROB?=
+ =?us-ascii?Q?6aOZGVEuEuXvG3R2qke4YtcSErwcplOC0I+xC90WCd6yL+0neT7OtPLh7mwK?=
+ =?us-ascii?Q?M0RiEOpoGxLbj7bHVouj4IEmvsvOyfkDhgKpk/iOHMe4R3kOJNRyzqZqUZFK?=
+ =?us-ascii?Q?L1lV2ZeQT6fDvgGtz5CdR8/69zX4r98LylhVow9Jcy4wsV+niHw0ONOTQ3W4?=
+ =?us-ascii?Q?nyVMqkOLLfln5nKZ8OJAksZyJOz3D8kYPS7Lth/4W2QXoZhDfEQUXFzkHyv4?=
+ =?us-ascii?Q?JhR7hDP9QDu5e9bxL3bHeFM9lkEartsxtaGtd2mAPcQRn4NAPr2evhqhTzbd?=
+ =?us-ascii?Q?cBLy8o983RjsG2qNA+wa6AFZ495AUhKU3MvPLF7MIxCo7Ck2kiPr1V2Ojouj?=
+ =?us-ascii?Q?SGgN87W3nCUOHi+2bRnptEZAINvClys3F/oQ0IAwFSaJrC3w?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e5cd978e-d88e-42f0-d59b-08df43e04634
+X-MS-Exchange-CrossTenant-AuthSource: LV8PR12MB9407.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Nov 2026 12:51:04.1814
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: D5i1p5U6ZBjRUFBPJxW53J15xI0FlHw8XDjdTsT8pE85t7VjBMXhA0SDBqnBdhW3hxe5pO9Yf8Yz0dpK47khwA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS5PPF7671D5CC0
 
-On Mon, Nov 16, 2026 at 5:48=E2=80=AFAM <netdev-bot+sashiko@kernel.org> wro=
-te:
->
-> Thank you for your contribution! Sashiko AI review found 2 potential
-> issue(s) to consider.
->
-> Critical: 0 =C2=B7 High: 0 =C2=B7 Medium: 1 =C2=B7 Low: 1
->
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwor=
-k
-> know by including "pw-bot: cr" as a separate line at the end of your repl=
-y
-> (one such reply per series is enough).
->
-> - [Medium] The commit message says the explicit-nexthop branch "never
->   consults the route dst, so nothing that describes the route is lost".
-> - [Low] The patch fixes a user-visible bug but has no Fixes: tag, and its
->   commit message does not say which earlier patches it needs.
->
-
-For all of the patches in this patch set:
-- i will send a v4 that fixes the commit logs and code comments you
-are complaining about. There is no code change coming.
-- remember going forward, net-next does not require a Fixes tag.
-
-pw-bot: cr
-
-cheers,
-jamal
-
-> --
->
-> bpf: drop the stale dst when redirecting to an explicit nexthop
->
-> The patch changes __bpf_redirect_neigh_v4() and __bpf_redirect_neigh_v6()=
-.
-> When the BPF program supplies the nexthop, they now release the dst the
-> packet arrived with, using skb_dst_drop_keep_metadata(). This stops a fra=
-me
-> parked on the target device's arp_queue from being rebuilt later from the
-> original route.
->
-> Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mo=
-jatatu.com/
-> Link: https://lore.kernel.org/netdev/avTfQjFQYR2NNdRg@chamomile/
->
-> > diff --git a/net/core/filter.c b/net/core/filter.c
-> > index bd98d29ed7f8f..ae5346d6abd23 100644
-> > --- a/net/core/filter.c
-> > +++ b/net/core/filter.c
-> > @@ -2318,6 +2318,8 @@ static int __bpf_redirect_neigh_v6(struct sk_buff=
- *skb, struct net_device *dev,
-> >               skb_dst_set(skb, dst);
-> >       } else if (nh->nh_family !=3D AF_INET6) {
-> >               goto out_drop;
-> > +     } else if (!skb_dst_drop_keep_metadata(skb)) {
-> > +             goto out_drop;
-> >       }
->
-> [Severity: Low]
-> This isn't a runtime bug, but should this patch carry a Fixes: tag?
->
-> In both __bpf_redirect_neigh_v4() and __bpf_redirect_neigh_v6(), the
-> if (!nh) { ... skb_dst_drop(); skb_dst_set(); } block with no else branch
-> for an explicit nexthop came from:
->
->   ba452c9e996d ("bpf: Fix bpf_redirect_neigh helper api to support supply=
-ing nexthop")
->
-> So the stale dst has been reachable since that commit. Something like thi=
-s
-> would get the fix into stable:
->
->   Fixes: ba452c9e996d ("bpf: Fix bpf_redirect_neigh helper api to support=
- supplying nexthop")
->
-> The baseline tree also has no skb_dst_drop_keep_metadata(). It is added
-> earlier in this series by "net: dst: keep the LWT metadata of a dropped
-> route".
->
-> The METADATA_XFRM dst it can install also depends on "net: xfrm: interfac=
-e:
-> restore dst_orig on every xfrm interface". Without that commit, xfrmi_xmi=
-t2()
-> hits the skb_dst_set() warning, which panics under panic_on_warn.
->
-> Could the commit message name these prerequisites? A backport of this pat=
-ch
-> alone will not build. A backport with only the helper would bring back th=
-e
-> xfrmi warning.
->
+On Mon, Nov 16, 2026 at 11:49:41AM +0000, netdev-bot+sashiko@kernel.org wrote:
+> > diff --git a/net/ipv6/fib6_rules.c b/net/ipv6/fib6_rules.c
+> > index 0ffd7b47a0460..ceb4180bcf2f8 100644
+> > --- a/net/ipv6/fib6_rules.c
+> > +++ b/net/ipv6/fib6_rules.c
+> > @@ -283,9 +283,16 @@ INDIRECT_CALLABLE_SCOPE bool fib6_rule_suppress(struct fib_rule *rule,
+> >  						struct fib_lookup_arg *arg)
+> >  {
+> >  	struct fib6_result *res = arg->result;
+> > -	struct rt6_info *rt = res->rt6;
+> > +	struct rt6_info *rt;
+> >  	struct net_device *dev = NULL;
 > >
-> >       err =3D bpf_out_neigh_v6(net, skb, dev, nh);
-> > @@ -2433,6 +2435,8 @@ static int __bpf_redirect_neigh_v4(struct sk_buff=
- *skb, struct net_device *dev,
-> >
-> >               skb_dst_drop(skb);
-> >               skb_dst_set(skb, &rt->dst);
-> > +     } else if (!skb_dst_drop_keep_metadata(skb)) {
-> > +             goto out_drop;
-> >       }
->
+> > +	if (arg->lookup_ptr == fib6_table_lookup) {
+> > +		/* Raw lookups report reject routes without an error. */
+> > +		return !(res->fib6_flags & RTF_REJECT) &&
+> > +		       res->f6i->fib6_dst.plen <= rule->suppress_prefixlen;
+> > +	}
+> 
 > [Severity: Medium]
-> The commit message says:
->
->   That branch never consults the route dst, so nothing that describes the
->   route is lost
->
-> That holds for bpf_out_neigh_v4() and bpf_out_neigh_v6(). Does it also ho=
-ld
-> for the target device's xmit path when the target is an NBMA tunnel (ipip=
-,
-> gre, sit or ip6tnl with no remote address)?
->
-> On those devices the neighbour is NOARP with direct output, so the BPF
-> nexthop has no effect. The tunnel picks its outer endpoint from skb_dst()=
-:
->
-> tc egress prog
->   bpf_redirect_neigh(nbma_ifindex, &nh, ...)
->     __bpf_redirect_neigh_v4()
->       skb_dst_drop_keep_metadata()
->       bpf_out_neigh_v4()
->         neigh_output() -> dev_queue_xmit()
->           ipip_tunnel_xmit() / ipgre_xmit()
->             ip_tunnel_xmit()
->
-> If the incoming route has no LWT state, skb_dst_drop_keep_metadata() leav=
-es
-> the skb with no dst. ip_tunnel_xmit() then always drops the packet:
->
-> net/ipv4/ip_tunnel.c:ip_tunnel_xmit() {
->     ...
->         dst =3D tnl_params->daddr;
->         if (dst =3D=3D 0) {
->                 /* NBMA tunnel */
->
->                 if (!skb_dst(skb)) {
->                         DEV_STATS_INC(dev, tx_fifo_errors);
->                         goto tx_error;
->                 }
->     ...
-> }
->
-> ip6_tnl_xmit() goes to tx_err_link_failure in the same situation, and sit=
-'s
-> ipip6_tunnel_dst_find() returns false. Before this patch these
-> configurations transmitted, using rt_nexthop() of the original route.
->
-> If the incoming route has LWTUNNEL_ENCAP_IP or LWTUNNEL_ENCAP_IP6, the sk=
-b
-> gets a METADATA_IP_TUNNEL metadata_dst instead. When that tun_info is not=
- a
-> usable IPv4 endpoint (encap ip6, or encap ip with no dst), ip_tunnel_xmit=
-()
-> falls through to:
->
->                 } else if (payload_protocol =3D=3D htons(ETH_P_IP)) {
->                         rt =3D skb_rtable(skb);
->                         dst =3D rt_nexthop(rt, inner_iph->daddr);
->                 }
->
-> and ip6_tnl_xmit() does:
->
->                 } else if (payload_protocol =3D=3D htons(ETH_P_IP)) {
->                         const struct rtable *rt =3D skb_rtable(skb);
->                         ...
->                         if (rt->rt_gw_family =3D=3D AF_INET6)
->                                 memcpy(&fl6->daddr, &rt->rt_gw6, sizeof(f=
-l6->daddr));
->                 }
->
-> skb_rtable() is a plain cast. Doesn't that mean rt_gw_family and
-> rt_gw4/rt_gw6 are read from the metadata_dst's tun_info key bytes?
->
-> The reads stay inside the metadata_dst allocation, and rt is not used as
-> the output route. The outer endpoint would still come from unrelated byte=
-s,
-> though.
->
-> >From the struct layouts, rt_gw_family appears to overlay the first byte =
-of
-> key.u.ipv4.src. If so, a 10.x.x.x source address would look like AF_INET6
-> to ip6_tnl_xmit() and produce a bogus fl6->daddr.
->
-> The tunnel drivers calling skb_rtable() without skb_valid_dst() is not ne=
-w.
-> bpf_skb_set_tunnel_key() plus bpf_redirect() can already reach it. This
-> patch adds another way to get there, though, and turns a configuration th=
-at
-> used to transmit into one that always drops.
->
-> The same applies to __bpf_redirect_neigh_v6() when it hands packets to si=
-t
-> and ip6tnl NBMA devices.
->
-> Is this change in behaviour intended? Could the commit message mention it=
-?
->
-> >
-> >       err =3D bpf_out_neigh_v4(net, skb, dev, nh);
->
-> --
-> Sashiko AI review =C2=B7 https://netdev-ai.bots.linux.dev/sashiko/#/patch=
-set/CORE-9NOG.v3.r0.20261115050625%40mojatatu.com
+> 
+> Can the raw and dst paths now disagree for a destination that has a
+> cached exception route?
+
+Yes, and I already mentioned this here:
+
+https://lore.kernel.org/netdev/20261115154639.GA4121811@shredder/
+
+[...]
+
+> Should the dst branch use the parent FIB entry's prefix length for
+> RTF_CACHE routes (via rt->from), so that both paths agree? That would also
+> be closer to what fib4_rule_suppress() does for IPv4. If not, could the
+> commit message document this divergence?
+
+The dst branch should be fixed to derive the prefix length from the FIB
+entry and I will take care of it, but it shouldn't be done in this
+patch. The patch is doing the right thing and using the FIB entry in
+the "raw path".
+
+Not sure we need to overload the commit message with this info. Maybe
+under the '---'.
