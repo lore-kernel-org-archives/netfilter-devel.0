@@ -1,59 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794790046;
-	b=pArismPeglzbedQKmbdRtnexKrI4iz/f3d9RFhq8xdM6suLNyFmFqZ/CpwzEmnxN57NJ
-	 YpO0/13y5HUCaap8nilqMDZ87lXeI6WEc4F3kMhpgTL07RPM0CJLCU7ub4NXW2glXUHxo
-	 SUzvTEuO297YekaPolKZWiZAadkUxY4wKv+CEG9yfurxksAMAa9LUaMrpUxOs7qO7vw6v
-	 UGoR85tKgJEEzowk6QP4p9TpdswDZSC8yXFQAwf2c0JrEHZCzPMRyunnqLZziXWcgjYWO
-	 IbRfvOGYa0GbUPKvcoV/YE5my9Z/I+fN6zCOFfNouzhj4ZTH9nQLIdnrOceTVsbIiTw==
+	t=1794790104;
+	b=xTiHesqXIqQCjZaxzTRlhZJw4NgyXjfWpeA+rxY1A/kGfUvzbjwSsIjfBKyamAqBiTPY
+	 dzwX6gce1X3yWBKCY2IDo9wFrQswvLOo0va1sJkNBz0diPkAzSXrhk9w3XOY2DSPZP7Wj
+	 5kPRtC1akFgNjqE/VTHE80MEMQqGQE7V+0oNr6oFrWkzLJfUw/XdLmMyxYjbZeqKrXJWb
+	 8s5Uzn1qJ25XLwKso7ZT7yIOR6JGaFltQx1Xh9ggCnOtCBbBsK7itOBECw+v7GElNEAmS
+	 NfRKBLdflKnvHK88OUg8A1BYrQFaU0GQrWv9eMFxMGEwSQkX4vTFC0z1IjAKZRSuG1Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794790046;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:
-	 In-Reply-To:References:Auto-Submitted:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
-	b=j1u0l54HO/bBMAabWi6WSh7KQthz8CXCRbwqGFzlXht+UKAC4zBxWpD6/v5Y5X9Li+u6
-	 f4WQFmTqkY8IKXBScuOP6143gBoPYCnPDLL33pXXUHblM8RZsTXQDMlYfGeNInbCPYP7i
-	 nC5AEnkDHauwkXluFOe9/OMIhg8k/O8zlyG+SzCz+Qt/pOb2/f04jGpp4xNRtSd9QVpOi
-	 Wf9zn9/HtxZlf/zaG5/RXanRgKvUjD4rDVVq6tpvtV0o+0otuYEnw+vsSHH8CCP2BIf3i
-	 E2PtprpULDTNgaUw8JGOGr8jVtN80KDP1kzRpayLYOth3Eji9syT2h1DQVhSyqj1pAg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794790104;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=j4z437CErRttFgDcoek0QE3JQHKL0bnc1M3lMGTwYzs=;
+	b=4rmZNuf8jIZO+nOWwncuyNl5XW3KoqCQ77SQzYiR656x/qBSIJvUS70vKtOhx+AmfVpV
+	 5WLqIv/jDugvP4WWY3vlOfXDyvZeY0Roc3RaD7KS5DWf7DmijMLAqXmGOjH94kFBzhJqI
+	 iNVx5WKv1eKUiitXcorDtVbqNer2QdsrFiupJGlpxUtwJ5M0gl9teoDsINlF25WLFx+YI
+	 4szekJnyZ6+m6o9o49K69xREri7YRNAyzLk6uEFE0JizLdClLYnig+0qdlvrMoYN3w/rX
+	 HWVtY/BYALAICr4SR8D/G6Pr9hj/E68D+fVxp2s2XUS9GvS2JQWQOZQNUwctoemVRLA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Rmmdg/2c";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=QqKn2xtk;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F10A1606A323;
-	Mon, 16 Nov 2026 00:47:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 00149606A31F;
+	Mon, 16 Nov 2026 00:48:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 00149606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Rmmdg/2c
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07A081F000C4;
-	Mon, 16 Nov 2026 00:47:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794790045;
-	bh=oj2zs7YpNjut+Fle9NDI2/nVbuq1xcuWOh/20pAlrQ0=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Rmmdg/2cdXH+pAgR7nA07z+reB1j5pEpGzPrR2DoSKQVBEdC7kyLqOG+wFN7WA5pF
-	 okcBZE2Qrwmr6nsZ9yzAF/H2TLMk/zkRzkbJgxl2k1n3GzR7iNrZUVDniDkPWmY32I
-	 Kn4JhjPm8atSaMmCuvfnPcWtiKGU8t0y3OG3to7F1gXF6am1JmCg8xYnUup51VHYJX
-	 u+zAnr+bO5TXb8Hhx6GkcCwzUXVu53yTaHFf7EvsZo+eQaJ1lIH4LeiO1oHo+5Dz2H
-	 NpJyWeKcaBrrAjmgvloARcsf2QNMqb5UeF/xAnT5ec5OV3FyiQWO8shLfYAspB1CQd
-	 8BpaGhJbiiLzw==
-From: netdev-bot+sinfo@kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=QqKn2xtk
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1794790101;
+	bh=j4z437CErRttFgDcoek0QE3JQHKL0bnc1M3lMGTwYzs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QqKn2xtkeaLHha9RNfEep8NK1dwP1eLp+riSyUscfauxWrfHs3gah65iwLKGgfJ9y
+	 eqSQbZ/fJNPIKpKzeDZhJqhrUsB4D6uEyUbsWX3NfBrwQi/uo1QR1W33oY7lAs/mlZ
+	 qYpYK1pt4w9MIw7KqijnWxJGNlFzKDRB1YPOOdbBEeax/xEZWa2KCSdFXq9CvRBtz/
+	 xlB8eukCOFcVimRtium66Je688fvbgafeA2Lg/zOSzdArETjRFyw+htAs2VEkPmi4E
+	 7Ei7N8M/Q7Y0JocqYt57gzQUOE46B3PhSJACvNuBOxosz85Yin0rL5nvoQSznRiztx
+	 g07VNfSB+9StA==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A7EF76005F;
+	Mon, 16 Nov 2026 01:48:21 +0100 (CET)
+Date: Mon, 16 Nov 2026 01:48:18 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev-bot+sinfo@kernel.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 Subject: Re: [PATCH net 01/11] ipvs: fix problems during connection deletion
-Date: Mon, 16 Nov 2026 00:47:24 +0000
-Message-ID: <179479004454.3291.8322282390265057876@kernel.org>
-In-Reply-To: <20261116004404.2821183-2-pablo@netfilter.org>
+Message-ID: <avpS0jsi8HEby7Xh@chamomile>
 References: <20261116004404.2821183-1-pablo@netfilter.org>
  <20261116004404.2821183-2-pablo@netfilter.org>
-Auto-Submitted: auto-generated
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+ <179479004454.3291.8322282390265057876@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,26 +66,36 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <179479004454.3291.8322282390265057876@kernel.org>
 
-Hi!
+On Mon, Nov 16, 2026 at 12:47:24AM +0000, netdev-bot+sinfo@kernel.org wrote:
+> Hi!
+> 
+> This is an automated message. This series looks like a fix, but its
+> commit messages seem to be missing some information:
+> 
+>  - How the issue was discovered, e.g. hit in production, hit during
+>    development, syzbot report, manual code inspection, LLM or static
+>    analysis tool scan.
+> 
+>  - Whether the issue was actually triggered, or is only theoretical
+>    (e.g. found by LLM and not proven at runtime). If it was triggered
+>    please include the symptoms, like the stack trace or kernel messages.
+> 
+> Please do not repost the series just to address the above. Instead,
+> reply to this email with the missing information, so that reviewers
+> can take it into account.
 
-This is an automated message. This series looks like a fix, but its
-commit messages seem to be missing some information:
+This is v2 of this PR for IPVS.
 
- - How the issue was discovered, e.g. hit in production, hit during
-   development, syzbot report, manual code inspection, LLM or static
-   analysis tool scan.
+Keeping back the patches 1, 2, 7 and 15 coming in the previous batch
+as discussed with Julian Anastasov.
 
- - Whether the issue was actually triggered, or is only theoretical
-   (e.g. found by LLM and not proven at runtime). If it was triggered
-   please include the symptoms, like the stack trace or kernel messages.
-
-Please do not repost the series just to address the above. Instead,
-reply to this email with the missing information, so that reviewers
-can take it into account.
-
-*IMPORTANT*: If you do repost (for other reasons) - please include
-the relevant info in the cover letter or commit messages.
--- 
-The evaluation is done by an LLM so it may be wrong, if you think
-that is the case please reply and explain.
+> 
+> *IMPORTANT*: If you do repost (for other reasons) - please include
+> the relevant info in the cover letter or commit messages.
+> -- 
+> The evaluation is done by an LLM so it may be wrong, if you think
+> that is the case please reply and explain.
