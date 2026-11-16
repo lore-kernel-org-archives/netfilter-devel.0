@@ -1,92 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794824543;
-	b=4he08ZMzsd7U5zdPKlexxGcrIQQcTAqJi6vh6okshDnJBXyCVoMjGbdEpcIK7BvxpNgD
-	 Wp7XI2cgHHSWtqMBSLTsFW2R1PwBRD3vurrBBuTsS5zczP+MMZ21Iq2GRDtay1DpjmA9y
-	 B4Ggw8dy1UAOL1rUTmr1WtEDwCda6afiNfhZYl9AfUnwGPsRuFrYPtG5IxooJt18gjzJH
-	 anB4oySZWIlSx5xEtPlXk2QCoHDQj86MDMIhl6iI5WEpQL8Q1UeEOSMs8bGt8g+K6+EUg
-	 UToakJ2CznXtTWUiK/YQ0Ip+0mow6OdJ0MbnoJb+Si+S6fbalhn25D6H/NqPJYX8dOQ==
+	t=1794826094;
+	b=WRNFOqyHTG5ly3TaR0UUjcKx8uRW1xWAM26AL1zj1gwaQXYYjRmNDsmMLjJh+Ky33ESy
+	 htAa/HIYe//cTKQPgtlenTxXDMPBrzUDDcPGFlMRtsMFI0kyzP0A4oFH9JF0KkwlJT4CX
+	 SSupBQwbUVuF+eGLzI5YyEMPF54XgGj7rU8/mAtUTG39zdkR9HtL0qMiuOCSwciG9sELD
+	 iabNnFAoGPXbRaWXFtmDzBZlXYxMZUuEIlTZN3hTQOJyqFFr4NgPr3GkEAp58+dyLHpbG
+	 LTjfsyfTe4ESKVAlZSfD5moOYu/FvgqZ8iWhHreYuBTzV3vCwxNuODm6gfs4crfIEYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794824543;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
-	b=gHf0b6NecsbBCt86I38q0dgCsShQn+Oi9x2/YutVA4iHzQj7EY5cCnw0vB9pKn2TH5Xd
-	 AY2DKRoQ2VdxojIPwJP3L98MsCFMj/Zfoyd7Sta/4hy228xnZEhqGKkG7nQ2fr6JI9xDz
-	 Ct4EJV1wCLVlJ69y13/Y5Xfc45P/wxxqUxj7Y7jb1einxvYM9xDDjq5By5/ehoLF6d5c4
-	 lXa010hhoBg67huHco6Yaozl+VdOQNBDNACoucTggGsOd5vlMaT4XDvGTxGU0QFgF/GPb
-	 s4fDjNfgEJsV/IDizsK+nU1SDSSJptwt/WdoI/2LFEahzVgLByTQ4CIu+5/EamgcaAA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794826094;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=bpAqt3vkpgdi9prEru8xJMcJCmuHua0RnlTvNxptGDE=;
+	b=DCv1neZTv4xQw5+tpw86NH7lSP9t0ebChPSvzgZrdpdOXkQLDFX16e7AQ6vKIedyn+LM
+	 xdGb0SCORwRVuDw5h13JXgKw46C3MiKiYQz6aGQCPSKPSlfru4/hew+dH+1Nlj+YOJ9Du
+	 42RaNibE2jFazs5FITco/NzQEuGiRy+asQ1XxH71o6ixiT5+XVLtiAIj271fyLhuKEJoD
+	 J/9bS1WCRAC0Dp1WZNb15CRoI2BXwiJLfMvtyDkA6eDlcZ4Uh577xOvF0L3u3JQ29XhSw
+	 2Z8Z8/cWkBfVcjSpJYrpb8BDcV+B4QdGR0jtnA6KaKbk+0Lf+9STbs+DafmJeDqPqOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G+N5jeLc;
-	arc=none smtp.remote-ip=209.85.218.52
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYZGuI9H;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C22606A31C
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 10:22:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B8C22606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C4E606A323;
+	Mon, 16 Nov 2026 10:48:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G+N5jeLc
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-c506a231b88so455992866b.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 02:22:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794824541; x=1795429341; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
-        b=G+N5jeLcd9TSyU0ajfdiXFor9ieMQZ5PqDuSdcLVJ9kIPEwQO+wiNCAxnVReyz8upc
-         rg6CRZkX7mHyv0qPzgwkDzRG1ihFRyqz7jPbkg6q+njMzB9Hh2kI8+UMC8l/K8ctNx+A
-         mvGyiK5Z5godeXEQ6aE4PcqqswcqzxPtCLASKJjDSrXBj3scoxSTDHGyxc96txeB3t8b
-         C8KxmiqvsxmMfkyiHnRwskEV702Qe0w01tZUxA3cWSVkEXDB/mvHc6nYJ+DyWxSIJnYp
-         dPEWUFRwKZoJJW3PEFahc4sf1VQQ7bTDpp0iQqkKUvchLhVSQKbT2MQEYdqDQq0mnWSQ
-         cFqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794824541; x=1795429341;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
-        b=2pFL0gVfCGK5sklNH5HzlpREw+1Mp8PaJZD7OrHNshy7vgjHMC8mn5jUsoKusw85KL
-         d9jEUtrXYXU4z9mdYrKUscWskhKe7GzIskFFZ8n2adBeLZL7GC8xRVInQjIyiwsR/+MI
-         6iTL+kkac1eq+P4Iacbnbl1zU4NkYdmpKlLg2l103iC3BT1KyTb2nodZcePhL8V9HJ08
-         5PI1MRIsvUZOl1UVilNR2hAVCkJHRud54R2pTxz82e6zmyqI3ra1ngIzmLTx2cYfTUvN
-         VIOjgKs8jYMVJDJVUyPdy55Rd9PrJGL+fpD3VK2tEEd2x67NU21brd0gvKOl9/Rk1tj9
-         pWbw==
-X-Gm-Message-State: APuU4Z/0GduxZFWQMScxW9ZZxQ9uDJzKGV497GTWJNvUdQK5ZB4Nek02
-	4UAMI5SV13p0So4vbp5YJVmb8xwFE6oCIg9+NKDfuB/DYRXV/03eDyQY
-X-Gm-Gg: AYBFou1P8i0vpN9UgUOpQEEz/iZQ3LrNg8AhKAno+4vaKNF31Qc1kAf0M8LCQfKClaX
-	SnYnHI8cMCs6MbwM31+E/QMr7ZeGWsZMoYQCVLZjqiw9bSvHPbBjYberIa4jrC/z5mxpicYCWhd
-	ibyWDtblkJiTwmUw04vCv7eNQ6u+MWQYNGfd/4UcscTHer72SOoWIVv2IBPDKqX5KgVUN0F4IUl
-	EvnrPaMt/L4UUiw5wQcC27lp4HICVFHR8ug0kY9ye2e92CsWgtiPkdjp3OO63HAebToqgyKEQ3Y
-	zGNYv5X0YwEWpwXdnwi2AwS1exZl1nKuWNQli1A1b1mxPREijOtgr5HF5bLQgP+N8Sckqq+pTMe
-	drz0nPmLfKnz7lBQ23whZbPPNj4SoB/s796XHQJpjMmtVsrm7bV4wiLck0hCylgPWKrhfVNZZED
-	lKvx3f9twbQJvFYgJEty0MnlbWFvkBxWq/Ypj+MpGHK9ukm8u1ZbmQiEI9G0vYdMXk1SiOx0lBH
-	Rm35z9aVjL9rgdergXgUvZ//6nNhlkDWv+q5gp26icnC8hA0YnJ0Nd+UiQLJ4fxp8ge25m/GW8x
-	tYzEVGMY56Ox2ZwVO1NWGl9awujaF2sfPc+vQD0U
-X-Received: by 2002:a17:907:3f20:b0:c49:df95:f0dc with SMTP id a640c23a62f3a-c509641085bmr817572066b.19.1794824540780;
-        Mon, 16 Nov 2026 02:22:20 -0800 (PST)
-Received: from theodors-laptop.. ([5.255.118.7])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c50e95da6ffsm32945966b.16.2026.11.16.02.22.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 02:22:20 -0800 (PST)
-From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-Subject: Re: [PATCH nf-next,v8 5/7] netfilter: nfnetlink_queue: restrict NFQA_EXP to userspace helpers
-Date: Mon, 16 Nov 2026 13:22:16 +0300
-Message-Id: <20261116102216.104955-1-theodorlarionov@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261116003733.2820132-5-pablo@netfilter.org>
-References: <20261116003733.2820132-5-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nYZGuI9H
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CBF71F000C4;
+	Mon, 16 Nov 2026 10:48:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794826094;
+	bh=bpAqt3vkpgdi9prEru8xJMcJCmuHua0RnlTvNxptGDE=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=nYZGuI9HsutNv7MNlehITYeIvk9DkMW7zVq7//uSS8bGVGe9ULAarbQSc6IlWw28X
+	 NSWpo2ZnDhLUJTHXFtYF3w/ZYtLWJUGliz3ABwd0yK8wGjzTX9tp0eqjst6nKngig4
+	 45YRBXH4S0B/kfPN7f8CV3tR/DM4CJT090kqC4ndX2NqVj2VYHoJC2kVG2w/c/76av
+	 UGWn8ToSWlxH/rlc/KTRHN1BN+OGB3kWdIygcGPBNprSYNMCdfHcFQ4BQf1wzkNjov
+	 kzrVwhxQVn0+4wPNE8wxsEr4ZfcPM7XOk+IdKBEtNoU8uTtPrJp2vzyDgKm2BFW2zV
+	 2KjvsT3njCaAQ==
+Subject: Re: [PATCH net-next v3 1/4] net: xfrm: interface: restore dst_orig on
+ every xfrm interface
+From: netdev-bot+sashiko@kernel.org
+To: jhs@mojatatu.com
+Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ jiri@resnulli.us, victor@mojatatu.com, sashiko-bot@kernel.org
+Date: Mon, 16 Nov 2026 10:48:13 +0000
+Message-ID: <179482609307.3136.802369385137912510@kernel.org>
+In-Reply-To: <CORE-9NOG.v3.r0.20261115050625-1@mojatatu.com>
+References: <CORE-9NOG.v3.r0.20261115050625-1@mojatatu.com>
+X-sashiko-severity: Low
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -96,14 +64,168 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Hi Pablo,
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-This fixes the nfqueue path from my Oct 17 report to
-security@kernel.org. Could you add
+Low priority / nit picks for your consideration:
 
-Reported-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
+- [Low] The commit fixes bugs that users can hit, but it has no Fixes:
+  tag and no Cc: stable.
+- [Low] The commit message contradicts itself about where this patch sits
+  in the series, and the second reproducer it gives does nothing at this…
+- [Low] In bpf_skb_set_xfrm_info() (net/xfrm/xfrm_interface_bpf.c:82-84),
+  the new comment "The allocated dst owns one reference, handed to the…
 
-Thanks,
-Theodor
+--
+
+net: xfrm: interface: restore dst_orig on every xfrm interface
+
+xfrmi_xmit2() now restores md_info->dst_orig on both collect_md and
+configured if_id interfaces. It takes its own reference with dst_clone()
+and drops the metadata dst from the skb before installing the route.
+bpf_skb_set_xfrm_info() now allocates a metadata dst per skb, and the
+shared per-cpu xfrm_bpf_md_dst is removed.
+
+> Found while testing the dst release for the two producers that steer a
+> packet to another device, fixed later in this series. One of the consumers
+
+[ ... ]
+
+> the shortest way to hit the overwrite. A netdev egress fwd rule that steers
+> a packet routed with an xfrm encapsulation into an interface reaches the
+> same place once the dst release earlier in this series keeps the route:
+>
+>     ip link add xf0 type xfrm if_id 42
+>     ip link set xf0 up
+>     ip neigh replace 10.20.0.1 lladdr 02:aa:00:00:00:ab \
+>             dev va nud permanent
+>     ip route add 10.20.0.1/32 dev va encap xfrm if_id 42
+>     nft add rule netdev t c fwd ip to 10.1.0.2 device xf0
+>
+> Send one packet to 10.20.0.1. With CONFIG_DEBUG_NET=y and panic_on_warn=1
+> the kernel panics in xfrmi_xmit() with the metadata dst still installed
+> while the route is put back.
+
+[Severity: Low]
+The first paragraph says the dst release is "fixed later in this series".
+This paragraph says it comes "earlier in this series". Which one is meant?
+
+This commit appears to be the first in the series. The dst release changes
+(skb_dst_drop_keep_metadata() and its use in nft_fwd_netdev) come after
+it.
+
+At this commit, can the nft reproducer reach the new restore block in
+xfrmi_xmit2() at all? The only writer of xfrm_md_info.dst_orig is
+bpf_skb_set_xfrm_info(). For an encap xfrm route, skb_xfrm_md_info()
+falls back to the lwtunnel state:
+
+include/net/dst_metadata.h:skb_xfrm_md_info() {
+    ...
+	if (dst && dst->lwtstate &&
+	    dst->lwtstate->type == LWTUNNEL_ENCAP_XFRM)
+		return lwt_xfrm_info(dst->lwtstate);
+    ...
+}
+
+dst_orig is never set in that state, so md_info->dst_orig stays NULL.
+
+Also, on the tc-bpf path, wouldn't the first DEBUG_NET warning fire in
+bpf_skb_set_xfrm_info() rather than in xfrmi_xmit()? Before this patch,
+skb_dst_force() leaves a counted reference in the slot. Then
+skb_dst_set(skb, md_dst) trips skb_dst_check_unset() before the packet
+reaches the xfrm interface.
+
+> diff --git a/net/xfrm/xfrm_interface_bpf.c b/net/xfrm/xfrm_interface_bpf.c
+> index 5ea15037ebd10..8e83c624b774a 100644
+> --- a/net/xfrm/xfrm_interface_bpf.c
+> +++ b/net/xfrm/xfrm_interface_bpf.c
+
+[ ... ]
+
+> @@ -86,7 +79,8 @@ __bpf_kfunc int bpf_skb_set_xfrm_info(struct __sk_buff *skb_ctx, const struct bp
+>  	skb_dst_force(skb);
+>  	info->dst_orig = skb_dst(skb);
+>  
+> -	dst_hold((struct dst_entry *)md_dst);
+> +	/* The allocated dst owns one reference, handed to the skb here. */
+> +	skb_dstref_steal(skb);
+>  	skb_dst_set(skb, (struct dst_entry *)md_dst);
+>  	return 0;
+>  }
+
+[Severity: Low]
+This isn't a bug, but does this comment describe the line it sits on? It
+reads as describing the md_dst reference, which the following
+skb_dst_set() hands to the skb.
+
+Here, skb_dstref_steal() clears skb->_skb_refdst without dropping the
+reference that skb_dst_force() took on the original route. That
+reference now belongs to info->dst_orig, and metadata_dst_free() releases
+it later:
+
+net/core/dst.c:metadata_dst_free() {
+    ...
+	dst_release(md_dst->u.xfrm_info.dst_orig);
+    ...
+}
+
+The kernel-doc for skb_dstref_steal() says:
+
+ * When in doubt, prefer skb_dst_drop() over skb_dstref_steal() to correctly
+ * handle dst_entry reference counting.
+
+Using skb_dst_drop() here would free dst_orig while it is still in use.
+Could the comment say that the route's reference moves to
+info->dst_orig? The other one-way users in net/ipv4/netfilter.c,
+net/ipv6/netfilter.c and net/xfrm/xfrm_policy.c have comments like that.
+
+> diff --git a/net/xfrm/xfrm_interface_core.c b/net/xfrm/xfrm_interface_core.c
+> index 9835fbe63ccb8..896180f8d1719 100644
+> --- a/net/xfrm/xfrm_interface_core.c
+> +++ b/net/xfrm/xfrm_interface_core.c
+
+[ ... ]
+
+> @@ -433,25 +434,26 @@ xfrmi_xmit2(struct sk_buff *skb, struct net_device *dev, struct flowi *fl)
+>  	int mtu;
+>  
+>  	if (xi->p.collect_md) {
+> -		struct xfrm_md_info *md_info = skb_xfrm_md_info(skb);
+> -
+>  		if (unlikely(!md_info))
+>  			return -EINVAL;
+>  
+>  		if_id = md_info->if_id;
+>  		fl->flowi_oif = md_info->link;
+> -		if (md_info->dst_orig) {
+> -			struct dst_entry *tmp_dst = dst;
+> -
+> -			dst = md_info->dst_orig;
+> -			skb_dst_set(skb, dst);
+> -			md_info->dst_orig = NULL;
+> -			dst_release(tmp_dst);
+> -		}
+
+[Severity: Low]
+Should this patch have a Fixes: tag and Cc: stable? The restore block
+removed here and the per-cpu xfrm_bpf_md_dst used by
+bpf_skb_set_xfrm_info() both come from:
+
+Fixes: 94151f5aa966 ("xfrm: interface: Add unstable helpers for setting/getting XFRM metadata from TC-BPF")
+
+The patch fixes problems that users can hit:
+
+- the skb_dst_set() warning over a counted dst slot
+- the route lost when a clone reaches the interface first
+- the link-failure drops on a non-collect_md interface
+
+The DEBUG_NET_WARN_ON_ONCE() in skb_dst_check_unset(), which turns the
+overwrite into a splat or a panic, was added later by commit
+a890348adcc9.
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/CORE-9NOG.v3.r0.20261115050625%40mojatatu.com
