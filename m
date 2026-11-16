@@ -1,69 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.51
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794842938;
-	b=Ky+8zTP7LKMk5u+Jlft0NOgSZOzsNWuCQH3CwPhocPkQUKHwdcCJdaFOMJO9u/2ZeNNI
-	 tgDaJkXoQl0IzzB+pvqbTho5yjv6HFc54jdTUuFtEa03mlcpibirkeYFKVtM9sMz97F7/
-	 0HkvLSOc64bRXkkBPulkU2LLy5e+P7hnEsE9Nm/ryNxJDSM8u7N4wXwActw+onhXdrHGF
-	 AkCMvyPm+MEMlnaDPIldPE4SGyfBjX+YtnkcK599cjXDOV9ab5FWSoFBGVLwDqZBpqelk
-	 q9c2tQIqV+9S4H0Er1QG64/j7C70ujraJc3LH1z8CpQbffskyi16uK+ozSdOb2y+OLw==
+	t=1794843687;
+	b=OS6RhQm4RGQp43V58sZhel3Uib4jGbTu9NdWruBHn0lHQCvep7zM5rms2THzD/0ycyz8
+	 Xdkxz4hnHl8iN0tBdHQbLPzJAvH/oY/FpcZ70LJhCD+gBGgRIISgciJWxTvSlZF4PpQDB
+	 em2+me89DH3yIIM5NG118QLnzok9iGmbP5DG+pzG40jc9qPgKIiVPwOQD4E/XYLWXEy93
+	 C+MfGmAuqBLutP3ioHe5RQ46tS1thpnxYSDhjzPUcpcIX6J0nef/NjuJs5AXwXB5GBLzN
+	 mUICMDZzMujBBntTQ0WKE7QU/F35CNKyQqmcQ2ruHJNsdoLDAlsrWUxb7S2WmSnQCpw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794842938;
-	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Rspamd-Queue-Id;
-	bh=qgq7YnCBcok5WbYWigXkKnODjLVkKuJrVGmAH0aqxkg=;
-	b=BJnGFRelcpvgCszqgWsdFCTtpL8GyD/Yl2gYS/DrZ4qnJ4DvLrGLW435gkWL1RqYHSm+
-	 KkQ/yf6ExlzJLItWIK65CQoA+RlhP37LpfyCvQEoe/wV795V3QxUGR5xsBCuPunJ5WtaI
-	 oT7Vi2qM37Jsev20t5pBmv9t5c8fyw8r/WkOdbFeANfW+thJcAPorfDXsT9aqivly6p25
-	 1S+8UEOgTKvFzld53dW/bNkjGBwpAT/+96F3omM5fbvZR67uyLgI+zgNrbhNijun+kkfL
-	 Xw+LuaiBRz9ekMbdfKc81wCKbruTuywDEXAvC5Ht/xtCiF1f+TX41W4sl4oN7hybsgg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794843687;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
+	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
+	 Content-Type;
+	bh=W/Ym3u4usM4ArSt2EhaBMBkXZ0AvTiTm9s1YVFwTSto=;
+	b=HZV50LSDSLAJC5hXZHws+xjUSCTsGlazDzOQky7dMsAorROCBy8bb+8UHMT2kMIVNGeO
+	 Ein6vurYnkHDRw5YTwwd6FmrTBoZ//qgx0Nxn1vDWlMoRIRV7jpnNzoHMgiAdywoNMrSU
+	 /mLDV36UKCaP/SwGxJLVORb3ZDJbaCO/52DIOxjAEvIige2fbiS69N014R9vbYA5r3y8k
+	 KdrtrobsM1Mc47rXnShmIA4GBRy/+0SZ3F3liBlHPsDg3A5pzZX3GfJRmMerYmQAuER+D
+	 n/HRK/pLoo5JLqGZcQFt57TVimJ2p/1IxDYZ1JoX0nLl15Hk0SQZbmB+Yu7e5x0YXhA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=mandelbit.com;
-	spf=pass smtp.mailfrom=mandelbit.com;
-	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=MJI30NdF;
-	arc=none smtp.remote-ip=195.10.208.51
-Received: from mout-b-206.mailbox.org (mout-b-206.mailbox.org [195.10.208.51])
+	dmarc=pass header.from=ssi.bg;
+	spf=pass smtp.mailfrom=ssi.bg;
+	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=YYrhCjGJ;
+	arc=none smtp.remote-ip=193.238.174.39
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8743606A883;
-	Mon, 16 Nov 2026 15:28:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C8743606A883
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26EEE606A31C;
+	Mon, 16 Nov 2026 15:41:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 26EEE606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=MJI30NdF
-Received: from smtp102.mailbox.org (smtp102.mailbox.org [IPv6:2001:67c:2050:b231:465::102])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-b-206.mailbox.org (Postfix) with ESMTPS id 4jSsG70LzYzTF;
-	Mon, 16 Nov 2026 16:28:47 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
-	s=MBO0001; t=1794842927;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=qgq7YnCBcok5WbYWigXkKnODjLVkKuJrVGmAH0aqxkg=;
-	b=MJI30NdFZxGZ9yQ00NZzSqwmM2Ncb5mHU4vU9a8awcrDDQoCStVIMDbOUYa7Q9Orqz9Tr8
-	Vd6QLHztWwG0ShS5wvvxnVGrB6TuSb8s8zwOaS64faDABh2Wrc+fFBcY8jVJR65ruQpwof
-	ObAbqecrixbBqEMd14m+6m9O+kuoU/va8PR4dhOvRAuo2Uipbtd5vAGeu/hQ84axXAnGnD
-	djmLdTPAxsp5+zj7JItufkEg4I3HcBEdgDouwdfFNksu3X8AkGbgGzGEHX79tpc0KVUDrA
-	ZQ62ZdBqZ4enlepmp+YrdJU31PQcNeUX3nFiQJRKNfWFtShhyrSDoD+6zz7mQw==
-Authentication-Results: outgoing_mbo_mout;
-	dkim=none;
-	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::102 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
-From: Antonio Quartulli <antonio@mandelbit.com>
-To: stable@vger.kernel.org
-Cc: Antonio Quartulli <antonio@mandelbit.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: [PATCH 6.12.y] netfilter: flowtable: ensure sufficient headroom in xmit path
-Date: Mon, 16 Nov 2026 16:28:43 +0100
-Message-ID: <20261116152844.2998474-1-antonio@mandelbit.com>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=YYrhCjGJ
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id C3DAB21B52;
+	Mon, 16 Nov 2026 17:41:17 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=W/Ym3u4usM4ArSt2EhaBMBkXZ0AvTiTm9s1YVFwTSto=; b=YYrhCjGJ1ikC
+	4u5g9qFaxvjjIgwvHb2kLdkFC4YIJJtt+K09RY9FM/9eW2qpRDguxL79bc99DhmA
+	/gCMhIvoRVD1Sh8fEDFsFRBNqQaDdBRbXC1OxGVOR4NQYSnzhsvpshz9d/ARpcOD
+	8s+LXScD9eUcDgvY7fbdQensJjCdpcHTUc9lQjilVqT98EafBi6oEUOUVkaVqQhd
+	XKkKKCQzSvZ91OqdC/Pafx1cy4Gg23MGFbJIGcsSBtDSHvoVuYgE1Wbm5DKPPees
+	RIzLEwiHQRdvmheqBZB8wqGyZGOmTKnVI4ywy0gooyDJv+zpM/ahamAMZYkyG6e+
+	MFCjh2CJL+FFpwZO3y0qJVSjdIIIOuqDWM59Rs2fEuzUpP9490iKb89MOVD3kQlD
+	V/GKs5uQ+5qk8aJNSKiLiKqzgSW8Zd0tdYlQ3MG4vmLOGYySLIIFcUyMUCcjGPXi
+	p9dYgVgkjPx7f+eoTP3lVcyd1hIbQlWyy9dhHiAsCahuDEcPVy1XJW5NB6+702+3
+	bkYfDlWMIzgZl4JhP/hO1O0TBJt+JpDaZebtiNDHezfUW1eE827uj9QxWUoNOCNT
+	zHppA0ycefDfoREwgOA2pwQ+6oIscrlGc4PZi5c9TSW8br8O84EILVqM8Eh6yHNs
+	2116gZmx75r7ZYYeHizAq8DQLNyw1pM=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 16 Nov 2026 17:41:17 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 5F05B60B48;
+	Mon, 16 Nov 2026 17:41:17 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6AGFf59c081465;
+	Mon, 16 Nov 2026 17:41:06 +0200
+Date: Mon, 16 Nov 2026 17:41:05 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Theodor Arsenij Larionov-Trichkine <theodorlarionov@gmail.com>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Simon Horman <horms@verge.net.au>,
+        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH nf v3] ipvs: ftp: do not link expectations to unconfirmed
+ conntracks
+In-Reply-To: <CAEZyMPB+oNBrnxV09Ji-Ao7Bcs93Qg=qx0B_b=3ULFx3nEFo+Q@mail.gmail.com>
+Message-ID: <2bd179df-abde-19d7-0bd4-996b7adcc5d7@ssi.bg>
+References: <20261116101506.98853-1-theodorlarionov@gmail.com> <avrgKSO8nfTnv4iL@chamomile> <CAEZyMPB+oNBrnxV09Ji-Ao7Bcs93Qg=qx0B_b=3ULFx3nEFo+Q@mail.gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -73,148 +81,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 4jSsG70LzYzTF
+Content-Type: multipart/mixed; boundary="-1463811672-845209124-1794843669=:8917"
 
-commit ef4f741e8627512cb8c82f59a1fc7aacd854aadf upstream.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Check for headroom and call skb_expand_head() like in the IP output
-path to ensure there is sufficient headroom for the mac header when
-forwarding this packet as suggested by sashiko.
+---1463811672-845209124-1794843669=:8917
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-[ aq: the upstream commit does not apply to 6.12: 6.12 predates
-  b5964aac51e0, and FLOW_OFFLOAD_XMIT_NEIGH flows are still sent through
-  neigh_xmit() from nf_flow_offload_ip_hook() and
-  nf_flow_offload_ipv6_hook(). Do the same headroom check there, before
-  skb->dev is switched to the output device, and in nf_flow_queue_xmit().
 
-  Without it, a forwarded skb reaches the output device's
-  header_ops->create() with only the headroom it was received with. A
-  UDP socket behind a veth (e.g. a container) leaves 16 bytes; virtio_net
-  leaves 26 for frames larger than GOOD_COPY_LEN. GRE, ip6gre and VLAN
-  have since been hardened individually, 6LoWPAN has not:
-  lowpan_header_create() stores struct lowpan_addr_info (32 bytes) in
-  front of skb->data after a mere WARN_ON_ONCE(), i.e. an out-of-bounds
-  write before the skb head. Seen on v6.12.117 with IPv6 forwarded by a
-  flowtable from a veth to a 6LoWPAN interface:
+	Hi Theodor,
 
-    WARNING: CPU: 1 PID: 4719 at net/ieee802154/6lowpan/tx.c:21 lowpan_header_create+0x165/0x1b0 [ieee802154_6lowpan]
-    Call Trace:
-     neigh_connected_output+0xa3/0xf0
-     neigh_xmit+0xbb/0x210
-     nf_flow_offload_ipv6_hook+0x540/0x7c0
-     nf_hook_slow+0x39/0xe0
-     __netif_receive_skb_core.constprop.0+0xe4c/0x1010
-     __netif_receive_skb_one_core+0x37/0xa0
-     process_backlog+0x77/0x140
+On Mon, 16 Nov 2026, Theodor Arsenij Larionov-Trichkine wrote:
 
-  Before e67c577d8989 ("ipv4: ip_gre: make ipgre_header() robust") the
-  same path panicked with multipoint GRE (DMVPN) output devices:
-  skb_under_panic in ipgre_header() via nf_flow_offload_ip_hook(). ]
-Fixes: 97add9f0d66d ("netfilter: flow table support for IPv4")
-Fixes: 0995210753a2 ("netfilter: flow table support for IPv6")
-Fixes: 7a27f6ab4135 ("netfilter: flowtable: use dev_fill_forward_path() to obtain egress device")
-Link: https://vyos.dev/T7549
-Signed-off-by: Antonio Quartulli <antonio@mandelbit.com>
----
-Reproducer (run on v6.12.117: WARNING without this patch, clean with
-it). Needs CONFIG_MAC802154_HWSIM and CONFIG_IEEE802154_6LOWPAN, plus
-nft, conntrack and python3. The 6LoWPAN neighbour is static and the
-conntrack entry is inserted with SEEN_REPLY, so the very first packet
-matches "ct state established" and the flow is offloaded; no 802.15.4
-peer is needed. If udev renames wpan0, use the name of the first
-ARPHRD_IEEE802154 (type 804) interface. Run it in a throwaway VM.
+> On Mon, Nov 16, 2026 at 1:51 PM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > I think this is coming a bit late?
+> >
+> > Maybe it is possible to check this earlier in this path?
+> 
+> You mean returning at the top of ip_vs_ftp_out() if the ct is not
+> confirmed, and letting the packet through untouched? Or even before
+> ip_vs_ftp_out() gets called?
 
-  modprobe mac802154_hwsim; modprobe ieee802154_6lowpan
-  sysctl -w net.ipv6.conf.all.forwarding=1
-  ip link set wpan0 up
-  ip link add link wpan0 name lowpan0 type lowpan
-  ip link set lowpan0 up
-  ip -6 addr add fd00:b::1/64 dev lowpan0 nodad
-  ip -6 neigh replace fd00:b::2 lladdr 02:11:22:33:44:55:66:77 dev lowpan0 nud permanent
+	Early in ip_vs_ftp_out but you have to base this patch on
+top of the template fix:
 
-  ip netns add lan
-  ip link add lan0 type veth peer name lan1 netns lan
-  ip link set lan0 up
-  ip -6 addr add fd00:a::1/64 dev lan0 nodad
-  ip -n lan link set lan1 up
-  ip -n lan -6 addr add fd00:a::2/64 dev lan1 nodad
-  ip -n lan -6 route add default via fd00:a::1
+ipvs: ftp: skip conntrack templates in ip_vs_ftp_out
 
-  nft add table inet t
-  nft 'add flowtable inet t ft { hook ingress priority filter; devices = { lan0, lowpan0 }; }'
-  nft 'add chain inet t forward { type filter hook forward priority filter; policy accept; }'
-  nft add rule inet t forward ct state established flow add @ft
-  conntrack -I -p udp -s fd00:a::2 -d fd00:b::2 --sport 40000 --dport 5000 \
-      -r fd00:b::2 -q fd00:a::2 --reply-port-src 5000 --reply-port-dst 40000 \
-      -t 120 -u SEEN_REPLY,ASSURED
+	Or to wait it to be included in the nf tree.
 
-  ip netns exec lan python3 -c 'import socket; s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM); s.bind(("fd00:a::2", 40000)); [s.sendto(b"x" * 64, ("fd00:b::2", 5000)) for _ in range(100)]'
-  dmesg | grep -A12 lowpan_header_create
+	Then after the:
 
-Without this patch: the WARNING above. With it: none, while the flow is
-still offloaded ("conntrack -L" shows [OFFLOAD]). Replacing
-"flow add @ft" with "accept" also avoids it, because
-ip6_finish_output2() expands the headroom.
+	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
+		return 1;
 
- net/netfilter/nf_flow_table_ip.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct || !nf_ct_is_confirmed(ct) || nf_ct_is_template(ct))
++		return 0;
++	/* seqadj extension not created by original packet? We usually
++	 * add the extension for the first packet in ip_vs_update_conntrack().
++	 */
++	if (!nfct_seqadj(ct))
++		return 0;
 
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -330,6 +330,22 @@
- 	}
- }
- 
-+/* Make room for the link layer header of @dev, like ip_finish_output2() does.
-+ * The flowtable fast path skips the IP output path, and a device with
-+ * header_ops (e.g. an NBMA GRE tunnel) may need more headroom than the skb
-+ * was received with. On failure the skb has been freed.
-+ */
-+static struct sk_buff *nf_flow_xmit_headroom(struct sk_buff *skb,
-+					     struct net_device *dev)
-+{
-+	unsigned int hh_len = LL_RESERVED_SPACE(dev);
-+
-+	if (unlikely(skb_headroom(skb) < hh_len && dev->header_ops))
-+		skb = skb_expand_head(skb, hh_len);
-+
-+	return skb;
-+}
-+
- static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
- 				       const struct flow_offload_tuple_rhash *tuplehash,
- 				       unsigned short type)
-@@ -340,6 +356,10 @@
- 	if (!outdev)
- 		return NF_DROP;
- 
-+	skb = nf_flow_xmit_headroom(skb, outdev);
-+	if (!skb)
-+		return NF_STOLEN;
-+
- 	skb->dev = outdev;
- 	dev_hard_header(skb, skb->dev, type, tuplehash->tuple.out.h_dest,
- 			tuplehash->tuple.out.h_source, skb->len);
-@@ -452,6 +472,9 @@
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rtable(tuplehash->tuple.dst_cache);
- 		outdev = rt->dst.dev;
-+		skb = nf_flow_xmit_headroom(skb, outdev);
-+		if (!skb)
-+			return NF_STOLEN;
- 		skb->dev = outdev;
- 		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
- 		skb_dst_drop(skb);
-@@ -748,6 +771,9 @@
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
- 		outdev = rt->dst.dev;
-+		skb = nf_flow_xmit_headroom(skb, outdev);
-+		if (!skb)
-+			return NF_STOLEN;
- 		skb->dev = outdev;
- 		nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
- 		skb_dst_drop(skb);
+	I.e. we want:
+
+- ct to be present
+- this should not be the first packet (nf_ct_is_confirmed)
+- should not be template
+- the first packet should create seqadj ext before confirmation,
+in ip_vs_update_conntrack()
+
+	By moving it early we drop the PASV response without
+creating IPVS expectation (NO_CPORT connection).
+
+	I hope the above is correct :)
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+---1463811672-845209124-1794843669=:8917--
+
