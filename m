@@ -1,58 +1,58 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794826096;
-	b=Bk29V73yVNpI2QZNv8hjJPJTVEkY/K69Adf7k1V6YC5kgicntWbif9NsfTF8P3gKKYMS
-	 ks9gjAfnhVtCp9yVZypQoshEsV23CRBG8ozO9eh74DxJaGRGjtvhciYqIkVNhiqhZBL2s
-	 JU24vmMerZEC1wdAS2MoNNtZJe9/OB6K544cSD8406e3WkhrMF5mXyExkxYyJ3r7MZVyW
-	 Rb/pTGtR6L/l954UjGOEtj28Efvq834RXurOY5pf5/H3vGNe1bLwd8cAl+CYdAy2jwSmb
-	 kDkVIX8XgOtgVMLbyuOVhhePeosL2pxEoNiKFAil/ittYAgciGf9HNP84wGD9Q8vH5Q==
+	t=1794826097;
+	b=xdd/i3LmVjY5VvDpW7mj8Yk/F/ozMIZyiAXx1qqTlxixHSEz4sAXiN/ez+PHxZE0P5Rr
+	 LcYaO4uoWGosUFpwOza2CMuymc5tXMfVGY1HETWPPZaRCawTUUGBG7+hY98Ujhyix3ilo
+	 LimrocKOUbIdwJg3Xioul05iFiza1uC91Jv1/SIyn5SmdTbfH+r0LWhJVBDq4Ttnxj8GF
+	 Nx4KrJODxPOecahrBP6Y8goT2yZ0azLqaxnp/XHt3hm466qvcWU7QVOCo95w8p+db2ydW
+	 WvSO5F2xIg6v5gaqzU8gdMpebY1MZ6+3Bvy6ldAyM7Nc6Q7VttX6l5sGdEvE0xpnLzA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794826096;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794826097;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=Ie9yyPZ8NoCIdw93B1/vSPVtdv42jR0l99PvlwpZ28g=;
-	b=pNkI6ehcKMxr3lvoJgo9JM61SVvcbnU1Fl8mYu9GeIs3Z4BpSQLnFpuodRZ+SMngX50e
-	 Xusttb0ZYf3OEMyfamv7yNdvuB8qH3UqG5nsJqw2anQOyu3CKxIfZ8nNhBym9mtaMDiM5
-	 QQ6gGFBaAygZf/gzGgzBuOUioBttDbYbHvgdPbpzD08GKkVaMqA/mIlPsMIIwtSDk9/KH
-	 1G+lzCkDq+dTU/4Nno2r90JQg14xTm3U8bfahi2sd6J/WRSaWdPv0t8aLOs/TQTBK6YL/
-	 jtv1wdtA/uUhaktUfRP86pd4BtR/45GRb/rVNJVIphilWvfWWMrbQHum2zBLbu+4yhw==
+	bh=mWsvyE4HmDPFOLNh72qbLxdcM0gLomTxyxmojJhynR4=;
+	b=jTbdcTBzUKWEmUEW0j/J3Epq8pxbu6ZeRTUg98wpkH/ollgo4ocjTgu6rIYbCKUemUfJ
+	 B1Xis9mimzqBMFeYhiN/JzNuuvL0XDY8lC7g/e1yFoss5tMh/n/JzCJ1xqHN8Mct3RaB/
+	 X5Bz2mJIZnm+QiimadDy7Ysi7SwulvkirMQQ8D61QKHdP2v/Da92QLjj1mL0VD5QOF6qG
+	 BiXYopjbQ/tOz5qtRYlpuLJVaSYraqBBFIiYwRIeO0BpvAcDcHpVgkr6SLsBz9ys6+cI8
+	 Ur4keemFTnfapw54snl8+Tnt+J2enRn5AFksFB0SCqfLdRTazWEVXio8mxmHJ0ejaug==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TuAWGlFG;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TBSq4Fkd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C456606A31C;
-	Mon, 16 Nov 2026 10:48:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71E03606A334;
+	Mon, 16 Nov 2026 10:48:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TuAWGlFG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 055211F000C4;
-	Mon, 16 Nov 2026 10:48:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=TBSq4Fkd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E151F000C4;
+	Mon, 16 Nov 2026 10:48:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794826095;
-	bh=Ie9yyPZ8NoCIdw93B1/vSPVtdv42jR0l99PvlwpZ28g=;
+	s=k20260515; t=1794826097;
+	bh=mWsvyE4HmDPFOLNh72qbLxdcM0gLomTxyxmojJhynR4=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=TuAWGlFGIw6/bGm1/Fd52X5bl2kr4RXwGzwADDT/m02LBZtAP4aD8YhjeGZ11KgCi
-	 0eW0rtNH7ABiEvMkrsIrYWBbrTySAU6HFhlpd4KvlIOXp//I9lxSsOolAd9FXUnxNt
-	 9uY/VystpZY2Jn7KtA2fd3JXzAQzlwciThFKzdx1VaLsReZodYSmGCPXKI03jd8vLd
-	 67ir2zc0KvJqIyWysTzJZ286A3GCc1mKnXn67bO8oHFaYmr1ea0PA63OnceAhjDdgR
-	 l4pq2S6fFLcw6+J/bZ3aCunrBZENg9/vg21l+/o8c20wbYGRMteEc68NUMjqoWdgLB
-	 B3+oBsu9hpYUQ==
-Subject: Re: [PATCH net-next v3 2/4] net: dst: keep the LWT metadata of a
- dropped route
+	b=TBSq4Fkd0HUYRDI0o+j8rL5XTl/PlJ3ZpRG/f8fvGMWTvC2STnKBqazv2UhEBtYpu
+	 lMUZAAqkzG2ijOAB8Vk2k5Uen1vzoaTlwpSa65L0sa31B5p01bsx1xlRyjJXHJaPbs
+	 1JyDeUc/uj0ZEEwyRyHPsShRGc1lKsylYlvu8lh1bkT3twAeOKPKZ9jvZMD3Rk8UCv
+	 XzpVCy7I1mK2OE3QOEgzNcvECJVYGRqoDNhi6IHlPUeCUmFbNEu3Ag+M4A8M6FdtUg
+	 NXjuqXT3DAoCEM9TbvOdQ8ZJS0VO+U4NIbVyDQC94iQXrB2cC6wvVL5SISLMg1M6LH
+	 aULa1T5laQQdg==
+Subject: Re: [PATCH net-next v3 3/4] netfilter: nft_fwd_netdev: drop the stale
+ dst when steering to a device
 From: netdev-bot+sashiko@kernel.org
 To: jhs@mojatatu.com
 Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
  davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
  horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  jiri@resnulli.us, victor@mojatatu.com, sashiko-bot@kernel.org
-Date: Mon, 16 Nov 2026 10:48:14 +0000
-Message-ID: <179482609455.3136.1654206746484449957@kernel.org>
-In-Reply-To: <CORE-9NOG.v3.r0.20261115050625-2@mojatatu.com>
-References: <CORE-9NOG.v3.r0.20261115050625-2@mojatatu.com>
-X-sashiko-severity: Low
+Date: Mon, 16 Nov 2026 10:48:16 +0000
+Message-ID: <179482609603.3136.17659916489453837940@kernel.org>
+In-Reply-To: <CORE-9NOG.v3.r0.20261115050625-3@mojatatu.com>
+References: <CORE-9NOG.v3.r0.20261115050625-3@mojatatu.com>
+X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -65,126 +65,119 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-Low priority / nit picks for your consideration:
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-- [Low] The commit message presents this patch as a bug fix, with a "The
-  Fix:" section, a "Conditions to recreate the bug" section and the…
-- [Low] The Return: section of the kernel-doc for
-  skb_dst_drop_keep_metadata() (net/core/dst.c:370-373) does not match…
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [Medium] The commit message justifies the change by saying "the route
+  dst is never consulted", but that only holds for the neighbour lookup.
+- [Low] This patch fixes a user-visible bug but has no Fixes: tag.
 
 --
 
-net: dst: keep the LWT metadata of a dropped route
+netfilter: nft_fwd_netdev: drop the stale dst when steering to a device
 
-This adds skb_dst_drop_keep_metadata(). It releases an skb's route dst
-and moves any LWT encapsulation metadata onto a newly allocated metadata
-dst: ip_tunnel_info for ip/ip6 encaps, xfrm_md_info for xfrm. The helper
-is meant for the nft fwd and bpf_redirect_neigh() producers changed later
-in the series.
+This patch makes the neighbour variant of the nft fwd expression release
+the skb's dst before switching skb->dev to the configured device. Without
+this, a packet parked on an incomplete neighbour's arp_queue could later
+be sent with the link-layer header of the device it was originally routed
+through. The release goes through skb_dst_drop_keep_metadata(), so
+LWT/tunnel metadata is kept, and the packet is dropped if that copy fails.
 
-> Found while working on the two producers that steer a packet to another
-> device's neighbour, fixed later in this series. Both release the route
-> dst on the way, and a route installed with an encapsulation carries the
+Link: https://lore.kernel.org/netdev/QDISC-6HS9.v3.r0.20261103062649-2@mojatatu.com/
+Link: https://lore.kernel.org/netdev/avTfQjFQYR2NNdRg@chamomile/
 
-[Severity: Low]
-Is this description accurate for the tree at this commit?
-
-nft_fwd_neigh_eval() in net/netfilter/nft_fwd_netdev.c goes straight to
-neigh_xmit() and never calls skb_dst_drop():
-
-	skb->dev = dev;
-	skb_clear_tstamp(skb);
-
-	nf_dev_xmit_recursion_inc();
-	neigh_xmit(neigh_table, dev, addr, skb);
-
-The nh != NULL path of __bpf_redirect_neigh_v4() and
-__bpf_redirect_neigh_v6() in net/core/filter.c also leaves the original
-route attached to the skb.
-
-This commit adds no callers of skb_dst_drop_keep_metadata(). The route
-release only appears in the later patches "netfilter: nft_fwd_netdev:
-drop the stale dst when steering to a device" and "bpf: drop the stale
-dst when redirecting to an explicit nexthop". The commit messages of
-those patches say the producers currently leave the dst untouched.
-
-> The Fix:
-> Add skb_dst_drop_keep_metadata(), which moves those parameters onto a
-> metadata dst of its own before the route is released.
+> diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+> index 7447da931a957..f486c7be385cf 100644
+> --- a/net/netfilter/nft_fwd_netdev.c
+> +++ b/net/netfilter/nft_fwd_netdev.c
 
 [ ... ]
 
-> Conditions to recreate the bug:
-> Install a route with an encapsulation (ip route add ... encap ip id <id>
-> dst <remote>, or encap xfrm if_id <id>), steer a packet to another
-> device's neighbour with a netdev egress fwd rule or
-> bpf_redirect_neigh(), and release the route dst before neigh_xmit() hands
-> the packet on.
-
-To reproduce, the reader has to release the route dst before
-neigh_xmit(). Current code does not do that.
-
-Could the message present this patch as a prerequisite helper for the
-later producer changes, rather than as a fix with "The Fix:" and
-"Conditions to recreate the bug:" sections?
-
-> diff --git a/net/core/dst.c b/net/core/dst.c
-> index 092861133023c..9c80c225cbfdd 100644
-> --- a/net/core/dst.c
-> +++ b/net/core/dst.c
-> @@ -353,3 +353,79 @@ void metadata_dst_free_percpu(struct metadata_dst __percpu *md_dst)
-
-[ ... ]
-
-> + * A dst that is metadata is left in place.
-> + *
-> + * Return: true if the skb is left free to be sent, either because its dst is
-> + * metadata already or because the LWT metadata was moved onto a new dst;
-> + * false if no copy could be allocated, in which case the caller must drop the
-> + * skb.
-> + */
+> @@ -160,6 +161,11 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+>  		goto out;
+>  	}
+>  
+> +	if (!skb_dst_drop_keep_metadata(skb)) {
+> +		verdict = NF_DROP;
+> +		goto out;
+> +	}
+> +
 
 [Severity: Low]
-Does this Return: section match what skb_dst_drop_keep_metadata() does?
+Should this have a Fixes: tag? The skb->dev = dev switch and the
+neigh_xmit() call in nft_fwd_neigh_eval() both come from:
 
-The doc says false only means no copy could be allocated. The XFRM
-branch also returns false when skb_dst_force() fails:
+  d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer")
 
-		if (!skb_dst_force(skb)) {
-			metadata_dst_free(md_dst);
-			return false;
+That commit changed the device without releasing the dst, which is the
+behaviour fixed here. Something like this would help stable pick it up:
+
+  Fixes: d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer")
+
+This patch also needs skb_dst_drop_keep_metadata(), which is added by the
+earlier patch in this series, "net: dst: keep the LWT metadata of a
+dropped route". Could that dependency be stated for backporters?
+
+[Severity: Medium]
+The commit message says:
+
+  Both lookup inputs the neighbour transmission needs, the device and the
+  nexthop, are supplied by the rule, so the route dst is never consulted.
+
+Is that true beyond the neighbour lookup? This call runs for every packet
+the neighbour variant of fwd handles, not only for packets that end up on
+an incomplete neighbour's arp_queue. For a plain route,
+skb_dst_drop_keep_metadata() ends up in skb_dst_drop(). After that, code on
+the configured device's transmit path sees skb_dst(skb) == NULL.
+
+One example is an NBMA ipip/gre device (tnl_params->daddr == 0) used as
+the fwd target:
+
+nft_fwd_neigh_eval()
+  skb_dst_drop_keep_metadata()
+  neigh_xmit()
+    ... dev_queue_xmit()
+      ip_tunnel_xmit()
+
+net/ipv4/ip_tunnel.c:ip_tunnel_xmit() {
+    ...
+	dst = tnl_params->daddr;
+	if (dst == 0) {
+		/* NBMA tunnel */
+
+		if (!skb_dst(skb)) {
+			DEV_STATS_INC(dev, tx_fifo_errors);
+			goto tx_error;
 		}
+    ...
+			rt = skb_rtable(skb);
+			dst = rt_nexthop(rt, inner_iph->daddr);
+    ...
+}
 
-This happens when a noref route's refcount has already reached zero, for
-example during a concurrent route removal. By that point skb_dst_force()
-has set skb->_skb_refdst to 0, so the skb comes back with no dst. The
-commit message's "the skb is left untouched for its owner to drop" does
-not hold here either.
+Before this patch, "fwd ip to X device tunX" on such a tunnel picked the
+destination with rt_nexthop() of the old route. Now the packet would be
+dropped and counted in tx_fifo_errors.
 
-The doc says true only means the dst was already metadata or the metadata
-was moved. True is also returned when the skb has no dst at all, because
-skb_valid_dst() is false for a NULL dst:
+The ip6_tnl/sit NBMA paths that call dst_neigh_lookup(skb_dst(skb), ...)
+look like they are affected the same way. So does route realm (tclassid)
+classification on the target device's qdisc.
 
-	if (!skb_valid_dst(skb))
-		return true;
+The change may well be correct overall. Could the commit message describe
+this effect on the resolved-neighbour path too, and not only the arp_queue
+drain?
 
-True is also returned when the route has no lwtstate, or an lwtstate type
-other than IP, IP6 or XFRM (MPLS, SEG6, BPF and so on). In that case the
-route is dropped and the skb is left without a dst:
-
-	skb_dst_drop(skb);
-	if (md_dst)
-		skb_dst_set(skb, &md_dst->dst);
-	return true;
-
-The callers added later in the series drop the skb on false. Since this
-helper is exported, could the kernel-doc spell out these cases?
-
-[ ... ]
+>  	local_bh_disable();
+>  	if (nf_dev_xmit_recursion()) {
+>  		local_bh_enable();
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/CORE-9NOG.v3.r0.20261115050625%40mojatatu.com
