@@ -1,72 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.10.208.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794841315;
-	b=MtlKwP5LzImgxZf2X4oEoLSesZv2X1AlT6xkAepVuEci49OmioE/0UjLB3fBkoIRWf/h
-	 whjNCuD4hBH6hW2kfuis4ucnhcIa1c2WUagYU9ZuEN/xN/MpqXkkY249xRL/N4r31z8il
-	 T26qE61W6yJrQ/KiWO6wG+Ufd9Z0QGVVT12LNXG1L0P2q3OAEZmZ6/8tP1QlXg07mEwS+
-	 yy82sXOQEd2bvRBBbTXNAfjvg4Eqh2bRDTiZEOqByoz1/lQSSMU7CWo9hkiSZ/QXzSj37
-	 Ak9LOPawttjp2EImVJnw8GErfvO/uwVLXN673aZNBvcNcj67Otx+UYBlqEVVRMLQyQg==
+	t=1794842925;
+	b=ryTpqcewFXLV4hAP/0z9ZCfyAAcCg+i5Rz0B7X32JXmbchKPDTIU6CgcIumvceli0Jri
+	 Jm+GQPiCPokivEsGSM3PDbkAIngVijyopZYfPsJ4iVaEG9VSBk9q5Eriz88OuTW8G4KMH
+	 D+CHSTLXJvtLOCFaAjjB88TpkhM9Sn98b5Xsyk2SHXP7iVjoAtgN9NdYlAUo2e3ncR+eC
+	 7rVx1Pq3SB0U9XAMiGHtvf9q5vfhG4H/ZgokESGTcTkZI96h/th6dCf5Eb2ewZJqDwvbC
+	 M9oQ3ikL+pkvroDj0NIpRzcupOOZ4Ho7VvHz7FRnOOZGGUWH5avSsJEqdoJAZc0kzqA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794841315;
-	h=DMARC-Filter:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:
-	 DKIM-Signature;
-	bh=wU42Xv+oriwKZx/rxk+EnNc9SsYqK4jjpZoanBLi7Wo=;
-	b=ftYlbZWLJKwxzAiJ3rn+a6gT9Dt+NDe2ljEhclvtZP3z6cNNRlXNsFPf9cq2O1vR0oMv
-	 0IZ8L2kWNRs9tlAneHUp2/+BTd/N5/agiE3iSj4hEqQ3z/6PYtaS4wniDX/LEQesPcqoG
-	 Clamw2YxtyJt9ojGrcjeDmCBbHPPeAMOKx5AFqxI7wMenDlOeBfkvVF6BF5OoLcdqars4
-	 Ey6L+NBWio7assMylE3pfNl0Dl+M4k/tl+GrBpPcdXoqrRCn3rEpQs3VL6aWJrFhVMwAe
-	 v8cs1ZRnEfCvvWMkM9O8sPIYzmXuKXcB3575nhXk1SD1A23euYRGlSdRDgjPhMf0wvA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794842925;
+	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
+	 X-Rspamd-Queue-Id;
+	bh=qMz+RAf4b7f2BcmkRLvRo5r6beNIKQGAsILjdn7aN30=;
+	b=WMxmR3u7KyF6m4MyQ88cbghnfklUyxrb3tBIULWzlinyU1JWuWQfipnCTS9Xl9CzRkH3
+	 Bz0Joyus7rSLfWRRvAUGP2++H69fxMhDREN8d8jSXaptZ6aGLTQoGPeGB2JlzJ3W+SZch
+	 5fgf37Gsj+TwBcw+M5Mtl8QLlHY92TN7wxGKjudEdKI2+zU3yY99gOosxISGMmsAJNj5z
+	 asxA3laouRnPzQ1cgFrWD9loBzSHFsam6+ynFrteyzQXclBr4aYqgi4f29gnZkLcheboM
+	 mZVNPPjgZJMO4nPR7Eo/Nimta+0yW/dfrZLPHBcRUbX7+pYdqFHVJpia06m2PqSmk9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lausen.nl;
-	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=DyAulS2B;
-	arc=none smtp.remote-ip=95.143.172.20
-Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	dmarc=none header.from=mandelbit.com;
+	spf=pass smtp.mailfrom=mandelbit.com;
+	dkim=pass header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=tGXr9hsn;
+	arc=none smtp.remote-ip=195.10.208.50
+Received: from mout-b-105.mailbox.org (mout-b-105.mailbox.org [195.10.208.50])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE691606A332
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 15:01:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DE691606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4820F606A334;
+	Mon, 16 Nov 2026 15:28:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4820F606A334
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mandelbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mandelbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=DyAulS2B
-Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 15E2D6116C
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 16:01:48 +0100 (CET)
-Received: (qmail 22990 invoked by uid 990); 16 Nov 2026 15:01:47 -0000
-Authentication-Results: devico.uberspace.de;
-	auth=pass (plain)
-Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Mon, 16 Nov 2026 16:01:47 +0100
-From: Leonard Lausen <leonard@lausen.nl>
-To: netdev@vger.kernel.org
-Cc: leonard@lausen.nl,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
+	dkim=pass (2048-bit key, unprotected) header.d=mandelbit.com header.i=@mandelbit.com header.a=rsa-sha256 header.s=MBO0001 header.b=tGXr9hsn
+Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519MLKEM768 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-b-105.mailbox.org (Postfix) with ESMTPS id 4jSsFy5nwQz9rxT;
+	Mon, 16 Nov 2026 16:28:38 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mandelbit.com;
+	s=MBO0001; t=1794842918;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=qMz+RAf4b7f2BcmkRLvRo5r6beNIKQGAsILjdn7aN30=;
+	b=tGXr9hsngJwMNm43mLYcy6bnDJGzqGWJL1NsrfitHYH8NhgNKJ0okvua/eWDAlI2oe3Jci
+	hXzH47GZbKRRpKPFjBEa7sPcOekRuRmS946U+mc2/SMvv6K283Fw5rBmdWDk2LySStKmYE
+	V6t+P451BZlHDOOLgMwt072/JA9SSrBoqkzHddx3DJWsw3emXy7GDuf2NRTWAfzngA3IC+
+	+fVzTAWN+RHCqEyviYJ6ABELmOtOukp9//8H0xDLBnimgYxDLYGFKXO2xErrZGxyvL6ELf
+	7Z9De3CNrTggJEM6NtRcydroSeDp03SAre7QSO3om7jqn13vQC5/mNoZBEEjVg==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=none;
+	spf=pass (outgoing_mbo_mout: domain of antonio@mandelbit.com designates 2001:67c:2050:b231:465::2 as permitted sender) smtp.mailfrom=antonio@mandelbit.com
+From: Antonio Quartulli <antonio@mandelbit.com>
+To: stable@vger.kernel.org
+Cc: Antonio Quartulli <antonio@mandelbit.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v3 3/3] selftests: netfilter: cover IPv6 FIB prefix suppression
-Date: Mon, 16 Nov 2026 15:01:30 +0000
-Message-ID: <20261116150132.9594-4-leonard@lausen.nl>
-X-Mailer: git-send-email 2.55.0
-In-Reply-To: <20261116150132.9594-1-leonard@lausen.nl>
-References: <20261116150132.9594-1-leonard@lausen.nl>
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: [PATCH 6.6.y] netfilter: flowtable: ensure sufficient headroom in xmit path
+Date: Mon, 16 Nov 2026 16:28:24 +0100
+Message-ID: <20261116152826.2997774-1-antonio@mandelbit.com>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -77,184 +74,147 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -----
-X-Rspamd-Report: REPLY(-4) BAYES_HAM(-2.999838) MID_CONTAINS_FROM(1) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -5.599838
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-	d=lausen.nl; s=uberspace;
-	h=from:to:cc:subject:date;
-	bh=lOr4fHWDJmDbv/ZQHO6T7OQiyEAQ/Lb9RxYZKQiNakc=;
-	b=DyAulS2BaAkK3Ym+Nm2xUoNNuscFK5rsovTLXwQ2ExAb66CbC7I0BuE66Mi8M4TwY8Ojs+FHdm
-	Xd2Pxd5/nn9YH+iFL4sCyqD0ur1Cuqv3aGqA90Fn1QnRISDaS/zSLtm51+PPeZlbdDio8a+KiUdP
-	e8+hrHpqQTArW16OSmVS9iYiKJg7e1/jN+L0uAdzdpxYH6lyOIZrZ3A7GaOe/StpQnhP0+tclf0j
-	2nQb/Xz8ZVfuOeB914vyjLMZjK9Vr++vCoqlOLQghsdX37wez8BSkzQPSlkjWRyxztuEXurkVVhp
-	GikWSPnmvxyfBSw9amrF8Cv2SdIzukLTQdaC7mcShbKu7KrzA5Dk2cnAw5NWwSrj6eXVqzk4N8Fx
-	+siB3Xk0duRoL8SeDQ3/BPKfYem5q+783QyjOia2RFHzqcLfJi+hfiNXpxaZBNV5KdGsyEOt8OMV
-	2vVid9W1zfVK49yMJrS84IvFH/lkODK5R6/y1mtaN83/FPIK6qoPk11PdAvsHipSy4aaramV4CUS
-	Oy7YCJDD0MY6FukYocUjj8sifA47xO+2Iqpg6NfY4uaYmJiv2f8CLKoWZyMLiaX7pJT1yfpIrK5c
-	9dwYGzTOVDWjUsWFeadrV/y4tQPXL4GmQcaKXfDd6S+QLveZxA86artBs1aK94DbrchaIXNvKYeA
-	c=
+X-Rspamd-Queue-Id: 4jSsFy5nwQz9rxT
 
-Extend nft_fib.sh using its existing namespaces and counter helper to
-check that suppress_prefixlength 0 suppresses a default route while
-retaining a more-specific route. Check that blackhole, unreachable and
-prohibit routes remain terminal despite a usable route in a later table.
-Include a blackhole nexthop object to distinguish result reject flags
-from flags on the FIB entry.
+commit ef4f741e8627512cb8c82f59a1fc7aacd854aadf upstream.
 
-Require a positive counter for the expected nftables FIB result. Compare
-it with the output device or rejection error from an ordinary lookup.
-Create a PMTU exception through the existing peer namespace and check
-that its parent default route is still suppressed.
+Check for headroom and call skb_expand_head() like in the IP output
+path to ensure there is sufficient headroom for the mac header when
+forwarding this packet as suggested by sashiko.
 
-Label ruleset-load failures and skip the affected checks when IPv6 prefix
-suppression or nexthop objects are unavailable.
+Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[ aq: the upstream commit does not apply to 6.6: 6.6 predates
+  b5964aac51e0, and FLOW_OFFLOAD_XMIT_NEIGH flows are still sent through
+  neigh_xmit() from nf_flow_offload_ip_hook() and
+  nf_flow_offload_ipv6_hook(). Do the same headroom check there, before
+  skb->dev is switched to the output device, and in nf_flow_queue_xmit().
 
-Run these checks after the existing default-table tests so that adding
-policy rules does not remove coverage of the path without custom IPv6
-rules. The router's logging RPF rules have already been removed by then,
-allowing neighbour discovery during intentionally different reverse-route
-states.
+  Without it, a forwarded skb reaches the output device's
+  header_ops->create() with only the headroom it was received with. A
+  UDP socket behind a veth (e.g. a container) leaves 16 bytes; virtio_net
+  leaves 26 for frames larger than GOOD_COPY_LEN. GRE, ip6gre and VLAN
+  have since been hardened individually, 6LoWPAN has not:
+  lowpan_header_create() stores struct lowpan_addr_info (32 bytes) in
+  front of skb->data after a mere WARN_ON_ONCE(), i.e. an out-of-bounds
+  write before the skb head. Seen on v6.6.162 with IPv6 forwarded by a
+  flowtable from a veth to a 6LoWPAN interface:
 
-Signed-off-by: Leonard Lausen <leonard@lausen.nl>
+    WARNING: CPU: 1 PID: 3974 at net/ieee802154/6lowpan/tx.c:21 lowpan_header_create+0x165/0x1b0 [ieee802154_6lowpan]
+    Call Trace:
+     neigh_connected_output+0xa6/0xf0
+     neigh_xmit+0xb4/0x1e0
+     nf_flow_offload_ipv6_hook+0x544/0x7c0
+     nf_hook_slow+0x39/0xe0
+     __netif_receive_skb_core.constprop.0+0xd8a/0xf40
+     __netif_receive_skb_one_core+0x37/0xa0
+     process_backlog+0x75/0x130
+
+  Before e67c577d8989 ("ipv4: ip_gre: make ipgre_header() robust") the
+  same path panicked with multipoint GRE (DMVPN) output devices:
+  skb_under_panic in ipgre_header() via nf_flow_offload_ip_hook(). ]
+Fixes: 97add9f0d66d ("netfilter: flow table support for IPv4")
+Fixes: 0995210753a2 ("netfilter: flow table support for IPv6")
+Fixes: 7a27f6ab4135 ("netfilter: flowtable: use dev_fill_forward_path() to obtain egress device")
+Link: https://vyos.dev/T7549
+Signed-off-by: Antonio Quartulli <antonio@mandelbit.com>
 ---
-v3:
-- Add a cached-default PMTU case using the existing peer namespace.
-- Run after default-table tests; label load failures, skip unavailable
-  optional features and match ordinary rejection errors exactly.
-- Remove Assisted-by.
+Reproducer (run on v6.6.162: WARNING without this patch, clean with it).
+Needs CONFIG_MAC802154_HWSIM and CONFIG_IEEE802154_6LOWPAN, plus nft,
+conntrack and python3. The 6LoWPAN neighbour is static and the conntrack
+entry is inserted with SEEN_REPLY, so the very first packet matches "ct
+state established" and the flow is offloaded; no 802.15.4 peer is
+needed. If udev renames wpan0, use the name of the first
+ARPHRD_IEEE802154 (type 804) interface. Run it in a throwaway VM.
 
-v2: https://lore.kernel.org/netdev/20261115114434.10343-2-leonard@lausen.nl/
+  modprobe mac802154_hwsim; modprobe ieee802154_6lowpan
+  sysctl -w net.ipv6.conf.all.forwarding=1
+  ip link set wpan0 up
+  ip link add link wpan0 name lowpan0 type lowpan
+  ip link set lowpan0 up
+  ip -6 addr add fd00:b::1/64 dev lowpan0 nodad
+  ip -6 neigh replace fd00:b::2 lladdr 02:11:22:33:44:55:66:77 dev lowpan0 nud permanent
 
- .../selftests/net/netfilter/nft_fib.sh        | 109 ++++++++++++++++++
- 1 file changed, 109 insertions(+)
+  ip netns add lan
+  ip link add lan0 type veth peer name lan1 netns lan
+  ip link set lan0 up
+  ip -6 addr add fd00:a::1/64 dev lan0 nodad
+  ip -n lan link set lan1 up
+  ip -n lan -6 addr add fd00:a::2/64 dev lan1 nodad
+  ip -n lan -6 route add default via fd00:a::1
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 04544905c216..175bdfa825c9 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -202,6 +202,50 @@ check_fib_counter() {
- 	return 0
+  nft add table inet t
+  nft 'add flowtable inet t ft { hook ingress priority filter; devices = { lan0, lowpan0 }; }'
+  nft 'add chain inet t forward { type filter hook forward priority filter; policy accept; }'
+  nft add rule inet t forward ct state established flow add @ft
+  conntrack -I -p udp -s fd00:a::2 -d fd00:b::2 --sport 40000 --dport 5000 \
+      -r fd00:b::2 -q fd00:a::2 --reply-port-src 5000 --reply-port-dst 40000 \
+      -t 120 -u SEEN_REPLY,ASSURED
+
+  ip netns exec lan python3 -c 'import socket; s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM); s.bind(("fd00:a::2", 40000)); [s.sendto(b"x" * 64, ("fd00:b::2", 5000)) for _ in range(100)]'
+  dmesg | grep -A12 lowpan_header_create
+
+Without this patch: the WARNING above. With it: none, while the flow is
+still offloaded ("conntrack -L" shows [OFFLOAD]). Replacing
+"flow add @ft" with "accept" also avoids it, because
+ip6_finish_output2() expands the headroom.
+
+ net/netfilter/nf_flow_table_ip.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -330,6 +330,22 @@
+ 	}
  }
  
-+# Count probes matching the expected FIB result, then drop them.
-+test_fib_suppress() {
-+	local label="$1" expected="$2"
-+	local result="${3:-oifname}" error err=0
++/* Make room for the link layer header of @dev, like ip_finish_output2() does.
++ * The flowtable fast path skips the IP output path, and a device with
++ * header_ops (e.g. an NBMA GRE tunnel) may need more headroom than the skb
++ * was received with. On failure the skb has been freed.
++ */
++static struct sk_buff *nf_flow_xmit_headroom(struct sk_buff *skb,
++					     struct net_device *dev)
++{
++	unsigned int hh_len = LL_RESERVED_SPACE(dev);
 +
-+	if ! ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+flush table ip6 filter
-+table ip6 filter {
-+	chain prerouting {
-+		type filter hook prerouting priority -1;
-+		ip6 saddr dead:1::99 icmpv6 type echo-request \
-+			fib saddr . mark $result "$expected" counter drop
-+	}
-+}
-+EOF
-+	then
-+		echo "FAIL: $label (could not load ruleset)"
-+		return 1
-+	fi
-+	ip netns exec "$ns1" ping -6 -c 1 -W 0.1 -q dead:1::1 > /dev/null 2>&1
-+	if [ "$result" = type ]; then
-+		case "$expected" in
-+		blackhole) error="Invalid argument" ;;
-+		unreachable) error="No route to host" ;;
-+		prohibit) error="Permission denied" ;;
-+		esac
-+		LC_ALL=C ip -net "$nsrouter" -6 route get dead:1::99 \
-+			from dead:1::1 2>&1 |
-+			grep -Fxq "RTNETLINK answers: $error" || err=1
-+	else
-+		ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 |
-+			grep -q "dev $expected " || err=1
-+	fi
-+	if check_fib_type_counter_family ip6 1 "$nsrouter" prerouting \
-+		"$result" "$label" &&
-+	   [ "$err" -eq 0 ]; then
-+		echo "PASS: $label"
-+	else
-+		echo "FAIL: $label"
-+		ret=1
-+		return 1
-+	fi
++	if (unlikely(skb_headroom(skb) < hh_len && dev->header_ops))
++		skb = skb_expand_head(skb, hh_len);
++
++	return skb;
 +}
 +
- load_ruleset "$nsrouter"
- load_ruleset "$ns1"
- load_ruleset "$ns2"
-@@ -845,6 +889,71 @@ test_fib_type "default table"
- ip netns exec "$nsrouter" nft delete table ip filter
- ip netns exec "$nsrouter" nft delete table ip6 filter
+ static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+ 				       const struct flow_offload_tuple_rhash *tuplehash,
+ 				       unsigned short type)
+@@ -340,6 +356,10 @@
+ 	if (!outdev)
+ 		return NF_DROP;
  
-+# Keep the earlier IPv6 checks on the path without custom rules.
-+# The router's logging RPF rules have already been removed here.
-+if ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 \
-+	suppress_prefixlength 0; then
-+	ip -net "$nsrouter" -6 route add table 128 default \
-+		via dead:2::99 dev veth1 || exit 1
-+	ip -net "$nsrouter" -6 route add table 129 dead:1::/64 \
-+		dev veth0 || exit 1
-+	ip -net "$nsrouter" -6 rule add pref 101 to dead:1::99 \
-+		table 129 || exit 1
-+	ip netns exec "$nsrouter" nft add table ip6 filter || exit 1
++	skb = nf_flow_xmit_headroom(skb, outdev);
++	if (!skb)
++		return NF_STOLEN;
 +
-+	test_fib_suppress "suppress default route" veth0 || ret=1
-+	ip -net "$nsrouter" -6 route add table 128 dead:1::/64 \
-+		dev veth1 || exit 1
-+	test_fib_suppress "retain non-default route" veth1 || ret=1
-+	ip -net "$nsrouter" -6 route del table 128 dead:1::/64 \
-+		dev veth1 || exit 1
-+
-+	# Seed a PMTU exception while bypassing suppression of its parent route.
-+	ip -net "$ns2" -6 route add dead:1::99/128 via dead:2::1 \
-+		dev eth0 mtu 1280 || exit 1
-+	ip netns exec "$ns2" sysctl -qw net.ipv6.conf.all.forwarding=1
-+	ip -net "$nsrouter" -6 rule add pref 99 to dead:1::99 \
-+		table 128 || exit 1
-+	ip netns exec "$nsrouter" ping -6 -I dead:2::1 -M do -s 1400 -c 1 -W 1 \
-+		dead:1::99 > /dev/null 2>&1
-+	if ! ip -net "$nsrouter" -6 route get dead:1::99 from dead:1::1 |
-+		grep -q 'mtu 1280'; then
-+		echo "FAIL: could not create PMTU exception"
-+		exit 1
-+	fi
-+	ip -net "$nsrouter" -6 rule del pref 99
-+	test_fib_suppress "suppress cached default route" veth0 || ret=1
-+	ip -net "$ns2" -6 route del dead:1::99/128
-+	ip netns exec "$ns2" sysctl -qw net.ipv6.conf.all.forwarding=0
-+
-+	for type in blackhole unreachable prohibit; do
-+		ip -net "$nsrouter" -6 route replace "$type" default \
-+			table 128 || exit 1
-+		test_fib_suppress "retain $type" "$type" type || ret=1
-+	done
-+
-+	if ip -net "$nsrouter" -6 nexthop add id 1 blackhole; then
-+		ip -net "$nsrouter" -6 route replace default nhid 1 \
-+			table 128 || exit 1
-+		test_fib_suppress "retain blackhole nexthop" \
-+			blackhole type || ret=1
-+		ip -net "$nsrouter" -6 route del table 128 default
-+		ip -net "$nsrouter" -6 nexthop del id 1
-+	else
-+		echo "SKIP: blackhole nexthop objects unavailable"
-+		[ "$ret" -eq 0 ] && ret=$ksft_skip
-+		ip -net "$nsrouter" -6 route del table 128 default
-+	fi
-+
-+	ip -net "$nsrouter" -6 rule del pref 100
-+	ip -net "$nsrouter" -6 rule del pref 101
-+	ip -net "$nsrouter" -6 route flush table 129
-+	ip netns exec "$nsrouter" nft delete table ip6 filter
-+else
-+	echo "SKIP: IPv6 prefix suppression unavailable"
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
-+fi
-+
- test_fib_vrf
- 
- exit $ret
--- 
-2.55.0
+ 	skb->dev = outdev;
+ 	dev_hard_header(skb, skb->dev, type, tuplehash->tuple.out.h_dest,
+ 			tuplehash->tuple.out.h_source, skb->len);
+@@ -452,6 +472,9 @@
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = (struct rtable *)tuplehash->tuple.dst_cache;
+ 		outdev = rt->dst.dev;
++		skb = nf_flow_xmit_headroom(skb, outdev);
++		if (!skb)
++			return NF_STOLEN;
+ 		skb->dev = outdev;
+ 		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+ 		skb_dst_drop(skb);
+@@ -748,6 +771,9 @@
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+ 		outdev = rt->dst.dev;
++		skb = nf_flow_xmit_headroom(skb, outdev);
++		if (!skb)
++			return NF_STOLEN;
+ 		skb->dev = outdev;
+ 		nexthop = rt6_nexthop(rt, &flow->tuplehash[!dir].tuple.src_v6);
+ 		skb_dst_drop(skb);
