@@ -1,62 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=78.133.224.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794790104;
-	b=xTiHesqXIqQCjZaxzTRlhZJw4NgyXjfWpeA+rxY1A/kGfUvzbjwSsIjfBKyamAqBiTPY
-	 dzwX6gce1X3yWBKCY2IDo9wFrQswvLOo0va1sJkNBz0diPkAzSXrhk9w3XOY2DSPZP7Wj
-	 5kPRtC1akFgNjqE/VTHE80MEMQqGQE7V+0oNr6oFrWkzLJfUw/XdLmMyxYjbZeqKrXJWb
-	 8s5Uzn1qJ25XLwKso7ZT7yIOR6JGaFltQx1Xh9ggCnOtCBbBsK7itOBECw+v7GElNEAmS
-	 NfRKBLdflKnvHK88OUg8A1BYrQFaU0GQrWv9eMFxMGEwSQkX4vTFC0z1IjAKZRSuG1Q==
+	t=1794812947;
+	b=ePYLK8Y++vV92rE1O+zSZCs4lo87Otb4FfAJWiDs70cEphLaB2Y96yBMFN3hxfG6Wu7S
+	 ID1wO3/s7IRKmfszS6ass9rVS/NkT+0IEKNclHH6Na5A1XglLvVX89hw6EX3OTizXWw11
+	 XaY2Vq2klq+DvtRoTGG5+ExU/nDQ1RsbCFoZ8eimZrSHXVAtAp/S1UOfts+Fre8by4a0k
+	 75Ao4/kAVxy2XfqfbsSPh5jyAdGfMPBkfJKDBLVoPGrY+SF+4T5MKQQKPRboRM10D4ihZ
+	 XGbgoYXU6qr45whCoELyMp4Xzt4TGUiDdtmlGclm984F6gQjikei6KsKoZ/5SsaMAvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794790104;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=j4z437CErRttFgDcoek0QE3JQHKL0bnc1M3lMGTwYzs=;
-	b=4rmZNuf8jIZO+nOWwncuyNl5XW3KoqCQ77SQzYiR656x/qBSIJvUS70vKtOhx+AmfVpV
-	 5WLqIv/jDugvP4WWY3vlOfXDyvZeY0Roc3RaD7KS5DWf7DmijMLAqXmGOjH94kFBzhJqI
-	 iNVx5WKv1eKUiitXcorDtVbqNer2QdsrFiupJGlpxUtwJ5M0gl9teoDsINlF25WLFx+YI
-	 4szekJnyZ6+m6o9o49K69xREri7YRNAyzLk6uEFE0JizLdClLYnig+0qdlvrMoYN3w/rX
-	 HWVtY/BYALAICr4SR8D/G6Pr9hj/E68D+fVxp2s2XUS9GvS2JQWQOZQNUwctoemVRLA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794812947;
+	h=DMARC-Filter:Received:Received:Date:From:To:cc:Subject:In-Reply-To:
+	 Message-ID:References:User-Agent:MIME-Version:Content-Type;
+	bh=1mHmG9IJHtIMld4ZeRanDjKIMZUQxx8f0ptnWkrCv+U=;
+	b=0i8RahmNidBKHbWBeQckX6v4j9iCyuvVL/fZe/BEsPc/Xoe2nv+21TKq8Z9boKNYHrYK
+	 TotB7T80Z1D6oFXyUkcSsAhoCh3IC2ARjY/i+UN6pi3dNYn0B76azB/X9E/tIfcdqgcSB
+	 9AKBwpQFVyOBZwo6poe7axdA/vqIytMUUML/LMiEAVafmfqLwAHbYtegV4ihhnpc2LQN1
+	 1aZBowjXeK5BftnnOth8JJo70ZfTNBNImfEeyD/SSoOHs0mtHF983Xw9qw+XNmuv9T2VO
+	 QrXYqlONvEBxO/uVPvcWVve8MQ3C5gxmDeM/Gca8NoKmNnPn6fkxMNR6i7ZoQw4/UxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=QqKn2xtk;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 00149606A31F;
-	Mon, 16 Nov 2026 00:48:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 00149606A31F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=QqKn2xtk
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794790101;
-	bh=j4z437CErRttFgDcoek0QE3JQHKL0bnc1M3lMGTwYzs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QqKn2xtkeaLHha9RNfEep8NK1dwP1eLp+riSyUscfauxWrfHs3gah65iwLKGgfJ9y
-	 eqSQbZ/fJNPIKpKzeDZhJqhrUsB4D6uEyUbsWX3NfBrwQi/uo1QR1W33oY7lAs/mlZ
-	 qYpYK1pt4w9MIw7KqijnWxJGNlFzKDRB1YPOOdbBEeax/xEZWa2KCSdFXq9CvRBtz/
-	 xlB8eukCOFcVimRtium66Je688fvbgafeA2Lg/zOSzdArETjRFyw+htAs2VEkPmi4E
-	 7Ei7N8M/Q7Y0JocqYt57gzQUOE46B3PhSJACvNuBOxosz85Yin0rL5nvoQSznRiztx
-	 g07VNfSB+9StA==
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A7EF76005F;
-	Mon, 16 Nov 2026 01:48:21 +0100 (CET)
-Date: Mon, 16 Nov 2026 01:48:18 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netdev-bot+sinfo@kernel.org
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Subject: Re: [PATCH net 01/11] ipvs: fix problems during connection deletion
-Message-ID: <avpS0jsi8HEby7Xh@chamomile>
-References: <20261116004404.2821183-1-pablo@netfilter.org>
- <20261116004404.2821183-2-pablo@netfilter.org>
- <179479004454.3291.8322282390265057876@kernel.org>
+	dmarc=none header.from=orcam.me.uk;
+	spf=none smtp.mailfrom=orcam.me.uk;
+	arc=none smtp.remote-ip=78.133.224.34
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 364A6606A332;
+	Mon, 16 Nov 2026 07:09:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 364A6606A332
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=orcam.me.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=orcam.me.uk
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+	id 39D8A92009C; Mon, 16 Nov 2026 08:09:04 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by angie.orcam.me.uk (Postfix) with ESMTP id 376CC92009B;
+	Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+Date: Mon, 16 Nov 2026 07:09:04 +0000 (GMT)
+From: "Maciej W. Rozycki" <macro@orcam.me.uk>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+cc: David Laight <david.laight.linux@gmail.com>, 
+    Christian Brauner <brauner@kernel.org>, 
+    Geert Uytterhoeven <geert@linux-m68k.org>, linux-fsdevel@vger.kernel.org, 
+    Jann Horn <jannh@google.com>, Josef Bacik <josef@toxicpanda.com>, 
+    Chris Mason <mason@kernel.org>, Jeff Layton <jlayton@kernel.org>, 
+    NeilBrown <neil@brown.name>, Eric Dumazet <edumazet@kernel.org>, 
+    Thomas Gleixner <tglx@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, 
+    Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, 
+    Greg Kroah-Hartman <gregkh@suse.de>, 
+    Joel Granados <joel.granados@kernel.org>, Kees Cook <kees@kernel.org>, 
+    Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+    linux-kernel@vger.kernel.org, linux-nfs@vger.kernel.org, 
+    linux-acpi@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+    linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+    linux-um@lists.infradead.org, linux-wireless@vger.kernel.org, 
+    linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, 
+    ntfs3@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+    coreteam@netfilter.org, kexec@lists.infradead.org, 
+    linux-pci@vger.kernel.org, linux-sound@vger.kernel.org, 
+    netfilter-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+    ibm-acpi-devel@lists.sourceforge.net, jfs-discussion@lists.sourceforge.net, 
+    linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+    linux-cifs@vger.kernel.org, linux-fbdev@vger.kernel.org, 
+    linux-hwmon@vger.kernel.org, linux-mm@kvack.org, linux-sh@vger.kernel.org, 
+    linux-usb@vger.kernel.org, samba-technical@lists.samba.org, 
+    sparclinux@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+    linux-doc@vger.kernel.org, linux-serial@vger.kernel.org, 
+    linux-atm-general@lists.sourceforge.net, Takashi Iwai <tiwai@suse.de>, 
+    linux-input@vger.kernel.org, linux-raid@vger.kernel.org, 
+    linux-ext4@vger.kernel.org, linux-modules@vger.kernel.org, 
+    linux-debuggers@vger.kernel.org, Chuck Lever <cel@kernel.org>
+Subject: Re: [PATCH RESEND v2 14/23] proc: let procfs copy in writes before
+ pinning the entry
+In-Reply-To: <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+Message-ID: <alpine.DEB.2.21.2611160657470.17804@angie.orcam.me.uk>
+References: <20261104-work-procfs-core-v2-14-76ace653a773@kernel.org> <CAMuHMdVfakapgBK6TBhO1iWX8qzvLDk8jzRS=t2MVa5G=MCUeg@mail.gmail.com> <20261107-akteur-gemieden-eckdaten-21304d085e35@brauner> <20261108185953.28054fb3@pumpkin>
+ <alpine.DEB.2.21.2611090504170.17804@angie.orcam.me.uk> <20261109214558.0d9d5228@pumpkin> <CAHk-=whsA3tKcUCBJDj_vmJ11rVGT9rivgnKjGRgMO21CPmCxg@mail.gmail.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,36 +81,21 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <179479004454.3291.8322282390265057876@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
 
-On Mon, Nov 16, 2026 at 12:47:24AM +0000, netdev-bot+sinfo@kernel.org wrote:
-> Hi!
-> 
-> This is an automated message. This series looks like a fix, but its
-> commit messages seem to be missing some information:
-> 
->  - How the issue was discovered, e.g. hit in production, hit during
->    development, syzbot report, manual code inspection, LLM or static
->    analysis tool scan.
-> 
->  - Whether the issue was actually triggered, or is only theoretical
->    (e.g. found by LLM and not proven at runtime). If it was triggered
->    please include the symptoms, like the stack trace or kernel messages.
-> 
-> Please do not repost the series just to address the above. Instead,
-> reply to this email with the missing information, so that reviewers
-> can take it into account.
+On Mon, 9 Nov 2026, Linus Torvalds wrote:
 
-This is v2 of this PR for IPVS.
-
-Keeping back the patches 1, 2, 7 and 15 coming in the previous batch
-as discussed with Julian Anastasov.
-
+> > Just that the cast would have to be:
+> >         u8 *foo = (u8 *)bar;
+> > where 'bar' is 'char *', and I don't think you need a cast there when
+> > char is unsigned.
 > 
-> *IMPORTANT*: If you do repost (for other reasons) - please include
-> the relevant info in the cover letter or commit messages.
-> -- 
-> The evaluation is done by an LLM so it may be wrong, if you think
-> that is the case please reply and explain.
+> .. and just to clarify: 'char' is always unsigned in the kernel on all
+> architectures since commit 3bc753c06dd0 ("kbuild: treat char as always
+> unsigned") back four years ago...
+
+ Thanks, yes, that's the piece of the context I was missing.  I've since
+actually come across this commit while investigating which Linux ports 
+have plain `char' signed in the psABI (MIPS for sure).
+
+  Maciej
