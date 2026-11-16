@@ -1,97 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.208.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794824133;
-	b=fPoDu1sMAAsB+cKIwr/NnwdC+sEtlwcxv/KMYjrAAxj1/HLv4TOwKveBqsJQlMLrSs+u
-	 Q5m3N5Pj45DgQojJvBdVQFjGPzWKtnF9Ot+A9Yeh330zDDBL6ybOVq3f6d2Aui/8ZVU44
-	 Dh+gOC19O5VZ+UJCIhT9IQexz/NgcJ/B8jaWGAZ7qtAfzqm1LiBQLN+D2W8vEisGak9tW
-	 UWTRqZGmhikGx12ynpGQn7fLFm2dXTmFYgyS10YI5Nv7nOCTrRds1rYLx2LAcRbDTDh+D
-	 w32+l11EOMEH1TcLGthpxw6L3fmbRzRr9CVDe5XUBe2i4+n7BEPzAod62wv4bGNvbXA==
+	t=1794824543;
+	b=4he08ZMzsd7U5zdPKlexxGcrIQQcTAqJi6vh6okshDnJBXyCVoMjGbdEpcIK7BvxpNgD
+	 Wp7XI2cgHHSWtqMBSLTsFW2R1PwBRD3vurrBBuTsS5zczP+MMZ21Iq2GRDtay1DpjmA9y
+	 B4Ggw8dy1UAOL1rUTmr1WtEDwCda6afiNfhZYl9AfUnwGPsRuFrYPtG5IxooJt18gjzJH
+	 anB4oySZWIlSx5xEtPlXk2QCoHDQj86MDMIhl6iI5WEpQL8Q1UeEOSMs8bGt8g+K6+EUg
+	 UToakJ2CznXtTWUiK/YQ0Ip+0mow6OdJ0MbnoJb+Si+S6fbalhn25D6H/NqPJYX8dOQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794824133;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794824543;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=MmFHwFEuMpLfLRAKJJjBjIdikYWgskAg6Z40N1h66qk=;
-	b=vUEwQ3xAK6qLpWCEje15MdmXQH8jnZx9PyBE7aOWqIte43loDCKCvkmcGixaKO3iC2Dr
-	 fAGRc4EqOiadWc3zn7pHMgj+wb/+hS8TzIx0tihKL2DSWoE/EE1wDpaiC2duw37/LcwDL
-	 Fj9Nu6ENkgVRslCjblMGNcX2ln91eXOF9U/qhpThJHNCjnfnq+bLMiufRY0Y2TGpTIx6B
-	 Kfbe7Nrq4kKcF+11e4xEWRGqnRPJYUbBegwb3AIyWFpzxk18aycxHvcFn7O358a8PW4xo
-	 9pOgumVDiYTvcowX/ooag8tS+2YM7VxngwKhYtHTb2LvBhME7FJz6ACP+vkCdQysYXg==
+	bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
+	b=gHf0b6NecsbBCt86I38q0dgCsShQn+Oi9x2/YutVA4iHzQj7EY5cCnw0vB9pKn2TH5Xd
+	 AY2DKRoQ2VdxojIPwJP3L98MsCFMj/Zfoyd7Sta/4hy228xnZEhqGKkG7nQ2fr6JI9xDz
+	 Ct4EJV1wCLVlJ69y13/Y5Xfc45P/wxxqUxj7Y7jb1einxvYM9xDDjq5By5/ehoLF6d5c4
+	 lXa010hhoBg67huHco6Yaozl+VdOQNBDNACoucTggGsOd5vlMaT4XDvGTxGU0QFgF/GPb
+	 s4fDjNfgEJsV/IDizsK+nU1SDSSJptwt/WdoI/2LFEahzVgLByTQ4CIu+5/EamgcaAA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HgAYqc9G;
-	arc=none smtp.remote-ip=209.85.208.52
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G+N5jeLc;
+	arc=none smtp.remote-ip=209.85.218.52
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5062B606A32C
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 10:15:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5062B606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8C22606A31C
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 10:22:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B8C22606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HgAYqc9G
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-6b6f42095bcso4542304a12.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 02:15:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=G+N5jeLc
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-c506a231b88so455992866b.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2026 02:22:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794824132; x=1795428932; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=MmFHwFEuMpLfLRAKJJjBjIdikYWgskAg6Z40N1h66qk=;
-        b=HgAYqc9G+r96o0aqLB0eD65XAGTpvqpGGt1tW8Ub7O/zlwjAXz1TJx3hFYyjVwyZ09
-         ECxETVeCo06ckRHSN36lx41RzEpKa2tvpIimz2927tVhlZPmryHZF2EL7RoebI89/kfv
-         fY4XMfG987AjFYznToDjdOG6cRZtFHqytosoCqFNm7pkBmCTuUTMhzaCvCKvZhw8BgSW
-         nb2VijaUGgqbOlOrDlLogUZwZVHbdXT/2BY7o76L+vWqspXux2lQVg0LxzJbjnvzXpeQ
-         b6+N6W7V2SaeT/vujdVrAi0PrvF14wgBNST8KCkL2miE0tnLXS+SXFukDhhwmIqG8Ry7
-         0bqw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794824132; x=1795428932;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20260707; t=1794824541; x=1795429341; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=MmFHwFEuMpLfLRAKJJjBjIdikYWgskAg6Z40N1h66qk=;
-        b=QQfUQMfz/S/yW71kCALkgqpOFyYy+xKT+EabTsJR8Y2tp/irDyl6egX4tNAy4f+AYS
-         qCeac9tsB8BHeRK6hyRo/xDFYpywJKbnP2RFaruYUoLUFRfgU17Ce/mP+D79ipWzsvYC
-         OSQ9lhv90xIcUB8hBLsyOqwVWjhxsxWR188EWNhbLqN4BNY5nZgUzKX+WgBIiUb4N766
-         +eg0yjWv75KvkS3ekJjAsgcrxaLlmlc8/fJOopS9AZ0M93iyVt3jtRRjajzXgVrnaGc1
-         03dLO+Rk/em8wuHvA/x1RuAy2Vrfd+0rVFl1hl7D8rb4H0J7SLijM66hV0NUaE+DA2+D
-         2zxw==
-X-Forwarded-Encrypted: i=1; AL+hErErILhG/6rhm/LpUHh0VXzpcqTIIRcqt0Xz5/O4K8NZ0FvU/23Cz6E3qzr3Np+Q9k7CkRp2+FZjNNVq0THYtqY=@vger.kernel.org
-X-Gm-Message-State: APuU4Z861Mo1abnTjWIVjCYfY10UDhBBn68ZiFFiOj9grCgfthxNA4Zt
-	J2YaZzwidY8yWeg6LvjmuyKuJx+2fQCoKi66hsoLsS0pY0Rsma6QpPEHiJRyzzZndE+V/s6P
-X-Gm-Gg: AYBFou0hHuNQklBl483WxPVx17NV6zEzKPPJa/I4KuOSBMobrMQBZSOXQS8V6TM5arq
-	ROaZGDnNRgSgfuhxzoco/kXnSPBMocoAi8I8bczRFrF8hSLv1Ui0JPb7iXbgTZ/Mz7AeydSJPpy
-	/67lMvXUgdt/cavikaxprM3R7YZbXS5uue15E5QJez2ZMsKbsJHUQtGLlE7APR5EvF5tckAltcR
-	JiFbVoCVq0c4t7ETwWMbxdZ9hTlxi2JkQoIBKRWfjBdBco0um40I1Fp2TVCHteN60ZQGZuWsLYq
-	ldb+hCu/Zd2bid6di8pS0TE/WOdTD+RZhMoQgHaZ/G5712MruCarulNRBoEsyLrYqUR6vYRhMle
-	1esvgmm9/z8RZotoelnI+sr8UqlgVZYebv9dJXBOZhNesFVTF/v6ydS+G2QQPZy61tSsvnGUlhW
-	Sm5pqpY9f/s7eb5asL0qN45Tf2UT0vvA/gVDD6OwabnigpXTZ8OwLlpBvYej5rW1U7V3ltFEreY
-	kkBzKb7PeHT9p2Ctuu+um4xjWJ2N6YGm8SJYckeZ4yBVx3nobjA02sOZEG58+ayyQDy1l4NYdfM
-	8RQIYlPqwPxKsMENfelAbDEZh2wtDG/kx+TlhcvaWg+iiIWZ49Q+cRSDBKWW
-X-Received: by 2002:a05:6402:210e:b0:6b6:8ed8:765a with SMTP id 4fb4d7f45d1cf-6b7c0d06184mr7571102a12.38.1794824131325;
-        Mon, 16 Nov 2026 02:15:31 -0800 (PST)
+        bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
+        b=G+N5jeLcd9TSyU0ajfdiXFor9ieMQZ5PqDuSdcLVJ9kIPEwQO+wiNCAxnVReyz8upc
+         rg6CRZkX7mHyv0qPzgwkDzRG1ihFRyqz7jPbkg6q+njMzB9Hh2kI8+UMC8l/K8ctNx+A
+         mvGyiK5Z5godeXEQ6aE4PcqqswcqzxPtCLASKJjDSrXBj3scoxSTDHGyxc96txeB3t8b
+         C8KxmiqvsxmMfkyiHnRwskEV702Qe0w01tZUxA3cWSVkEXDB/mvHc6nYJ+DyWxSIJnYp
+         dPEWUFRwKZoJJW3PEFahc4sf1VQQ7bTDpp0iQqkKUvchLhVSQKbT2MQEYdqDQq0mnWSQ
+         cFqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794824541; x=1795429341;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=tvMwDlZvRR8AM6MytHxY0doJU8iadrzcZb+rby3OoZ0=;
+        b=2pFL0gVfCGK5sklNH5HzlpREw+1Mp8PaJZD7OrHNshy7vgjHMC8mn5jUsoKusw85KL
+         d9jEUtrXYXU4z9mdYrKUscWskhKe7GzIskFFZ8n2adBeLZL7GC8xRVInQjIyiwsR/+MI
+         6iTL+kkac1eq+P4Iacbnbl1zU4NkYdmpKlLg2l103iC3BT1KyTb2nodZcePhL8V9HJ08
+         5PI1MRIsvUZOl1UVilNR2hAVCkJHRud54R2pTxz82e6zmyqI3ra1ngIzmLTx2cYfTUvN
+         VIOjgKs8jYMVJDJVUyPdy55Rd9PrJGL+fpD3VK2tEEd2x67NU21brd0gvKOl9/Rk1tj9
+         pWbw==
+X-Gm-Message-State: APuU4Z/0GduxZFWQMScxW9ZZxQ9uDJzKGV497GTWJNvUdQK5ZB4Nek02
+	4UAMI5SV13p0So4vbp5YJVmb8xwFE6oCIg9+NKDfuB/DYRXV/03eDyQY
+X-Gm-Gg: AYBFou1P8i0vpN9UgUOpQEEz/iZQ3LrNg8AhKAno+4vaKNF31Qc1kAf0M8LCQfKClaX
+	SnYnHI8cMCs6MbwM31+E/QMr7ZeGWsZMoYQCVLZjqiw9bSvHPbBjYberIa4jrC/z5mxpicYCWhd
+	ibyWDtblkJiTwmUw04vCv7eNQ6u+MWQYNGfd/4UcscTHer72SOoWIVv2IBPDKqX5KgVUN0F4IUl
+	EvnrPaMt/L4UUiw5wQcC27lp4HICVFHR8ug0kY9ye2e92CsWgtiPkdjp3OO63HAebToqgyKEQ3Y
+	zGNYv5X0YwEWpwXdnwi2AwS1exZl1nKuWNQli1A1b1mxPREijOtgr5HF5bLQgP+N8Sckqq+pTMe
+	drz0nPmLfKnz7lBQ23whZbPPNj4SoB/s796XHQJpjMmtVsrm7bV4wiLck0hCylgPWKrhfVNZZED
+	lKvx3f9twbQJvFYgJEty0MnlbWFvkBxWq/Ypj+MpGHK9ukm8u1ZbmQiEI9G0vYdMXk1SiOx0lBH
+	Rm35z9aVjL9rgdergXgUvZ//6nNhlkDWv+q5gp26icnC8hA0YnJ0Nd+UiQLJ4fxp8ge25m/GW8x
+	tYzEVGMY56Ox2ZwVO1NWGl9awujaF2sfPc+vQD0U
+X-Received: by 2002:a17:907:3f20:b0:c49:df95:f0dc with SMTP id a640c23a62f3a-c509641085bmr817572066b.19.1794824540780;
+        Mon, 16 Nov 2026 02:22:20 -0800 (PST)
 Received: from theodors-laptop.. ([5.255.118.7])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6b7c24e7714sm4235699a12.28.2026.11.16.02.15.29
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c50e95da6ffsm32945966b.16.2026.11.16.02.22.19
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 02:15:30 -0800 (PST)
+        Mon, 16 Nov 2026 02:22:20 -0800 (PST)
 From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Julian Anastasov <ja@ssi.bg>,
-	Simon Horman <horms@verge.net.au>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org,
+Cc: netfilter-devel@vger.kernel.org,
 	Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-Subject: [PATCH nf v3] ipvs: ftp: do not link expectations to unconfirmed conntracks
-Date: Mon, 16 Nov 2026 13:15:06 +0300
-Message-Id: <20261116101506.98853-1-theodorlarionov@gmail.com>
+Subject: Re: [PATCH nf-next,v8 5/7] netfilter: nfnetlink_queue: restrict NFQA_EXP to userspace helpers
+Date: Mon, 16 Nov 2026 13:22:16 +0300
+Message-Id: <20261116102216.104955-1-theodorlarionov@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20261116003733.2820132-5-pablo@netfilter.org>
+References: <20261116003733.2820132-5-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -103,45 +98,12 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ip_vs_ftp_out() can link an expectation to an unconfirmed conntrack. A
-later extension add on the same packet, such as seqadj in
-ip_vs_update_conntrack() or NAT, then reallocates ct->ext and leaves the
-expectation pointing into the freed area:
+Hi Pablo,
 
-  BUG: KASAN: slab-use-after-free in nf_ct_unlink_expect_report+0x490/0x4c0
-  Write of size 8 at addr ffff888004dd4e48 by task syz.2.17/649
+This fixes the nfqueue path from my Oct 17 report to
+security@kernel.org. Could you add
 
-Link the expectation only to a confirmed conntrack.
+Reported-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
 
-Fixes: b25adce16064 ("ipvs: correct usage/allocation of seqadj ext in ipvs")
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: stable@vger.kernel.org
-Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
----
-v3: skip unconfirmed conntracks, as suggested by Pablo; v2 did not
-cover NAT.
-v2: https://lore.kernel.org/netdev/20261113011447.2357709-8-pablo@netfilter.org/
-
- net/netfilter/ipvs/ip_vs_ftp.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 44de99f4d187..cb0cdc35a7c1 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -398,8 +398,10 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
- 						   end - start,
- 						   buf, buf_len);
- 		if (mangled) {
--			ip_vs_nfct_expect_related(skb, ct, n_cp,
--						  ipvsh->protocol, 0, 0);
-+			if (nf_ct_is_confirmed(ct))
-+				ip_vs_nfct_expect_related(skb, ct, n_cp,
-+							  ipvsh->protocol,
-+							  0, 0);
- 			if (skb->ip_summed == CHECKSUM_COMPLETE)
- 				skb->ip_summed = CHECKSUM_UNNECESSARY;
- 			/* csum is updated */
--- 
-2.34.1
-
+Thanks,
+Theodor
