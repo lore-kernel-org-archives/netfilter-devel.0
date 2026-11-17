@@ -1,49 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794913854;
-	b=lyS6jws0SK3Os+xEY03bkRWwQ2G2vaX5dFOfi6fzEjkmnsOIBqtAaylayxee+p1Lexl7
-	 Fp+uJ3Rqd9bPsGxqbKc3KtnCD4PyDzh0A+NAp8acB8K+hWwagbt50C4/On6e8DPqp1B09
-	 YiBnrhVRPDO0yRR7e22a3hBWDZV7mXweYAqv+qpI0XyVDjGmV3Tc+UZ5Xkn/nKCiDFBlr
-	 eO+dpvCq6MVBdXsAfrliVaE+q+2srXHOaltLqmuAp3s9THJuI5h7H1E+4ijmPaQEo+bUB
-	 I06/o1WQ20Dy2gyuC8pAcE0WwZpE0xXvoJaWsbdWXtUEq1Z6Th5DZCOgcCAhrvsAP5A==
+	t=1794914409;
+	b=n5tRx/IURG74bMxj250Ho5kIeqJBN9zTskqFsVmIfcxgu7Pc2tDDG0XBNTOkaoDAZHBj
+	 /CLUn+0c7b1JEHtcO1v2XxDaTioTgliS00DnSg8r6oDdtUj49yKchPHIMT5fvva1nEhh1
+	 XFRspAum/Fg7jr1hCkUsnIGrQaT9Od+q8fQyb6X/UvueavBfXdEYyMd6HZA4g6S8D4wH+
+	 +jQFj80r+bacN3mlH7+KlywhpfkTHTkAJqodPj63Ze6TAY2TEBnW7noBUGW4c3JMH8w/O
+	 5zAgoUa42uWUXb/KZ7VBFSVoODZlhG2oNFj8ZhCCaRfQCiLH6RriFVOZNomIel6zL4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794913854;
-	h=DMARC-Filter:Received:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:
-	 X-Rspamd-Score:DKIM-Signature;
-	bh=XBlaEP+ZZalLn+AMLvWxVAh3MLL2GxgeVb07XFzJTew=;
-	b=JXL5EJagWb3fw6dEgPLQwGUeiaKcYpXxbhF6lZWRJabwWqIlc+RkPdssWxSKXpMY113S
-	 Fwbp6iM15t+i/AaCCKL2Uxj/0lmKF8439e7zpYWn6hPsBjUoRodXVrSWD9ouNtb0xVMc7
-	 g5RMVFuMkegIopWdVEJbQT/3kAbtwVHxuqRAMbyX3dU6syqIyKxsmAasuHmaNtdBiDC9V
-	 YGgMKy73Rkz01ycTMBG7ZK7dJ+6PLF8e+1Zth9v7bhxT2hMFo2VULgx6Cgn6elvSuSjDG
-	 3WsNSZtynec8chI49bEK5z2CVQUsxYWQgIDIW4aES5TS+pwJXCvif7MHrNcNundEsSA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794914409;
+	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
+	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc;
+	bh=3QISyfluSWeK3oqNp9QI7n3lx/wBWLiQ5O5kI6oT/ys=;
+	b=hM0sichkX/xnrXpmw0zp54TlS14NuF3ICHCsDCaA45XkToftH86i/CU17FuwKYrwQjeP
+	 yK1TTnpyz+usGlqeTW0ssQT9v250U5y+ntQjVHIThA0nAUh8j3Xs7/Rs1IDAqVHF/ojPl
+	 8nky4USCRutnr4D7sJT2gFsqM0hJPqhZodIiX2lVHHpTGhDz7uswuJw8PSMSGamFITgc5
+	 XE0alQ5B82xEUF/knrYe7yLBlWl8+S3UT+U6jOkYfrgesg4kNSHhpvm+CqfCghToHOr22
+	 dgIDRT8Wtt8evvxX9sM/CXsQH+ckNrAEnUtc0yHlKOncCYH//S9uhMUMG8I1sHua2Ow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=lausen.nl;
-	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=GcmRvluN;
-	arc=none smtp.remote-ip=95.143.172.20
-Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Hg/F06sf";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18964606A323
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:10:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18964606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44FB606A33D;
+	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=GcmRvluN
-Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id 74A3760CA0
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 12:10:52 +0100 (CET)
-Received: (qmail 10627 invoked by uid 990); 17 Nov 2026 11:10:52 -0000
-Authentication-Results: devico.uberspace.de;
-	auth=pass (plain)
-Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 17 Nov 2026 12:10:52 +0100
-Message-ID: <dd6010d1-c076-44b2-9f2d-b532a0981699@lausen.nl>
-Date: Tue, 17 Nov 2026 12:10:50 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hg/F06sf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF4801F000C4;
+	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794914408;
+	bh=3QISyfluSWeK3oqNp9QI7n3lx/wBWLiQ5O5kI6oT/ys=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc;
+	b=Hg/F06sfTWfaJWN7o1Dn96e+3Uskfd67754EJkWCS871ZCwlbPJmTUCdZcdALfbms
+	 zHECvi/1ItNh2tyALO4EcTiHRODocYGo739yKwyVB4yy2H/CfsmH0aWUDX1mqOA8ni
+	 yHyA4fOtTk8LGWm1yA+eJZGCa4tGfNTfEOXaMjg7MRu0yQYFJh+usjDtnC2t1XVC9/
+	 H/kz8PKTeoJC1NYZ8kiwngsQKBbJXhRYvCnfDmnh0jtxBNG3yW2vN4+wFDiFLwC9Vp
+	 pHtLdb3cKon0+yNAhFBeXyfMnWO5lCxcQxAG8MjyGffez/ceK3Pk93rpVfYgcbdErL
+	 W7bA3lh++/EXg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B449E392665D;
+	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -53,63 +53,68 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net v3 0/3] ipv6: Honor prefix suppression for FIB lookups
- and cached routes
-To: Ido Schimmel <idosch@nvidia.com>
-Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- Shuah Khan <shuah@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20261116150132.9594-1-leonard@lausen.nl>
- <20261117091340.GA581197@shredder>
-Content-Language: en-US
-From: Leonard Lausen <leonard@lausen.nl>
-In-Reply-To: <20261117091340.GA581197@shredder>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Bar: ---
-X-Rspamd-Report: BAYES_HAM(-2.999967) XM_UA_NO_VERSION(0.01) MIME_GOOD(-0.1)
-X-Rspamd-Score: -3.089967
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-	d=lausen.nl; s=uberspace;
-	h=from:to:cc:subject:date;
-	bh=eNHCyMzMjuTxFdiDys0ATKEpEOHWN3JbqfwqPu9B3g4=;
-	b=GcmRvluNpm4yG+//tqMK3Dv5u4jTtT7PT4TzuyzAT3iQvi4Gm/bfjxiEPVINkZf7DbYR9BZrUc
-	U6qaCOrJD8GyQDzlv3yuJDtNUtqi863BL0wSY3GrHaxu206a+4nig+GpGGzWYc86/oHr1ra46vSW
-	EU4YRyUkVe1n6kx2ZZBDUXWfJFBDjJoLCoL8mzzSnHThcoE9zIUatyaHmpYOmNW+rW1cPOyuf219
-	/89S7/9rZOftBpkpN3MuXzw7S4aDS2A8BaUN1dttP6Sl6+/sgvRfYhqz02PEghySC65cGrpHiGDu
-	HO8qAWOr7toDFdA1TRrmZsyQu4KJpIlAVMcwucb/5LZnj9LuBPAiHec862cfAxwHkRD0+2dsw6/Y
-	EJlDnCmme3bwZq10N+NqYGbKMmYucNbTMSg/O1xq2+ykovonWwQW87Ec+TNt6AERxVLX7OMPXnOw
-	/HpgFYlUG5wI15i4FFZZ2WTI+hmTycfbOPrFqA2f3AzqamuwIrbR8o5UB0py2sokrS7dBPFJ1DHj
-	435qEKSypspEnoHzVOWXRVsxbl/1pA+OIkL1kN77U7+mYbL2Xc0cszP3C7Mb+u28Pv9moT0/LCmE
-	TMLjBnFUxO8qy+rEFVf8GsBg+nDt3LPa41Vj/BnIy6+oChpWBpwzWPkesk/MNfxB9jJpM65lvtEb
-	8=
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/13] netfilter: flowtable: do not hw offload
+ flows
+ in teardown state
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <179491440753.514086.6452925778003138386.git-patchwork-notify@kernel.org>
+Date: Tue, 17 Nov 2026 11:20:07 +0000
+References: <20261116001612.2806263-2-pablo@netfilter.org>
+In-Reply-To: <20261116001612.2806263-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 
-Hi Ido,
+Hello:
 
-didn't realize it needs to be separated due to net-next and had included 
-it in v3 as it seemed straightforward enough. Will resend to net-next 
-after this series made it there. Apologies.
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Best regards
-Leonard
-
-Am 17.11.26 um 10:13 schrieb Ido Schimmel:
-> On Mon, Nov 16, 2026 at 03:01:27PM +0000, Leonard Lausen wrote:
->> Changes since v2:
->> - Add the separate cached-exception fix and PMTU regression case.
+On Mon, 16 Nov 2026 01:16:00 +0100 you wrote:
+> Sashiko reports that refreshing hw offload from packet path is racy
+> since the flow might be already torn down.
 > 
-> Why?
+> Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
+> status bit"), GC skips flow entries that are still pending to be
+> offloaded. Let's just check for the teardown status bit after the
+> pending bit is set on to address this race.
 > 
-> I said (twice) that I will take care of it. It's not net material
-> (always broken) and should be routed via net-next. Please send v4
-> without the exception "fix" and the related test case.
-> 
-> Given you already have a patch for this, send it to net-next *after* the
-> fix is present there.
+> [...]
+
+Here is the summary with links:
+  - [net-next,01/13] netfilter: flowtable: do not hw offload flows in teardown state
+    https://git.kernel.org/netdev/net-next/c/0abb54363974
+  - [net-next,02/13] netfilter: flowtable: retrieve stats on flow deletion
+    https://git.kernel.org/netdev/net-next/c/2785eca574b0
+  - [net-next,03/13] net: ethernet: mtk_ppe: update stats on flow deletion
+    https://git.kernel.org/netdev/net-next/c/272435e43f1c
+  - [net-next,04/13] net: airoha: update stats on flow deletion
+    https://git.kernel.org/netdev/net-next/c/0602fe6ca35c
+  - [net-next,05/13] netfilter: xt_time: fix monthday computation for dates past 2039
+    https://git.kernel.org/netdev/net-next/c/71d4a4199524
+  - [net-next,06/13] netfilter: nft_flow_offload: do not offload multicast
+    https://git.kernel.org/netdev/net-next/c/b0ca1ef87626
+  - [net-next,07/13] netfilter: flowtable: purge entries immediately when destroying the flowtable
+    https://git.kernel.org/netdev/net-next/c/1ba460c8e20b
+  - [net-next,08/13] selftests: netfilter: nf_queue: drop the no-op loop initializer
+    https://git.kernel.org/netdev/net-next/c/f1eaa9155e69
+  - [net-next,09/13] netfilter: flowtable: do not scrub as crossing netns
+    https://git.kernel.org/netdev/net-next/c/4733af7f19e7
+  - [net-next,10/13] netfilter: flowtable: tunnel device poisons h_source of fast-path frames
+    https://git.kernel.org/netdev/net-next/c/ada5902116b4
+  - [net-next,11/13] netfilter: flowtable: do not clear the offload bit twice
+    https://git.kernel.org/netdev/net-next/c/8147f6e61e16
+  - [net-next,12/13] netfilter: nfnetlink_queue: make skb writable before writing NFQA_L2HDR
+    https://git.kernel.org/netdev/net-next/c/3abad1970ab4
+  - [net-next,13/13] selftests: netfilter: add UDP flowtable offload test
+    https://git.kernel.org/netdev/net-next/c/03b7948d634a
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
