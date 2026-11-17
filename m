@@ -1,50 +1,49 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=57.103.64.226
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=57.103.64.176
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794916427;
-	b=kMKU5Ctfg1ArJhNuc6sI+0/DFCJem3wKBMRyC/PMRwjGDt7oYlENWd70ZJg+bi4Bs3L+
-	 QjJcT+/dBX7X9BEq4GEOr2und5sZGFSxzKXl/8UmJEnMbQPYVibLCyuhDXToNWuim257G
-	 sbpejg8/FEUI+wAFKzUBM4f4KVNspaeUgvN0MT6RySiuwUsq2kHjnzcblXEhnrCqHBzmY
-	 a6wVxx5n4F2jhOJqlWcpI+ej1OEPuRAMaNk7QL743V9rYyD+xJxB/R09Ecl3cFLzyFCFC
-	 tsA0F94W7RJjXxF4Rt3zg7hExQDRBMHDjmi27umUpsJ3yYf1uhhma5WE2IH+JQR3JoQ==
+	t=1794916429;
+	b=e72LNDkeIUoWvAyuUJC7z5yihdeMeNkg86/Dtn6+dkYI/Fwh9YT9raph6Iy/0CW8KPo5
+	 Cd4UbeKz8cmgIVbGicv9hNPYBbJ1A3/a0hdg4ulbcYhsqtuFNPOB+TzCoXaV0iLcD9RVr
+	 bImGUaRRrUPwcjrTF7ZSI770vGpeCAdMenOjAeGm/rYAirp8M/ks8TyI/VfYj1sFcXUob
+	 sGy0CRWkk/1r+EXWXEGOu9yuHrYlxxFDTWhsVj0iplt6lD/n4N+KCAj7+HwTpEUD4eCgk
+	 ge/X/oOqIF4M2gUsAWZeyIR+c2vMwv0KizFjrDoLLJbb735qQLBiEU+8pcXeTxmgZlw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794916427;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794916429;
 	h=DMARC-Filter:Received:X-ICL-RepId:Dkim-Signature:
 	 mail-alias-created-date:Received:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Spam-Details-Enc:X-Authority-Info-Out:X-Proofpoint-GUID:
-	 X-JNJ;
-	bh=ns7yWOxeWCLlUtscnHrHlNmxNz7q83rrXK4tG+VKh8Q=;
-	b=VWJEcSPkuKUkF7yjn+c+sdvm4V2kAv2zABW7NOrtQbbKpYpq8ePWCA+AhLKIpAHgz0wg
-	 gUz6O/sBXSbiaNtJOOT9bQqMslmzwcBmVzY/p9ht/oOlEBSVD/A7rUDawZkwdVKQe7SMD
-	 nf43V1/f8B2LZ4o+Ogamc7C3g0lxHFUhgbq1XLbiNWa9l7A7dcf2VIrRU/hg1Msqpghjx
-	 D5wpn+anKPAKuumM//g2sL7npEfxlbYQADAH5y7Ps6VLBdPVA+w3on94GC5MlrIvJgCm8
-	 pfv7GnvvHHxh9FuTqQvPPf6NF75gLNhk/LH9hnS0bUKjOOsWD3q7cXp8gkMgGx7VdEQ==
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Authority-Info-Out:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:X-JNJ;
+	bh=/FnNG8vqcCiU2cyM1KkwsgWOUElHYE9t3oC7rJ9yncA=;
+	b=1xlC053xioh6WIp24UkRczD8b1WZ1+AVL1sWD4iq7tQUHW6cHlU7PpI06vQfjxRrtTOo
+	 swG8/M8lWeoQonKTwG+SpAYwuN4qTMQwWaB69MrMdHywjBRoREy/BEAt+Tb/LfDTsgdI8
+	 BESrKfF5OCwVTnPGo8BDOOFXGWCKMdFHW1oPZS0ooRF/QlkXnuvg2ymUsqHrEKViiNNwd
+	 H35LH0qFgNAX2qlOFfDdNXOYdXyl7bGsViimdQEo701lLcuNEwx3HWhTz41OLxiYgkGrP
+	 odxkIbOY3QvGW3ktMwaQJUk8gYtuPqlMYvMMZb4/logK9+Anzb4dyRWa3iDeWGZSD8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=verdict.gg;
 	spf=pass smtp.mailfrom=verdict.gg;
-	dkim=pass header.d=verdict.gg header.i=@verdict.gg header.a=rsa-sha256 header.s=sig1 header.b=CeOBFq9W;
-	arc=none smtp.remote-ip=57.103.64.226
-Received: from outbound.pv.icloud.com (pv-2002f-snip4-5.eps.apple.com [57.103.64.226])
+	dkim=pass header.d=verdict.gg header.i=@verdict.gg header.a=rsa-sha256 header.s=sig1 header.b=e4kZUtng;
+	arc=none smtp.remote-ip=57.103.64.176
+Received: from outbound.pv.icloud.com (pv-2002a-snip4-5.eps.apple.com [57.103.64.176])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9426C606A32A
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:53:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9426C606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B4F9606A89F
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:53:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B4F9606A89F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=verdict.gg
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=verdict.gg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=verdict.gg header.i=@verdict.gg header.a=rsa-sha256 header.s=sig1 header.b=CeOBFq9W
+	dkim=pass (2048-bit key, unprotected) header.d=verdict.gg header.i=@verdict.gg header.a=rsa-sha256 header.s=sig1 header.b=e4kZUtng
 Received: from outbound.pv.icloud.com (unknown [127.0.0.2])
-	by p00-icloudmta-asmtp-us-west-1a-20-percent-1 (Postfix) with ESMTPS id B31C0180021F;
-	Tue, 17 Nov 2026 11:53:42 +0000 (UTC)
-X-ICL-RepId: 01a1e95b-134a-7881-8211-7e3aa6e1aea3
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verdict.gg; s=sig1; t=1794916424; x=1826452424; bh=ns7yWOxeWCLlUtscnHrHlNmxNz7q83rrXK4tG+VKh8Q=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=CeOBFq9Wq6SF12AI3PIzC+yhacxQt06xNouKJjDYd/qlyO54ahFa5blSVQqEIW8aBrn0DFA/uxXTz61OcMdOHpxWquuFr/humHVgOfb+KCc6v7ayUySzfKoV0Js+0hG6eaM0BL8OJdYUmtse09rKsObZ3Feq5ZHn1ly7uXiVC8zPV+nGBkHhVfGkTWa+QjC/aIwb4CfPxh2uzCXKQ84uh6wofzK/2/7ODq+K3Khk0x7jc30H//h2h8iFpd2dpla2lZixugv0DmKIMqYjlfJNjgHeb3b1goy2Y5qS+GlOAo3Cphw3bGa4uNy6K4A8AR/8TBAb4XWQjfgQZJMBCil+gA==
+	by p00-icloudmta-asmtp-us-west-1a-20-percent-1 (Postfix) with ESMTPS id EFED318000BC;
+	Tue, 17 Nov 2026 11:53:46 +0000 (UTC)
+X-ICL-RepId: 01a1e95b-2497-7cf0-9c77-3bf765588f1f
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verdict.gg; s=sig1; t=1794916429; x=1826452429; bh=/FnNG8vqcCiU2cyM1KkwsgWOUElHYE9t3oC7rJ9yncA=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=e4kZUtngllAAcMXLhDcoNaGeEf9XdNSmFy4g3oZgrMykjhU+TddLjximwVCVzGcI3WGJXe5Mgz3Fq+sbqJCiXKq+F7U7PAamBQRQlW2hOHOvnmEEy07WNrnj2f2Shxq9y7Xjo/Y7+bgJ54aeZJ0E6MD1PlYZTqc2/B0YEE+0MT8jeMT1VfNvrqsvQLJT8Q7cD84FOHTokYF9Kkjt323jtKgNzLQBerWoTYbZBxAmTJm79N0oPNjrL7xPCiQpXPY9Uoo9IDonDaSzgQiX7GNJt4fE/mpGg2hFs7dp/S0GOHrQN6wPGAksSepE+DJbdycUXnPl7xn0Numz7+h6i6nU1w==
 mail-alias-created-date: 1621344842221
 Received: from DelNac.mail.msk (unknown [17.156.192.29])
-	by p00-icloudmta-asmtp-us-west-1a-20-percent-1 (Postfix) with ESMTPSA id D715218001BF;
-	Tue, 17 Nov 2026 11:53:37 +0000 (UTC)
+	by p00-icloudmta-asmtp-us-west-1a-20-percent-1 (Postfix) with ESMTPSA id 5A85018001A9;
+	Tue, 17 Nov 2026 11:53:42 +0000 (UTC)
 From: Vladimir Vdovin <deliran@verdict.gg>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
@@ -67,10 +66,12 @@ Cc: Kees Cook <kees@kernel.org>,
 	linux-hardening@vger.kernel.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>,
 	Vladimir Vdovin <deliran@verdict.gg>
-Subject: [PATCH nf-next v1 0/5] netfilter: nf_conncount: reduce list_lock contention at the limit
-Date: Tue, 17 Nov 2026 14:53:03 +0300
-Message-ID: <20261117115308.95134-1-deliran@verdict.gg>
+Subject: [PATCH nf-next v1 1/5] netfilter: nf_conncount: bound the gc walk by examined entries
+Date: Tue, 17 Nov 2026 14:53:04 +0300
+Message-ID: <20261117115308.95134-2-deliran@verdict.gg>
 X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20261117115308.95134-1-deliran@verdict.gg>
+References: <20261117115308.95134-1-deliran@verdict.gg>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -81,149 +82,159 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Proofpoint-ORIG-GUID: gEgYC-vKQFDSq_RvjCOrLk78npJMFyKi
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE3MDA0NyBTYWx0ZWRfX5PyWIkEjCkfp
- UVH0iuk1ep33Ra8VI5YwxsacQFIG2OLtr85rLHrCgMggSnsssrCSnTdCqlU3vmLIsQ13RtJvm5c
- i3QCpr+zKIdlJ05RuRQZrd7inXU3H7k=
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA0NyBTYWx0ZWRfX+266nEAjpd+A
- ZlpjiECXwQSLGExP/07Il/YeSYfZzFeK9iVxRdVG7/1NJrM7q29LS/hrjjUUeNlUHpC8D40UQq4
- XV/OT9MK3x84ZK8fMeIzC6WIhcO/uLkxx6bynHzXFaiXutwnZoY/Gv4uQ8D/W6eeVB8YhIw4jM8
- nxSJxkhk1sq8C0yxnXwHfty0fXywKSjf0xkEJeDF9dZFoz27yMetHtCrE9lFhVA/d+LS8Pg54ca
- TPRGWNWMCpeE6q2t0Ugs+LR7ydbeyiNtBf+TdDV0jLCWm6xsgCHlJ/Sr1PNs9DY0nGRcS64nYxf
- sORcIXaXKqht2bfbKOH+E5i8HUpIygof/C5lrvllmQm/BRy/rCEnmItUlh5j9o=
-X-Authority-Info-Out: v=2.4 cv=INaXmQvG c=1 sm=1 tr=0 ts=6afc4048
+X-Authority-Info-Out: v=2.4 cv=f+5FxeyM c=1 sm=1 tr=0 ts=6afc404c
  cx=c_apl:c_pps:t_out a=aW9mcIavGNWWFvFFKOxBSA==:117
  a=aW9mcIavGNWWFvFFKOxBSA==:17 a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22
- a=51JdnUhQRHFq8RItG6ly:22 a=fpMW3eChgMEhEGMGJwAh:22 a=VwQbUJbxAAAA:8
- a=gNQ-XgrdbNVyKNSONi8A:9
-X-Proofpoint-GUID: gEgYC-vKQFDSq_RvjCOrLk78npJMFyKi
-X-JNJ: AAAAAAAB2ZSvn9er+OVtv4+IN7hZNp8adE7ID9HES50oPVljIASVO1/9qXGk/kl/jZf/OW
- AUNCFd9hm1k5trrijJTAzELliLWlBVqwEwS5PRDwTCLVOnoQo61AexRBfwNO52YoAnlIdk
- 4V7KPRZ6qjv8A/KDx1awDHaMrL3O5ONEEJ8lk2o84l44SeozKP5f3BQ6YO81PoiYbKpH3T
- rl0D9rofM3eiXShp1WxJFliV7nOtwRc3GOPYZuq5NEsNOx5EA3+K3k1rYNJKD0EEQRbC0D
- hWc/JqN48XBivY5J4JmC8i6Y8DLhgH/bFeOZMZpuIWZlHKkzdAPNVJ9llIqT56MJK/t58m
- DQBrOzslF4mbH+Vj0IpH7FOyUmjzXBMHsHLYS/06xkTsk97crQo5b2NKdHeCADawn+X4hc
- /0/RmekxVFvqsC4GEK8r2tRLdabZq69ILntLNIotlbPhuNDswursJV8Uvambj5hEzqGWaX
- ZPR7GAOouw3Xyltc/PDQI38AiPHHZiW/L4RXIaAtvC4XpQqX34BZ84e1W25p9Fhjvj6L26
- oXWKMuJfIJqshiHRihMDY0or2BiKUBX+WGCGsWS61faWFJUZKxx/2TiQaDACTqcVRitJ8P
- qFW/D1x7FeKaqufZ4FGfy6AVsZXf73fSKNIGXOA5OW9AQ2BC3xujuImig82HrfYIn5i9sJ
- QBUVP2Xk6qTrtF2FkzmID84jRUTvbvMRaOko4s20dUEqMdH+QRtHo6EgLBmcBkqzEdoB10
- 2JnpMPqsOPrZH0jPRlY6JmHB6eh1b3vPRKUn0yVSTozJ98os0XCXtHz54Q5MFlPEV+nklM
- E3qzqs2yoFHiTG8bphsvsmS3epSddwtq2x02VzZARQUvIVHOWYYBlfZHUoqTMY63Z1WgWv
- VqBkgWjDL9vGJ/gFyj2Pcqt75vB6+tYqcpMZu6u23k3F+CDxhOG02mpgwbhLqCS0DAvOHV
- rvzKy5z/dkeia9rEDbeKn5Z2BM2MBwcWJYjYltsQTrTi7Ss6+3FagVIWP7voHLfPwtCesD
- wU3ts0p9fcNa5RcYExxat+lbE3lTlb2JZO9pAPW1A4vtqfXZqszuGgrmhF6oGKJYYOzr9I
- CXKuNwkpOkTd6R4EXXF/esmWbXhAGGNCyTM3DVA53gw0TKW7UeSquvsmVXp+qGmQ4zT/ZQ
- 9A9WA/j7EEiiMS1kz4D9Xco9enqvrzE7ANb0aUeLhKZuAApJz3ZoJ4UjqZyphhl3PkOFoZ
- /guLMvpZueJ/5bir5xkRmczLMZzLOTFyAJz21rIAR5aV8XrMFSHAMCc5aW2EIE7C4Q7Qev
- HJG5DREYdE4fdQozRFNEB9cStHQUQvozDSlyp6BVC3RjhnfJR/8IDk/2NBv0bx1u5cVWsq
- jG/mxnlBL7qAxPMEeXsYjJqVeEv2SVCms4JaH/OCR5fDnbWHPDTkrArr
+ a=Y_NIGFiZ6U2ltCn7DMEA:9
+X-Proofpoint-GUID: GtEXESwVMOMfDuoaNcvlo_Mwg5R3km_b
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE3MDA0NyBTYWx0ZWRfX9jbzQhTkSopV
+ joqfBH+Iccnu9qLjdSnp7AZeIdrf+EBRr2cNR45fxlRWxJI98g2N/iw8cdiqNDIiOEZd8bPrc0u
+ pS97uyh804O+lbBvE/IcSVYavEbOMH8S3mEFy/WRvvN1GLMxt4v4PTmRq6KneHILEw3dAIlPR9D
+ dZ9rpWbvJYfWeO7toJBXLn1GRj36Xxu6NEcBt98DGtdZm0f5xhBgS2VOEH2wiQ0667yXtJwUTk4
+ IxNv8/7N6ogVT8pzv+0dC1btjBo23ZuYCa5+WzYFEgeA6T3UjtkkJa0W/n07DzwKfEHX4mBw5s1
+ 9ZjLe1mp2/MnRtHGtV1/pAgUY5WD3vhj/9LjIydpTlXJEPpsTS80E93U8uYBQI=
+X-Proofpoint-ORIG-GUID: GtEXESwVMOMfDuoaNcvlo_Mwg5R3km_b
+X-JNJ: AAAAAAABlLv8BcWSW2AxynIy4vyDYETJcqdS45kX6kSxavv5zhuw1qMawmYTkRDjKNr50F
+ pJHyH2MXj8LiyV1b/x8UxqOgxW9WhlBKR4YGET/plPR5zLuxqCR4LVbE1Ft425oNGtYMK5
+ 2PtLX+7n9T/HVZh1qB6nn5+8hGE/hEnJ5o4ww5QnMK+vA2Ix0ulEDIEqIzS5jiBHBtlloc
+ cVRhoOj9IaQShFgftrHy36l+44AT7mx7WsjRfxLOJehlSgxKwQhuisAP349M9xfQsI+jFL
+ Nlb1bxv5G+9tKgmUREZyyUaZbfrAH1kZYu7+7UZjfmWZW6EWRWO74yvtPZ/VibbfU52wc9
+ kIAUwk99XrQM+FM3EVNxsf+UjxEqnkGLH4wYLoUDLaNbfUvSNM/yNSI/dQtWDXWblYRGo/
+ uW4MAkUfFizMgZ2wQ3P4B98wJ6ILBovlU/UFMCChMFjJoqhi75hwwc9UuBHhNOrHQZe0Pe
+ IU9H6sM5PBHStldDqxr3TtcbNyAx/5QU3GaU6yW9hZJqDzpVhi5uVqib5P7CDmUA8wqhmF
+ COQWq4khsBvAnXrQjRUwMAxHWjS9RUIHokoWbq7u9ZDoxmZcl7kme/RjXY3wfyG8vCWgNf
+ YI9Z+izoMF+BLT81OIB1wuyj+VtQOuwJWi8BHH51/ZNttRudQ1pMFlNwSaS9bzj3toWk/D
+ d47NgU9umL3y6cXuDfoLnlM1S+zB7huuIaY+G8E7o4g/+vvwpvjGwvHkIjxwTpFyxxSVPk
+ nPNq384a8fTMHBLFN5gvuo8v2ih1hjeAEYwtBHP7Xg7uSE0+K+3f24hrAz71WNFsMmZp8L
+ bB76PDI2s0qAaHhaianBgE4DKTEA5UL98NBBYoszKgnYRS/IdeLdNiWMxfnn5fN8UL3lu7
+ fIE0Nm7VqeUn9wqPcKxVD9jFPfRuRvebzm17bz65l9yRQTygSQJI3pIjIUAJtwkNR6tQZX
+ M9Uh
 
-Follow-up to [1]: Florian asked for the slot count to come from the
-cpu count, Fernando for a way to see the contention. Additional
-profiling showed the slot locks were not the main problem, the
-per-key list is.
+The gc walk in __nf_conncount_add() and __nf_conncount_gc_list() stops
+once CONNCOUNT_GC_MAX_COLLECT entries have been evicted, but nothing
+bounds how many entries it examines to get there. Live entries and
+entries another cpu is still adding (-EAGAIN) do not count, so on a
+list made of such entries every pass walks the whole list, one
+conntrack hash lookup per entry, under list_lock with BH disabled.
 
-The setup is a 128-cpu hypervisor (64 rx queues) running openvswitch
-with per-zone conntrack limits under a 2 Mpps SYN flood against one
-VM. OVS keys nf_conncount by zone id, so the whole zone shares one
-nf_conncount_list and its list_lock. Once the zone is at its limit
-(500k), 96.8% of all cycles are in native_queued_spin_lock_slowpath
-behind the spin_lock_bh() in count_tree(), and the host is
-unreachable.
+Stop a pass after CONNCOUNT_GC_MAX_SCAN examined entries and rotate
+the list so that the next pass resumes where this one stopped.
+Successive passes still cover the whole list, so stale entries are
+reclaimed as before, spread over several passes instead of one.
 
-Two things add up to that:
+The walk done for an already confirmed conntrack looks for a
+duplicate, which can be anywhere in the list, so it stays unbounded.
 
- * openvswitch has no way to ask whether the zone has room without
-   recording the connection, so above the limit every packet still
-   takes list_lock, records an entry that ovs_ct_commit() rejects at
-   once, and leaves it for gc to evict;
+Signed-off-by: Vladimir Vdovin <deliran@verdict.gg>
+---
+ net/netfilter/nf_conncount.c | 34 +++++++++++++++++++++++++++++++---
+ 1 file changed, 31 insertions(+), 3 deletions(-)
 
- * the gc walk stops after 64 *evicted* entries, but live entries and
-   -EAGAIN entries do not count, so under flood every walk covers the
-   whole list: 500k nf_conntrack_find_get() under list_lock with BH
-   off. And nf_conncount_gc_list() takes the trylock before it checks
-   whether gc already ran this jiffy, so the count-only lookup is not
-   lockless either.
-
-Patch 1, nf_conncount: bound the gc walk by examined entries.
-  A pass stops after 128 examined entries and the list is rotated so
-  successive passes still cover all of it.
-
-Patch 2, nf_conncount: check last_gc before taking list_lock.
-  The count-only lookup stays lockless when gc already ran this
-  jiffy; one cpu per jiffy touches the lock, the rest read the count.
-
-Patch 3, nf_conncount: size the number of slots from the cpu count.
-  Florian's suggestion from [1].
-
-Patch 4, openvswitch: do not record connections above the zone limit.
-  Look the count up first with the existing count-only mode of
-  nf_conncount_count_skb() and record only below the limit.
-
-Patch 5, openvswitch: warn about a zone above its limit without a lock.
-  The shared state of net_warn_ratelimited() was 2.7% of all cycles.
-
-Each half was also tried alone: patches 1-3 without 4 leave the host
-as it was (94% in the slowpath, recording path), patches 4-5 without
-1-3 too (97%: the check and the recording are not atomic, every gc
-pass that dips the count below the limit lets a burst of cpus record
-past it, and the first of them walks the whole list under list_lock).
-
-Numbers, two separate before/after measurements on the same machine.
-
-1. The production case, before and after the whole series:
-   openvswitch, zone at its limit, 2 Mpps SYN flood.
-
-                      spinlock slowpath   softirq   host
-    unpatched         96%                 100%      unreachable
-    patches 1-5       0%                  40%       responsive
-
-2. The nf_conncount part alone, without openvswitch, before and after
-   patches 1-3: two netns over a veth pair, iptables "-m connlimit
-   --connlimit-above 10000 --connlimit-mask 0" in the receiving one
-   (one list, the same shape as a zone), trafgen in the other with 64
-   threads sending SYNs from random sources to random ports. veth
-   delivers on the sending cpu, so that is 64 cpus on one list_lock.
-   Measured with the list full:
-
-                      nf_conncount_count_skb()   calls/s
-    unpatched         0.5 - 4 ms                 40k
-    patches 1-3       16 - 64 us                 340k
-
-   The lock stays contended here, over 90% of all cycles in the
-   slowpath both before and after, because connlimit records every
-   connection, see below. What changes is how long the lock is held
-   per acquisition, and with it how many packets get through.
-
-The connlimit matches record before they compare, as openvswitch did,
-and unlike openvswitch they cannot stop: a match does not know whether
-the connection will be dropped, and a softlimit setup needs the
-connections above the limit counted. So they keep the convoy, and
-patches 1-3 are what helps them.
-
-Tested on the nft side with a ct count test between two netns (limit
-enforced, closed and dropped connections reclaimed, list recovers
-after being full) under DEBUG_LIST and lockdep.
-
-[1] https://lore.kernel.org/all/20260413123712.42993-1-deliran@verdict.gg/
-
-Vladimir Vdovin (5):
-  netfilter: nf_conncount: bound the gc walk by examined entries
-  netfilter: nf_conncount: check last_gc before taking list_lock in
-    gc_list
-  netfilter: nf_conncount: size the number of slots from the cpu count
-  openvswitch: conntrack: do not record connections above the zone limit
-  openvswitch: conntrack: warn about a zone above its limit without a
-    lock
-
- net/netfilter/nf_conncount.c | 86 +++++++++++++++++++++++++++++-------
- net/openvswitch/conntrack.c  | 31 +++++++++++--
- net/openvswitch/datapath.h   |  1 +
- 3 files changed, 99 insertions(+), 19 deletions(-)
-
-
-base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index eca7a8d330ce..84290e363245 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -36,6 +36,8 @@
+ 
+ #define CONNCOUNT_GC_MAX_NODES		8
+ #define CONNCOUNT_GC_MAX_COLLECT	64
++/* Upper bound on the number of entries examined by one gc pass. */
++#define CONNCOUNT_GC_MAX_SCAN		(CONNCOUNT_GC_MAX_COLLECT * 2)
+ #define MAX_KEYLEN			5
+ 
+ /* we will save the tuples of all connections we care about */
+@@ -98,6 +100,19 @@ static void conn_free(struct nf_conncount_list *list,
+ 	kmem_cache_free(conncount_conn_cachep, conn);
+ }
+ 
++/* A gc pass that stopped at @conn has examined every entry in front of it.
++ * Move those behind @conn so that the next pass resumes where this one
++ * stopped instead of rescanning the same live entries over and over.
++ */
++static void gc_resume_at(struct nf_conncount_list *list,
++			 struct nf_conncount_tuple *conn)
++{
++	lockdep_assert_held(&list->list_lock);
++
++	if (&conn->node != &list->head)
++		list_rotate_to_front(&conn->node, &list->head);
++}
++
+ static const struct nf_conntrack_tuple_hash *
+ find_or_evict(struct net *net, struct nf_conncount_list *list,
+ 	      struct nf_conncount_tuple *conn)
+@@ -176,8 +191,10 @@ static int __nf_conncount_add(struct net *net,
+ 	struct nf_conncount_tuple *conn, *conn_n;
+ 	struct nf_conntrack_tuple tuple;
+ 	struct nf_conn *ct = NULL;
++	unsigned int max_scan = CONNCOUNT_GC_MAX_SCAN;
+ 	struct nf_conn *found_ct;
+ 	unsigned int collect = 0;
++	unsigned int scanned = 0;
+ 	bool refcounted = false;
+ 	int err = 0;
+ 
+@@ -195,6 +212,10 @@ static int __nf_conncount_add(struct net *net,
+ 			goto out_put;
+ 		}
+ 
++		/* The entry for this connection can be anywhere in the list,
++		 * so deduplication needs a full walk.
++		 */
++		max_scan = UINT_MAX;
+ 		goto check_connections;
+ 	}
+ 
+@@ -205,8 +226,9 @@ static int __nf_conncount_add(struct net *net,
+ check_connections:
+ 	/* check the saved connections */
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
+-		if (collect > CONNCOUNT_GC_MAX_COLLECT)
++		if (collect > CONNCOUNT_GC_MAX_COLLECT || scanned >= max_scan)
+ 			break;
++		scanned++;
+ 
+ 		found = find_or_evict(net, list, conn);
+ 		if (IS_ERR(found)) {
+@@ -247,6 +269,7 @@ static int __nf_conncount_add(struct net *net,
+ 
+ 		nf_ct_put(found_ct);
+ 	}
++	gc_resume_at(list, conn);
+ 	list->last_gc = (u32)jiffies;
+ 	list->last_gc_count = list->count;
+ 
+@@ -310,6 +333,7 @@ static bool __nf_conncount_gc_list(struct net *net,
+ 	struct nf_conncount_tuple *conn, *conn_n;
+ 	struct nf_conn *found_ct;
+ 	unsigned int collected = 0;
++	unsigned int scanned = 0;
+ 	bool ret = false;
+ 
+ 	/* don't bother if we just did GC */
+@@ -317,6 +341,11 @@ static bool __nf_conncount_gc_list(struct net *net,
+ 		return false;
+ 
+ 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
++		if (collected > CONNCOUNT_GC_MAX_COLLECT ||
++		    scanned >= CONNCOUNT_GC_MAX_SCAN)
++			break;
++		scanned++;
++
+ 		found = find_or_evict(net, list, conn);
+ 		if (IS_ERR(found)) {
+ 			if (PTR_ERR(found) == -ENOENT)
+@@ -337,9 +366,8 @@ static bool __nf_conncount_gc_list(struct net *net,
+ 		}
+ 
+ 		nf_ct_put(found_ct);
+-		if (collected > CONNCOUNT_GC_MAX_COLLECT)
+-			break;
+ 	}
++	gc_resume_at(list, conn);
+ 
+ 	if (!list->count)
+ 		ret = true;
 -- 
 2.56.0
 
