@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794933444;
-	b=kAWFi7++uu6J+s0mGq9Pt7dsT8fhxRehmH6Opc+ZaaUPPmYR0X18TF1WPYx9gg4B4VrK
-	 zMIFiwOv43OQV/xb3nX8swI+WDNQlD2+Um84lYkKqL0YowLEsFbGmDHkF/ad/VMlx60BE
-	 /53BBPgX/TkInYON9VG+M9QZ09EEj0/R0p46XgBTGRWOro5XpFJivLdNSdnsrRece31b8
-	 0X37vzmDNbcni+lymkH3PuXu+ceKuYBiTybDpnrcC4PVg6frRUbKaXZlxVKbzhLc1NX50
-	 jYrqbM+pgJyMRdvY/H6ToxX3pCZc3uJj4rydLm5HtibadQejIUPNqLSuVqJPA4ko5/w==
+	t=1794935418;
+	b=yfDvq1oDzGorYj/rnyvTdwOAg/xpq1lWiSjKrVgbs1PuJ0Bbagwy0B39tQhgSeJW83SA
+	 aG0OJtDV+nZjrNnqB7X2b47T4c/e9oRAcOi031ljjbl+3PzPnfehr0Godt4fjoQqkS7Zo
+	 KrI/HZh2ehy9PHKG6p6gBinZNCa7L8WvkYnLZudJcongwwKuIqBEC4I1tivw7GmyCASQc
+	 HOUsNPrdTl55tuia0yd7EAoOfrAaw5hX95mWurK5akvgnBs2dGoCyPLDa2JqzWmnlYTA4
+	 PoGIzdctr/xUzACSMtyqOTCnHe5fSRuxr47i0YJlf+HwNB8vRxp17T4tdPHmRWJ/hpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794933444;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794935418;
 	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
 	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=Dk536gR4sAld9G0Co0+KwmHfsUszZELHPoRp8d8uXgc=;
-	b=4TrczPOhW4cEtwOlcrYJgTgLpZrFbhMaZQQnSq7DGvAESZczIO05W9c9nRDKFRT09CG6
-	 20xJcBymQODdeOuHkSR0aTe2vXc+pNWxWP3/82V1PHWwrpKZYHbd5Q80096swmWJpLFeW
-	 exGoizBiuHvtqrlkdTwCLedym4qDHjTL5mPfpMP8mo7smrS9tqPxAL044+823GXm737xk
-	 XfRNxNIn6w94VvmN6rIE+jv31nEfo+5+N+AUV9ph//6WanVC/ZUiFRc1CXYe+NQ6QVk4I
-	 MuhDRrC7Ux9ktlOAqdbSAevZhKI8Nol3wYV7kq0TRlZyy0l7jsWLE0/qOxB6xGBq6hw==
+	bh=fVuwueDQHPgRhsHVqiZJjIWq6hcMgzSLoPqiqQuF8CQ=;
+	b=RJwsJ8LYjfPnqcUTEUxlWLMnLVAyRHC6TnlqsdmrzOPoPODFNyszbN+3AuTEm/2CUDFS
+	 NIUd55ezEi7b5QQ9SGIKM7eYnWVWZJnRHiEG+JCeLGrjp0+9MGrD67Mc0EwA1RW4q8/Wn
+	 SjEHF1mvGwEO+KWlGkFNhmJaXTuaYjG6Twk5IekLBedaqT0kSdiA9ouF0f2U6rXP5Nko8
+	 XTxIUH7WXZMnAivbFcRf6azhRVmsJYOdSHASxXfWJRteuZHBWhz1PCM1BG1S2G/jr2hLp
+	 e29y7dv/GZq72qxJ9bB7Yppk/q1kV9bNdeZexPYFcWUnZRhMCUbPjwRHXRdc+EmC2ZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=strlen.de;
@@ -24,24 +24,24 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F072E606A330;
-	Tue, 17 Nov 2026 16:37:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F072E606A330
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7AF6606A8B1
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 17:10:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B7AF6606A8B1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 363A360342; Tue, 17 Nov 2026 17:37:21 +0100 (CET)
-Date: Tue, 17 Nov 2026 17:37:19 +0100
+	id 5DAB860342; Tue, 17 Nov 2026 18:10:15 +0100 (CET)
+Date: Tue, 17 Nov 2026 18:10:13 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Ma Xinmeng <1564938642@qq.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: Re: [PATCH nf v2 2/2] selftests: netfilter: test re-owning an
- already dormant table
-Message-ID: <avyCvycm9Tvdhp60@strlen.de>
-References: <20261117161520.1031-1-1564938642@qq.com>
- <tencent_65062E982D816637E41FE6F24B678214DF09@qq.com>
+To: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ipset] tests: hash:net,iface.t: add test case for
+ wildcard matching behaviour
+Message-ID: <avyKdRvnUJhocERs@strlen.de>
+References: <20261028130203.1398-1-fw@strlen.de>
+ <86662718-9117-5c82-cd2e-74298a9a2c7f@netfilter.org>
+ <avn4KIth2ics2YkS@strlen.de>
+ <c8ce3baf-9b2a-f149-47ba-1c8b5ee1885c@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -53,25 +53,16 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <tencent_65062E982D816637E41FE6F24B678214DF09@qq.com>
+In-Reply-To: <c8ce3baf-9b2a-f149-47ba-1c8b5ee1885c@netfilter.org>
 
-Ma Xinmeng <1564938642@qq.com> wrote:
-> Add a regression test for the nftables table-adoption path.  The test
-> creates a dormant PERSIST OWNER table, lets the owning nft process exit
-> so the table becomes an orphan, adds a basechain while the table is still
-> dormant, and re-owns the orphan.
+Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> The tests you added verify the expected behaviour and v10 passes all 
+> tests. I'd not add bug-compatibility even when that means the experienced 
+> behaviour changes.
 > 
-> On the buggy tree this calls nf_tables_table_disable() and unregisters a
-> hook that was never registered, which triggers WARN_ONCE("hook not
-> found") and taints the kernel.  The test checks the taint state so it
-> fails on the unfixed kernel and passes once the commit path only
-> disables a table on a real awake-to-dormant transition.
+> Please apply your patches :-).
+> 
+> Tested-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+> Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 
-Would you mind reworking this so we can place it in the nftables.git
-shell tests?
-
-tests/shell/testcases/transactions/ would be a good place, I think.
-
-The test would be a bit simpler since nftables run-tests.sh already
-does 'tainted kernel' checks, so it only needs the 'add table', 'add
-chain', 'add table' sequence.
+Thanks Jozsef, I pushed them out.
