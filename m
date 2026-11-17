@@ -1,62 +1,68 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794920047;
-	b=1I2Y/29f7Iw2PvNiyTUFW0zxqhliW15YCNgbSadqkEIwIqeMWxl11F+6k+d7NNh6SWaS
-	 xbtncoPbiSLr4YPA1WNLhi3nHUUopUhLEy/4KvN5m5xLcg9wBCYhPoCiT0IvDDSB+z+Ms
-	 uAsf2soix4IvrlROxOaOt1QhCdqIwA/qoxR422qyMfWl56hhSnBHERt9bqczoFNzOc5uJ
-	 sW924YH/BtQeHDXNfLKDeFHKULj0ahw8Lo9bV0Kqn7V2zrLhKpXACclccvAkOiLfJwWcU
-	 474wiygVpgfoaPspdiA4aB+FFc3/0m2KPy1HT3JwhVt4jdX7U3WxN+A4rwUCzJjUP9Q==
+	t=1794920219;
+	b=hoiBfhDT4jm19agBCyjnbfcVXan6uFFWC5wYteQ2kiuzd6jXTaTaFYTvNySWMDowm/xM
+	 tuDIHWe+HY4yOru+W/vJtRnUIW6FardUvUzqIJ5S1PiFeh4NcrNLD5qr7uAZ/ZWClne6g
+	 pHUrc7n4Jj2E5cK17HrSv+xRWG4qp29YdfM+x0bS+qHrnDDVAB59daOwjHufyB7CfOfSo
+	 Jufv5r9OwPNjg9Id6uVL0dcbY1BAGBrE7o0JYeP/Dh1ecYhOx5Q9Whqq1J6SoDkwxeB0H
+	 bj0g7ZulJeyXAx1R9wVt+gEKQXax4mjedpbl3Nk4S3b9yRtobqchyLzYY8ErsRfgxYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794920047;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794920219;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=eI4v4Pwt8zW5jhRZ+0jVRE7KfXbV0/cmik9BOGR0Yqo=;
-	b=FUAwAgaqyNDEx/ipuYxRG5uSpeTJ0eQ8AqOQDLJajZPkRpT7yKkDZoymEexOz/oSJGLm
-	 lcU6arKNWTszRXrXOY5pBIA4jtRU1lAqob5M/QeB8wPXlZHowA9Mgm77Kr8YAtm1hdeGT
-	 0memGOaREoWn7deBrSoU2ztjOseWLhHFH2zxKcDukH1MFJv+FDq015t3gCduECWuyNNMV
-	 UaY4egi8NY2jubBQoy3HyycHrEM8Uun/zFRHcB4LTXNEeDzI14Md4QDV0Zo5NQFpDt2Tg
-	 DHRleYxRX8t7j36jO4OdCZYMu5OfQen8jdGG9SxQuB9NYhw0N12ClFJTrQ3/ymZDlVw==
+	bh=OTVVvYxat9orkcdedi+eKMTu2VNYh4nZrH1KaOtguVU=;
+	b=jXrM9Y2qbFjAwLRC+i4qYVLgmeAqsAM5mwGaffwNes5pKPh2gXRJuBmrh9VYk0NVJBQj
+	 WaJt/JKFXGIsutcwmEcDB6kSDHQP3pen0dtKArT2vDstZKqdvDOwqcXc/U2w6aRHk9Dpz
+	 V3SYNgXkCJPI7hWT9uJY8lsE7Ql+U2cet7BY9ww9MmXM1em1NF+mGDI9riXbi8m2sHjy4
+	 8v8jy6dc/qbCwx+Uz9fUULHLZGDSutUTT00wW+mNejcDfLygjTY86OPmCJJXgd30qXjwB
+	 MXdnNmkjqOHW4qiQZS/auM/zJ0h61KbueIQ2iZoA2ouL84KjhwxxUJdTC7sEqamO0hw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=oaFrGsXW;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bnAuemer;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id C0E2A606A323;
-	Tue, 17 Nov 2026 12:54:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C0E2A606A323
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 4A589606A31C;
+	Tue, 17 Nov 2026 12:56:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4A589606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=oaFrGsXW
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bnAuemer
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1794920044;
-	bh=eI4v4Pwt8zW5jhRZ+0jVRE7KfXbV0/cmik9BOGR0Yqo=;
+	s=2025; t=1794920217;
+	bh=OTVVvYxat9orkcdedi+eKMTu2VNYh4nZrH1KaOtguVU=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oaFrGsXWIgeyLnLgGbpYxFgKVK83DmGH2NwRb5GwxYqApi830U96EufCWr9FkWpSg
-	 rNI6UGzp7Mgf2RbyuyV7FobYqKwOQ0pwCOJog2yh3G8gIXzme7EXkoZ4oDOFv2vJwd
-	 52/PuPWt683AThlJe4JKrfBDmDAuQye+zJoKTriUQ0XNtsglURWNteRJXgI4mjCHIG
-	 wX0xt3GKDksoBHJQH5vF+TnaZXlCpcf0rvxDhZNiUOAs/G8fWneBwLy0Av50p+jaA6
-	 s8tVKAaMx0vHUCmhG6OKT4ZO0Mk/jD8tQTZ/FUT2N4CGVXOQIvUFqXFiNkK6VYXGxY
-	 PtnIU5D72rPbA==
+	b=bnAuemerWRXRXSGbr01HnF1Pqn4KLiRbAMCVJJEkHBCt+43PNXE2ZPv0HBvIK+c4w
+	 T3uLMWBm5o/b01JCcjJOoJEhIVVauEd2Irkc8p1OAYasU4Ir+O+ZlCVJJqLiXHV0aG
+	 WTA5SwbHuDxQ8ntTpUt2TuzsgHUHGrryekdJx3gZQCEA+fTZJ1TunXXhyJYNI3XoD3
+	 XtnW/hZ3dP88eTKLO6PUmoIZr8F2GycEkLhIH/oLFXVZPPQzWT/Vd+4qZ9cGwqBmZc
+	 pLFb+igoik9pR9b/cyL8enJ6eGBogvsI0JVH1Zw6O3urpT0y1v8fKKj8QTtBNEzfZx
+	 JMFCHzQe0nBMg==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 23FD260060;
-	Tue, 17 Nov 2026 13:54:04 +0100 (CET)
-Date: Tue, 17 Nov 2026 13:54:01 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 0386260057;
+	Tue, 17 Nov 2026 13:56:57 +0100 (CET)
+Date: Tue, 17 Nov 2026 13:56:53 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-Cc: Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH nf v4] ipvs: ftp: do not link expectations to unconfirmed
- conntracks
-Message-ID: <avxOaXd5lY8TxRBn@chamomile>
-References: <20261117123944.270667-1-theodorlarionov@gmail.com>
+To: Leonard Lausen <leonard@lausen.nl>
+Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>, Shuah Khan <shuah@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v4 0/2] ipv6: Honor suppress_prefixlength in
+ fib6_lookup()
+Message-ID: <avxPFYfEirXzTup8@chamomile>
+References: <20261117110813.9894-2-leonard@lausen.nl>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -68,76 +74,53 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261117123944.270667-1-theodorlarionov@gmail.com>
+In-Reply-To: <20261117110813.9894-2-leonard@lausen.nl>
 
-On Tue, Nov 17, 2026 at 03:39:44PM +0300, Theodor Arsenij Larionov Trichkine wrote:
-> ip_vs_ftp_out() can link an expectation to an unconfirmed conntrack. A
-> later extension add on the same packet, such as seqadj in
-> ip_vs_update_conntrack() or NAT, then reallocates ct->ext and leaves the
-> expectation pointing into the freed area:
-> 
->   BUG: KASAN: slab-use-after-free in nf_ct_unlink_expect_report+0x490/0x4c0
->   Write of size 8 at addr ffff888004dd4e48 by task syz.2.17/649
-> 
-> Check the conntrack at the start of ip_vs_ftp_out() and drop the packet
-> unless the conntrack is confirmed, is not a template and has the seqadj
-> extension that ip_vs_update_conntrack() adds on the first packet.
-> 
-> Fixes: b25adce16064 ("ipvs: correct usage/allocation of seqadj ext in ipvs")
-> Suggested-by: Julian Anastasov <ja@ssi.bg>
-> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-> ---
-> v4: check the conntrack at the start of ip_vs_ftp_out(), as suggested
-> by Julian. A server reply that fails the check is now dropped even when
-> it is not a PASV/EPSV response. Without a conntrack, e.g. with a notrack
-> rule, only PASV/EPSV replies were dropped before.
-> v3: https://lore.kernel.org/netfilter-devel/20261116101506.98853-1-theodorlarionov@gmail.com/
-> 
->  net/netfilter/ipvs/ip_vs_ftp.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-> index 44de99f4d187..216be082162f 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-> @@ -29,6 +29,7 @@
->  #include <linux/netfilter.h>
->  #include <net/netfilter/nf_conntrack.h>
->  #include <net/netfilter/nf_conntrack_expect.h>
-> +#include <net/netfilter/nf_conntrack_seqadj.h>
->  #include <net/netfilter/nf_nat.h>
->  #include <net/netfilter/nf_nat_helper.h>
->  #include <linux/gfp.h>
-> @@ -283,6 +284,12 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  	if (cp->state != IP_VS_TCP_S_ESTABLISHED)
->  		return 1;
->  
-> +	ct = nf_ct_get(skb, &ctinfo);
-> +	if (!ct || !nf_ct_is_confirmed(ct) || nf_ct_is_template(ct))
-> +		return 0;
-> +	if (!nfct_seqadj(ct))
-> +		return 0;
+On Tue, Nov 17, 2026 at 11:08:10AM +0000, Leonard Lausen wrote:
+> This revision removes the cached-exception patch and its PMTU test, as
+> requested. The series fixes the nftables regression introduced by
+> 1c32b24c234b and leaves dst-based prefix suppression unchanged.
 
-Given you are fetching the ct earlier, this later re-fetch can go
-away?
+Is this a LLM finding? Or a real issue in production?
 
-diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-index 9e3e005a8263..31c1e4b21b51 100644
---- a/net/netfilter/ipvs/ip_vs_ftp.c
-+++ b/net/netfilter/ipvs/ip_vs_ftp.c
-@@ -367,7 +367,6 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
-        }
-        buf_len = strlen(buf);
- 
--       ct = nf_ct_get(skb, &ctinfo);
-        if (ct) {
-                bool mangled;
- 
-> +
->  	/* Linear packets are much easier to deal with. */
->  	if (skb_ensure_writable(skb, skb->len))
->  		return 0;
+> The cached-exception work is deferred to net-next after the
+> fib6_lookup() fix is present there. Interface-group suppression also
+> remains deferred.
+> 
+> Patch 1 makes fib6_lookup() honor suppress_prefixlength while preserving
+> terminal reject results, including blackhole nexthop objects. Patch 2
+> adds six checks to nft_fib.sh using its existing fixture.
+> 
+> Changes since v3:
+> - Drop the cached-exception fix and its PMTU regression case.
+> - Remove the PMTU-only gateway and peer setup from the test fixture.
+> - Renumber the remaining fix and test patches as a two-patch series.
+> 
+> V3 review:
+> https://lore.kernel.org/netdev/20261117091340.GA581197@shredder/T/#t
+> 
+> The rebuilt v7.4-rc2-based laptop kernel now contains the v4 series,
+> without the deferred cached-exception fix. All six added selftest checks
+> pass in normal and eight-second-delayed runs; both full runs exit 0.
+> Twelve separate reject-route controls also pass. The changed source
+> compiles without warnings and passes 17 focused ASan/UBSan callback
+> checks. Automated kernel-log checks were unavailable. Target-net runtime
+> and full W=1 config builds remain unchecked.
+> 
+> OpenAI Codex assisted with investigation, reproduction, implementation,
+> tests and descriptions. Prompts asked it to investigate VPN failures,
+> simplify the series and address review feedback.
+> 
+> Leonard Lausen (2):
+>   ipv6: Honor suppress_prefixlength in fib6_lookup()
+>   selftests: netfilter: cover IPv6 FIB prefix suppression
+> 
+>  net/ipv6/fib6_rules.c                         |  6 ++
+>  .../selftests/net/netfilter/nft_fib.sh        | 90 +++++++++++++++++++
+>  2 files changed, 96 insertions(+)
+> 
+> 
+> base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
 > -- 
-> 2.34.1 
+> 2.55.0
+> 
