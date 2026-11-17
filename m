@@ -1,78 +1,59 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=203.205.221.149
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.6.0.51
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794932160;
-	b=nhA3J10iOBmQ6vG9CxgwTKP12+B+p63xrxAkCCsfJ1Fz8FljMzQZneIt4zONSQ4Cvqxu
-	 t2ZthYaJDB/bnBDlOGkrpKAstdLxH5MIzttVJaB+lUvRg0PJoEwNH7tuCKzwdKDRlAokV
-	 hR6ZCeKmq3zUBqHdnTOX9Q85pNJdhDNokscYUqzrGYxclP1tZPKFGmwA1Wtvjg63bNPHR
-	 oP7carE7KZ2/xBEepGL4vDWgTQc0QNQluSaDyHWICBfvm/GIsrECreQjpDjZBXz1vB517
-	 bN9Ecd+zI99RQlA89QdPXxaGbLmkIaqIWmJIMJcIAsiTBg+tbOlI/N/djqjCqBF8ojg==
+	t=1794932806;
+	b=zejXSZdWpGN0AoXHGc5V4TmUGosZbJ4MNUD0/Mx83FcNW3KgOJQ/2FeS9sQJSmTkGPQ/
+	 bb5kbiyx3wjhdFG7wKhNdNqaF51q4V1AoyD8Lju+z4sOgx5lYyhb0fGauwAZ0f4VZWMXu
+	 TpYF8h3P1Q6k0C3IX05KagvEhx6bNdKRmIMvDBdUtNPEOd5RQM5/Hmyn135jA5NdRSIH0
+	 86cNiqNuaT4/4mOEnKKnqICXXprUPPGibwHm4VjviC8pS/thGG/cZRNBAmy7I0OOwLD2j
+	 75i6/rCD/4Ghu03f/J/7KzcS/F7HLfzKfCau2ZtTIeOWWoO1CHygxyvGSek5SKyqJDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794932160;
-	h=DMARC-Filter:DKIM-Signature:Received:X-QQ-mid:Message-ID:
-	 X-QQ-XMAILINFO:X-QQ-XMRINFO:From:To:Cc:Subject:Date:X-OQ-MSGID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=soJLaeLZf9Tb6wBK/4xWGL9XM6cfHsPUP5XIGdbZe3o=;
-	b=ZLSLM0++C6r/b92+r/xNmTIQb13GLJ5lbK3TMXDXQZ3jN7tQ3q5Avoq8+o0nXSKu4Lmp
-	 USnnCNM99bV0jHma5SP/RxrsORBP/Hiv82BpsnlmNqqsaWIdRX+WR/KU21B6wUEgg2yC5
-	 M9vzYCJ4V5+iSHN5odj1lkRfYmja8py3UgMokJXJUxVl2JTyXelVU+GlvV92Rnf85PMYB
-	 A97jSUUxGkpR9agmYOKgDctPuXI3FR/fv5LxQwEpuJ8oplPWFv27dIGOjs+s6kDI+dqlB
-	 8xMpYfLIZsjzsgK349dBcmM6cXqwYcfnsbJOOW0sgeh28NjU6HcjLu3vVQGA/eJzA9Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794932806;
+	h=DMARC-Filter:Received:X-Virus-Scanned:Received:Received:Received:
+	 Received:Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type;
+	bh=I/fWbj3qaoG1xJAZIgo5gTbVOR5ApvHDki8G+h0TtwU=;
+	b=Yop7oqQDL1qagXPuxlD5f+CJnkuovwJAht1/9JuXB+6pxViq28YFExxrICtGs01KV5rS
+	 iynaatTMh45t+leFyvmrfdq7BSbL+P6mRANJvIbL7Xut7lSHdADI1Zfe+7Snr6rp8rEMh
+	 4iQBi38uhpqNDMk2OqN6Jhqw1DtkubL7cFIuILe+MWsMZB2j/vY3zvHytbkMwLVePMw11
+	 3EpMirj/4Iz1LYequ2YR0HaKRRkcp4JBe092a5jyERLsw3ZVcxNFMNgMBAsIaf0m/fr9T
+	 6KDQEq7LNO6GUkm+5Rl0SGhTCsptiTKP2jAfz8el1n2W7PVcJ10mLF53/uwkaW4TvfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=qq.com;
-	spf=pass smtp.mailfrom=qq.com;
-	dkim=pass header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=qmuLsZPE;
-	arc=none smtp.remote-ip=203.205.221.149
-Received: from out203-205-221-149.mail.qq.com (out203-205-221-149.mail.qq.com [203.205.221.149])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	arc=none smtp.remote-ip=148.6.0.51
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 767E5606A32C;
-	Tue, 17 Nov 2026 16:15:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 767E5606A32C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=qmuLsZPE
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1794932150; bh=soJLaeLZf9Tb6wBK/4xWGL9XM6cfHsPUP5XIGdbZe3o=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=qmuLsZPEAIslRsTDGllgnOYy769ujsFnXwIzA72KwxFxR1pPnkPCIqdSaZfqEeHcR
-	 IImpYa6BHyAL3SHP1yCprhr8WgV2x8UeTClW5a4qozTvqPbsXgb3X0FkHejE4pYXEj
-	 STxLwOai214/RR0CSyfqUCTvnWL1cRJR7kl5AQRk=
-Received: from localhost.localdomain ([182.239.117.117])
-	by newxmesmtplogicsvrsza63-0.qq.com (NewEsmtp) with SMTP
-	id 3E6A5A2C; Wed, 18 Nov 2026 00:15:38 +0800
-X-QQ-mid: xmsmtpt1794932146tssi6ks9f
-Message-ID: <tencent_65062E982D816637E41FE6F24B678214DF09@qq.com>
-X-QQ-XMAILINFO: N/WmRbclY25GxMGZDqfby7PlH8VJf2Ee/3dmI7Iy17d61pDpaF9m4bFOpclpPV
-	 HKSIQxAKUREJOb8+4OyjG/N5viRREZQz+fitQHfnvTlS5IIfOOkCdKwMhaYaTjFISgXpnDgwD9zy
-	 v/F8786p1C660IKx++MjG2Baao0ACqcXwGEQSaUOMJJRgxYaz76AoP6UDCyltInXpc/nTdGmPixV
-	 lZcQOmscxcBSODQtb1U/OHQSbm0QOLnAXFc+48pOAI8NvO+doq1/q+S9clUSwkju/LFgB9w3PXjx
-	 3N8boClTPM8hfMDkbxboUIAEmihjPThs9oOfIXaBx/VfGEXE1TMiXImwMM5izR+1G4SdJvElbkN2
-	 8gSmk8D4kg3RteeihksOAEGFvloi1ezyl8aafGE25ndETAnnnZniMp+EyKt2kaTbd0fiauwo5wIS
-	 QAp8J/HA2QLCnVGQWeN8avGTFLV116J7fWjAsgRyVreCMHygju5QV7GPoBtz9mtlfbh4Rgk2K88w
-	 +YxC2+Fz53bKQ+VPFfk2zRgDuf6g78yklZxFPHUg8RN0/30FhpeqaUr15Ho72SN+rrJCK61qLpFo
-	 06iVvHo9hpot7tp56Qis28ypxu2CB6d2Wax8SMqNqmuUpoCNLEGO+EASgOskYyHBjMVN7Gg+bqXD
-	 1RvfCQWh3ssBhknlidI0Fe0ahPpbj94VGgxRiifia1UJHHjopKLXg5JOPQDxMO+J7mX2Mhd+UjqP
-	 KlEjbjCNHAQ64iOex8gVo4QztQ/iTIW001TYZL0KVPPxBW2g76wS+cxGjHC4SCIZ+sMfqHYSmR+u
-	 59SzqspFGBmhu846waE3KjlFI1+gveggpGgQUi3qbgA2FzcFuBAJNbKlTCN74+CyMLJv6ofTC1n+
-	 pOVVjtw+W0WKrIOds3SMX0bzVVIIqQInish+UpCMB1mQ0AKrWhEOChYaHPDyxoLGaEXj1v6mX4Gm
-	 69JEpIxHdvjOWfx0J9PhQCll+4RKqU5nZhoq+i5CbKUOKTAArElKiYmxi6M31Da2/rUYeq6uiHQt
-	 m4KYXy1vsSboPpU0oi8Hw+Bhhov94W7vSFWEbfMA5fxo6dnfkXsIuqZ+P2hoDEOo/Bnd7CJtmnVY
-	 XDjrrt9z6dmso8fdMQB7HNzIk2pQ==
-X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
-From: Ma Xinmeng <1564938642@qq.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nf v2 2/2] selftests: netfilter: test re-owning an already dormant table
-Date: Wed, 18 Nov 2026 00:14:58 +0800
-X-OQ-MSGID: <20261117161520.1031-3-1564938642@qq.com>
-X-Mailer: git-send-email 2.49.0.windows.1
-In-Reply-To: <20261117161520.1031-1-1564938642@qq.com>
-References: <20261117161520.1031-1-1564938642@qq.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92DA5606A338
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 16:26:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 92DA5606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4jTVVQ0lvJz7s7xK;
+	Tue, 17 Nov 2026 17:26:38 +0100 (CET)
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id b_MpjU6eftxL; Tue, 17 Nov 2026 17:26:36 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4jTVVN1CXdz7s7x1;
+	Tue, 17 Nov 2026 17:26:36 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id F346F340D0D; Tue, 17 Nov 2026 17:26:35 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id F1D17340CFB;
+	Tue, 17 Nov 2026 17:26:35 +0100 (CET)
+Date: Tue, 17 Nov 2026 17:26:35 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ipset] tests: hash:net,iface.t: add test case for wildcard
+ matching behaviour
+In-Reply-To: <avn4KIth2ics2YkS@strlen.de>
+Message-ID: <c8ce3baf-9b2a-f149-47ba-1c8b5ee1885c@netfilter.org>
+References: <20261028130203.1398-1-fw@strlen.de> <86662718-9117-5c82-cd2e-74298a9a2c7f@netfilter.org> <avn4KIth2ics2YkS@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -82,101 +63,51 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; format=flowed; charset=US-ASCII
 
-Add a regression test for the nftables table-adoption path.  The test
-creates a dormant PERSIST OWNER table, lets the owning nft process exit
-so the table becomes an orphan, adds a basechain while the table is still
-dormant, and re-owns the orphan.
+Hi Florian,
 
-On the buggy tree this calls nf_tables_table_disable() and unregisters a
-hook that was never registered, which triggers WARN_ONCE("hook not
-found") and taints the kernel.  The test checks the taint state so it
-fails on the unfixed kernel and passes once the commit path only
-disables a table on a real awake-to-dormant transition.
+On Sun, 15 Nov 2026, Florian Westphal wrote:
 
-Signed-off-by: Ma Xinmeng <1564938642@qq.com>
----
- .../testing/selftests/net/netfilter/Makefile  |  1 +
- .../net/netfilter/nft_table_dormant_adopt.sh  | 57 +++++++++++++++++++
- 2 files changed, 58 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_table_dormant_adopt.sh
+> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> > > +# Delete the specific entry.
+> > > +0 ipset del test 10.0.1.0/24,eth0
+> > > +# The wildcard entry should still be there and match eth1 via its prefix.
+> > > +0 ipset test test 10.0.1.0/24,eth1
+> > 
+> > The original code does not handle the case properly and the wildcard entry 
+> > can be deleted instead the specific one. If it passes for you then it's 
+> > just lucky ordering.
+> 
+> Yes, it passes both on main and rhashtable_v10.
 
-diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index df3c20c90..3ca562a0a 100644
---- a/tools/testing/selftests/net/netfilter/Makefile
-+++ b/tools/testing/selftests/net/netfilter/Makefile
-@@ -37,6 +37,7 @@ TEST_PROGS := \
- 	nft_offload.sh \
- 	nft_queue.sh \
- 	nft_synproxy.sh \
-+	nft_table_dormant_adopt.sh \
- 	nft_tproxy_tcp.sh \
- 	nft_tproxy_udp.sh \
- 	nft_zones_many.sh \
-diff --git a/tools/testing/selftests/net/netfilter/nft_table_dormant_adopt.sh b/tools/testing/selftests/net/netfilter/nft_table_dormant_adopt.sh
-new file mode 100755
-index 000000000..b1e1bb4fe
---- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/nft_table_dormant_adopt.sh
-@@ -0,0 +1,57 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Re-owning an already dormant PERSIST table used to call
-+# nf_tables_table_disable() from nf_tables_commit(), which unregistered a
-+# basechain hook that was never registered and triggered
-+# WARN_ONCE("hook not found") in __nf_unregister_net_hook().
-+#
-+# The WARN taints the kernel, so this test checks the taint state instead
-+# of parsing dmesg.
-+
-+source "$(dirname "$0")/lib.sh"
-+
-+checktool "nft --version" "run nft"
-+
-+if [ "$(id -u)" -ne 0 ]; then
-+	echo "SKIP: root is required to create an owner table"
-+	exit $ksft_skip
-+fi
-+
-+read t < /proc/sys/kernel/tainted
-+if [ "$t" -ne 0 ]; then
-+	echo "SKIP: kernel is already tainted"
-+	exit $ksft_skip
-+fi
-+
-+cleanup()
-+{
-+	nft delete table ip nft_dormant_rt 2>/dev/null || true
-+}
-+trap cleanup EXIT
-+
-+nft delete table ip nft_dormant_rt 2>/dev/null || true
-+
-+# The nft process exits after this command, leaving a dormant PERSIST
-+# orphan table behind.
-+if ! nft add table ip nft_dormant_rt '{ flags dormant,persist,owner; }'; then
-+	echo "SKIP: nft does not support table owner/persist flags"
-+	exit $ksft_skip
-+fi
-+
-+# A basechain added while the table is dormant does not register its hook.
-+nft add chain ip nft_dormant_rt c '{ type filter hook output priority 0; }' || exit 1
-+
-+# Re-own the orphan with DORMANT still set.  On the buggy tree this calls
-+# nf_tables_table_disable() and unregisters the never-registered hook.
-+nft add table ip nft_dormant_rt '{ flags dormant,persist,owner; }' || exit 1
-+
-+read t < /proc/sys/kernel/tainted
-+if [ "$t" -ne 0 ]; then
-+	echo "FAIL: re-owning an already dormant table tainted the kernel"
-+	dmesg | tail -n 20
-+	exit 1
-+fi
-+
-+echo "PASS"
-+exit 0
+I don't quite understand why does it passes for you in the case of the 
+original code.
+
+> > > +# eth0 is excluded by the nomatch entry; it must not match via the wildcard.
+> > > +1 ipset test test 10.0.3.0/24,eth0
+> > > +0 ipset destroy test
+> > 
+> > This part also does not handled properly with the current code: it lacks 
+> > the ordering to match/delete first the specific and then the wildcard 
+> > records.
+> 
+> Lucky coincidence, then? What do we do now?  Will you make test cases 
+> that demonstrate the expected behaviour and I respin a v11 that passes 
+> those tests?
+
+The tests you added verify the expected behaviour and v10 passes all 
+tests. I'd not add bug-compatibility even when that means the experienced 
+behaviour changes.
+
+Please apply your patches :-).
+
+Tested-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+Acked-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+
+Best regards,
+Jozsef
 -- 
-2.56.0.windows.4.niugit
-
+E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
+Address: Wigner Research Centre for Physics
+          H-1525 Budapest 114, POB. 49, Hungary
