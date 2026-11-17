@@ -1,56 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794879631;
-	b=CHeSSLlIyQohxfQkxdv6q8+3TF7zLZ4B8oesMuaB4xpDCA41xl4IAaU8Ree8OeImS4Th
-	 npV/VoSoNAu39gktNcwdCyQlC52GwKD9hX7N3ValbJoqmbv0vmoE+tfFBKQ/SzMsUFH9i
-	 NFKPXlI9X3lDtQGblkFYcAzelHaDBuu3T72z6vF9PjiY4DZfcPVkvAeFg+gdYe4wcSEo+
-	 3iINObm0aJAZp6AJRvzT8NeI2/newyg+e41OM/Gye0tCbo5VcrPBzVRQoWbDwRaAqpB5n
-	 RopthlibIP3kD7ZCKNwHI+zdkzf0ivvDCtQ3wj2qg933rjoLXhHS65Vib4CRxlshzWQ==
+	t=1794879632;
+	b=PEb17Lm8eZozOs6ha645tZlpMBIHloJ3TC367+tSl7dxf9tyzQYBlDp4wwyRo+fATLLW
+	 wJ7VvPOpQcaVDexsBZJXMNdT7jGZrCwa1fxsfHI+sRdd5gYwDCHQgCRq5YJzN6/wFxXTC
+	 9ZO3lCeHArnJaVD4ZPhz38PMvJyEuSzRxKEyU+WdDk7I6+TtVu4HBQpjpdm7WyQzqL7/i
+	 0KkJ6xh6P2IojKy080ql8T592zpAw0qZJ7WP+4sFo4xq+YPFe06D6WmfwaH+2JzHLXimY
+	 FCLjw4qOan6vs4Y0Bk0iuu35linzrVlJv/3ZFGuFp6gEEw31GtSPyfr2H7ZdRJYAmtQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794879631;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794879632;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=P/78TN4zpBip53jvAVPl/wLOQX6H0z2TVhUcsrZra6E=;
-	b=dW48Wp4I2QSjlVaxa8bcPEk7b5SDJ7vC5jtHgD/w0A++CHVtKUyPzdb5A4gDgvi9H5aM
-	 kBDyFWgSR4x0FRx8VZSyJ2NBg7y5Um7O4XQmoeMZJmBycSNuuM78X4yTU2Rq2T6R1I+CQ
-	 Bh5XFVDf77n/HaT6zfgxCvdsW9ztzyWerLVQnsLA0zscDknHH8YjIyJNPCS4CUahzqges
-	 yLfFYqBD4ia1OuPrA0xuoLXixM5YtWkAvzuwvuAbtaXkHd3Zq8hgsRAKUZ+wDbGW1Xi8P
-	 hUSt4X2nYgU0T0JARixiG+zJQNjZogToG1nFeB4712Lcu7bIAMnduyIyxgbD6Lf1jkg==
+	bh=DfqA+cxvT1tg7nY7uX4m+b8n5bqFDqQUVLlQWc1FIrA=;
+	b=J+PWQF48DJWSPg2QTgJmUdlGn+HOv1isxrQxjoHcOcPMdoWHuZNFDo4sJNpOI6u2tqya
+	 ID0koWSPEeQZQSY5nfEM9+68S9s2wvVpnkQ8eWyJZZK9KYQS5G6eZErQZUh316ZsyemxP
+	 4/ZvYRZJkI8xJ5meDZo2Y8FL1F7J6ZNs76ewNVrm3t77NyZEQneMsKHMlW1+g2lmOs44P
+	 Gny7Fy8I2bmgCjC/6Nq4Q+FSOqqAyvdmqhfx2u91FvoTr/TO7QSjujn6YSecYun9qPdPp
+	 3ucA7y8ibF99Nju2H4JV8RS/KyVWJ7Nc3MOxKzx/Q9THH9MdDefx4m635yG1w2X6yYQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ToUd9lRc;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="aerOq3/D";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08FD9606A31C;
-	Tue, 17 Nov 2026 01:40:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19F10606A337;
+	Tue, 17 Nov 2026 01:40:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ToUd9lRc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 606E91F000C4;
-	Tue, 17 Nov 2026 01:40:30 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=aerOq3/D
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 738A71F000C4;
+	Tue, 17 Nov 2026 01:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794879630;
-	bh=P/78TN4zpBip53jvAVPl/wLOQX6H0z2TVhUcsrZra6E=;
+	s=k20260515; t=1794879632;
+	bh=DfqA+cxvT1tg7nY7uX4m+b8n5bqFDqQUVLlQWc1FIrA=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ToUd9lRcul3MhHeYazGHa4iNRWaz415Rkdyk+NVAPcWIinJpkK/7umKiIfWhl8JSs
-	 iZYrzx7DSTN7Qm7lH209TLFF1xuI8w08jiq67FMCozYGf26ZM44+1CtZrhn04E8wPD
-	 wHJThCDse6mi53Fne/Itw6cAwP7CGNOXK3KDSSgy9ANOnpYiw/olxic2nkWvJT8yz6
-	 foGFKsVYT9HVRP96m+9Z6h2K7T60/8AZCICPiLcPLrSEbDz8hm6Bz4pOkRBtra9B8/
-	 PvEikZalPq4/nrRPFHrCeTmsnEoMeh3c2Ab6nn+sPFtyT/eBwDyk0JfRO3jMMXAgXW
-	 Pmd4ibXYgVyeQ==
-Subject: Re: [PATCH net 03/11] ipvs: reject FTP control ports as data ports
+	b=aerOq3/DfQDk5X/MLEdOrfQyTfnGzfmGX7P9rAHGJKiTmHJGe/BvRI5yKMwHhZnPN
+	 An03gQGDCpPyeilryv1dwe2P9W+0NxmX43VMYDHz5bOuIgIFbgXbmpmBBehS6c1wby
+	 dpGWhX+wu4hS5soUl2LQg4z56V6pudqOhNHfXwmWVbQnD5G44c/yfAlc/uxUNmvjMl
+	 /jc3MyLPcMqADib0TYs5lQIakdMqBHFtpeUL86gtoYkjkOyuKbQJuIxnRl+28MYBqd
+	 WlwL2/m7jOh9zyIsEVmOxJ59MB7gNo2lS4Y3ukjhOF2k1hG+x8jR/8BH3v0N7j2tcH
+	 xIBRi6tPJINPw==
+Subject:
+ Re: [PATCH net 05/11] ipvs: update flags and seqs in backup server under lock
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 17 Nov 2026 01:40:29 +0000
-Message-ID: <179487962993.3136.14851480745296161932@kernel.org>
-In-Reply-To: <20261116004404.2821183-4-pablo@netfilter.org>
-References: <20261116004404.2821183-4-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Tue, 17 Nov 2026 01:40:31 +0000
+Message-ID: <179487963105.3136.8669444891088576096@kernel.org>
+In-Reply-To: <20261116004404.2821183-6-pablo@netfilter.org>
+References: <20261116004404.2821183-6-pablo@netfilter.org>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -63,10 +64,10 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
+Thank you for your contribution! Sashiko AI review found 1 potential
 issue(s) to consider.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -74,139 +75,124 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The new rejection checks in ip_vs_ftp_out() and ip_vs_ftp_in()
-  (net/netfilter/ipvs/ip_vs_ftp.c) return 0.
-- [Low] The commit message says that accepting a control port as a data
-  port 'leads to recursive expiration and kernel stack exhaustion'.
+- [High] The fix is incomplete.
 
 --
 
-ipvs: reject FTP control ports as data ports
+ipvs: update flags and seqs in backup server under lock
 
-This patch adds is_control_port() to the IPVS FTP helper. Before a data
-connection is created, the helper now rejects zero ports and configured
-FTP control ports. In passive mode it checks the port from the server's
-PASV/EPSV reply; in active mode it checks the client port and the derived
-data port (vport - 1).
+This commit extends the cp->lock region in ip_vs_proc_conn() so that the
+backup server updates the conn flags, seqs, state, old_state and timeout
+under the lock. Newly created conns now also take cp->lock before these
+updates. ip_vs_try_bind_dest() is now called after the unlock.
 
-> The FTP helper must not treat a configured control port as a data port.
-> Accepting such a port can leave IPVS connections in a state that leads
-> to recursive expiration and kernel stack exhaustion.
+Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927220816.268206-1-pablo%40netfilter.org
 
-[Severity: Low]
-Is this rationale still accurate once the previous patch in this series
-is applied?
-
-"ipvs: avoid stack overflow from recursive connection expiration" already
-rewrote ip_vs_conn_expire() so that it walks the ->control chain
-iteratively, in a single stack frame:
-
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_expire() {
-    ...
-				next = ip_vs_conn_del_reference(ct);
-    ...
-		if (next) {
-			cp = ct;
-			goto repeat;
-		}
-    ...
-}
-
-With that change, the recursive expiration described here should no
-longer happen in this tree.
-
-Could the commit message point to the companion commit and say what this
-guard still prevents now that expiration is iterative? Two candidates are
-long chains of FTP-bound data connections, and NO_CPORT entries on
-VIP:control-port capturing the client's new control connections.
-
-Both commits carry Cc: stable, but with different Fixes: tags
-(f9200a52eedf and 1da177e4c3f4). A stable backporter can't tell from the
-messages whether the two are alternatives or must both be applied.
-
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-> index 9e3e005a82635..4822a1a75212d 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
+> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+> index 1caacf419af99..ba2fa1f9d08ed 100644
+> --- a/net/netfilter/ipvs/ip_vs_sync.c
+> +++ b/net/netfilter/ipvs/ip_vs_sync.c
 
 [ ... ]
 
-> @@ -319,6 +330,10 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  		return 1;
+> @@ -891,9 +892,6 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
+>  		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
+>  		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
+>  		cp->flags = flags;
+> -		spin_unlock_bh(&cp->lock);
+> -		if (!dest)
+> -			ip_vs_try_bind_dest(cp);
+>  	} else {
+>  		/*
+>  		 * Find the appropriate destination for the connection.
+
+[ ... ]
+
+> @@ -951,6 +951,9 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
+>  		else
+>  			cp->timeout = (3*60*HZ);
 >  	}
->  
-> +	/* Do not redirect data to control ports */
-> +	if (!port || is_control_port(ntohs(port)))
-> +		return 0;
-> +
->  	/* Now update or create a connection entry for it */
->  	{
->  		struct ip_vs_conn_param p;
-> @@ -529,6 +544,9 @@ static int ip_vs_ftp_in(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  		return 1;
->  	}
->  
-> +	if (!port || is_control_port(ntohs(cp->vport) - 1))
-> +		return 0;
-> +
->  	/* Passive mode off */
->  	cp->app_data = (void *) IP_VS_FTP_ACTIVE;
->  
+> +	spin_unlock_bh(&cp->lock);
+> +	if (!dest && !cp_new)
+> +		ip_vs_try_bind_dest(cp);
 
-[Severity: Medium]
-Should these new checks return 0? In include/net/ip_vs.h, struct
-ip_vs_app documents pkt_out/pkt_in as:
+[Severity: High]
+Can the backup server still write cp->flags without cp->lock through this
+ip_vs_try_bind_dest() call?
 
-	Return: 0=Error, 1=Payload Not Mangled/Mangled but checksum is ok,
+ip_vs_try_bind_dest() holds cp->lock only around ip_vs_unbind_app() and
+ip_vs_bind_dest(). It drops the lock before it rebinds the transmitter and
+the app:
 
-The callers drop the packet when they get 0:
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_try_bind_dest() {
+    ...
+		ip_vs_bind_dest(cp, dest);
+		spin_unlock_bh(&cp->lock);
 
-ip_vs_ftp_in() returns 0
-  tcp_dnat_handler() returns 0
-    ip_vs_nat_xmit()
-	if (pp->dnat_handler && !pp->dnat_handler(skb, pp, cp, ipvsh))
-		goto tx_error;
+		/* Update its packet transmitter */
+		cp->packet_xmit = NULL;
+    ...
+		pd = ip_vs_proto_data_get(cp->ipvs, cp->protocol);
+		if (pd && atomic_read(&pd->appcnt))
+			ip_vs_bind_app(cp, pd->pp);
+    ...
+}
 
-ip_vs_ftp_out() returns 0
-  tcp_snat_handler() returns 0
-    handle_response()
-	if (pp->snat_handler &&
-	    !SNAT_CALL(pp->snat_handler, skb, pp, cp, iph))
-		goto drop;
+For a MASQ conn, ip_vs_bind_app() reaches tcp_app_conn_bind(), which sets
+cp->app and calls inc->init_conn(). For the FTP helper, that is:
 
-So instead of just skipping the data connection, the FTP control segment
-itself seems to be dropped silently.
+net/netfilter/ipvs/ip_vs_ftp.c:ip_vs_ftp_init_conn() {
+	/* We use connection tracking for the command connection */
+	cp->flags |= IP_VS_CONN_F_NFCT;
+	return 0;
+}
 
-In ip_vs_ftp_in(), the is_control_port(ntohs(cp->vport) - 1) test depends
-only on configuration, not on packet contents. Take an FTP virtual service
-on port V where V-1 is also in the ports= module parameter (for example
-ports=20,21 or ports=2120,2121). Wouldn't every PORT/EPRT command on V be
-dropped, retransmissions included? The control session would then stall
-until TCP gives up, and nothing would be logged.
+This is a non-atomic read-modify-write of cp->flags on a conn that is
+already hashed. The other runtime writers of cp->flags hold cp->lock:
 
-Before this patch, active-mode FTP worked in that configuration. The data
-connection was created with vport V-1, and tcp_app_conn_bind() also bound
-it to the FTP app, because binding depends only on the vport.
+- set_tcp_state() and set_sctp_state() toggle IP_VS_CONN_F_INACTIVE and
+  adjust the dest counters.
+- vs_seq_update() sets IN_SEQ/OUT_SEQ.
+- ip_vs_in_hook() clears NFCT.
 
-In ip_vs_ftp_out(), the return 0 comes before cp->app_data is reset to
-IP_VS_FTP_ACTIVE. Wouldn't each retransmitted 227/229 reply then be parsed
-and dropped again? A comment later in that function justifies a 0 return
-only because mangling failures are transient:
+The path is:
 
-		 * Mangling can only fail under memory pressure,
-		 * hopefully it will succeed on the retransmitted
-		 * packet.
+ip_vs_process_message()
+  ip_vs_proc_conn()            /* existing conn, cp->dest == NULL */
+    spin_unlock_bh(&cp->lock)
+    ip_vs_try_bind_dest()
+      spin_unlock_bh(&cp->lock)
+      ip_vs_bind_app()
+        tcp_app_conn_bind()
+          ip_vs_ftp_init_conn()   /* unlocked cp->flags |= ... */
 
-This rejection isn't transient.
+This can happen when all of the following are true:
 
-Would returning 1 work better here? The payload would pass through
-unmangled and no data connection would be created. The control session
-would survive (the server reports a data connection failure), and the
-self-binding would still be prevented. A rate-limited log message might
-also help.
+- A synced MASQ conn for an FTP virtual service was created unbound,
+  because the real server was not yet configured on the backup.
+- The dest is added later.
+- The next sync message for that conn arrives while the backup is also
+  forwarding its traffic.
 
-Since this is tagged for stable, could the commit message also say that
-active FTP stops working when V-1 is also a configured control port?
+Suppose tcp_state_transition() on another CPU sets IP_VS_CONN_F_INACTIVE
+under cp->lock and moves activeconns/inactconns at the same time. Would
+the unlocked write here put back the stale flags?
+
+The flags and the dest counters would then disagree, and the wrong counter
+would be decremented when the conn is unbound. IN_SEQ/OUT_SEQ bits could
+be lost the same way. This code path also looks unchanged by the rest of
+the series.
+
+The commit message says:
+
+  "Sashiko reports that we modify the conn flags and seq values in
+  the backup server without holding cp->lock."
+
+Should this path be covered as well?
+
+>  	ip_vs_conn_put(cp);
+>  }
+>
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116004404.2821183-2-pablo%40netfilter.org
