@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794879634;
-	b=e1cVYug/TNHi/wn2BUEChfCTURCiREmJPxs1eDnCWd0YFK256nH0ChgoImzIu/ThKVla
-	 yJgaV729AKekpPPCKXIC/KRZBfG5wZ3xWLrgAXQJOv/ElFKxwvlUFdbJa0+jemfFe917S
-	 403uV/y32Yfc8Q5zLA/asRwATJt5ycyJbv81hiW9UIc6DEjGHJH0MKpfZjtDC1DfpnVLJ
-	 21Wb7FjNefc56ZOznfEWFvSzx+lLb5EFDPKCxogXd51zQpb2FP7HZHtL8hwWfgk6NtwON
-	 OWRq1jC6R1XVWgY4AHTPOiAr8YtltUwqhW7sJA0p91Yz941C8LkTIndX4zWw+iyqQiQ==
+	t=1794879635;
+	b=rRBnkIZ32cK12rv6+v+WfyUh7qidUg/tChxrN0g7c07jY/+pABlo9TmdrPMb8VRGUlSr
+	 dHkZI535KLFXYqx+x66grW4Fn05zkaUN0B7zMxAZmlCOFYmQQbwYFyEb80gNbD2tBjNVE
+	 YGwxrACiEUijkNu4xWXoPTi1BxHPHo6NHYJ04KcfMmDkYm07IArvu9CHKz5IH52QYMAzk
+	 s9MSfzG3xPabp4zpJnqUYyofRJI+BGjW38ExID4KH66G64e7DkLSxfwvYSlg2NCx44jUF
+	 X3SWohTcwKeazthVVA92RU+k9xw0H1jVTcr/BCdx74YWMrwxOaYlHH4wJ9PUrjelPEQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794879634;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794879635;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=TNaxjKn+yd84Ek5TurGXTCya3oTFzwHSZ2zRuEyQCKc=;
-	b=y1wKipyikqBXNFz7CUTraFbXSXe6oYb1UQcbczF4km4z3jOjKpd1Uhm5H+X7++a4quF3
-	 wRdy/5SMxyNRbPYtQk8eWCBQuMqMLkpmHbG+CTitEcvwMxk82o9LxsBp96p+9UmMhzk4W
-	 VoGaZ/bw/Csk9iZt+QaO7XSwoWl6dOxlCVJRWU/XFMjj1akdSmPolGglPvuCp5ezm9SA7
-	 qP64tj79B4moEP65jF0YoYMBS2DW+NSHX6eAey7sDzDu+ls1iqgB6fk+k07i395+Br/6Y
-	 x0RRc5v8LR3Gz6MwZJPO4ylz6Y5/zCyYqJh2mza3tIRI5LEwn5s/OYORShibMU9NUyw==
+	bh=bfWb5RBiPkAxVa1yJSTv5gJyF52mYlUF7kbQr6pnYLQ=;
+	b=u0RkJh4UtFSZEJ2kZGQYQH2SBB8zQKLbX+DpW8D+srfuWCTv7NUloZtwCSbnD2lyPRrW
+	 WY/sdDFKmlRxK+wjtV2euaKpJeTtZ5prKmorYJHeVPMI5BhMW08tziUSjjuhpu2gWU/Vx
+	 DpGr7JR0SPrGYetGfdigRGls7D6aLBfG/JRXMHJQaTlrit4nr3nAcm67/gpQqgR65ie+i
+	 ON/mpICge4qf82tXikmCvpLhdSdZjRsSfF4H3gl2HKSjXYeAKjscVa/V7FiBffKMMktUX
+	 jM7oo6/HeWJl8g+7O8VBSFwiFHB5tTLeGAt/+U0wcP7Etkx5qohdA+G6GT9s8OSKBkQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mLrVkwkn;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO6kpO21;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D80B606A332;
-	Tue, 17 Nov 2026 01:40:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD6E606A333;
+	Tue, 17 Nov 2026 01:40:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mLrVkwkn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB2381F000C4;
-	Tue, 17 Nov 2026 01:40:33 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nO6kpO21
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F2B1F000C4;
+	Tue, 17 Nov 2026 01:40:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794879634;
-	bh=TNaxjKn+yd84Ek5TurGXTCya3oTFzwHSZ2zRuEyQCKc=;
+	s=k20260515; t=1794879635;
+	bh=bfWb5RBiPkAxVa1yJSTv5gJyF52mYlUF7kbQr6pnYLQ=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=mLrVkwknG2kICY4twtyNuTfc5dQ5wZkElgdUzmFhdxw3KyzPDixXg/0f5nwvhbhZO
-	 gTloR6JG5yO8k2c8kvKbgd/0OVz4iVGbjhhxZ5rJPelpnHGiZXCothgcdVahmU56Tp
-	 H8xA5kdSvQz6B6adtMpSlAc9hCl8fKUsvNDilfC0mttYRX+RycrxkxsauD3fqM2hDe
-	 SvWPHQXLewm3WFy328LVP3coVN8IONQaVVeQJv0XkGZ1j2FcavEH94/lRze0Wz3Gy9
-	 c78g8uEEuDeYGG2o7xKpK+1Tb7GVGP503DRf0BtMjG8xcwZCJRARmedklnFbs5Ergp
-	 tzPRTaZgpDs8w==
+	b=nO6kpO21kZQMHQgs5CBB/3tNhWvahxd0R0sSIjeevIKOOHCaCQA689n3A/RucBZdF
+	 dvMWQ2mSNfKzxroZknuwivvKpSKg1TK2hXFN3EohSb0Y2NFUXFu92fVyX1+H7zUztM
+	 NTdrOjKLMZBHznNPWMvgFo23Ypps+H7cVitW23p3zEPjPJLfab3OQ8oXHE0s2sCNSK
+	 tkmwdTOjDj+MkvGzL88/Jzdj2YlUzhC5ReRHIoxv91gDTqduIbKLIXCMnRFuIZhXVf
+	 tJrUHLEQ/ZOpPPW4/qvDX7+X4pv3M8bDg2iY95D/ayvjKfvstEhrxrpFs/etnJ2nfV
+	 0K/inXqTVpZrg==
 Subject:
- Re: [PATCH net 10/11] ipvs: do not create conns from packets with port 0
+ Re: [PATCH net 11/11] ipvs: wait grace period before reusing destinations
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 17 Nov 2026 01:40:33 +0000
-Message-ID: <179487963329.3136.11227226787276094605@kernel.org>
-In-Reply-To: <20261116004404.2821183-11-pablo@netfilter.org>
-References: <20261116004404.2821183-11-pablo@netfilter.org>
-X-sashiko-severity: Medium
+Date: Tue, 17 Nov 2026 01:40:34 +0000
+Message-ID: <179487963451.3136.12564607186717303065@kernel.org>
+In-Reply-To: <20261116004404.2821183-12-pablo@netfilter.org>
+References: <20261116004404.2821183-12-pablo@netfilter.org>
+X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,146 +64,107 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+Thank you for your contribution! Sashiko AI review found more severe
+issue(s) in other patches of this series. This mail is only an FYI, in case
+you want to address the nit picks below when you respin.
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
+Low priority / nit picks for your consideration:
 
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
+- [Low] The commit message describes pre-patch code that does not exist.
 
-- [Medium] udp_conn_schedule() (net/netfilter/ipvs/ip_vs_proto_udp.c) now
-  drops every UDP packet with source or destination port 0 that matches…
-- [Low] The commit message explains rejecting cport 0 (the NO_CPORT
-  lookup requirement makes such connections impossible to find again),…
+Pre-existing issues:
+- [Low] The header comment on __ip_vs_del_service() in
+  net/netfilter/ipvs/ip_vs_ctl.c still says " * - We are called under…
 
 --
 
-ipvs: do not create conns from packets with port 0
+ipvs: wait grace period before reusing destinations
 
-This commit makes tcp_conn_schedule(), udp_conn_schedule() and
-sctp_conn_schedule() drop new packets that match a virtual service when
-either the source or the destination port is 0. It also makes
-ip_vs_new_conn_out() refuse to create connections for client port 0. The
-stated reason is that cport 0 connections cannot be found again because
-of the NO_CPORT lookup requirement, so a new connection gets created for
-every packet.
+This patch saves an RCU grace-period cookie when an IPVS destination is
+moved to dest_trash or unhashed for an edit. It then waits with
+cond_synchronize_rcu() before the destination's n_list, d_list or
+estimator list links are reused. Trash additions are collected in a
+temporary list, so one cookie is taken after all unlinks in a delete or
+flush.
 
-Link: https://sashiko.dev/#/patchset/20261104201530.147292-1-ja%40ssi.bg
-Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261103140308.591690-3-pablo%40netfilter.org
-Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260925141115.16126-1-axel.mierczuk%401password.com
-
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index fec0e8b47b716..25d4576d0e129 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> When a destination is retrieved from dest_trash, ip_vs_add_dest() currently
+> restarts its estimator before waiting for the grace period.
 
 [ ... ]
 
-> @@ -74,6 +75,12 @@ tcp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  	if (svc) {
->  		int ignored;
->  
-> +		/* Do not create connection for port 0 */
-> +		if (!ports[0] || !ports[1]) {
-> +			*verdict = NF_DROP;
-> +			return 0;
-> +		}
+> ip_vs_start_estimator() rewrites the node on its temporary list on success,
+> or initializes it on failure, before the current wait. A reader can then
+> follow the changed link or stop traversing the chain early.
+>
+> Wait immediately after retrieving the destination, before starting its
+> estimator.
 
 [Severity: Low]
-The commit message gives a reason for rejecting cport 0, then says "Do
-the same for vport 0." without giving one. Does the duplicate connection
-problem apply to the virtual port at all?
+Does this paragraph match the tree being patched? It reads as if an
+existing grace-period wait is being moved earlier. However, the baseline
+ip_vs_add_dest() has no wait between ip_vs_trash_get_dest() and
+ip_vs_start_estimator():
 
-__ip_vs_conn_in_get() compares vport with plain equality. Only p->cport
-takes part in the XOR:
-
-	if (p->cport == cp->cport &&
-	    p->vport == cp->vport && cp->af == p->af &&
-	    ...
-	    (!p->cport ^
-	     (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
-
-ip_vs_conn_out_get() also matches the server side port with plain
-equality. Its XOR uses p->vport, which in the out direction is the client
-port:
-
-	if (p->cport == sport && cp->af == p->af &&
-	    ...
-	    (!p->vport ^
-	     (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
-
-So a hashed connection with vport 0 and a non-zero cport looks like it
-can still be found, and would not be duplicated on every packet.
-
-Before this patch, packets to destination port 0 that hit fwmark services
-or persistent port-zero services were scheduled and forwarded. The
-!ports[1] check (or !ports[0] in the inverse case) now drops them. The
-same check is in udp_conn_schedule() and sctp_conn_schedule().
-
-If this is meant as a policy change, for example because port 0 is not
-valid on the wire, could the commit message say so? That would help
-reviewers and stable backporters judge it.
-
-[ ... ]
-
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> index f32785682402d..ab3ab95241687 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-> @@ -62,6 +62,12 @@ udp_conn_schedule(struct netns_ipvs *ipvs, int af, struct sk_buff *skb,
->  	if (svc) {
->  		int ignored;
->  
-> +		/* Do not create connection for port 0 */
-> +		if (!ports[0] || !ports[1]) {
-> +			*verdict = NF_DROP;
-> +			return 0;
-> +		}
-
-[Severity: Medium]
-Should one-packet scheduling (OPS) UDP services be excluded from this
-check?
-
-The check runs before ip_vs_schedule() sets IP_VS_CONN_F_ONE_PACKET, so
-it also drops port 0 traffic for services with IP_VS_SVC_F_ONEPACKET.
-OPS connections are never inserted into the connection table:
-
-net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_hash() {
+net/netfilter/ipvs/ip_vs_ctl.c:ip_vs_add_dest() {
     ...
-	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
-		return 0;
+	dest = ip_vs_trash_get_dest(svc, udest->af, &daddr, dport);
+
+	if (dest != NULL) {
+		IP_VS_DBG_BUF(3, "Get destination %s:%u from trash, "
+		...
+		ret = ip_vs_start_estimator(svc->ipvs, &dest->stats);
     ...
 }
 
-They are also freed right after use. So the NO_CPORT mismatch in
-__ip_vs_conn_in_get() cannot cause duplicate connections for them:
+This patch adds cond_synchronize_rcu(dest->rcu_state) from scratch, along
+with the rcu_state and need_gp bookkeeping. The phrases "currently" and
+"before the current wait" seem to describe an earlier revision of the
+patch, where the wait came after ip_vs_start_estimator().
 
-	(!p->cport ^
-	 (!(cp->flags & IP_VS_CONN_F_NO_CPORT))) &&
+Since this is Cc: stable, could the paragraph be reworded to describe the
+new wait being added, so backporters don't go looking for an existing wait
+to move?
 
-Before this patch, OPS UDP traffic from client port 0 was scheduled and
-forwarded. RFC 768 allows source port 0 for one-way UDP, and that is the
-traffic OPS is meant for. With this patch those packets are dropped.
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 5868adda6ed6e..be818bf7d3806 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
 
-The new !cport check in ip_vs_new_conn_out() has the same scope:
+[ ... ]
 
-	if (!vport || !dport || !cport)
-		return NULL;
+> @@ -2063,7 +2123,8 @@ ip_vs_edit_service(struct ip_vs_service *svc, struct ip_vs_service_user_kern *u)
+>   *	- The service must be unlinked, unlocked and not referenced!
+>   *	- We are called under _bh lock
+>   */
+> -static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
+> +static void __ip_vs_del_service(struct ip_vs_service *svc,
+> +				struct list_head *dest_trash, bool cleanup)
+>  {
+>  	struct ip_vs_dest *dest, *nxt;
+>  	struct ip_vs_scheduler *old_sched;
 
-It returns before the IP_VS_CONN_F_ONE_PACKET flags are computed. As a
-result, OPS UDP initiated by a real server toward client port 0 gets no
-connection, and leaves the director without SNAT.
+[Severity: Low]
+This isn't a bug introduced by this patch, but is the "We are called
+under _bh lock" line above __ip_vs_del_service() still accurate?
 
-The commit message says it will "disallow normal connections ... to be
-created". It doesn't mention that matching packets are now dropped, or
-that OPS services are affected too.
+__ip_vs_del_service() calls ip_vs_stop_estimator() for svc->stats. It
+also calls it for each dest through __ip_vs_del_dest(). Both of these can
+sleep:
 
-Could OPS services be exempted here and in ip_vs_new_conn_out()? If not,
-could the commit message describe the dropping?
+net/netfilter/ipvs/ip_vs_est.c:ip_vs_stop_estimator() {
+    ...
+	if (ktid > 0) {
+		mutex_lock(&ipvs->est_mutex);
+		ip_vs_est_kthread_destroy(kd);
+    ...
+}
+
+The callers are ip_vs_del_service() and ip_vs_flush(), both through
+ip_vs_unlink_service(). They run in process context under service_mutex,
+not under a BH lock.
+
+Since this patch already changes the signature here, could the stale
+comment line be dropped or corrected at the same time?
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116004404.2821183-2-pablo%40netfilter.org
