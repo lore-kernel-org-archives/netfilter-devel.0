@@ -1,58 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.225
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.219.52
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794922504;
-	b=pTGKeVOT84BrRgE+W0FRhVd70qoPbB5pf0UvqkTJ0Pn6PkDV82d+0mY0bQIE6zKHt7LN
-	 k5vJTaRNO1al8oYYZOA2zC0c9oHkyKK5WqlRnh7Us6Yf65+jI1n3bf1BcPvs870vynctr
-	 YuuO/lmufaFEdqaKua4WHZ/9GZGKNnbqjpwSrQkXetRXIrueyS+W44a6Vmx+nXcpPbetD
-	 UWmA2yy0K+dgXMtgJMrIw7MN9Jdt+iNQgc+7J4mXopUdaL5jAWpVbqLnJ6lrp2FloOsCR
-	 mi+AL5hbAqzlm0gdTKUwFTDZK6nch8lRBeazG97Hwju1D1ov4C4C88llBBVbwv1l/ZA==
+	t=1794922860;
+	b=xQkuhOwm0BhazFtbFDdYMulRk+39n+zmc72lFbGlHwi9PI8pAL6avU7NoUA/Zsx3WM2i
+	 NrzzqBgY5IqmyzcJ0QHrUfQFz+taHRSaR7oMV0DezupIULBzczlcKTkGWFcHeLn1EdGIP
+	 Ol5I2JuxRv2fGhyOgAG9E6Zzsi/uD+qiN6bcZ0DcZqDCnrY42vKE40vSW8yf8no/H5UiH
+	 onRXZ4LFtYHA9EpdFjopZ6FpRdiFb6qcM4QoQrVHhKRZOaLj5w+GTHcUAu0vVIBgt4UnV
+	 3OaDfPblfs9Ta0pgJXDUnc6nGy8rKKBpy6ovMSwY85jsysqP7b+ciUKEurympd96xsg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794922504;
-	h=DMARC-Filter:dkim-signature:Received:Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:CC:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-	bh=km13M/R7MtWwUTRfoPj3IOtgS+WhJstvma3kfUvt5g0=;
-	b=aqsbUq2gwnEs80pFd9C24VHETN7EDJ0GVTn8AOI8NJDXuxoMbV2+sVQOqkc2suhrNG0Y
-	 vOMk8K1fI4XM+zR5XxsNBDi+c8j/Es8Avx0SBM5aJvBdr12CMgl7FTRnHhsqDI1p3YMT7
-	 XYwxTyHRBgQnfpx1kB6vh+UDN/VsdBEPMsh3+MfkpHQBMXR27KrUcc+dc2sYiSQITjZCg
-	 ocT+XHovoADPK4jn/oCYT5tz/pGwb0UJNfwUhlRXyVWusj51i4GQgkUdXXwKp4qeQIOrg
-	 mgl5t0pfMfxjE7txHxpNIBCjYtfPMtnsH8z62CcEd7JEVoSDgNVT/uIwT2u7Q9pNSTw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794922860;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=TwB4RSE1ahOv1eWO7HrIP9Xo526ulRCGPxUhrPC4tB0=;
+	b=UmyURCrjKV6K41wYvpXi2ixjLV9LrH1WupRel0+r7aYm/xLVha/KSP4epzQFDrQC2ETZ
+	 EnTd7m7Y1X35xd2ThteiuumlwMwVT6Td/z9N9S76ZnF9RzG9eWw4eDN5DSWe1r2qs5Ixp
+	 dVKJySj66+gGAVTfWp0v0IznJ+XyiEDDo0jXRA645iWgqzjkpafemVb4k4sAHi8BdIgL+
+	 68if/HkxWwfEkweIjxhesxYQeNfzP1lteju+ik2d7WUO16kRkSOqdp0LeJE3SeIFED9vn
+	 Dh1zYzcpcA40CocyMkq1jo/5wu4PrxSmmYoIh/5AaseAWJhpVsMSMVof40RmuTFk3Zg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=huawei.com;
-	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=hDxobDHF;
-	arc=none smtp.remote-ip=113.46.200.225
-Received: from canpmsgout10.his.huawei.com (canpmsgout10.his.huawei.com [113.46.200.225])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=1password.com;
+	spf=pass smtp.mailfrom=agilebits.com;
+	dkim=pass header.d=1password.com header.i=@1password.com header.a=rsa-sha256 header.s=google header.b=mbrGrYZU;
+	arc=none smtp.remote-ip=209.85.219.52
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5741A606A31C;
-	Tue, 17 Nov 2026 13:35:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5741A606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78E29606A32C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 13:40:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 78E29606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=1password.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=agilebits.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=hDxobDHF
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=km13M/R7MtWwUTRfoPj3IOtgS+WhJstvma3kfUvt5g0=;
-	b=hDxobDHFEtCP4tvrJnX8VNTk1aTNP5hPXrTGuFqIF4WB9mp+vmzYua3yhTbr8c14Z45yLsIdp
-	n+4dLz2fh3BG2id+KeJoMCmULG9Hx0xEyuwHPqOiypHzlVS8WyFN4Jdu4sAf+HaUpG3pZL4nUaV
-	bs2+uw99pBZf9A+SU1Lpeu4=
-Received: from mail.maildlp.com (unknown [172.19.163.200])
-	by canpmsgout10.his.huawei.com (SkyGuard) with ESMTPS id 4jTQh44MK1z1K98f;
-	Tue, 17 Nov 2026 21:34:44 +0800 (CST)
-Received: from whupemp200008.china.huawei.com (unknown [7.152.184.21])
-	by mail.maildlp.com (Postfix) with ESMTPS id B4CA440563;
-	Tue, 17 Nov 2026 21:34:57 +0800 (CST)
-Received: from [10.174.176.113] (10.174.176.113) by
- whupemp200008.china.huawei.com (7.152.184.21) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Tue, 17 Nov 2026 21:34:56 +0800
-Message-ID: <b15eb6b1-6b6e-44f4-b2ac-e348a8aa5121@huawei.com>
-Date: Tue, 17 Nov 2026 21:34:29 +0800
+	dkim=pass (1024-bit key) header.d=1password.com header.i=@1password.com header.a=rsa-sha256 header.s=google header.b=mbrGrYZU
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-91f0274f88cso74467766d6.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 05:40:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1password.com; s=google; t=1794922858; x=1795527658; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=TwB4RSE1ahOv1eWO7HrIP9Xo526ulRCGPxUhrPC4tB0=;
+        b=mbrGrYZU/2TOeFzN23IFhtlXtGQ53gHxnOmST27w/O81rXdXcuR1XDou6E1j48MhA6
+         wwq4r2OalvYh9HWBrwgCxsJq6diJWHagel8aNFSlqQNTCIJbHhie31WwSYbXJgaS49Fh
+         FCqoYH74WEGJ3ZcXJ1zVY7dOj6La1jKN4T+Go=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794922858; x=1795527658;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=TwB4RSE1ahOv1eWO7HrIP9Xo526ulRCGPxUhrPC4tB0=;
+        b=iViptiMykjnTuIdI/70Bsw0CqVuCslR19yJKz9YJw4j5wGnY+LSo0zAnTOw3bUlg2Y
+         hHAR02QTqRE3wV3ddHIdEUn5d/uXyoiLrvrWrSwTeM5BXsxwPxkbPCk50KqUPNgOblQa
+         0g7Mme4SE3H1mZaMr73x1duNUIUG80svSWyF+5bUwPinKnDbneLbAgHmwBtkbfTnJ45n
+         +TV0ECKlH3ErFPDqqNf7XLewwc8U5a/mx3ff+1KWEaeY7CIDd6NhmMImDCbikDiWxSLq
+         ZVrHI64tSN1DEIgj1l8gVoFEAIFxxkYWYdyNxH4it2j1M4b9pKIchNwTBUKyd+QnMgyC
+         cLJw==
+X-Forwarded-Encrypted: i=1; AL+hErHickeBM7uilBO4NZR8dGsKQIP6ZT8Es7Y5acuzLCB4fIVmHhD/I42Dw3oeu8VXGiYMIEsYGkcTWyjATZCAS78=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8JUqVoa3fxJDxJr6HM8zKEs4sP+8IcvVV/7QLCT+UUDAgUkAvC
+	aDl7RWnBsMpO7CGu79t8VKvmW/SDrwCd9eUk4RTCu1s2+1hneRECa2BCyIJ7VJq0L4I=
+X-Gm-Gg: AYBFou2zvb/YHF66k/O5nG1YksOTHNV8lM3YqEaZgzkUXSTSAqQE3Eq1oc+snqEJOQW
+	4HNsJFBzCPqBXVCplVMFPXCaPvWKAUooaQIZgyeMJWRXwNIm0XttluC7c/Ll0DpPpkykTBF9Qps
+	/Z+y1M4EZBp6bx73pqlvuPDe6BZbOTAf89bvghVBywzfHIag6AGk+Uy3ZKgE+p0N5+l1TSNlLNm
+	QHt688YUFt6VD6Jri9pNPDREZJQ8deOkZq0Os6fOJpJBb15xNhkOlOUsGxLRQdphTHX0fVk9XgL
+	+SC9S9lesZJSDDZr/J8HjF+MgPJZ1x+u3hQqjkx8/DAZkazVUKvApptbcQ64go6MvOH2y800pcS
+	f06EP903b9dcVSk1RQ2TR8vxHKOMle/lV9KBxx1aYT6yv87FODQJsj1TMkpCVztliBwJPoDjOyp
+	p4X6IcHErMM+QouL5TrsP//jzGPyHs/UeY1f9laO2VF7C8V7Tv4PVOCw3U3IyKZwk1TzIATgG9F
+	tG+cHxTm8kkxhAJVm6PhhmitQMU+WZkFqsvjRjufrevi9HCSvBSP1RBoMfF4+x6uPmdj3mpiQa7
+	rwgyptQs54AaesRO0m8tMVgYIBpKS7F5nbseU8pyVxlfvXX1JgKWtksLZacR
+X-Received: by 2002:a05:6214:62d4:10b0:91e:850b:770b with SMTP id 6a1803df08f44-91f24151026mr170565066d6.17.1794922858319;
+        Tue, 17 Nov 2026 05:40:58 -0800 (PST)
+Received: from localhost ([2600:4041:59c3:300:b8f8:e592:18c8:ba23])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-91f23db3a81sm110979646d6.42.2026.11.17.05.40.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Nov 2026 05:40:57 -0800 (PST)
+From: Axel Mierczuk <axel.mierczuk@1password.com>
+To: ja@ssi.bg,
+	horms@verge.net.au,
+	pablo@netfilter.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
+	dsahern@kernel.org,
+	kuba@kernel.org,
+	edumazet@kernel.org,
+	pabeni@redhat.com,
+	davem@davemloft.net,
+	netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	w@1wt.eu,
+	Axel Mierczuk <axel.mierczuk@1password.com>
+Subject: [PATCH nf v2 0/2] ipvs: fix OOB write when NATing ICMPv6 errors quoting non-first fragments
+Date: Tue, 17 Nov 2026 08:40:47 -0500
+Message-ID: <20261117134049.52386-1-axel.mierczuk@1password.com>
+X-Mailer: git-send-email 2.50.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -62,147 +104,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] audit: fix incomplete NETFILTER_PKT records and return
- void
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-CC: Paul Moore <paul@paul-moore.com>, <audit@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, Eric Paris <eparis@redhat.com>, Ricardo
- Robaina <rrobaina@redhat.com>, Florian Westphal <fw@strlen.de>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-	<zhangchangzhong@huawei.com>
-References: <20261110122939.45373-1-jiangjiehua1@huawei.com>
- <avMXzjF9hIcTVc9c@chamomile>
-Content-Language: en-US
-From: "jiangjiehua (A)" <jiangjiehua1@huawei.com>
-In-Reply-To: <avMXzjF9hIcTVc9c@chamomile>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
- whupemp200008.china.huawei.com (7.152.184.21)
+Content-Transfer-Encoding: 8bit
 
-Thanks for the review.
+This series fixes a 16-byte OOB write past the verified skb area,
+reachable through ICMPv6 errors that quote non-first fragments.
+Following Julian's suggestion, it preserves ESP ICMPv6 handling.
 
-On 11/10/2026 9:10 PM, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> On Tue, Nov 10, 2026 at 08:29:39PM +0800, JiangJieHua wrote:
->> Commit f19590b07cb6 ("audit: add audit_log_nf_skb helper function") and
->> commit 15b0c43aa621 ("audit: include source and destination ports to
->> NETFILTER_PKT") introduced audit_log_nf_skb() and its transport header
->> parsing.
-> 
-> I guess conntrack is not enough in your scenario. How does your
-> ruleset look like?
-> 
+Patch 1 includes the embedded IP header in ciph.len at both ICMPv6
+call sites when parsing stops at a non-first fragment. It stands on
+its own for stable.
 
-The main scenario is conntrack not being enabled. The ruleset is:
+Patch 2 makes ipv6_find_hdr() set *offset to the fragment payload
+for non-first fragments when target < 0, rejecting a truncated
+Fragment header, so every successful return updates *offset. It
+drops the workaround from patch 1, which becomes dead code.
 
-     Bridge table: nat
-     Bridge chain: PREROUTING, entries: 1, policy: ACCEPT
-     -j AUDIT
+Changes since v1:
+- Patch 1: rewrote the comment and commit message. Nothing blocks an
+  embedded ESP fragment on ciph.len; it continues because of
+  pp->dont_defrag and its lookup reads only the addresses. Name the
+  skb_ensure_writable() callers, handle_response_icmp() and
+  ip_vs_icmp_xmit_v6(), that size the writable area from ciph.len.
+  Code unchanged.
+- Patch 2: return -EBADMSG when the Fragment header is truncated, so
+  *offset never exceeds skb->len (Sashiko, Julian). Add Fixes tag
+  (Julian). Drop the ciph.len workaround from patch 1 now that every
+  successful return writes *offset (Sashiko). Describe the
+  handle_response() effect, the nf_tables trace output change and the
+  SYNPROXY callers in the commit message.
 
-     table inet filter {
-             chain output {
-                  type filter hook output priority filter; policy accept;
-                  log level audit
-             }
-     }
+v1: https://lore.kernel.org/netfilter-devel/20260925141155.17603-1-axel.mierczuk@1password.com/
 
-Even with conntrack enabled, two cases are still affected:
-- The bridge nat PREROUTING hook runs at priority -300, before conntrack 
-    at -200.AUDIT sees the packet before conntrack has validated, 
-trimmed, or defragged it.
-- Normal IPv6 packets with extension headers. ip6_rcv_core() sets 
-transport_header to the first extension header, and conntrack does not 
-update it. This makes skb_transport_offset() incorrect, so we read ports 
-from the wrong location.
+Axel Mierczuk (2):
+  ipvs: avoid out-of-bounds write in ip_vs_nat_icmp_v6
+  ipv6: update *offset for non-first fragments in ipv6_find_hdr()
 
-> More comments below.
-> 
->> The helper returned early with -ENOMEM when skb_header_pointer() failed for
->> the network header, and the later port parsing did the same for the
->> transport header.  Such an early return skips the remaining fields, so the
->> NETFILTER_PKT record is emitted with only "mark=" and without the address
->> and protocol fields.
->> 
->> Log the address and protocol once the network header is available, and
->> route the error paths through placeholder logging: a missing network header
->> logs "saddr=? daddr=? proto=-1", as the pre-refactoring callers did, and a
->> transport header that cannot be read where one is expected logs
->> "sport=? dport=?".  The same "proto=-1" placeholder is used for an
->> unknown bridge ethertype and an unknown nfproto, which previously printed
->> "proto=?".
->> 
->> Validate the IP version and the IPv4 header length, since bridge packets
->> can reach the audit hook without the receive path validating them.  Locate
->> the transport header from the network header instead of relying on
->> skb_transport_offset(), which is not guaranteed to point at the transport
->> header.  For IPv4, a non-first fragment or an unreadable transport header
->> logs unknown ports; protocols without ports are unaffected.  For IPv6, a
->> non-first fragment leaves proto at IPPROTO_FRAGMENT (44) and a negative
->> offset from ipv6_skip_exthdr() means the extension header chain cannot be
->> parsed; in both cases the transport header is not available, so keep the
->> addresses and protocol and do not log ports.
->> 
->> Both callers ignore the return value (net/netfilter/nft_log.c and
->> net/netfilter/xt_AUDIT.c), so make the helper return void instead of
->> inventing error codes for a value nobody consumes.
->> 
->> A packet whose network header cannot be read now logs:
->> 
->>   before: mark=0x0
->>   after:  mark=0x0 saddr=? daddr=? proto=-1
-> [...]
->> diff --git a/kernel/audit.c b/kernel/audit.c
->> index 631d6d4a23cf..c5997077a46b 100644
->> --- a/kernel/audit.c
->> +++ b/kernel/audit.c
->> @@ -2511,8 +2511,8 @@ void audit_log_path_denied(int type, const char *operation)
->>  	audit_log_end(ab);
->>  }
->>  
->> -int audit_log_nf_skb(struct audit_buffer *ab,
->> -		     const struct sk_buff *skb, u8 nfproto)
->> +void audit_log_nf_skb(struct audit_buffer *ab,
->> +		      const struct sk_buff *skb, u8 nfproto)
->>  {
->>  	/* find the IP protocol in the case of NFPROTO_BRIDGE */
->>  	if (nfproto == NFPROTO_BRIDGE) {
->> @@ -2532,24 +2532,32 @@ int audit_log_nf_skb(struct audit_buffer *ab,
->>  	case NFPROTO_IPV4: {
->>  		struct iphdr iph;
->>  		const struct iphdr *ih;
->> +		int thoff;
->> +		bool frag;
->>  
->>  		ih = skb_header_pointer(skb, skb_network_offset(skb),
->>  					sizeof(iph), &iph);
->>  		if (!ih)
->> -			return -ENOMEM;
->> +			goto unknown_proto;
->> +		if (ih->version != 4 || ih->ihl < 5)
->> +			goto unknown_proto;
->> +
->> +		thoff = skb_network_offset(skb) + ih->ihl * 4;
->> +		frag = ntohs(ih->frag_off) & IP_OFFSET;
-> 
-> Are we going to add all these validations everywhere in the code?
-> 
-> So we will have to validate that the IPv4 header is well-formed over
-> and over again?
+ net/ipv6/exthdrs_core.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-The version/ihl checks were added to handle malformed headers seen by 
-bridge hooks. Should we drop these checks, or move the validation into a 
-common helper as Florian suggested?
 
-For normal packets, I think we should keep the fixes for non-first 
-fragments and transport offset calculation, since those are unrelated to 
-malformed headers.
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
+-- 
+2.50.1 (Apple Git-155)
 
-Separately, I changed the unknown protocol placeholder from "?" to "-1" 
-because ausearch parses proto=? as proto=ip (strtoul("?") returns 0, and 
-protocol 0 is "ip").
-
-Thanks,
-JiangJieHua
