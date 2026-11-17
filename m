@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794916261;
-	b=ni2o5+/A7DnLaL13yP1VeyHYUQU3oPy2sy34pEMVOMMyRHqLd8xNsBUf0mVfLWLUFt+S
-	 ZxPfiC+EMuNThKPkkF5BViNp+q+vCogwmhpbD1QjmsSFi3FMnvMA5t5txWm5D6DXrwETn
-	 sN6JWTctMI3pZJ/F3XM6jc3txVUsxIzph8DIP0vAQvuo5i3UzrhwEhvseHDdDxUjyKGzs
-	 VuXOiviYuXlnc0vPA1swNG+4JYYRSDgfR/pkZw6wruOF7y5lpSrDkMTplC33KmSbgeDm1
-	 C/xu5itvaxhTDt3EWyhZ5Qw7BJUtU1ldm1U8W/DyXDD/c8xQFaJJTAVj8/ampn6LdmQ==
+	t=1794916265;
+	b=E2hpWZsYg+ZsG4K9zI8qPX1L0q3tUIOVzUFT9IB3JCn/GN381vW2ZGq+rmyWb55R6p3u
+	 kW2zU323wbIQ5/gEBfdNyBTyXyFubxo6TfZ+3awYMv3VniDiXbN5k9YO9SYjiXOsBsACi
+	 cvfSyPh8Vmv3uOTrjb1qcpMghx00bKoBIBSJOrgl36k4xKm9D2DRKmmt4/F81ryd5bwqc
+	 U2NkTjxX8MU3/wbc+oHGWUHEAh4SnhLlzmg9V6TtoRM0ZjTz61nmAr58wDVMJ59xfZPqO
+	 jbphDnGaqejuPTWoXXZ48FSwYfjzMg130NEgahWw0AM1KMJ5UtHc4XkZtOAdDnLVjqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794916261;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794916265;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=lKLpUdVYVQhtP9ATiUcikP9z7A+B8R2Wpfu2OLHa2SI=;
-	b=HHE4rZ+5T9yi6voVmsvCB7SoVr53KLCTwA9rbT7h3KdTJ7g1/0G80lCiQdCo3MVySI0w
-	 bHqEO4BtGQYUCHtWkRggeOaQsi1Mijk6axypNlKDi99Laf6XK5Qb4BWHxKqvXFWdL03r2
-	 Q6QXchZ2NtpUAzf65pFsM5EAPGq0kn9tGAeHURELqZAj2AjCAArywFTGxKGY1YhvKV3ZK
-	 LepN7p7gcgNxg5EtRCZE0o3eF0JEk0/zFlFM8TILkRDGS9KpSB0RqLZ6RIWBfvPVPMwbz
-	 +9SmdhlUcoZJOwKH8uh/rldtU+frSr/9WmEtu8NBJ11RCF4F7vxJKZSPcn+zvtMfbwg==
+	bh=PACIaUk0WrDc9Qq4MXwG6yp11IQWdlRv53EhY2GpdMI=;
+	b=RxP82Q2hs7mJNYY1U0PxnUkavr5X0T4317K0Z6du7pmsjyJsQtO/MsV4zMJAmV1yMhZB
+	 /3LQY5ryY1ZI3cGIWohETtn2M8dPWbw1emAzFazRkG6qmCiLVA6SSx0wWkRi0YP+owZy+
+	 F0GatJrX3iPYpbF2MpctkLn9W9ElioStffrnlNc5/YJLq+LAvzGRFaCxo35VMqSOhqosm
+	 FYqlqelTmLQy1IeVd0YINUztVne9t8B/l+18F/Ebb0uwYoERpXvR+dKYA68kmedkB2CPg
+	 w7wWFlotL5C9mLvYTAfeA5W82RLZhnZkId+LdtPTI5fTWmu6FzXwc/cAn2F3DeLaqyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,20 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7B69606A323
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D7B69606A323
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB976606A31C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DB976606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E723F6055A; Tue, 17 Nov 2026 12:50:58 +0100 (CET)
+	id 32D0F6055A; Tue, 17 Nov 2026 12:51:03 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/6] netfilter: nf_log: remove dead ARPHRD_SIT handling from MAC/HW header logging
-Date: Tue, 17 Nov 2026 12:50:41 +0100
-Message-ID: <20261117115046.15435-2-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH nf-next 2/6] netfilter: nf_log_syslog: fix MAC header dump to use real header length
+Date: Tue, 17 Nov 2026 12:50:42 +0100
+Message-ID: <20261117115046.15435-3-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261117115046.15435-1-fw@strlen.de>
 References: <20261117115046.15435-1-fw@strlen.de>
@@ -51,81 +52,53 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-dump_mac_header() in nf_log_syslog.c and the HWHEADER dump in
-nfnetlink_log.c special-case ARPHRD_SIT devices by backing the header
-pointer up by ETH_HLEN before dumping dev->hard_header_len bytes, on the
-assumption that a SIT tunnel's "hard header" covers the underlying
-device's real Ethernet header plus the tunnel's IPv4 header.
+old code unconditionally iterated dev->hard_header_len bytes, assuming
+the SKB's MAC header is always exactly that long.
 
-That assumption stopped holding after commit 8ef9ba4d6666 ("IPv6: Set
-SIT tunnel hard_header_len to zero"), which zeroed dev->hard_header_len
-for SIT tunnels.
+If the actual mac header in the packet is smaller, the loop reads past
+the MAC and logs ip/ipv6 header as if it was part of the address.
 
-The syslog call site was gated on dev->hard_header_len being nonzero,
-so the ARPHRD_SIT branch there has been unreachable dead code for every
-SIT device ever since.
+Use skb_mac_header_len() as the base length, then clamp the result to
+dev->hard_header_len so we never read beyond what the
+device actually uses for its hard header, even if mac header was
+mangled.
 
-For nfnetlink_log the branch was still reachable, but the adjusted
-pointer is never read: nla_put() for the NFULA_HWHEADER attribute uses
-dev->hard_header_len as the length, which is 0 for SIT tunnels.
+LLM finding, no bug was ever reported about this.
 
-Remove the ARPHRD_SIT special-handling; it's been 6 years and no one
-reported this ever since.
-
+Fixes: 7eb9282cd0ef ("netfilter: ipt_LOG/ip6t_LOG: add option to print decoded MAC header")
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_log_syslog.c | 17 +----------------
- net/netfilter/nfnetlink_log.c |  6 +-----
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ net/netfilter/nf_log_syslog.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index c3fd398ffcd7..910f6975cdf7 100644
+index 910f6975cdf7..5f7435caff22 100644
 --- a/net/netfilter/nf_log_syslog.c
 +++ b/net/netfilter/nf_log_syslog.c
-@@ -820,26 +820,11 @@ static void dump_mac_header(struct nf_log_buf *m,
- 		const unsigned char *p = skb_mac_header(skb);
- 		unsigned int i;
+@@ -815,14 +815,17 @@ static void dump_mac_header(struct nf_log_buf *m,
  
--		if (dev->type == ARPHRD_SIT) {
--			p -= ETH_HLEN;
--
--			if (p < skb->head)
--				p = NULL;
--		}
--
--		if (p) {
-+		if (1) {
+ fallback:
+ 	nf_log_buf_add(m, "MAC=");
+-	if (dev->hard_header_len && skb_mac_header_was_set(skb) &&
+-	    skb_mac_header_len(skb) != 0) {
+-		const unsigned char *p = skb_mac_header(skb);
+-		unsigned int i;
++	if (dev->hard_header_len && skb_mac_header_was_set(skb)) {
++		unsigned int mac_len;
++
++		mac_len = min_t(unsigned int, skb_mac_header_len(skb),
++				dev->hard_header_len);
++		if (mac_len) {
++			const unsigned char *p = skb_mac_header(skb);
++			unsigned int i;
+ 
+-		if (1) {
  			nf_log_buf_add(m, "%02x", *p++);
- 			for (i = 1; i < dev->hard_header_len; i++)
+-			for (i = 1; i < dev->hard_header_len; i++)
++			for (i = 1; i < mac_len; i++)
  				nf_log_buf_add(m, ":%02x", *p++);
  		}
--
--		if (dev->type == ARPHRD_SIT) {
--			const struct iphdr *iph =
--				(struct iphdr *)skb_mac_header(skb);
--
--			nf_log_buf_add(m, " TUNNEL=%pI4->%pI4", &iph->saddr,
--				       &iph->daddr);
--		}
- 	}
- 	nf_log_buf_add(m, " ");
- }
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index d923f2cb1398..0b590c117f4c 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -610,11 +610,7 @@ __build_packet_message(struct nfnl_log_net *log,
- 
- 		hwhdrp = skb_mac_header(skb);
- 
--		if (skb->dev->type == ARPHRD_SIT)
--			hwhdrp -= ETH_HLEN;
--
--		if (hwhdrp >= skb->head &&
--		    nla_put(inst->skb, NFULA_HWHEADER,
-+		if (nla_put(inst->skb, NFULA_HWHEADER,
- 			    skb->dev->hard_header_len, hwhdrp))
- 			goto nla_put_failure;
  	}
 -- 
 2.56.1
