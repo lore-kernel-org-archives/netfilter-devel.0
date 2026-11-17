@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794916273;
-	b=Q1lGgDkAIBRcOgXzTUlpx7xERn7SSzZNgsZHNQgQfFZEqIr7eP4MDqtzzXR2dSG6JvBM
-	 x9SUOGFa9u0R0JZSQxgU34nwWXIPa9wgZNwHLYrb1u5qkalhk04QkkE4CxNj3Msb0F7n5
-	 kvTc1+1LHF7vsfvGbnEDzGhh2Av+4uFCqg0SVow292bn+hp+qDEo4IHGQG/jVtWpbSyrM
-	 kJcYjbfC1pq7OCuDDf1QCDkQ2TIZURXNKUYxW5a2E7KPUb4T2SgWeSzYDgPfCKZ6xoyre
-	 scy4FoUkS7T1S9g2jO1WGFmLKmLevBNV4othZU+fzk+oF1fNVB6D6Lg7CVh2ckWelIg==
+	t=1794916278;
+	b=RG7Pr+EczvpAwVCJxez9YY3ii0JXU7feTHMexp56n35SYB0AmSIMz6/WcR2N9CfczECQ
+	 4I04wKVu1Zz3nkChy2QmAuHG7/s28yjwpfu74DGrlf57VV65JpwPhi9HnhpihD6m+mH63
+	 guxYKXxiwSNUm0LOVfLkReA+Fj9goG5REfSpnCGQ0KDqN1KLXM3sqj91CUSnT1HcYGNEZ
+	 J2Pt6tueTg6L3VC/hqVh9o0hKu+xu/7Fv/Lf89U+9s+jRmPQXHOX6vgvCtu5dswRMfjpD
+	 vqN4zNwidTDwGhAZvEe5vwpppCWEeBRm1WR/XadwxZrjKh/zlPs5wC1vQ4vjtJLm8Pw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794916273;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794916278;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=bID/7OGIvBkP5GkhpDiVAs8cNOf/Vx+cbFwX4IE4aKk=;
-	b=F5/PRslVzcwblDgfpf7prw1JcFxQfajEUAjOkrKeMVKOjziGS0uTUfpoSTHXohDW9sGK
-	 +UTUKS6exU+mfl1kzresYDodOGJk2PS+00YnG93IYyajMBqDrd7LsH+ML8ydPrI6WGFes
-	 G7l7XT7a9V1gzlbED2fDZZJHivpBp25ArGApZANsH+WeSobheelm7eB0tnpXjS/PnFYks
-	 ITUdWJDCIW9vL8tfk3yZrG7BdC9VnTJuQ1QiDhxcTqa1F5LYOudOK4Dvdec+vCt5FlnAD
-	 1fJoDR4ULsMOmn9uz9ka0Zk45NBH9MKpNOrV4vnVE54FlQbwRvwIPHPvPiXBN2jG8/Q==
+	bh=AF9Y7F0Q4on7pQ3hMUOAuq8WwySQWbN5zNGViyPyofk=;
+	b=u14PONJerUd7G5esOoYm3lDXXPDmG4lglEQW0sdpTs0gqu4RbFlz5bwuM0NcWyB5JJte
+	 FJKHwvX0YtAj7/SDo0BlLQBW0gbj7zuiR7VLeVqf1OIrnBEPKKgjaLaweEe4rjx3KPX3c
+	 otSmKT9D+qBGdzs+Xc4EYNOz809U4yfEyTBOXL4lvF8F7fVd8SD/wTt2IVCEVzvJ2iiQU
+	 pJ6TZ52HCKctiMy926+yKj3irGCC/I2JUTW5GGUQpmBGkna3OsP/g7I9G0ijRSKwsfv2y
+	 n/QgU0q7mMjuIaDF7PeEe34qD8WasojbrZ8WjWCyc5U9v+psUnRPO76nXGgxwTKibOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B024606A31C
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3B024606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A26C606A329
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9A26C606A329
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B17B96055A; Tue, 17 Nov 2026 12:51:11 +0100 (CET)
+	id F41E16055A; Tue, 17 Nov 2026 12:51:15 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/6] netfilter: nfnetlink_log: use real mac header length for hwheader
-Date: Tue, 17 Nov 2026 12:50:44 +0100
-Message-ID: <20261117115046.15435-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/6] netfilter: nfnetlink_log: don't log hwheader on output hooks
+Date: Tue, 17 Nov 2026 12:50:45 +0100
+Message-ID: <20261117115046.15435-6-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261117115046.15435-1-fw@strlen.de>
 References: <20261117115046.15435-1-fw@strlen.de>
@@ -51,130 +51,90 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nfnetlink_log uses skb->dev->hard_header_len for the length of the
-NFULA_HWHEADER attribute.
+On output hooks (LOCAL_OUT, POST_ROUTING and their per-family
+equivalents) the mac header is either unset or still belongs to the
+ingress device, not the egress one, so we would log stale data.  Only
+emit the hardware header attributes while the packet is still on the
+input path.
 
-hard_header_len says how long a link layer header can get, not how many
-bytes this packet holds.  Use skb_mac_header_len() instead and cap at
-hard_header_len, as before, if needed.
+The check has to use both family and hook value, hook numbers are family
+specific, e.g. NF_BR_BROUTING has the same value as NF_INET_INGRESS.
 
-Also take hwtype and hard_header_len from indev instead of skb->dev:
-skb->dev may have been changed since the packet was received, indev is
-the device that wrote the mac header.
+nfulnl_pre_egress(pf, hooknum) answers the question the check cares
+about: has the packet left indev's input path yet, i.e. does skb's mac
+header still belong to indev.
 
-If the resulting length is 0, omit NFULA_HWHEADER instead of sending an
-empty attribute.  NFULA_HWLEN is still sent, userspace relies on it.
-
-I suspect that this is almost exclusively used with plain ethernet,
-where hard_header_len and skb_mac_header_len() are both 14 bytes, which
-would explain the absence of bug reports.
+This keeps hwheader logging working for the nftables inet ingress hook
+(nft_do_chain_inet_ingress() sets pf to NFPROTO_IPV4/IPV6 with hook =
+NF_INET_INGRESS) and for the ebtables broute table (NF_BR_BROUTING,
+indev and mac header are those of the received frame).  For NFPROTO_ARP
+and NFPROTO_NETDEV only NF_ARP_IN and NF_NETDEV_INGRESS are accepted.
 
 Fixes: 72961ecf84d6 ("netfilter: nfnetlink_log: send complete hardware header")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_log.c | 75 +++++++++++++++++++++++++++++------
- 1 file changed, 62 insertions(+), 13 deletions(-)
+ net/netfilter/nfnetlink_log.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 29530b753928..edc1e018c869 100644
+index edc1e018c869..ee006d9df0a4 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -458,6 +458,65 @@ static int nfulnl_put_bridge(struct nfulnl_instance *inst, const struct sk_buff
+@@ -21,6 +21,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_bridge.h>
++#include <linux/netfilter_arp.h>
+ #include <net/netlink.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nfnetlink_log.h>
+@@ -458,6 +459,36 @@ static int nfulnl_put_bridge(struct nfulnl_instance *inst, const struct sk_buff
  	return -1;
  }
  
 +/**
-+ * nfulnl_put_hwheader - Append link-layer header info to the netlink skb.
-+ * @nlskb:      Target netlink message to append attributes to.
-+ * @skb:        Original packet skb whose link-layer header is described.
-+ * @indev:      The input device that received @skb.
++ * nfulnl_pre_egress - Can @skb's mac header still be attributed to @indev?
++ * @pf: protocol family of the hook this packet is being logged from.
++ * @hooknum: hook number within @pf's family.
 + *
-+ * Emits the NFULA_HWTYPE and NFULA_HWLEN netlink attributes into @nlskb
-+ * based on the link-layer header of @skb.
++ * True only for hook points where the packet has not yet left @indev's
++ * input path, i.e. where @skb's mac header still reflects what @indev
++ * actually received. Past LOCAL_OUT/POST_ROUTING (and their per-family
++ * equivalents) the packet may have been re-routed, re-encapsulated, or
++ * is headed to a different device than it arrived on.
 + *
-+ * @indev, not @skb->dev, is the source of the device's type and
-+ * hard_header_len: on bridging and br_netfilter paths skb->dev is
-+ * repointed to the logical or egress device while @indev keeps
-+ * referring to the device that actually wrote @skb's mac header.
-+ *
-+ * The device's hard_header_len describes the maximum size a link-layer
-+ * header can grow to, not the actual size of this packet's header.
-+ * The actual length is taken from skb_mac_header_len() and capped at
-+ * hard_header_len if needed.
-+ *
-+ * The NFULA_HWLEN attribute is retained for backward compatibility.
-+ * Userspace should derive the length from the NFULA_HWHEADER attribute
-+ * size instead.
-+ *
-+ * Caller must ensure @indev is not NULL and check
-+ * skb_mac_header_was_set(skb) before using this function.
-+ *
-+ * Return: -EMSGSIZE if the tailroom of the skb is insufficient to store
-+ * the attribute header and payload.
++ * Return: true if mac header can be attributed to indev
 + */
-+static int nfulnl_put_hwheader(struct sk_buff *nlskb, const struct sk_buff *skb,
-+			       const struct net_device *indev)
++static bool nfulnl_pre_egress(u8 pf, unsigned int hooknum)
 +{
-+	unsigned int hwlen = READ_ONCE(indev->hard_header_len);
-+	const unsigned char *hwhdrp = skb_mac_header(skb);
-+	int len = skb_mac_header_len(skb);
-+	u16 hwtype = indev->type;
-+
-+	if (nla_put_be16(nlskb, NFULA_HWTYPE, htons(hwtype)))
-+		return -EMSGSIZE;
-+
-+	if (len < 0)
-+		len = 0;
-+	else if ((unsigned int)len > hwlen)
-+		len = hwlen;
-+
-+	/* This attribute should not exist, userspace should
-+	 * use NFULA_HWHEADER attribute size. Removing
-+	 * this breaks existing users which unfortunately
-+	 * rely on NFULA_HWLEN presence.
-+	 */
-+	if (nla_put_be16(nlskb, NFULA_HWLEN, htons(len)))
-+		return -EMSGSIZE;
-+
-+	if (len == 0)
-+		return 0;
-+
-+	return nla_put(nlskb, NFULA_HWHEADER, len, hwhdrp);
++	switch (pf) {
++	case NFPROTO_IPV4:
++	case NFPROTO_IPV6:
++		return hooknum <= NF_INET_FORWARD || hooknum == NF_INET_INGRESS;
++	case NFPROTO_BRIDGE:
++		return hooknum <= NF_BR_FORWARD || hooknum == NF_BR_BROUTING;
++	case NFPROTO_ARP:
++		return hooknum == NF_ARP_IN;
++	case NFPROTO_NETDEV:
++		return hooknum == NF_NETDEV_INGRESS;
++	default:
++		return false;
++	}
 +}
 +
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
- static int nflog_put_master_ifindex(struct sk_buff *nlskb, int attr,
- 				    const struct net_device *dev)
-@@ -494,7 +553,6 @@ __build_packet_message(struct nfnl_log_net *log,
- 	struct nlmsghdr *nlh;
- 	sk_buff_data_t old_tail = inst->skb->tail;
- 	struct sock *sk;
--	const unsigned char *hwhdrp;
- 
- 	nlh = nfnl_msg_put(inst->skb, 0, 0,
- 			   nfnl_msg_type(NFNL_SUBSYS_ULOG, NFULNL_MSG_PACKET),
-@@ -592,18 +650,9 @@ __build_packet_message(struct nfnl_log_net *log,
+ /**
+  * nfulnl_put_hwheader - Append link-layer header info to the netlink skb.
+  * @nlskb:      Target netlink message to append attributes to.
+@@ -650,7 +681,8 @@ __build_packet_message(struct nfnl_log_net *log,
  	if (nfnetlink_put_hwaddr(inst->skb, skb, indev, NFULA_HWADDR))
  		goto nla_put_failure;
  
--	if (indev && skb_mac_header_was_set(skb)) {
--		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
--		    nla_put_be16(inst->skb, NFULA_HWLEN,
--				 htons(skb->dev->hard_header_len)))
--			goto nla_put_failure;
--
--		hwhdrp = skb_mac_header(skb);
--
--		if (nla_put(inst->skb, NFULA_HWHEADER,
--			    skb->dev->hard_header_len, hwhdrp))
--			goto nla_put_failure;
--	}
-+	if (indev && skb_mac_header_was_set(skb) &&
-+	    nfulnl_put_hwheader(inst->skb, skb, indev))
-+		goto nla_put_failure;
+-	if (indev && skb_mac_header_was_set(skb) &&
++	if (nfulnl_pre_egress(pf, hooknum) &&
++	    indev && skb_mac_header_was_set(skb) &&
+ 	    nfulnl_put_hwheader(inst->skb, skb, indev))
+ 		goto nla_put_failure;
  
- 	if (hooknum <= NF_INET_FORWARD) {
- 		struct timespec64 kts = ktime_to_timespec64(skb_tstamp_cond(skb, true));
 -- 
 2.56.1
 
