@@ -1,69 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.143.172.20
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794913710;
-	b=eM28vS6StYRydJDqhJjk6JPoYCNiPcBjsR9bFssCPBJZonVX/7DgzaeiFUdXL+04y+fO
-	 ho1pHhI051SAO/v9UWaQz+ey7mmdg/ykKMNQg+mhJfghikxs0Od9jmc8NyL2syheWzAHL
-	 ZihruqobpL7ZrvKemSaNhRolVhdMFYONtEpKkxzhJksZV+8FPPXScFhKOT8onOalf7KBp
-	 Jp+xOYws4/GSvMtV9hAcgnhnCS5vXZFYr/+tzWleqtXOuzZsJQ9l++i4CmbZpa1Gy3Ky8
-	 pLU12XKq4cG33UV4yV1qwCRyD+n0a/hAA4AJ9aPaCk87AVO9RnH6FHPLD/mgVm1d3zg==
+	t=1794913854;
+	b=lyS6jws0SK3Os+xEY03bkRWwQ2G2vaX5dFOfi6fzEjkmnsOIBqtAaylayxee+p1Lexl7
+	 Fp+uJ3Rqd9bPsGxqbKc3KtnCD4PyDzh0A+NAp8acB8K+hWwagbt50C4/On6e8DPqp1B09
+	 YiBnrhVRPDO0yRR7e22a3hBWDZV7mXweYAqv+qpI0XyVDjGmV3Tc+UZ5Xkn/nKCiDFBlr
+	 eO+dpvCq6MVBdXsAfrliVaE+q+2srXHOaltLqmuAp3s9THJuI5h7H1E+4ijmPaQEo+bUB
+	 I06/o1WQ20Dy2gyuC8pAcE0WwZpE0xXvoJaWsbdWXtUEq1Z6Th5DZCOgcCAhrvsAP5A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794913710;
-	h=DMARC-Filter:Received:Received:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Rspamd-Bar:X-Rspamd-Report:X-Rspamd-Score:DKIM-Signature;
-	bh=bElf91F0TDGB0uVW6EDy7Ea2SeZyP2p1hq68BB9tv3M=;
-	b=5Il0fOJrcT8u/UiUhdylZn4D9eyxZ6KsIcookJC460dvv3QAKbQSsJ1WKmCDcpgaIYgp
-	 ArDdhS5eqdOwOf7j4bmVelMu8uiQtJQisG+BBlAloaUKBr1lo7jWB7uDow6dTZJev9zIB
-	 DS8kJnMDG6l4OQgjqVD3dRgVcC5Zl7U2JSfrsJjWGJWL6rf5bpHEGwqZMDRbbxRrDE//Q
-	 ISneFBi6/pzbX/sliH/YIE47FW52jZ5w/KNLuhhIkkpNtrBcc5X4x+F0r0lV4A2edNXh5
-	 9WW/zh71WmvB/WITndQeuJWcMZzmw0QAbqY629hVrn7MHXoyMn7bhThTVlZUSc1avRA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794913854;
+	h=DMARC-Filter:Received:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Bar:X-Rspamd-Report:
+	 X-Rspamd-Score:DKIM-Signature;
+	bh=XBlaEP+ZZalLn+AMLvWxVAh3MLL2GxgeVb07XFzJTew=;
+	b=JXL5EJagWb3fw6dEgPLQwGUeiaKcYpXxbhF6lZWRJabwWqIlc+RkPdssWxSKXpMY113S
+	 Fwbp6iM15t+i/AaCCKL2Uxj/0lmKF8439e7zpYWn6hPsBjUoRodXVrSWD9ouNtb0xVMc7
+	 g5RMVFuMkegIopWdVEJbQT/3kAbtwVHxuqRAMbyX3dU6syqIyKxsmAasuHmaNtdBiDC9V
+	 YGgMKy73Rkz01ycTMBG7ZK7dJ+6PLF8e+1Zth9v7bhxT2hMFo2VULgx6Cgn6elvSuSjDG
+	 3WsNSZtynec8chI49bEK5z2CVQUsxYWQgIDIW4aES5TS+pwJXCvif7MHrNcNundEsSA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=lausen.nl;
 	spf=pass smtp.mailfrom=lausen.nl;
-	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=DowB7CRb;
+	dkim=pass header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=GcmRvluN;
 	arc=none smtp.remote-ip=95.143.172.20
 Received: from mailgate01.uberspace.is (mailgate01.uberspace.is [95.143.172.20])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31C7A606A33B
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:08:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 31C7A606A33B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18964606A323
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:10:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18964606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lausen.nl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=DowB7CRb
+	dkim=pass (4096-bit key) header.d=lausen.nl header.i=@lausen.nl header.a=rsa-sha256 header.s=uberspace header.b=GcmRvluN
 Received: from devico.uberspace.de (devico.uberspace.de [185.26.156.185])
-	by mailgate01.uberspace.is (Postfix) with ESMTPS id D0E6E60DF3
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 12:08:25 +0100 (CET)
-Received: (qmail 22106 invoked by uid 990); 17 Nov 2026 11:08:25 -0000
+	by mailgate01.uberspace.is (Postfix) with ESMTPS id 74A3760CA0
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 12:10:52 +0100 (CET)
+Received: (qmail 10627 invoked by uid 990); 17 Nov 2026 11:10:52 -0000
 Authentication-Results: devico.uberspace.de;
 	auth=pass (plain)
 Received: from unknown (HELO unknown) (::1)
-	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 17 Nov 2026 12:08:25 +0100
-From: Leonard Lausen <leonard@lausen.nl>
-To: netdev@vger.kernel.org
-Cc: leonard@lausen.nl,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Shuah Khan <shuah@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net v4 0/2] ipv6: Honor suppress_prefixlength in fib6_lookup()
-Date: Tue, 17 Nov 2026 11:08:10 +0000
-Message-ID: <20261117110813.9894-2-leonard@lausen.nl>
-X-Mailer: git-send-email 2.55.0
+	by devico.uberspace.de (Haraka/3.1.1) with ESMTPSA; Tue, 17 Nov 2026 12:10:52 +0100
+Message-ID: <dd6010d1-c076-44b2-9f2d-b532a0981699@lausen.nl>
+Date: Tue, 17 Nov 2026 12:10:50 +0100
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -73,65 +53,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Bar: -
-X-Rspamd-Report: MID_CONTAINS_FROM(1) BAYES_HAM(-2.99937) MIME_GOOD(-0.1) R_MISSING_CHARSET(0.5)
-X-Rspamd-Score: -1.59937
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net v3 0/3] ipv6: Honor prefix suppression for FIB lookups
+ and cached routes
+To: Ido Schimmel <idosch@nvidia.com>
+Cc: netdev@vger.kernel.org, David Ahern <dsahern@kernel.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+ Shuah Khan <shuah@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20261116150132.9594-1-leonard@lausen.nl>
+ <20261117091340.GA581197@shredder>
+Content-Language: en-US
+From: Leonard Lausen <leonard@lausen.nl>
+In-Reply-To: <20261117091340.GA581197@shredder>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Bar: ---
+X-Rspamd-Report: BAYES_HAM(-2.999967) XM_UA_NO_VERSION(0.01) MIME_GOOD(-0.1)
+X-Rspamd-Score: -3.089967
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
 	d=lausen.nl; s=uberspace;
 	h=from:to:cc:subject:date;
-	bh=vUMxaJE9CM9kOao/0IjJwCXP/HS6Q7+W3oTGXUJmYz8=;
-	b=DowB7CRbKriw+t/ovbD0hD6xHVK6kHKoydTbuiw+JtVrRiEO7RoQSuCHTRTjyeLmWiPVEEKrdn
-	1AmYSI5+3PBr8gamW3DC7C1q4Zp6VplsCrg9Ei/56dm/m0VmipQSBhBGtwlOVsG50gQDLKF79ENT
-	MyHgSXBRDKm+86/IaVpG56Wu0tgGyd7j6tjcaz8Pr+bhsOTcp0Zh5Gc99AxGgdge8hWAf4aP4yO4
-	8mRvLTPGqmOjNM75avlIGDJ9QkzJphHofFklTV8L/jxuXwImpQDDU2y4sB86dgPKjO1Lv4vOoEsf
-	EDks3TqS90ZrO1/MDe/E2MDHdiHV6DEx88L65biexhuOY8KzCw5Xd2vFidnU3b4bVvaJlYR5ZpUz
-	D/eXtEOWeqyvKIBJRCsQq7Iayzxf93lxd9vE6TDqP9ZbZQ5UOfHafrW6rvn1VKXBqXuYK5UKhJJ8
-	dkJw0fGFvjdtNnI9o/e5oasWtZ3sBiayBqUSKdnrSCDlxmWi4O+sNj0bMFhFsZ7UrRxmhflnuOKo
-	bnllFfKQ5vB70AqC0ystk0DqkaedX0ScNL4Lafre09XoDjm2ynRubaVu5Vs0WbDBOKOLojfkOWsi
-	lhnp5B5YWpFEPL3sCrXkWLtw13mAjnCUE4JH8Eo9JkLKvqtLLviuEDGWD16VtN33yvcQ5TzxKnER
-	k=
+	bh=eNHCyMzMjuTxFdiDys0ATKEpEOHWN3JbqfwqPu9B3g4=;
+	b=GcmRvluNpm4yG+//tqMK3Dv5u4jTtT7PT4TzuyzAT3iQvi4Gm/bfjxiEPVINkZf7DbYR9BZrUc
+	U6qaCOrJD8GyQDzlv3yuJDtNUtqi863BL0wSY3GrHaxu206a+4nig+GpGGzWYc86/oHr1ra46vSW
+	EU4YRyUkVe1n6kx2ZZBDUXWfJFBDjJoLCoL8mzzSnHThcoE9zIUatyaHmpYOmNW+rW1cPOyuf219
+	/89S7/9rZOftBpkpN3MuXzw7S4aDS2A8BaUN1dttP6Sl6+/sgvRfYhqz02PEghySC65cGrpHiGDu
+	HO8qAWOr7toDFdA1TRrmZsyQu4KJpIlAVMcwucb/5LZnj9LuBPAiHec862cfAxwHkRD0+2dsw6/Y
+	EJlDnCmme3bwZq10N+NqYGbKMmYucNbTMSg/O1xq2+ykovonWwQW87Ec+TNt6AERxVLX7OMPXnOw
+	/HpgFYlUG5wI15i4FFZZ2WTI+hmTycfbOPrFqA2f3AzqamuwIrbR8o5UB0py2sokrS7dBPFJ1DHj
+	435qEKSypspEnoHzVOWXRVsxbl/1pA+OIkL1kN77U7+mYbL2Xc0cszP3C7Mb+u28Pv9moT0/LCmE
+	TMLjBnFUxO8qy+rEFVf8GsBg+nDt3LPa41Vj/BnIy6+oChpWBpwzWPkesk/MNfxB9jJpM65lvtEb
+	8=
 
-This revision removes the cached-exception patch and its PMTU test, as
-requested. The series fixes the nftables regression introduced by
-1c32b24c234b and leaves dst-based prefix suppression unchanged. The
-cached-exception work is deferred to net-next after the fib6_lookup()
-fix is present there. Interface-group suppression also remains deferred.
+Hi Ido,
 
-Patch 1 makes fib6_lookup() honor suppress_prefixlength while preserving
-terminal reject results, including blackhole nexthop objects. Patch 2
-adds six checks to nft_fib.sh using its existing fixture.
+didn't realize it needs to be separated due to net-next and had included 
+it in v3 as it seemed straightforward enough. Will resend to net-next 
+after this series made it there. Apologies.
 
-Changes since v3:
-- Drop the cached-exception fix and its PMTU regression case.
-- Remove the PMTU-only gateway and peer setup from the test fixture.
-- Renumber the remaining fix and test patches as a two-patch series.
+Best regards
+Leonard
 
-V3 review:
-https://lore.kernel.org/netdev/20261117091340.GA581197@shredder/T/#t
-
-The rebuilt v7.4-rc2-based laptop kernel now contains the v4 series,
-without the deferred cached-exception fix. All six added selftest checks
-pass in normal and eight-second-delayed runs; both full runs exit 0.
-Twelve separate reject-route controls also pass. The changed source
-compiles without warnings and passes 17 focused ASan/UBSan callback
-checks. Automated kernel-log checks were unavailable. Target-net runtime
-and full W=1 config builds remain unchecked.
-
-OpenAI Codex assisted with investigation, reproduction, implementation,
-tests and descriptions. Prompts asked it to investigate VPN failures,
-simplify the series and address review feedback.
-
-Leonard Lausen (2):
-  ipv6: Honor suppress_prefixlength in fib6_lookup()
-  selftests: netfilter: cover IPv6 FIB prefix suppression
-
- net/ipv6/fib6_rules.c                         |  6 ++
- .../selftests/net/netfilter/nft_fib.sh        | 90 +++++++++++++++++++
- 2 files changed, 96 insertions(+)
-
-
-base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
--- 
-2.55.0
+Am 17.11.26 um 10:13 schrieb Ido Schimmel:
+> On Mon, Nov 16, 2026 at 03:01:27PM +0000, Leonard Lausen wrote:
+>> Changes since v2:
+>> - Add the separate cached-exception fix and PMTU regression case.
+> 
+> Why?
+> 
+> I said (twice) that I will take care of it. It's not net material
+> (always broken) and should be routed via net-next. Please send v4
+> without the exception "fix" and the related test case.
+> 
+> Given you already have a patch for this, send it to net-next *after* the
+> fix is present there.
 
