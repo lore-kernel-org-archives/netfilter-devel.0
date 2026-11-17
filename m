@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794874969;
-	b=5YLiODoeUnyGhAWqc6+84H1I2q+oiQxLWIg21uVtiay3NuJNn2qSbp3MgS141B64fdeI
-	 81q4BTcJ5L1n6ygTo7gpqM0YGW3NWSOfuxxqEr2SvOi/SQKHk9di2sIll7+0mIRoZTBre
-	 +cXgXwz2B8VZ9IuS5GX27vi05kN3f1cpaqOgVC01xAKXS35H8+c5yF9aTgpF3HmfvzUXs
-	 rKyBDq418hQRSK8VVawb7PyuxsrEV8iXZRwOoqz8ff0v+a2QDyGuPx3JJXCFyF6qUkDxU
-	 uTMpTM2Zphz5cRh0W/p/ctPls/9clZ97nqfqFrUCN0lRLf6NQtskQ8hglkG/i9wK5pw==
+	t=1794874971;
+	b=rBJHBNL2MjOPZWrpGSg5Y37AdIBQU6ng2yve1VtJvsSKhJcXn6TwJgsWCb9SdHWXVAtW
+	 xO4qY0v6FkcbG3m4ZWFYFwfbpyRVHu7myjDrjMclQyGmFUnlVCsLtZsDGEoL+tEW+LOdS
+	 y7pj46p27tXBPDkDIlxkYbbnLo2dCAon2qne5umJmfVm/dZBfzvhaRheW18MrgjOIhT6G
+	 M+B0NCZh6GTIh27S2IBatydvkYOPH/qlGvWZfw/aAKcorFHQoir91zhKWq18P9xGyr+t0
+	 aAs1iv7GI6HImAwe6kD3EQr42QiQI+qK7KOo/UfwCrz/LoFv0bSnGsxqhios8mea5Qw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794874969;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794874971;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=vmRR9pCJ/Q25C5FM/CDfQ6SI3FAF+xqbBv++EEr+IWE=;
-	b=R/olmVg6f/R/njnim+zjsBQBOHjQd/STYAorxFj5UG29f+EH3O2MXcsGOXByRM2YHXk0
-	 WGRaQsdgHfpDTIzQBJkttzD5NvrLe7FLfjCh+3nDKeUNlNd2uWpJo/ulCyVA/K2QEgOnW
-	 pC7Qgz+rVQ0pA7hxYAYYR0jTdQVLIctbLCHixcLPJ4sqgEyqg/Ktf6vXhC79xIl/e5xyd
-	 lMkPkZ8//TNTB2VUmpE53MVe/R5JLQ4uYFrZ+f73xoqmspwRbuXuz/a0zOx/NqqiTvLLe
-	 5KtJjw1jQaZZRWwe126nu2xl4yMkXBtddJkFCeJxuTiCMWmZRcxwqAL5Nz60p+dtPDQ==
+	bh=FFAS5+hpUFu+HDChumdbi3A/27UEosuxEmjc8s6XUxg=;
+	b=RMyYTkNlITLFprnBBu5Oe+9SpI1FmIHiFVqUU7xzkmBlQJo1gmNdoycYKJkAn4OFZ6VG
+	 aVK3w7eJ2jD881cJH4nqLUJ/fxjmb6qYqbUwiwy1ImAjFFY87Ea5+XG1qFA0lga/i3jGh
+	 zACsk3tE3Wlvajbzw68eiJrgCZANpr4UF7IsLgomTUdoRbv9i9innOPFJ+CtbxQElWd3K
+	 BcwkfWBPpi1vL/c/ZUYhdArnjB32XyvKRpbGdo306sfx0eNc3qdMZx94CthuzsvfjQJno
+	 g07EXQnj21Cs2kqdkClOTG5/Il5sumQqVqjSB1vACaOD41J+Bh05Hxkw65bN7LnXpuA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iqDQKVNq;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="INp1/cuB";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20D9606A33A;
-	Tue, 17 Nov 2026 00:22:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08DC6606A334;
+	Tue, 17 Nov 2026 00:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iqDQKVNq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B6231F000C8;
-	Tue, 17 Nov 2026 00:22:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=INp1/cuB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5517E1F000CA;
+	Tue, 17 Nov 2026 00:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794874969;
-	bh=vmRR9pCJ/Q25C5FM/CDfQ6SI3FAF+xqbBv++EEr+IWE=;
+	s=k20260515; t=1794874970;
+	bh=FFAS5+hpUFu+HDChumdbi3A/27UEosuxEmjc8s6XUxg=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=iqDQKVNq/zZNeT6IpOsl0PaZP9fKrFrMhzoNIdMYHVjcJexJqRSIeACtrYKnRRyWM
-	 PJGnts5zVBCmK1LKnTViIYzv5zp934rj2x8chmq4mHtD/TMHiKZ7wHXlP2nMiOEU3V
-	 6AGkGoxaDfOnyOYF3LedOba0nkrUrd5xUex0hB57efqvE7rRwHDyuzCvoVHoqNPjwI
-	 YeSIAWh/ksWOUr1Q9eCggelkBMNBzFyd9EYwvIIEmvXRAWt1rNXukB/Ozw1QgxdWSB
-	 VKB8P2oWJL19w7LftiGeZeSTyXtQ6BmkvXVi/XqNiStoZyEnPjkRUrOcfafzUCc9BZ
-	 QGPd/+G6BD15g==
-Subject: Re: [PATCH net-next 05/13] netfilter: xt_time: fix monthday
- computation for dates past 2039
+	b=INp1/cuBh4rlvJkQgV0ctiXe0vzaZYHkrAF0cEhq91WhUhRPETCYKJXF8SgRB7462
+	 J3Q89lXBpuI6eDOcfVg2IeO2Lb23Zb/ghkwtAbylAMRpDlQsOX0Ecr9HruDAfHAmJz
+	 RB+dZFssmW1nEvsFX7xwTW9kqxd6UNEtBkTVfnFnMJric7iALr3CCiepgxlFP5+3CF
+	 TT9nXAyKpxJ1yGLct42H+LWXIOd7g30HYInenEmmh0QjltgDF+Anv+/OzOKt82GnSr
+	 cFpX1qV6R2glApEv823T6Au6ukYZtT6+QGc5zp6kB6+/5VX5LtVTWnFrSr+Ye6ai8K
+	 Nmhxld/rAI14A==
+Subject: Re: [PATCH net-next 06/13] netfilter: nft_flow_offload: do not
+ offload multicast
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 17 Nov 2026 00:22:48 +0000
-Message-ID: <179487496872.3136.7616374385796675511@kernel.org>
-In-Reply-To: <20261116001612.2806263-6-pablo@netfilter.org>
-References: <20261116001612.2806263-6-pablo@netfilter.org>
+Date: Tue, 17 Nov 2026 00:22:49 +0000
+Message-ID: <179487496989.3136.17890972366589039395@kernel.org>
+In-Reply-To: <20261116001612.2806263-7-pablo@netfilter.org>
+References: <20261116001612.2806263-7-pablo@netfilter.org>
 X-sashiko-severity: Low
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -70,127 +70,69 @@ you want to address the nit picks below when you respin.
 
 Low priority / nit picks for your consideration:
 
-- [Low] The patch fixes a real, user-visible correctness bug: `-m time
-  --monthdays` rules give wrong results once the clock reaches…
-- [Low] The commit message has three inaccuracies, and it understates the
-  impact.
-- [Low] After the patch, some comments and state in
-  net/netfilter/xt_time.c still describe the removed table-based date…
+- [Low] Commit "netfilter: nft_flow_offload: do not offload multicast"
+  fixes a long-standing bug that users can see, but it has no Fixes: tag.
 
 --
 
-netfilter: xt_time: fix monthday computation for dates past 2039
+netfilter: nft_flow_offload: do not offload multicast
 
-This patch replaces the days_since_epoch[] table walk in localtime_3()
-with time64_to_tm(). This keeps r->monthday and r->month in range for
-dates from 2040-01-01 on. The lookup tables and the 2039 limit are
-removed, which also shrinks the xt_time object.
+This commit makes nft_flow_offload_skip() skip packets with a multicast
+destination address for both IPv4 and IPv6. Before this, IPv4 multicast
+stayed out of the flowtable only because the reverse route lookup failed.
+IPv6 multicast forwarded by ip6mr could be offloaded and then keep
+sending to a stale output.
 
-> iocaltime_3() derives the year from days_since_epoch[], which only has
-> entries up to 2039. For any date from 2040-01-01 on, the lookup stays on
-> the 2039 entry, so the day-of-year offset is 365 or more. That value is
-> used to compute r->monthday, which ends up larger than 31 (32 on
-> 2040-01-01, and it wraps in the u8 later in the year).
-
-[ ... ]
-
-> Only the real-time clock reaches localtime_3(), so this is not
-> triggerable before the clock passes 2040-01-01 UTC.
-
-[Severity: Low]
-This isn't a bug, but there's a typo: iocaltime_3() should be
-localtime_3().
-
-Is the "2040-01-01 UTC" part accurate when XT_TIME_LOCAL_TZ is set?
-time_mt() adjusts the stamp before it calls localtime_3():
-
-    if (info->flags & XT_TIME_LOCAL_TZ)
-        /* Adjust for local timezone */
-        stamp -= 60 * sys_tz.tz_minuteswest;
-
-For timezones east of UTC, tz_minuteswest is negative, so stamp moves
-forward. do_sys_settimeofday64() accepts tz_minuteswest down to -15*60.
-That means the old code could produce a bad monthday up to 15 hours
-before 2040-01-01 UTC.
-
-Could the message also say what the out-of-range monthday leads to?
-time_mt() uses it as a shift count:
-
-    if (!(info->monthdays_match & (1U << current_time.monthday)))
-
-With the old code, a monthday of 32 or more makes this shift undefined
-behaviour, and the rule silently fails to match. Once the u8 wraps back
-into 1-31 later in 2040, rules match on the wrong days.
-
-> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-[Severity: Low]
-Should this have a Fixes: tag? The days_since_epoch[] table and
-DSE_FIRST = 2039 came in with the original match:
-
-Fixes: ee4411a1b1e0 ("[NETFILTER]: x_tables: add xt_time match")
-
-Without the tag, stable backporters could read this as only the size
-cleanup suggested by the bloat-o-meter numbers.
-
-> diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-> index 2065fce8ef81b..f0c4c1d1bc4a0 100644
-> --- a/net/netfilter/xt_time.c
-> +++ b/net/netfilter/xt_time.c
+> diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+> index d3c5651dd6997..530e20c7fd457 100644
+> --- a/net/netfilter/nft_flow_offload.c
+> +++ b/net/netfilter/nft_flow_offload.c
 
 [ ... ]
 
-> @@ -102,51 +71,12 @@ static inline void localtime_2(struct xtm *r, time64_t time)
->
->  static void localtime_3(struct xtm *r, time64_t time)
->  {
-> -	unsigned int year, i, w = r->dse;
-> -
-
-[ ... ]
-
-> +	time64_to_tm(time, 0, &tm);
->
-> -	r->month    = i + 1;
-> +	r->monthday = tm.tm_mday;	/* 1-31 */
-> +	r->month    = tm.tm_mon + 1;	/* 1-12 */
->  }
+> @@ -33,6 +34,10 @@ static bool nft_flow_offload_skip(struct sk_buff *skb, int family)
+>  
+>  		if (unlikely(opt->optlen))
+>  			return true;
+> +
+> +		return ipv4_is_multicast(ip_hdr(skb)->daddr);
+> +	} else if (family == NFPROTO_IPV6) {
+> +		return ipv6_addr_is_multicast(&ipv6_hdr(skb)->daddr);
 
 [Severity: Low]
-This isn't a bug, but localtime_3() now works only from time and no
-longer reads r->dse. Are some comments and struct xtm now out of date?
+This isn't a bug, but should this patch carry a Fixes: tag?
 
-The file header still credits dietlibc:
+Before this change, nft_flow_offload_skip() returned false for IPv6.
+Nothing else in nft_flow_offload_eval() rejected a multicast destination,
+so IPv6 multicast forwarded by ip6mr reached the flow offload expression
+through the FORWARD hook:
 
- *	It is using some modified code from dietlibc (localtime() function)
- *	that you can find at https://www.fefe.de/dietlibc/
+net/ipv6/ip6mr.c:ip6mr_forward2() {
+    ...
+	return NF_HOOK(NFPROTO_IPV6, NF_INET_FORWARD,
+		       net, NULL, skb, indev, skb->dev,
+		       ip6mr_forward2_finish);
+    ...
+}
 
-The table walk removed here was the last of that code.
+A flowtable entry could then be created for it. That entry keeps sending
+to the output it resolved when it was added, even after the last listener
+leaves, and the mroute counters stop.
 
-The comment in localtime_2() still says it computes monthday:
+The IPv6 path seems to have been offloadable since the flow offload
+expression was added, so the likely target would be:
 
-	/*
-	 * Here comes the rest (weekday, monthday). First, divide the SSTE
-	 * by seconds-per-day to get the number of _days_ since the epoch.
-	 */
+Fixes: a3c90f7a2323 ("netfilter: nf_tables: flow offload expression")
 
-It now computes only dse and weekday.
+Most of the other fixes in the same pull request carry Fixes: tags, for
+example "netfilter: flowtable: purge entries immediately when destroying
+the flowtable" and "netfilter: flowtable: do not clear the offload bit
+twice". Without a tag here, stable maintainers have no way to tell which
+trees need this fix.
 
-struct xtm also keeps this field:
-
-	unsigned int dse;
-
-It used to carry days-since-epoch from localtime_2() to localtime_3().
-Now it is only read inside localtime_2(). Could this lead readers to
-think localtime_3() depends on localtime_2() running first?
-
-There is also a small side effect. Weekday comes from the unsigned
-div_u64() in localtime_2(). Monthday comes from the signed,
-floor-corrected division in time64_to_tm(). The two only differ for a
-negative stamp. That needs a time within the first day of 1970, plus
-either the XT_TIME_CONTIGUOUS one-day subtraction or a timezone west of
-UTC.
+>  	}
+>  
+>  	return false;
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116001612.2806263-2-pablo%40netfilter.org
