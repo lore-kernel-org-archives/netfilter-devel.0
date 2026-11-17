@@ -1,76 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=162.62.57.252
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794891504;
-	b=a4uMvXD6vwHzWq1Zkx5c0x+Zdw3pF9CLTPMiony7OwI0wnOdrYnuUgxyOCp1NUWCoJzT
-	 XRqRisKlP6Y+o3o1xfTSIEppVYoEg4plFPd2UxkrKRxJbmqc+UEXPaKGJPS0pj+w4m5z3
-	 8sJoZ2/uuxvYpDjv+mHY3Wc1/Um8kv5iaKEZRcxVpADBKFMeszrC3DLEprZ7b4L1ZrRCg
-	 GhFgZD/oHDB9Arl3DQ3+kJT0qt8zrDgNYy2Hbg9FpziiHpi4yH56pG4VzPQZM3+jLVI5O
-	 vO/MahZZMiyWjTw+1eQrsuWunjYVfAjlIaUqS/ZtVUC0+Nf9ONiA+67yFVA287qNlKA==
+	t=1794905816;
+	b=RHPvAjL1aSav2LOCDRNDEC06fBAEfzwHz3zUOXQN2Tej6blkd0EmqEGinXzX0zklr0yX
+	 nTnocMG6q1laxuxDJRlIFwxEzUQAyA+QEC3oOIAnTgteSBAr8A7/xEIFj8UmoHreB49kg
+	 +lXmFTn73aC/9dgfcH6sQwmtyuD1lg2fxa5x0o0GxX2KUrFguU39MZHXP3YFGUZzPGeiS
+	 /lSsY+EMGu4o0TA/LkTCm0bSi2LI2Ha7qwUKa7MX8Eb+8TxWwR90qGLlwkoBv6FsrjzlA
+	 C5ht2DxEHVwIXrwXRPwcikqqY0H0Ryfe1c6/ptHMIprwPQpotnIg9h1RPToCOzsYLng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794891504;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=NtvNavLhdF5VqzN3U/lxKGZTbJ2uLaBHlsvnWRO5TGY=;
-	b=wTbV2X/rks+Y+6hYb3FLq6iT/IMyLt92dX9bnRMlACm3JEWaXJH0wZV7JxWB12yz2TOk
-	 irzEj5+YVwk7seqgJCBXeLWQ06qqagfmYbHmfcuTxKDrzoesYGVAANP8ZZAkPmdMM61Zg
-	 FDVEWd5XrN7w87SXiRnFWhTq4yjJuQSVLStigUB/aB4JHDbeuaMzIocCxyBqyXogPzbQa
-	 ZEqwdxnhHlqC9Fr9JY8TsXARzgFkiphg/44BXkWOeK1D1e0GgWcvzyUWBCGypZ3AZTrOh
-	 wMNOO2asI9y28sNlQIBoxgOm0wxym7DFqGmgurCjB15F+n+0pooqx4gz00ksC8yxIaw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794905816;
+	h=DMARC-Filter:DKIM-Signature:Received:X-QQ-mid:Message-ID:
+	 X-QQ-XMAILINFO:X-QQ-XMRINFO:From:To:Cc:Subject:Date:X-OQ-MSGID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=pcfBs8WoN7/q9bbgEnCRQbl/I6Zh/jFSmI3HMkPPCd4=;
+	b=MMJ3nCqKxtfPn9cmgVZ2WBJo+bd0yxbMcrRp7IP0YpOxmUFNVYhs06+nGUxmL9ah6xEh
+	 FJE+TjZ+FAUwVA26OFpTdXDr7JEexUvaO2CdNR6qHbFK/If51c7yO4s+lHLR1pS+pNQ06
+	 kKLNfSmjWSeLqrIqJi2exlQikYVHAOg3jgOYPVZUu78rGHPCcRZsdB3gxJxC6dmNrift+
+	 kT9PatTWLN2iNeWrrotV3jDAlJCa4EG8S9XbNH/i6279/A9cQpF1zNSJOWciEi6p+8pgk
+	 Op5ZuAIxitv/U0ETvwZFdnr4GHoJHbfKP1hSOpe29OD8XXGEu36PTW8WUd2CfMO6NSA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b="i/Tm38Ud";
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=qq.com;
+	spf=pass smtp.mailfrom=qq.com;
+	dkim=pass header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=qBh4UeCf;
+	arc=none smtp.remote-ip=162.62.57.252
+Received: from out162-62-57-252.mail.qq.com (out162-62-57-252.mail.qq.com [162.62.57.252])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4A18606A329;
-	Tue, 17 Nov 2026 04:58:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4A18606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785EB606A31C;
+	Tue, 17 Nov 2026 08:56:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 785EB606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key, unprotected) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=i/Tm38Ud
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 9BD7C21FD1;
-	Tue, 17 Nov 2026 06:58:19 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=NtvNavLhdF5VqzN3U/lxKGZTbJ2uLaBHlsvnWRO5TGY=; b=i/Tm38Ud2Lx5
-	U5CCydP9ThSlQ9sdIn4/XPOWBBdyJsKDg6emeez3NmLlUAnBPBYaM5URKEEgn9ow
-	NI7uw+tO5lERAVZuo/aqGXqXbLmvM01vx1gVwPLbl7AZRM4qB3M3FEBfOMlRCqU3
-	20gJwwLQ4jUnsA7FaEFVFBaLEFBVgu4ZMERA6ccWcWqTh6JtgzAjT+Yhc6w2MDRm
-	QrPk5LCJ1Q0rDYWGfj9vnY+ZXd3ZFIOu/KFsVhHSqhfQ8aHwhP32LlVCfKVJI+nu
-	YOjdXocmfvWF2/jgE3VIE++HeuJG71yGH0bGQ5e3Nkn7rCFvNXB3AfhKkslRFITQ
-	8aHf93HnvlsOvN9R9YW+VU1rhgNcLVthyS6RKBsEp4iXWCorBt33P6dbfccFNOxd
-	YASxWA/galH3tHShJOXPWehF5AKfr/JKZt4XVSCYLXtE1FbYILc4Oey6ZYcCR1fa
-	8QcxjaHV9RqV77IHBhNI6MyQr9vb1q70IKEqDYAyRj0aIxGuBdO37B1/kH/9mH3V
-	y36uKYQfOeCj/t16zSZ13f7uyMsmfXym0nBcjB1K9tgFkeQkOCiw7EoSl78gSLs3
-	gkvZPaJNDxJIR/SG3KepGXBc2n0S/AQ/Zdy1ZxEAL2zWnPQejtPgsw/CpgvIIAMq
-	3BLNb++zvqbJ3d38flctK8q5cG1vOrY=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 17 Nov 2026 06:58:19 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 0718160572;
-	Tue, 17 Nov 2026 06:58:19 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6AH4wGOk008059;
-	Tue, 17 Nov 2026 06:58:16 +0200
-Date: Tue, 17 Nov 2026 06:58:16 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: netdev-bot+sashiko@kernel.org
-cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, davem@davemloft.net,
-        netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-        edumazet@kernel.org, horms@kernel.org, fw@strlen.de
-Subject: Re: [PATCH net 05/11] ipvs: update flags and seqs in backup server
- under lock
-In-Reply-To: <179487963105.3136.8669444891088576096@kernel.org>
-Message-ID: <6f59fbeb-d5cb-afef-1731-a272418ee6ff@ssi.bg>
-References: <20261116004404.2821183-6-pablo@netfilter.org> <179487963105.3136.8669444891088576096@kernel.org>
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=qBh4UeCf
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1794905810; bh=pcfBs8WoN7/q9bbgEnCRQbl/I6Zh/jFSmI3HMkPPCd4=;
+	h=From:To:Cc:Subject:Date;
+	b=qBh4UeCfRGNmULKLi37uyJzgUF3bgfyLf1wMavNxNH2u5/8H5SRfkr2xnP98rmTCG
+	 4YFFuNjc9u2qyaxwx31FhUqk4XGIDH3goqd+zUrrLF0PckggVN2w244J4Z/eyShhfp
+	 N+x73l3GjHhI8mfgNispCDi4L7BNWM+HpiAZE9iw=
+Received: from localhost.localdomain ([182.239.117.117])
+	by newxmesmtplogicsvrszc43-0.qq.com (NewEsmtp) with SMTP
+	id E2EB2C0E; Tue, 17 Nov 2026 16:56:46 +0800
+X-QQ-mid: xmsmtpt1794905806tpl1au0xj
+Message-ID: <tencent_19A48DA487BBFCFD990AC5A8010C663EA007@qq.com>
+X-QQ-XMAILINFO: OATpkVjS499u53pa9/MNGWk1BkZ8N4WdYcoDK7jSSNCrDUNyf7oMft53Db4Oh8
+	 NeQx/igDUjDQh8/Co/2YijQ6ZNyysj/v/3Ei0TN/UWfx8qjkQB04/lbpE9lUxE2N77KcUDvBh+Qy
+	 vTC5rUskIXkexnsqs5GVXKkEIqXcGNP2hBNEL/VwDnK4OWH6nFnJ+pMaPQR+g5LJGh/FGIcsBeX8
+	 qW7ZNEuJbGmMT8saVvwOMWbqGr5wYYbWNeir9rr3yTp6RlfG02kFHH/bei8qwZX1/YObtJOZcDyU
+	 Mr0MC3wDHc81H5Ei736OdAV8pagEcTvKVIx3x4z+rJCgBOeJowWwOkM8i29tk4aiEUfRBsFwCvl7
+	 F5eUFVCWQte3Jt+A1ip1u7K19Oe9FP0NvfazUVznOixwDff1dsfeyv5CQ9I4IYv2uNTH7xVq6Q61
+	 ULAMCG3zDpHaXTKx9GHoYkRYJqpqpLm62CcieQxMVTeY0eQxEEewaNuUf+gm/V0nGlipYKAY7+PH
+	 LT+EOpzN8OR08hcEzzM8jWhNvTc6odgrEY3gl8duIXX52abfSJTEntHF4ScDbCYlWY1OoabWfYvA
+	 5jIJkNUfixzIw707aj3BrCxvTP+fak4CtWkwWNjkEtsYaLZrUgBjx67VEjoMjj/J8dJXpRn+O83U
+	 XRhIC5ONdivL265VnHdV9PdooEdx7vrxjcE2ZArnHjNBbcanStsqxctlqqYqCuQkeCgxC6ABVplS
+	 PyOyF3XAUD26SSAODQtFhAos79FEUvxvdTuc9z10VQjQM19pE2YLh6LpWDvu+GT7xtnrmB9+DTg4
+	 CUt6nHwpknWUL5t562R/zp/o0em2m9gO5mTixfjiA5VDdLrXtWFFlNT8tkwyEhrfWFyJKWn1AJmD
+	 g5QOW7HEKkPC9iabg47tpBYU4jCGtrETwjegxZ11Ftluk9WD5lBCfHS3d251AXKp6CHRhGuwGe1r
+	 95GgFrDwj943i9eUk6xrK9hg6XMpwyaEyokI/Ioci89U5rwxEjcM1xxyAfvgmurT/r9IxnDfOV7p
+	 fOKjf9Oh/QPA7OL8YIGR1VyBWUuopXCE2fKZ0LkXNfTS1To40/4b7TY052FxoIHpxo0Iz7XQ==
+X-QQ-XMRINFO: MSVp+SPm3vtSI1QTLgDHQqIV1w2oNKDqfg==
+From: Ma Xinmeng <1564938642@qq.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH net] netfilter: nf_tables: don't unregister hooks that were never registered
+Date: Tue, 17 Nov 2026 16:54:27 +0800
+X-OQ-MSGID: <20261117085615.1701-1-1564938642@qq.com>
+X-Mailer: git-send-email 2.49.0.windows.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -80,161 +78,110 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-183751456-1794891497=:5807"
+Content-Transfer-Encoding: 8bit
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+A basechain created while its table is dormant is accepted without
+registering its hook. Re-owning a PERSIST orphan table with DORMANT set
+then makes nf_tables_table_disable() clear DORMANT before
+nft_table_disable() walks the chains, so __nf_tables_unregister_hook()
+no longer sees the dormant state and calls nf_unregister_net_hook() for a
+hook that was never registered. This triggers WARN_ONCE("hook not found")
+in __nf_unregister_net_hook().
 
----1463811672-183751456-1794891497=:5807
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Track whether a basechain's hook was actually registered and skip the
+unregister for chains whose hook was never registered. This preserves the
+existing "add a basechain to a dormant table" API.
 
+Signed-off-by: Ma Xinmeng <1564938642@qq.com>
+---
+ include/net/netfilter/nf_tables.h |  1 +
+ net/netfilter/nf_tables_api.c     | 29 +++++++++++++++++++++++------
+ 2 files changed, 24 insertions(+), 6 deletions(-)
 
-	Hello,
-
-On Tue, 17 Nov 2026, netdev-bot+sashiko@kernel.org wrote:
-
-> Thank you for your contribution! Sashiko AI review found 1 potential
-> issue(s) to consider.
-> 
-> Critical: 0 · High: 1 · Medium: 0 · Low: 0
-> 
-> If you believe none of the issues are legitimate, please reply to each
-> issue of Medium severity or higher and explain why the AI is wrong.
-> If any of them are legitimate and you plan to respin, please let patchwork
-> know by including "pw-bot: cr" as a separate line at the end of your reply
-> (one such reply per series is enough).
-> 
-> - [High] The fix is incomplete.
-> 
-> --
-> 
-> ipvs: update flags and seqs in backup server under lock
-> 
-> This commit extends the cp->lock region in ip_vs_proc_conn() so that the
-> backup server updates the conn flags, seqs, state, old_state and timeout
-> under the lock. Newly created conns now also take cp->lock before these
-> updates. ip_vs_try_bind_dest() is now called after the unlock.
-> 
-> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20260927220816.268206-1-pablo%40netfilter.org
-> 
-> > diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> > index 1caacf419af99..ba2fa1f9d08ed 100644
-> > --- a/net/netfilter/ipvs/ip_vs_sync.c
-> > +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> 
-> [ ... ]
-> 
-> > @@ -891,9 +892,6 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
-> >  		flags &= IP_VS_CONN_F_BACKUP_UPD_MASK;
-> >  		flags |= cp->flags & ~IP_VS_CONN_F_BACKUP_UPD_MASK;
-> >  		cp->flags = flags;
-> > -		spin_unlock_bh(&cp->lock);
-> > -		if (!dest)
-> > -			ip_vs_try_bind_dest(cp);
-> >  	} else {
-> >  		/*
-> >  		 * Find the appropriate destination for the connection.
-> 
-> [ ... ]
-> 
-> > @@ -951,6 +951,9 @@ static void ip_vs_proc_conn(struct netns_ipvs *ipvs, struct ip_vs_conn_param *pa
-> >  		else
-> >  			cp->timeout = (3*60*HZ);
-> >  	}
-> > +	spin_unlock_bh(&cp->lock);
-> > +	if (!dest && !cp_new)
-> > +		ip_vs_try_bind_dest(cp);
-> 
-> [Severity: High]
-> Can the backup server still write cp->flags without cp->lock through this
-> ip_vs_try_bind_dest() call?
-> 
-> ip_vs_try_bind_dest() holds cp->lock only around ip_vs_unbind_app() and
-> ip_vs_bind_dest(). It drops the lock before it rebinds the transmitter and
-> the app:
-> 
-> net/netfilter/ipvs/ip_vs_conn.c:ip_vs_try_bind_dest() {
->     ...
-> 		ip_vs_bind_dest(cp, dest);
-> 		spin_unlock_bh(&cp->lock);
-> 
-> 		/* Update its packet transmitter */
-> 		cp->packet_xmit = NULL;
->     ...
-> 		pd = ip_vs_proto_data_get(cp->ipvs, cp->protocol);
-> 		if (pd && atomic_read(&pd->appcnt))
-> 			ip_vs_bind_app(cp, pd->pp);
->     ...
-> }
-> 
-> For a MASQ conn, ip_vs_bind_app() reaches tcp_app_conn_bind(), which sets
-> cp->app and calls inc->init_conn(). For the FTP helper, that is:
-> 
-> net/netfilter/ipvs/ip_vs_ftp.c:ip_vs_ftp_init_conn() {
-> 	/* We use connection tracking for the command connection */
-> 	cp->flags |= IP_VS_CONN_F_NFCT;
-
-	This problem is deep in my TODO list. It is not locked only
-for the backup context, not for the normal packet context, so it
-needs a proper separate fix.
-
-> 	return 0;
-> }
-> 
-> This is a non-atomic read-modify-write of cp->flags on a conn that is
-> already hashed. The other runtime writers of cp->flags hold cp->lock:
-> 
-> - set_tcp_state() and set_sctp_state() toggle IP_VS_CONN_F_INACTIVE and
->   adjust the dest counters.
-> - vs_seq_update() sets IN_SEQ/OUT_SEQ.
-> - ip_vs_in_hook() clears NFCT.
-> 
-> The path is:
-> 
-> ip_vs_process_message()
->   ip_vs_proc_conn()            /* existing conn, cp->dest == NULL */
->     spin_unlock_bh(&cp->lock)
->     ip_vs_try_bind_dest()
->       spin_unlock_bh(&cp->lock)
->       ip_vs_bind_app()
->         tcp_app_conn_bind()
->           ip_vs_ftp_init_conn()   /* unlocked cp->flags |= ... */
-> 
-> This can happen when all of the following are true:
-> 
-> - A synced MASQ conn for an FTP virtual service was created unbound,
->   because the real server was not yet configured on the backup.
-> - The dest is added later.
-> - The next sync message for that conn arrives while the backup is also
->   forwarding its traffic.
-> 
-> Suppose tcp_state_transition() on another CPU sets IP_VS_CONN_F_INACTIVE
-> under cp->lock and moves activeconns/inactconns at the same time. Would
-> the unlocked write here put back the stale flags?
-> 
-> The flags and the dest counters would then disagree, and the wrong counter
-> would be decremented when the conn is unbound. IN_SEQ/OUT_SEQ bits could
-> be lost the same way. This code path also looks unchanged by the rest of
-> the series.
-> 
-> The commit message says:
-> 
->   "Sashiko reports that we modify the conn flags and seq values in
->   the backup server without holding cp->lock."
-> 
-> Should this path be covered as well?
-> 
-> >  	ip_vs_conn_put(cp);
-> >  }
-> >
-> 
-> -- 
-> Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261116004404.2821183-2-pablo%40netfilter.org
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-183751456-1794891497=:5807--
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9d5974823..fcd24502b 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1243,6 +1243,7 @@ struct nft_base_chain {
+ 	const struct nft_chain_type	*type;
+ 	u8				policy;
+ 	u8				flags;
++	bool				registered;
+ 	struct nft_stats __percpu	*stats;
+ 	struct nft_chain		chain;
+ 	struct flow_block		flow_block;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8b94b5e7d..25b4075c9 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -428,21 +428,30 @@ static int nf_tables_register_hook(struct net *net,
+ {
+ 	struct nft_base_chain *basechain;
+ 	const struct nf_hook_ops *ops;
++	int err;
+ 
+ 	if (table->flags & NFT_TABLE_F_DORMANT ||
+ 	    !nft_is_base_chain(chain))
+ 		return 0;
+ 
+ 	basechain = nft_base_chain(chain);
++	if (basechain->registered)
++		return 0;
++
+ 	ops = &basechain->ops;
+ 
+ 	if (basechain->type->ops_register)
+-		return basechain->type->ops_register(net, ops);
++		err = basechain->type->ops_register(net, ops);
++	else if (nft_base_chain_netdev(table->family, basechain->ops.hooknum))
++		err = nft_netdev_register_hooks(net, &basechain->hook_list);
++	else
++		err = nf_register_net_hook(net, &basechain->ops);
+ 
+-	if (nft_base_chain_netdev(table->family, basechain->ops.hooknum))
+-		return nft_netdev_register_hooks(net, &basechain->hook_list);
++	if (err < 0)
++		return err;
+ 
+-	return nf_register_net_hook(net, &basechain->ops);
++	basechain->registered = true;
++	return 0;
+ }
+ 
+ static void __nf_tables_unregister_hook(struct net *net,
+@@ -456,22 +465,30 @@ static void __nf_tables_unregister_hook(struct net *net,
+ 	if (!nft_is_base_chain(chain))
+ 		return;
+ 	basechain = nft_base_chain(chain);
++	if (!basechain->registered)
++		return;
++
+ 	ops = &basechain->ops;
+ 
+ 	/* must also be called for dormant tables */
+ 	if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+ 		nft_netdev_unregister_hooks(net, table, &basechain->hook_list,
+ 					    release_netdev);
++		basechain->registered = false;
+ 		return;
+ 	}
+ 
+ 	if (table->flags & NFT_TABLE_F_DORMANT)
+ 		return;
+ 
+-	if (basechain->type->ops_unregister)
+-		return basechain->type->ops_unregister(net, ops);
++	if (basechain->type->ops_unregister) {
++		basechain->type->ops_unregister(net, ops);
++		basechain->registered = false;
++		return;
++	}
+ 
+ 	nf_unregister_net_hook(net, &basechain->ops);
++	basechain->registered = false;
+ }
+ 
+ static void nf_tables_unregister_hook(struct net *net,
+-- 
+2.56.0.windows.4.niugit
 
