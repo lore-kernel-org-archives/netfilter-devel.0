@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794916278;
-	b=RG7Pr+EczvpAwVCJxez9YY3ii0JXU7feTHMexp56n35SYB0AmSIMz6/WcR2N9CfczECQ
-	 4I04wKVu1Zz3nkChy2QmAuHG7/s28yjwpfu74DGrlf57VV65JpwPhi9HnhpihD6m+mH63
-	 guxYKXxiwSNUm0LOVfLkReA+Fj9goG5REfSpnCGQ0KDqN1KLXM3sqj91CUSnT1HcYGNEZ
-	 J2Pt6tueTg6L3VC/hqVh9o0hKu+xu/7Fv/Lf89U+9s+jRmPQXHOX6vgvCtu5dswRMfjpD
-	 vqN4zNwidTDwGhAZvEe5vwpppCWEeBRm1WR/XadwxZrjKh/zlPs5wC1vQ4vjtJLm8Pw==
+	t=1794916282;
+	b=Ic5wY6lYPQzZhZf3ppHA4nkAoz68Dw2pipLU9FxlkT9WpzmRRnUmbZxH0z/Wl1lLPAny
+	 iJ3M8c6mRdKFWeDMx4xVInQRA7sN9k0LM1iXMgtDgw3k7hVGbJTDAkCAIDufL2hq52or/
+	 kOQQcJ8f4vqvwmM5jdhCuHfWPIyXOTviipBwhDGSFeCQFrMFio989xRTMkucwNX4VeKhf
+	 FULNDW/L6vuhcNVHDBozkCX61JFFIXBUBsOSyi0edlACBdjKJ2elhZrbK4QCUfxHXUdmy
+	 GQH+GPP5mhemGmni5azUEhZnc1sTL4ug3qiQgBIkYR0lSoRAxZ9DGVz0seJB47FA3AQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794916278;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794916282;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=AF9Y7F0Q4on7pQ3hMUOAuq8WwySQWbN5zNGViyPyofk=;
-	b=u14PONJerUd7G5esOoYm3lDXXPDmG4lglEQW0sdpTs0gqu4RbFlz5bwuM0NcWyB5JJte
-	 FJKHwvX0YtAj7/SDo0BlLQBW0gbj7zuiR7VLeVqf1OIrnBEPKKgjaLaweEe4rjx3KPX3c
-	 otSmKT9D+qBGdzs+Xc4EYNOz809U4yfEyTBOXL4lvF8F7fVd8SD/wTt2IVCEVzvJ2iiQU
-	 pJ6TZ52HCKctiMy926+yKj3irGCC/I2JUTW5GGUQpmBGkna3OsP/g7I9G0ijRSKwsfv2y
-	 n/QgU0q7mMjuIaDF7PeEe34qD8WasojbrZ8WjWCyc5U9v+psUnRPO76nXGgxwTKibOw==
+	bh=Q/43EgnyXmu8zGfnIPtnl/G4lTIWzZST8qI59NEVzXM=;
+	b=1Z3S2Xm91//7Y19H8NtulnbYXsbDBb3AJTnflkXk/YWAye0qd2NhdO5fz5TFSi0/jIJl
+	 kcR9eN8V2Q1ojGmF4JyfS2DgkVRgoenfGwSmWp7Zi4gkgmE4NPACBSgjyhLpHPEmSFW0A
+	 6QtUy10RI8DWqy9wYeTsd5CXUWiaKhSRSZTpKsIJET7B19sFejaB75uSYuVDqfW/KwRTj
+	 qTusl68/yHeOo98z+f8Gw8WJKcLHDD3WLbB1r/SS0QPsSud7bWdy7JFcSQyJlcFSiA1tZ
+	 X3NbSVY5YpEBQGpsk8YujlannW8dDHghabm4laA3PuuWc7kmObIuvmgIX/sz/ytmM3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A26C606A329
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9A26C606A329
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC40606A31C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:51:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BEC40606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F41E16055A; Tue, 17 Nov 2026 12:51:15 +0100 (CET)
+	id 3C67E6055A; Tue, 17 Nov 2026 12:51:20 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/6] netfilter: nfnetlink_log: don't log hwheader on output hooks
-Date: Tue, 17 Nov 2026 12:50:45 +0100
-Message-ID: <20261117115046.15435-6-fw@strlen.de>
+Subject: [PATCH nf-next 6/6] netfilter: nfnetlink_log: only add timestamp on the input path
+Date: Tue, 17 Nov 2026 12:50:46 +0100
+Message-ID: <20261117115046.15435-7-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261117115046.15435-1-fw@strlen.de>
 References: <20261117115046.15435-1-fw@strlen.de>
@@ -51,89 +51,71 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-On output hooks (LOCAL_OUT, POST_ROUTING and their per-family
-equivalents) the mac header is either unset or still belongs to the
-ingress device, not the egress one, so we would log stale data.  Only
-emit the hardware header attributes while the packet is still on the
-input path.
+The timestamp attribute should only be emitted while the packet is on
+the input path, like the hardware header attributes.  On output hooks
+skb->tstamp can hold the SO_TXTIME transmit time, a delivery deadline
+rather than the time the packet was observed.
 
-The check has to use both family and hook value, hook numbers are family
-specific, e.g. NF_BR_BROUTING has the same value as NF_INET_INGRESS.
+The old check compared the raw hooknum against NF_INET_FORWARD, which is
+meaningless for families with their own hook numbering: it was too
+liberal for NFPROTO_ARP and NFPROTO_NETDEV.  Use nfulnl_pre_egress()
+instead, so those no longer emit a timestamp at their output hooks.
 
-nfulnl_pre_egress(pf, hooknum) answers the question the check cares
-about: has the packet left indev's input path yet, i.e. does skb's mac
-header still belong to indev.
-
-This keeps hwheader logging working for the nftables inet ingress hook
-(nft_do_chain_inet_ingress() sets pf to NFPROTO_IPV4/IPV6 with hook =
-NF_INET_INGRESS) and for the ebtables broute table (NF_BR_BROUTING,
-indev and mac header are those of the received frame).  For NFPROTO_ARP
-and NFPROTO_NETDEV only NF_ARP_IN and NF_NETDEV_INGRESS are accepted.
-
-Fixes: 72961ecf84d6 ("netfilter: nfnetlink_log: send complete hardware header")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_log.c | 34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_log.c | 32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index edc1e018c869..ee006d9df0a4 100644
+index ee006d9df0a4..ac3912bbacb0 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -21,6 +21,7 @@
- #include <linux/netdevice.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_bridge.h>
-+#include <linux/netfilter_arp.h>
- #include <net/netlink.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_log.h>
-@@ -458,6 +459,36 @@ static int nfulnl_put_bridge(struct nfulnl_instance *inst, const struct sk_buff
- 	return -1;
+@@ -548,6 +548,22 @@ static int nfulnl_put_hwheader(struct sk_buff *nlskb, const struct sk_buff *skb,
+ 	return nla_put(nlskb, NFULA_HWHEADER, len, hwhdrp);
  }
  
-+/**
-+ * nfulnl_pre_egress - Can @skb's mac header still be attributed to @indev?
-+ * @pf: protocol family of the hook this packet is being logged from.
-+ * @hooknum: hook number within @pf's family.
-+ *
-+ * True only for hook points where the packet has not yet left @indev's
-+ * input path, i.e. where @skb's mac header still reflects what @indev
-+ * actually received. Past LOCAL_OUT/POST_ROUTING (and their per-family
-+ * equivalents) the packet may have been re-routed, re-encapsulated, or
-+ * is headed to a different device than it arrived on.
-+ *
-+ * Return: true if mac header can be attributed to indev
++/* The timestamp is the time the packet was observed at the hook.
++ * Only called while the packet is on the input path: on output
++ * hooks skb->tstamp can hold the SO_TXTIME transmit time, which
++ * is a delivery deadline, not an observation time.
 + */
-+static bool nfulnl_pre_egress(u8 pf, unsigned int hooknum)
++static int nfulnl_put_timestamp(struct sk_buff *nlskb, const struct sk_buff *skb)
 +{
-+	switch (pf) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+		return hooknum <= NF_INET_FORWARD || hooknum == NF_INET_INGRESS;
-+	case NFPROTO_BRIDGE:
-+		return hooknum <= NF_BR_FORWARD || hooknum == NF_BR_BROUTING;
-+	case NFPROTO_ARP:
-+		return hooknum == NF_ARP_IN;
-+	case NFPROTO_NETDEV:
-+		return hooknum == NF_NETDEV_INGRESS;
-+	default:
-+		return false;
-+	}
++	struct timespec64 kts = ktime_to_timespec64(skb_tstamp_cond(skb, true));
++	struct nfulnl_msg_packet_timestamp ts = {
++		.sec = cpu_to_be64(kts.tv_sec),
++		.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC),
++	};
++
++	return nla_put(nlskb, NFULA_TIMESTAMP, sizeof(ts), &ts);
 +}
 +
- /**
-  * nfulnl_put_hwheader - Append link-layer header info to the netlink skb.
-  * @nlskb:      Target netlink message to append attributes to.
-@@ -650,7 +681,8 @@ __build_packet_message(struct nfnl_log_net *log,
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ static int nflog_put_master_ifindex(struct sk_buff *nlskb, int attr,
+ 				    const struct net_device *dev)
+@@ -681,18 +697,12 @@ __build_packet_message(struct nfnl_log_net *log,
  	if (nfnetlink_put_hwaddr(inst->skb, skb, indev, NFULA_HWADDR))
  		goto nla_put_failure;
  
--	if (indev && skb_mac_header_was_set(skb) &&
-+	if (nfulnl_pre_egress(pf, hooknum) &&
-+	    indev && skb_mac_header_was_set(skb) &&
- 	    nfulnl_put_hwheader(inst->skb, skb, indev))
- 		goto nla_put_failure;
+-	if (nfulnl_pre_egress(pf, hooknum) &&
+-	    indev && skb_mac_header_was_set(skb) &&
+-	    nfulnl_put_hwheader(inst->skb, skb, indev))
+-		goto nla_put_failure;
+-
+-	if (hooknum <= NF_INET_FORWARD) {
+-		struct timespec64 kts = ktime_to_timespec64(skb_tstamp_cond(skb, true));
+-		struct nfulnl_msg_packet_timestamp ts;
+-		ts.sec = cpu_to_be64(kts.tv_sec);
+-		ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
++	if (nfulnl_pre_egress(pf, hooknum)) {
++		if (indev && skb_mac_header_was_set(skb) &&
++		    nfulnl_put_hwheader(inst->skb, skb, indev))
++			goto nla_put_failure;
+ 
+-		if (nla_put(inst->skb, NFULA_TIMESTAMP, sizeof(ts), &ts))
++		if (nfulnl_put_timestamp(inst->skb, skb))
+ 			goto nla_put_failure;
+ 	}
  
 -- 
 2.56.1
