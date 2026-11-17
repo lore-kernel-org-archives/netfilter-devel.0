@@ -1,49 +1,101 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.179
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794914409;
-	b=n5tRx/IURG74bMxj250Ho5kIeqJBN9zTskqFsVmIfcxgu7Pc2tDDG0XBNTOkaoDAZHBj
-	 /CLUn+0c7b1JEHtcO1v2XxDaTioTgliS00DnSg8r6oDdtUj49yKchPHIMT5fvva1nEhh1
-	 XFRspAum/Fg7jr1hCkUsnIGrQaT9Od+q8fQyb6X/UvueavBfXdEYyMd6HZA4g6S8D4wH+
-	 +jQFj80r+bacN3mlH7+KlywhpfkTHTkAJqodPj63Ze6TAY2TEBnW7noBUGW4c3JMH8w/O
-	 5zAgoUa42uWUXb/KZ7VBFSVoODZlhG2oNFj8ZhCCaRfQCiLH6RriFVOZNomIel6zL4w==
+	t=1794915905;
+	b=GIj++g+vpCbwjzKPeHWRy8ymt2kBVkJiPLyXCEYYMCql8ai7LJ4aRoOV8n2ZWp2B7iVX
+	 5xRrLDiITMGADMQZFQdOUyIteaDeAAaXz+zA0YFjq9ujBGJFe16y9HaOso4OVHP8nV+B1
+	 3ZCvRzgV3EmoMygMI/pVtOmnB/hG0RFQMZOYXfBosee1rIelQNycVbw2Dkbp+M3O/v8fH
+	 I/EFCQqA0uqAvURpGEkvLL36C80uuofkuRvJ2P1vpDZWecZ8+7HFlUCpPa3Dq8GwU0/jS
+	 6Hg2ilph3eyzE3WnXxVlU8HAL9t3sKNVd0As3vX4Zydk9Hk8wqjCBpeFdjBgO6uef2w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794914409;
-	h=Received:DKIM-Signature:Received:Content-Type:MIME-Version:
-	 Content-Transfer-Encoding:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc;
-	bh=3QISyfluSWeK3oqNp9QI7n3lx/wBWLiQ5O5kI6oT/ys=;
-	b=hM0sichkX/xnrXpmw0zp54TlS14NuF3ICHCsDCaA45XkToftH86i/CU17FuwKYrwQjeP
-	 yK1TTnpyz+usGlqeTW0ssQT9v250U5y+ntQjVHIThA0nAUh8j3Xs7/Rs1IDAqVHF/ojPl
-	 8nky4USCRutnr4D7sJT2gFsqM0hJPqhZodIiX2lVHHpTGhDz7uswuJw8PSMSGamFITgc5
-	 XE0alQ5B82xEUF/knrYe7yLBlWl8+S3UT+U6jOkYfrgesg4kNSHhpvm+CqfCghToHOr22
-	 dgIDRT8Wtt8evvxX9sM/CXsQH+ckNrAEnUtc0yHlKOncCYH//S9uhMUMG8I1sHua2Ow==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794915905;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=EHTZ/1KUGWNJTaA44N1B6xy5DZM7ZoLUszGDdI/4cdo=;
+	b=OsP4JzGG32UmyhgbhlnvzyKSWYnkoPKqyo/FAFVMkHDYNbK9okQ66ofLqLzEwW71oxeq
+	 We7lbAJ4WSCLw4qCrkFzsOuv1GTUHlq8vfBOmRk69AdLlJynsr03DufrCUbLNAsgpwLG+
+	 k3yNY5jvr6Q4Go0e1IZeoMlrO4d2J2WTPiTrxxqGB58JJCjLtofPBIThhCUCyQ4PBP6i7
+	 aRWpreHrmDsBjq6me6TFQnBfzgRgjw1o9281w6nCIprsLftSP0RV/K84MTYM8L5jdBrYx
+	 5VmMf3muBM+1ynjd4zYTnjz9JAl4iz5rE8G7eJrc3BuDNydC8kTr0dxHmuvQBdOvuSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Hg/F06sf";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VGiaafKL;
+	arc=none smtp.remote-ip=209.85.214.179
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E44FB606A33D;
-	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10523606A887
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 11:45:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10523606A887
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hg/F06sf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF4801F000C4;
-	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794914408;
-	bh=3QISyfluSWeK3oqNp9QI7n3lx/wBWLiQ5O5kI6oT/ys=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc;
-	b=Hg/F06sfTWfaJWN7o1Dn96e+3Uskfd67754EJkWCS871ZCwlbPJmTUCdZcdALfbms
-	 zHECvi/1ItNh2tyALO4EcTiHRODocYGo739yKwyVB4yy2H/CfsmH0aWUDX1mqOA8ni
-	 yHyA4fOtTk8LGWm1yA+eJZGCa4tGfNTfEOXaMjg7MRu0yQYFJh+usjDtnC2t1XVC9/
-	 H/kz8PKTeoJC1NYZ8kiwngsQKBbJXhRYvCnfDmnh0jtxBNG3yW2vN4+wFDiFLwC9Vp
-	 pHtLdb3cKon0+yNAhFBeXyfMnWO5lCxcQxAG8MjyGffez/ceK3Pk93rpVfYgcbdErL
-	 W7bA3lh++/EXg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id B449E392665D;
-	Tue, 17 Nov 2026 11:20:08 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=VGiaafKL
+Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2eb18f4da15so19578465ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 03:45:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1794915904; x=1795520704; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=EHTZ/1KUGWNJTaA44N1B6xy5DZM7ZoLUszGDdI/4cdo=;
+        b=VGiaafKLm0Xdg+3FKaZmGIukFPRYRb0YRpgodlpQl332TOMfRYzBIo40kh43Y/yMpT
+         GvI48PA2g646iMvr6fPnu2MJZ556ul+EKeH5SNIjMMw7FiPcalTQ14hpEgVkeF8qTDku
+         fvBrp+hrjdWQJfpzei8N+dhaKgQiY+fyFdZuCBFZHR5Hfkf8cyrPPniI9Nv9j7yRuvVO
+         9iJBKo2IWm4WNjIwGOp331BuCujIYFY+O3O7AYZ2geCUFwxTzJRC8KECDBoO8SQzuzBC
+         ztDLnmG0FRlFDwZ8z5GxB2yRTws6BG31D1AWMbdNjuUURQXfxFaNRWudTvlqBG7YTDrw
+         uM5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794915904; x=1795520704;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=EHTZ/1KUGWNJTaA44N1B6xy5DZM7ZoLUszGDdI/4cdo=;
+        b=iYUewfqgNo8UycR4IcnpCSKPSob09KH9jW1dkyXDCkj8AKo222w2KD3b6f3NVbqo48
+         1o8a/cInrcmPS9ORM4CqqhLK/5AIst6G/ZD4GL/+g3Cp1d7SO/sK3aFyhl5crmZNi2oR
+         DHdr6UhZecMH0/6n2fCIzeFcDzvbb3/3ZxExSeob4krBuWyo9WopFndkJ0W5LhjtyZp9
+         OCX34wgSCY9TT+wKBYDOWJo2noLrcJnnsXA4uM5/kJFsycmB23RluNUKy+vdOjnz9VJJ
+         JqJjwk3Kn+KMS4EerKNO644mD8OfYmDTG50p58OifJz5QaUYHOtUU9cJFoJi9SGDMrep
+         0HDw==
+X-Forwarded-Encrypted: i=1; AL+hErFy7zrISR4RCV9N923Cp48bNaCRAiTr21Pf7ErnDf4IC+C2YHj3UGnGs4A2zfc3Gy5W+VelQtHVPYtFAxX2SA8=@vger.kernel.org
+X-Gm-Message-State: APuU4Z/potnJqVIzqR6UDh7mIKYV/uk/u4lOC5GYGS/nIHRv/sINdtoH
+	0Mqq3kJGLxK2UhJvrp3SmDAdxHkIV6eF4Q4QFzu9FPn7n2L0Nn6HodzB
+X-Gm-Gg: AZFdTZf8p8luL69tJ2qdRv/9TIFpZA4TB6Yqtfz0kDdgwtYjmTs2KpGcc30TzDLLOKa
+	UDx88LqbpMoHQo/JsIPz54yt762SML+di3+ldBBtk6Sp3S9iGlRI9nkKYBsNqH+Se/wt6jGo/hC
+	hOI2tmbIaq9c+vhw8/pNvtetU/rNbmahJAXAroFNvcpJwio0XgiqaxZqzIsIKZQ3nQhcyDBHX9H
+	Ss7mHIy7x5+stiE5+xV0/bhN9EP1Enup2LzF+QblzdVZApdET3u0WrLpZnuAX6Lgb079jak4rHz
+	X2e4Vu1EbTdFxjQ14bzqHcBtSBNLF4GttYi7TJoOt09syYffD8NVl5NwSLCztFjPBr6wksMPh8v
+	7YwMNgRaP2n2VezIdW/b8JuOmS1zclgxu+S9rU95d3ZMe08Dty+zbd7Eisce1dNrHi8v3ZcmWAY
+	TycJq1fpbU0ET2z/gHU1fNX85Kdt9BtQgXeI7FGJaXZlPNFh4YCaQJ+ZX8PqmQlqGGQ9RNchMB5
+	B7k2+CT5E5Fsjxfm5m0Lia5z8ohhFSUEEX1DwyQvo1xWaqjZrgTE8PNODDUBAqFT1Ahj/v6TBqW
+	6cW5UN4hqCrbcev8og6PawlhLfMbPy5+u7l/C7ioFlt/
+X-Received: by 2002:a17:903:228c:b0:2e6:5ef:abe9 with SMTP id d9443c01a7336-2ee0dcd0c58mr112203625ad.37.1794915904206;
+        Tue, 17 Nov 2026 03:45:04 -0800 (PST)
+Received: from gmail.com ([116.162.234.168])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2efd7a1636csm13585765ad.17.2026.11.17.03.44.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Nov 2026 03:45:03 -0800 (PST)
+From: Xue Boyang <fuchen.dust@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: kadlec@netfilter.org,
+	fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	phil@nwl.cc,
+	sunyiqixm@gmail.com,
+	bsdhenrymartin@gmail.com
+Subject: Re: [PATCH nf v4] netfilter: ipset: fix double free on kernel-side delete during resize
+Date: Tue, 17 Nov 2026 05:44:51 -0600
+Message-ID: <20261117114451.608829-1-fuchen.dust@gmail.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <avwswXiJh8HUPa5T@chamomile>
+References: <20261117101018.523826-1-fuchen.dust@gmail.com> <avwswXiJh8HUPa5T@chamomile>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -53,68 +105,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/13] netfilter: flowtable: do not hw offload
- flows
- in teardown state
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <179491440753.514086.6452925778003138386.git-patchwork-notify@kernel.org>
-Date: Tue, 17 Nov 2026 11:20:07 +0000
-References: <20261116001612.2806263-2-pablo@netfilter.org>
-In-Reply-To: <20261116001612.2806263-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
 
-Hello:
+Thanks for the pointer. I had not taken that series into account when
+preparing v4.
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+I have now looked through it. The rhashtable conversion removes the
+ipset-specific table-copy resize path, so it appears to avoid this
+double-free/UAF class at its root rather than fixing the individual
+races in the old resize implementation.
 
-On Mon, 16 Nov 2026 01:16:00 +0100 you wrote:
-> Sashiko reports that refreshing hw offload from packet path is racy
-> since the flow might be already torn down.
-> 
-> Since commit 7c549fb7eecd ("netfilter: flowtable: generalize pending
-> status bit"), GC skips flow entries that are still pending to be
-> offloaded. Let's just check for the teardown status bit after the
-> pending bit is set on to address this race.
-> 
-> [...]
+I will run the reproducer and the related GC/dump tests against v10 and
+report the results.
 
-Here is the summary with links:
-  - [net-next,01/13] netfilter: flowtable: do not hw offload flows in teardown state
-    https://git.kernel.org/netdev/net-next/c/0abb54363974
-  - [net-next,02/13] netfilter: flowtable: retrieve stats on flow deletion
-    https://git.kernel.org/netdev/net-next/c/2785eca574b0
-  - [net-next,03/13] net: ethernet: mtk_ppe: update stats on flow deletion
-    https://git.kernel.org/netdev/net-next/c/272435e43f1c
-  - [net-next,04/13] net: airoha: update stats on flow deletion
-    https://git.kernel.org/netdev/net-next/c/0602fe6ca35c
-  - [net-next,05/13] netfilter: xt_time: fix monthday computation for dates past 2039
-    https://git.kernel.org/netdev/net-next/c/71d4a4199524
-  - [net-next,06/13] netfilter: nft_flow_offload: do not offload multicast
-    https://git.kernel.org/netdev/net-next/c/b0ca1ef87626
-  - [net-next,07/13] netfilter: flowtable: purge entries immediately when destroying the flowtable
-    https://git.kernel.org/netdev/net-next/c/1ba460c8e20b
-  - [net-next,08/13] selftests: netfilter: nf_queue: drop the no-op loop initializer
-    https://git.kernel.org/netdev/net-next/c/f1eaa9155e69
-  - [net-next,09/13] netfilter: flowtable: do not scrub as crossing netns
-    https://git.kernel.org/netdev/net-next/c/4733af7f19e7
-  - [net-next,10/13] netfilter: flowtable: tunnel device poisons h_source of fast-path frames
-    https://git.kernel.org/netdev/net-next/c/ada5902116b4
-  - [net-next,11/13] netfilter: flowtable: do not clear the offload bit twice
-    https://git.kernel.org/netdev/net-next/c/8147f6e61e16
-  - [net-next,12/13] netfilter: nfnetlink_queue: make skb writable before writing NFQA_L2HDR
-    https://git.kernel.org/netdev/net-next/c/3abad1970ab4
-  - [net-next,13/13] selftests: netfilter: add UDP flowtable offload test
-    https://git.kernel.org/netdev/net-next/c/03b7948d634a
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Since that series targets nf-next and is a fairly large conversion,
+while this issue also affects existing and stable kernels, would you
+prefer that I replace this v4 synchronization rework with a smaller
+targeted fix for nf/stable, leaving the complete cleanup to the
+rhashtable series?
