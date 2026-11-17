@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794931156;
-	b=k+awcH8Yb9ZUEvTG82t4N3Rkdv9sI1zvhAsE+e343GduT6Si7kydvlei8lzTUvGFKKEC
-	 HJrmhmAVx65FZWog7bYQdalzrkvCd1TqAeUZ3Q+N9GAgXjqLGmH9g7bjgo1qKs3Pbpm6Q
-	 7TtkDor9DlZnf6Uv24tEYWH52skb6IkeG/RbjVhJxiXg0f+TJ13BrXQPHl59/d5KHCAqW
-	 5y6Ce/1/4bgQ4Qn9p0wR0wIhTNJueT2zguhUi8SZ7zq+/1V7J/Aa+wOfJFhtWh472mFhZ
-	 8i1ud9iYwkm2Tr3UXKtQbtEMzhUWsIXxydYG4Wqkvl80xaXifSrlWk+qQWmdHMylG8w==
+	t=1794931159;
+	b=auSBZebpUZ0N2Z+Wf22iDPk9GsUdXCYgQfEgt4UnrDwB/SeFeFrWerbik29y5Ums1jUg
+	 +88ZGgnHWTRoyf5O08o0koR1X5saqag2ZnnR1tTZtUifzSIKCKa6AVgbkW73UJaa/8vHz
+	 wHx1d35qbHYeRBTp9ZQ+58fL7AhmGveOrJYSuiYVvvcGajKCW5Po53cjFbl+XYW2hfWp7
+	 qfvu9lVSQdTRLq/nZQ/j5vfq2PbNS6/y/L0E7p0j7w6nAFv468f6wLfrsw5Jh1p7C7AfQ
+	 xDdVrwGfynKWEYt49trHwnBfLa7PIs97f8JyPAP8HyMN031BceLEEKSISv0SBPSn31w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794931156;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794931159;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=wRvLC/duRnkLpVyfMHjM1aAbAG9IUqQQUDafN8L2a/A=;
-	b=2xUxSPJzvWh0Fbg4igtx5ojeyEOPhSs3GQ/n4Bq+FnAFJwq1i6iO9G1N9NjBkwXZAi7n
-	 nXueBePZf21GvJv1JWFkwzb+1Fg8dK4xOHKH3OqGliezG+F8ai9bdnZGYkfeQXaTVCC/7
-	 tHYljQcvWU89wSWXmMmhDamfUIQ01enjkENlpMf3QFO6pkHr0xyD2kHL4IRRD0tAp5GT7
-	 CeVdmqpA/gq9ojhjSQghvl6Oz1gsalBL+TVqNvVCzmHLk6FUBS4MFvuZZE90gzKOPT3gB
-	 u3jgzq9YLo9npZx6xnvZBYLmNRBCouY02rQldm5LaRM8NHZAADbiPcoBHfntAqTDZcQ==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=tHEw5Su7v4bGBj8B87/CZb0lfkXXIwLfC4ZeQTBg4X0=;
+	b=cfKwPaGRXkqVfAnUc/Cm0nhlvXAysXixCHcD6YAugWxTqfTusFOsfXujaNFDiM1yeUhX
+	 4TQLr/QWZu0OR69hHbPwUmw2NzczzQXRtpWvucMQidsEPINcF8iPDNouFIPwa7hT0DKri
+	 d+qO3W4nrrT3W+5wcIf8sdiRtUJWqRXawVqG+BqdcOAzhWlE1ZcqUQ3VlkV8UYNBvXxrC
+	 cWKrGbYWSRawN2FS+wdEtARiaJ7ba6U8SedVsKUwEc8SrMGbIdS0oGxaMAeswz9CqtyIU
+	 zlVCj2FeTj2TtQ4zcd9JFfhFtEGFyIZ+g4Wegz3flfSdLhiOX+CPCS0ofApmpkUGfaA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,20 +24,22 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94900606A31C
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:59:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 94900606A31C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24967606A31C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:59:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 24967606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0669560342; Tue, 17 Nov 2026 16:59:12 +0100 (CET)
+	id 4938560342; Tue, 17 Nov 2026 16:59:17 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH libnetfilter_log 0/2] test updates
-Date: Tue, 17 Nov 2026 16:58:58 +0100
-Message-ID: <20261117155900.31418-1-fw@strlen.de>
+Subject: [PATCH libnetfilter_log 1/2] utils: nfulnl_test: print NFULA_HWTYPE/HWLEN/HWHEADER
+Date: Tue, 17 Nov 2026 16:58:59 +0100
+Message-ID: <20261117155900.31418-2-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
+In-Reply-To: <20261117155900.31418-1-fw@strlen.de>
+References: <20261117155900.31418-1-fw@strlen.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -49,42 +51,92 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-1) Extend nfulnl_test's print_pkt() to also output NFULA_HWTYPE, NFULA_HWLEN,
-NFULA_HWHEADER, and the bridge port. Update the existing test case to
-expect the new output.
+print_pkt() only read NFULA_PACKET_HDR and NFULA_HWADDR.
 
-2) Add an nftables-style shell test framework for nfulnl hook/family/hwheader
-logic, with per-test network-namespace isolation. Add six testcases
-asserting hwheader presence/absence and indev correctness across
-prerouting, output, forward, netdev-ingress, ARP, and bridge-forward
-hooks. Keep tests out of make check since they require root.
+Extend this to include NFULA_HWTYPE/NFULA_HWLEN/NFULA_HWHEADER
+and fix up the existing test case to expect the new output.
 
-Passes with both nf:main and the nf ulog / syslog patches on the ML.
+While at it, also print the bridge port, if any, so that future
+test cases can check for their presence.
 
-Florian Westphal (2):
-  utils: nfulnl_test: print NFULA_HWTYPE/HWLEN/HWHEADER
-  tests: add shell test framework covering nfulnl hook/family hwheader logic
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ utils/nfulnl_test.c  | 26 ++++++++++++++++++++++++++
+ utils/nfulnl_test.sh |  4 ++--
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
- tests/shell/lib.sh                            | 140 ++++++++++++++++++
- tests/shell/run-tests.sh                      |  66 +++++++++
- .../testcases/nfulnl/0001-prerouting-loopback |  36 +++++
- .../testcases/nfulnl/0002-output-no-hwheader  |  43 ++++++
- .../testcases/nfulnl/0003-forward-hwheader    |  74 +++++++++
- .../nfulnl/0004-netdev-ingress-hwheader       |  29 ++++
- .../shell/testcases/nfulnl/0005-arp-hwheader  |  69 +++++++++
- .../nfulnl/0006-bridge-forward-indev          |  88 +++++++++++
- utils/nfulnl_test.c                           |  26 ++++
- utils/nfulnl_test.sh                          |   4 +-
- 10 files changed, 573 insertions(+), 2 deletions(-)
- create mode 100644 tests/shell/lib.sh
- create mode 100755 tests/shell/run-tests.sh
- create mode 100755 tests/shell/testcases/nfulnl/0001-prerouting-loopback
- create mode 100755 tests/shell/testcases/nfulnl/0002-output-no-hwheader
- create mode 100755 tests/shell/testcases/nfulnl/0003-forward-hwheader
- create mode 100755 tests/shell/testcases/nfulnl/0004-netdev-ingress-hwheader
- create mode 100755 tests/shell/testcases/nfulnl/0005-arp-hwheader
- create mode 100755 tests/shell/testcases/nfulnl/0006-bridge-forward-indev
-
+diff --git a/utils/nfulnl_test.c b/utils/nfulnl_test.c
+index 840c0bea3a86..b6427957e01b 100644
+--- a/utils/nfulnl_test.c
++++ b/utils/nfulnl_test.c
+@@ -11,9 +11,11 @@ static int print_pkt(struct nflog_data *nfad)
+ 	uint32_t outdev, indev, hw_addrlen;
+ 	struct nfulnl_msg_packet_hdr *ph;
+ 	struct nfulnl_msg_packet_hw *hw;
++	uint16_t hwhdrlen;
+ 	int payload_len;
+ 	char *payload;
+ 	char *prefix;
++	char *hwhdr;
+ 	int i;
+ 
+ 	ph = nflog_get_msg_packet_hdr(nfad);
+@@ -34,16 +36,40 @@ static int print_pkt(struct nflog_data *nfad)
+ 		printf("%02x ", hw->hw_addr[hw_addrlen - 1]);
+ 	}
+ 
++	/* NFULA_HWTYPE/NFULA_HWLEN/NFULA_HWHEADER: emitted by
++	 * nfulnl_put_hwheader() in the kernel, independently of
++	 * NFULA_HWADDR above. Only printed when the kernel decided the
++	 * hook is on indev's input path (see nfulnl_pre_egress()); a
++	 * missing hw_header= token is how a test asserts that exclusion.
++	 */
++	hwhdr = nflog_get_msg_packet_hwhdr(nfad);
++	if (hwhdr) {
++		hwhdrlen = nflog_get_msg_packet_hwhdrlen(nfad);
++
++		printf("hw_type=0x%04x hw_hdrlen=%u hw_header=",
++			nflog_get_hwtype(nfad), hwhdrlen);
++		for (i = 0; i < hwhdrlen; i++)
++			printf("%02x", (unsigned char)hwhdr[i]);
++		printf(" ");
++	}
++
+ 	printf("mark=%u ", nflog_get_nfmark(nfad));
+ 
+ 	indev = nflog_get_indev(nfad);
+ 	if (indev > 0)
+ 		printf("indev=%u ", indev);
+ 
++	indev = nflog_get_physindev(nfad);
++	if (indev > 0)
++		printf("physindev=%u ", indev);
++
+ 	outdev = nflog_get_outdev(nfad);
+ 	if (outdev > 0)
+ 		printf("outdev=%u ", outdev);
+ 
++	outdev = nflog_get_physoutdev(nfad);
++	if (outdev > 0)
++		printf("physoutdev=%u ", outdev);
+ 
+ 	prefix = nflog_get_prefix(nfad);
+ 	if (prefix)
+diff --git a/utils/nfulnl_test.sh b/utils/nfulnl_test.sh
+index b23ccab04bae..d97f82a366ab 100755
+--- a/utils/nfulnl_test.sh
++++ b/utils/nfulnl_test.sh
+@@ -49,8 +49,8 @@ ping6 -q -c "$PING_COUNT" ::1 > /dev/null
+ wait
+ 
+ set +e
+-cnt4=$(grep -c '^hw_protocol=0x0800 hook=0 hw_addrlen=6 hw_addr=00:00:00:00:00:00 mark=0 indev=1 prefix="test icmp " payload_len=84' "$out")
+-cnt6=$(grep -c '^hw_protocol=0x86dd hook=0 hw_addrlen=6 hw_addr=00:00:00:00:00:00 mark=0 indev=1 prefix="test icmp6 " payload_len=104' "$out")
++cnt4=$(grep -c '^hw_protocol=0x0800 hook=0 hw_addrlen=6 hw_addr=00:00:00:00:00:00 hw_type=0x0304 hw_hdrlen=14 hw_header=0000000000000000000000000800 mark=0 indev=1 prefix="test icmp " payload_len=84' "$out")
++cnt6=$(grep -c '^hw_protocol=0x86dd hook=0 hw_addrlen=6 hw_addr=00:00:00:00:00:00 hw_type=0x0304 hw_hdrlen=14 hw_header=00000000000000000000000086dd mark=0 indev=1 prefix="test icmp6 " payload_len=104' "$out")
+ 
+ [ "$cnt4" -ne 4 ] && die "Expected 2 counts each for ipv4 and ipv6, got $cnt4, $cnt6"
+ [ "$cnt6" -ne 4 ] && die "Expected 2 counts each for ipv4 and ipv6, got $cnt4, $cnt6"
 -- 
 2.56.1
 
