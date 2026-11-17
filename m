@@ -1,13 +1,13 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.225
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.225
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794959044;
-	b=ViGu5VJRMkYtLBIx2lnpCEVU0zHs7mQMuYHfj9rRrtIbLjaN5Vn65AgMy1VFvCJF3o/A
-	 yBcJEbuDCA0iT9dEsdR96z/xcxeVGkLDqRHcb9fAhiUFrqUQRuJlMr63vBZiv+5nTzBdg
-	 1sarUb3lVXkUt8kwhWgrNsKC4vaCZL9Y5Cysv4A4cETJitU7sKMfZbM9k2vom1v37g9qO
-	 PYGbTD6NZ30wo/AhzOzRTxJcjnqjR0yvhZkZIJZnS0HLG5A4ly0sB/RA2lV5OENEx7e0K
-	 Wae8xnwLozl3XMelcq54g/T3+JQ73ZsmKZV06n4N24Ond8pntGjuAAq6krWUlGTXLUg==
+	t=1794959481;
+	b=yzKPay7oE9CtPwgiENuKrDCQW/nPhQWAsr1b/l1SyIGmKE6xApoBfBcumlCspSC33l5o
+	 sKFCC4PhFUt7BFHU4Fy+EXP3/G7b2nqLGOfvBr1Wrt98uAQ/0TmJWuIqU72h6iUmGBUBB
+	 G5Wi6j1z6YCNba8Va5baCT6J4Wkt4F2xRlL5+gHKarw20pbHxK3r82AZTXiaIy8qE8Trt
+	 /LiJVPKFBduroM7opz9fcM9Aqi774Himlv/OuEbBRuTPV/osjfE19+ZSVY96y+U+Andf6
+	 ml//ib5xffq3PJ0mgh5+O7vs74KddoslaU0Wt3/plse4PrqviCgu71xe2kt0WaLWOGg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794959044;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794959481;
 	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:X-Relaying-Domain:
 	 X-CFilter-Loop:Received:DKIM-Signature:X-Forwarded-Encrypted:
@@ -15,88 +15,88 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 User-Agent:Subject:To:Cc:References:Content-Language:From:Autocrypt:
 	 In-Reply-To:Content-Type:Content-Transfer-Encoding:
 	 X-DetectorID-Processed;
-	bh=chWuGj4JSfuHqV8d6iYVixzJTNnCSogSzx0lpANcwLI=;
-	b=oXBiClqbo7a8QCtb3D8iftznnCDvqEdeI7mRwuhvtEJrUsSXKzCIkKEw+CRmo5yXo4cf
-	 bRzUMOCOkXBU8z+i+jVnkHOZMp4z4uHJWGF5yqwZZyiQx3EKIqGJ470FRnm3hLEyxuvp/
-	 yySE/2Fkl2I+Gpq/KMli6uUTLFAiTdGOgq9H7g6ThYJm0+7KYEkVDNbRatC+cnaBKwoiA
-	 Kc0uzxxCNXpEemD4ZFUkNlw3N9/472IGaUFYBZ4GZJD3v44Xu9xb1dJV5ainBhBZpnWJM
-	 ebWL9EnLT7cIZ8GwKfPZsTr1IBIZsEo8qknbeKBtxgSIrfPI/njZEAYt9bloUKIoIjQ==
+	bh=WdjoIKvowHyosl1CXA8daiIeSKMARXblpVs58QxNO6E=;
+	b=cAv3QypQNczQGeBR87lnTAoCq2CWVUG7XWmvaWwW43kaRx/flcerZXf3c1LbUESkfQji
+	 eCHA6FO2gTHRk+gN+Gw0XxQp73udx+4n7rJrWrRCw3I7DHVCOJXwaZ8BMdy4Py+VP/aPO
+	 pIONSDMZM8GUhTXhtw5ca9AZTaP60iTZL8yDBUN+pIpEih9rIm0167z5JW+Ssd1Yr6GQr
+	 QHvuaUOg12w1syT7VgVQHXN86j3TLsDhLOnaOAjIhc9LlCvWUI1LBdYPU5alXFIaWO4+Q
+	 a78ZN+SFVkAqsHl/gEFVkpsvKDFOpbNYKJA6xhsS2QKAUNKxcxsH099Tl+Wj1Uw2PQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=broadcom.com;
 	spf=fail smtp.mailfrom=broadcom.com;
-	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=fx5C73B5;
-	arc=none smtp.remote-ip=209.85.215.225
-Received: from mail-pg1-f225.google.com (mail-pg1-f225.google.com [209.85.215.225])
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=QwVoIyPA;
+	arc=none smtp.remote-ip=209.85.214.225
+Received: from mail-pl1-f225.google.com (mail-pl1-f225.google.com [209.85.214.225])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 398FD606A32C
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 23:44:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 398FD606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4EA606A32F
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 23:51:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2B4EA606A32F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=fx5C73B5
-Received: by mail-pg1-f225.google.com with SMTP id 41be03b00d2f7-cd61cef87f1so306384a12.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:44:03 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=QwVoIyPA
+Received: by mail-pl1-f225.google.com with SMTP id d9443c01a7336-2efdbab4e03so1479605ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:51:21 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794959043; x=1795563843;
+        d=1e100.net; s=20260707; t=1794959480; x=1795564280;
         h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:dkim-signature:x-gm-gg:x-gm-message-state:from:to
          :cc:subject:date:message-id:reply-to:content-type;
-        bh=chWuGj4JSfuHqV8d6iYVixzJTNnCSogSzx0lpANcwLI=;
-        b=fJIH2Sca4eifdukE1Va5Asj8LVDKY8NZHxP7e7Ecv6wRrYYo1aT4RKmktZ4HDBhB9f
-         hhfAZdtyidDQtUEOPXs9UsYn72v+4kt72Zv27rcByezuwWpQ7SMbQhvBBzWIwSCx+VvA
-         S1534zdprI+lbdrQuRyZb55B7FTZLSGQ+2VPqFH0ZaFyg0Vkao/s+Cb8h6AeRSp+iZic
-         mdQEOE3yVvHx2KiO6QYrlPvRXZGs2VxD4X0+awkwwqEy1pbcEiAhiCS/SZMpOm/tIDfg
-         lrHzL/hNynGtfZgHiQxzbQI97jX1q4IQwILL0/3w0MJxlrQyRwvgEHu2JJVvHp9a88SI
-         Y07w==
-X-Forwarded-Encrypted: i=1; AL+hErFceH53CaOUqevVXK0TBDRYOJfu6JgBK/0BjWY2iyARqI5hLU9N0DY98nEM+Xtl7qo3gIcTBcHmynub09DGPj4=@vger.kernel.org
-X-Gm-Message-State: APuU4Z80RBfF4igqJonyWepmkV9x97XwfqhyjIjdLbZ+o50FLn2Ivjkd
-	QyuuZA/yKIpkMEAhCDavoAW4RRA45Td7eFd6oFjVmLFu/+j/8PTaJhRl9XFcrisAYDy00ALcVn2
-	4h4IPnkbLyiqd9tUDOhDZ2VHmrr7o/jx/P95cKjPxqurx8x3tpkZK+/PXUyky9XryB7pHed9YiE
-	p4l8pFO6ZI8qgIbHdE3BP3L9HQyeHJsULPlf8TnsgHvsclckOaudH2+j3SyrtKJgTqpDQX/bb7l
-	FZkJEvkbVP2zHG3YGVBFYpWCNmc
-X-Gm-Gg: AZFdTZcPfwqv6hqivG8K0ml5xYwZZTWQtd2u7kQjtB5iB7nLhH+ryRcQN0vwQU/VN7n
-	I3Axnll95kbkdsM2rVpAJ1xpSEPtHnNaeF1RNFQjd9YV8MdXQ5oskjtdvTZZZYTnjIvZVXJ5jB4
-	yEhH/jTr4Mly4I+KWlZ4Q6aJkgYerLtjQgPGL4HItvUPsvE+V2GnrKLyGOlmzpsBZcoFSfaLtQk
-	JbhOyPA3Iou8UEmx2kNztwKgsDc6giwFUjQeB88lg/IcHto/jyN4VRhrXT0boVIty2BNfUGy/13
-	SiW89TMT827233WniGwOYGQ4sz03RYI4zakrh7ecH0JMcrk0A9MtJDXoo1Bj1PWwd0cFlFpAxeX
-	IX3Gb1HyxBZygnkL7Z4AeAenyCWTKKHcmDv00EIZuv5y82IbIy8y7afRDn47V0SkvuOzqsrMe1n
-	dofVryZ27j345WRYw33Jqa30O2GhQu1R4jHa4uuRGJ0ZA=
-X-Received: by 2002:a17:90b:4cc1:b0:3ac:aa8d:19eb with SMTP id 98e67ed59e1d1-3b3d0689b5cmr819340a91.3.1794959042483;
-        Tue, 17 Nov 2026 15:44:02 -0800 (PST)
+        bh=WdjoIKvowHyosl1CXA8daiIeSKMARXblpVs58QxNO6E=;
+        b=2WBRlS0rfMEBsXqqKLGoT4Mb3O6WyGPAWh5CaSeeX2Nx6M0t6rFLnCTYnd3hNv/aYp
+         L1wnsYVfQ25bcX0N3qyBrWi4GZ7dJxC++PbWp2iabdwLyC9B9uXVPUOpCZ1Co7XT9/EA
+         MnRYt23zF2qQ5PYTK6swu0oZzCRmh5LaXCJv0LysLcc57Q3sV72a5TggDB3sBsjZoXJ1
+         ZEJEewqk1McWpClhZbFt9iJolb1nscpk+mX/ufh3rLaZnz01ZWEBke2t4zzvTlvhwqAC
+         P9ycamHsuxZgSLjknYRcZlDJ8ss2y95YQ8Hs11Ij1LYUQR4MF+UTT5w+NbAa1oDkfvpx
+         UzlQ==
+X-Forwarded-Encrypted: i=1; AL+hErEGtsVXL0OJAcbrrFXToWXP0TgKiOg/ImMn1xM7z359zJriRND8Pt2vNgaQBsQwCs1lfI845okhGX7y5xd4r4w=@vger.kernel.org
+X-Gm-Message-State: APuU4Z/N5l8iSuFHc5GZ28TPjipxaqVoQZHal1AIxkjwM8BGG8JyJqie
+	DjpHGmZrZz5Hu+Jwe59yyqwmkPSSfKwzbqeoPrglQ0KX58tHRQn8Za5vvXhVK2LIv20qa64WlJI
+	AtU0aWIz42Z8wYzLDsfYYKGsDjLFkzDy2mRfWXG/nRxTfCzW0/dRjMrh52xEMNOBoZwY5bVHvkT
+	zRfvOe5/62BhAkHYrtRfTHFuWIUCbtzrtyrPC7/D6T5SjyAk9vYcY5oOZixrvZsT87SnXdkk+Jr
+	oIVu/TNMG9r+7idE5lLmu+zDiDm
+X-Gm-Gg: AZFdTZdt8wVGKZVam68Y1jeTDgaGUspyl5ZjcPLb5kpBIMAyD3nie1olvnXAR3ZmTRI
+	yjfGktSKJFoxcShBM5t0Z7I0D8BhOBdZPp9cqY8p1GfZ5IhtkaLFIX1wWjAR5MB1aKCbqfGMa/T
+	tF8An/kqNUIlFsCpDpWNh/E7hymyy9eh9fzcQtI9VTAkcv0tefr/nL0n0E/4JZI0zqna2xNwpwT
+	Iuj1NaJP7yBeJSISd86U+f1izdLiiQnSjRLty+HO7nQ4j6O0iJZ6gne7c5iSdUz+U6i29Za+wEM
+	1lecuLc9petH+Rb44fJY7RrxKvIFLwc8SxQ86RRq/VaNIPKx+oAWbd12kOnuZdEtSYjunRjkqxW
+	M5nHv1xmFX4k4wNRf4CQuY7o6GuPshAx9no1xidfocfwCswaImor24tjXO3z2vTUe0lE070BW8C
+	940hkQl4v5gRtx8RLaV6V7piq8UV4G5FxDfo043/mLcXM=
+X-Received: by 2002:a17:903:19e3:b0:2ef:ced7:9ff4 with SMTP id d9443c01a7336-2eff740c243mr7912225ad.31.1794959480428;
+        Tue, 17 Nov 2026 15:51:20 -0800 (PST)
 Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-123.dlp.protect.broadcom.com. [144.49.247.123])
-        by smtp-relay.gmail.com with ESMTPS id 98e67ed59e1d1-3b3d418b418sm180175a91.2.2026.11.17.15.44.01
+        by smtp-relay.gmail.com with ESMTPS id d9443c01a7336-2eff6228affsm302195ad.34.2026.11.17.15.51.19
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 17 Nov 2026 15:44:02 -0800 (PST)
+        Tue, 17 Nov 2026 15:51:20 -0800 (PST)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-qv1-f69.google.com with SMTP id 6a1803df08f44-920f9885cb1so4300426d6.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:44:01 -0800 (PST)
+Received: by mail-qv1-f72.google.com with SMTP id 6a1803df08f44-9210ad74fdeso5551586d6.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 15:51:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1794959041; x=1795563841; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1794959479; x=1795564279; darn=vger.kernel.org;
         h=content-transfer-encoding:content-type:in-reply-to:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=chWuGj4JSfuHqV8d6iYVixzJTNnCSogSzx0lpANcwLI=;
-        b=fx5C73B50D5pL98mnf/EuUK1aU3XaQQEwC/yr/QKs3NcOr5bllWST48sJUQJd5690z
-         3FiAl4iBOYGHkbFpY9pJly+GpsphIndhMkWphfVzVM459bAK+LlV4+KxmIV7q7cZaAuA
-         iUZF3BvUrWZfPuwk0tUzGcwrxNm99GPtei+wc=
-X-Forwarded-Encrypted: i=1; AL+hErF8xtrnGJtZ0hyHLs+g5GNv/TuTqs4m0bKVFPdMNsPZLbCOiAiaCkI6WUfty54xArqbxIAvPKULEUe+M+UNx5U=@vger.kernel.org
-X-Received: by 2002:a05:620a:3710:b0:93f:633b:ee13 with SMTP id af79cd13be357-94999572c59mr220411985a.28.1794959040853;
-        Tue, 17 Nov 2026 15:44:00 -0800 (PST)
-X-Received: by 2002:a05:620a:3710:b0:93f:633b:ee13 with SMTP id af79cd13be357-94999572c59mr220408585a.28.1794959040114;
-        Tue, 17 Nov 2026 15:44:00 -0800 (PST)
+        bh=WdjoIKvowHyosl1CXA8daiIeSKMARXblpVs58QxNO6E=;
+        b=QwVoIyPA7dt1oxl1ZdWzWz6FASErNhWk22eYH4Y7egzEAkdsFdpfy4yQc1swl7nYwH
+         5psJMhjHs6g33TbgC9ByZ+mnbMlO76CCi6oJYA//GLp2NuLUqm3mSjPDGkvrUO8iO3tm
+         u2at2sQDOdGgd7gwMTf/6ckhonwgPfCKqcn34=
+X-Forwarded-Encrypted: i=1; AL+hErEn27AcHjYMG1w9TwKfsq7aDKL6PzxXUWptMQblSRQnoRBfwNH2g151mfFjOf0HCszX1aCMjh5XmzBzVIR5BEA=@vger.kernel.org
+X-Received: by 2002:a05:6214:4112:b0:91f:ee9:c557 with SMTP id 6a1803df08f44-92114ea4b99mr13598536d6.44.1794959478628;
+        Tue, 17 Nov 2026 15:51:18 -0800 (PST)
+X-Received: by 2002:a05:6214:4112:b0:91f:ee9:c557 with SMTP id 6a1803df08f44-92114ea4b99mr13598016d6.44.1794959477951;
+        Tue, 17 Nov 2026 15:51:17 -0800 (PST)
 Received: from [10.67.48.245] ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9499b7ccf2fsm43121785a.36.2026.11.17.15.43.56
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-92114d98adbsm6389176d6.40.2026.11.17.15.51.14
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 17 Nov 2026 15:43:59 -0800 (PST)
-Message-ID: <5cc0d365-3821-4dab-8015-22cbc94be1e0@broadcom.com>
-Date: Tue, 17 Nov 2026 15:43:55 -0800
+        Tue, 17 Nov 2026 15:51:17 -0800 (PST)
+Message-ID: <04a0bf1d-7807-47f1-81e7-d57a27e8599e@broadcom.com>
+Date: Tue, 17 Nov 2026 15:51:13 -0800
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -107,8 +107,8 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 1/9] net: ethernet: bgmac: validate RX length
- against the DMA packet capacity
+Subject: Re: [PATCH net-next 2/9] netfilter: flowtable: reject non-host IPv4
+ packets before lookup
 To: netdev-bot+sashiko@kernel.org
 Cc: netdev@vger.kernel.org, rafal@milecki.pl,
  bcm-kernel-feedback-list@broadcom.com, andrew+netdev@lunn.ch,
@@ -118,8 +118,8 @@ Cc: netdev@vger.kernel.org, rafal@milecki.pl,
  pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, devicetree@vger.kernel.org,
  linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20261116222519.1416501-2-florian.fainelli@broadcom.com>
- <179495815587.3136.10288920701294421777@kernel.org>
+References: <20261116222519.1416501-3-florian.fainelli@broadcom.com>
+ <179495815781.3136.11457762484354834526@kernel.org>
 Content-Language: en-US, fr-FR
 From: Florian Fainelli <florian.fainelli@broadcom.com>
 Autocrypt: addr=florian.fainelli@broadcom.com; keydata=
@@ -154,16 +154,16 @@ Autocrypt: addr=florian.fainelli@broadcom.com; keydata=
  MIlnaE6V0U8f5zNHB7Y46yJjjYT/Ds1TJo3pvwevDWPvv6rdBeV07D9s43frUS6xYd1uFxHC
  7dZYWJjZmyUf5evr1W1gCgwLXG0PEi9n3qmz1lelQ8lSocmvxBKtMbX/OKhAfuP/iIwnTsww
  95A2SaPiQZA51NywV8OFgsN0ITl2PlZ4Tp9hHERDe6nQCsNI/Us=
-In-Reply-To: <179495815587.3136.10288920701294421777@kernel.org>
+In-Reply-To: <179495815781.3136.11457762484354834526@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
 On 11/17/26 15:29, netdev-bot+sashiko@kernel.org wrote:
-> Thank you for your contribution! Sashiko AI review found 2 potential
+> Thank you for your contribution! Sashiko AI review found 3 potential
 > issue(s) to consider.
 > 
-> Critical: 0 · High: 0 (1) · Medium: 1 · Low: 1
+> Critical: 0 · High: 2 · Medium: 0 · Low: 1
 > 
 > If you believe none of the issues are legitimate, please reply to each
 > issue of Medium severity or higher and explain why the AI is wrong.
@@ -171,178 +171,153 @@ On 11/17/26 15:29, netdev-bot+sashiko@kernel.org wrote:
 > know by including "pw-bot: cr" as a separate line at the end of your reply
 > (one such reply per series is enough).
 > 
-> - [Medium] In bgmac_dma_rx_read()
->    (drivers/net/ethernet/broadcom/bgmac.c:463), the patch now treats…
-> - [Low] The commit message is accurate but leaves out the user-visible
->    impact of the bugs this patch fixes in bgmac_dma_rx_read().
-> 
-> Pre-existing issues:
-> - [High] This problem wasn't introduced by this patch, but it is High
->    severity, and the new check does not close it.
+> - [High] The new early return in nf_flow_offload_ip_hook()
+>    (net/netfilter/nf_flow_table_ip.c:915) checks skb->pkt_type at netdev…
+> - [High] The fix only covers IPv4.
+> - [Low] The commit trailer reads 'Signed-off-by: FLorian Fainelli
+>    <florian.fainelli@broadcom.com>', but the author is 'Florian Fainelli'…
 > 
 > --
 > 
-> net: ethernet: bgmac: validate RX length against the DMA packet capacity
+> netfilter: flowtable: reject non-host IPv4 packets before lookup
 > 
-> This patch changes the upper bound of the RX length check in
-> bgmac_dma_rx_read() from BGMAC_RX_ALLOC_SIZE to BGMAC_RX_MAX_FRAME_SIZE.
-> It also rejects lengths shorter than ETH_FCS_LEN. Invalid lengths are
-> reported through a rate-limited netdev_err() and counted in rx_length_errors
-> and rx_errors.
+> This commit makes nf_flow_offload_ip_hook() return early when pkt_type is
+> not PACKET_HOST. Those packets then go to the normal IPv4 stack before the
+> flowtable lookup. The goal is to apply the same PACKET_HOST check that the
+> classic IPv4 forwarding path uses.
 > 
->> BGMAC_RX_ALLOC_SIZE includes skb_shared_info and alignment space beyond
->> the DMA receive buffer. An invalid completion length can pass that check
->> and reach skb_put() with more data than the skb tailroom permits.
+>> Fixes: 97add9f0d66d ("netfilter: flow table support for IPv4")
 >>
->> Limit received frames to BGMAC_RX_MAX_FRAME_SIZE and reject lengths too
->> short for the FCS subtraction.
+>> Signed-off-by: FLorian Fainelli <florian.fainelli@broadcom.com>
 > 
 > [Severity: Low]
-> This isn't a bug, but could the commit message state the user-visible
-> impact of what is being fixed?
+> This isn't a bug, but the Signed-off-by name has a typo ("FLorian") and
+> does not match the author name ("Florian Fainelli"). There is also an
+> extra blank line between the Fixes: tag and the Signed-off-by: tag.
 > 
-> For len < ETH_FCS_LEN, the u16 subtraction "len -= ETH_FCS_LEN" wraps to
-> 65532..65535. The skb_put() that follows then ends in skb_over_panic() and
-> BUG().
-> 
-> Lengths between the skb tailroom limit (about 1602 bytes with
-> NET_SKB_PAD=64) and BGMAC_RX_ALLOC_SIZE also reach skb_over_panic().
-> 
-> Lengths from 1537 up to that tailroom limit got through skb_put(). They
-> delivered bytes past the 1536-byte DMA-mapped frame area. Those bytes come
-> from the non-zeroed netdev_alloc_frag() buffer, and the device never wrote
-> them.
-> 
-> The message names the tailroom and FCS cases. It does not say that they
-> end in a kernel BUG(), and it does not mention the stale data delivery.
-> 
->> diff --git a/drivers/net/ethernet/broadcom/bgmac.c b/drivers/net/ethernet/broadcom/bgmac.c
->> index 9ef239bc487d7..1c502bd64d7df 100644
->> --- a/drivers/net/ethernet/broadcom/bgmac.c
->> +++ b/drivers/net/ethernet/broadcom/bgmac.c
->> @@ -457,10 +457,14 @@ static int bgmac_dma_rx_read(struct bgmac *bgmac, struct bgmac_dma_ring *ring,
->>   				break;
->>   			}
+>> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+>> index 19cafae748abe..98bade1b82994 100644
+>> --- a/net/netfilter/nf_flow_table_ip.c
+>> +++ b/net/netfilter/nf_flow_table_ip.c
+>> @@ -911,6 +911,10 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>>   	};
+>>   	int ret;
 >>   
->> -			if (len > BGMAC_RX_ALLOC_SIZE) {
->> +			/* The allocation also contains headroom and skb_shared_info;
->> +			 * only the mapped packet area may be supplied by the DMA.
->> +			 */
->> +			if (unlikely(len > BGMAC_RX_MAX_FRAME_SIZE || len < ETH_FCS_LEN)) {
->>   				if (net_ratelimit())
->> -					netdev_err(bgmac->net_dev, "Found oversized packet at slot %d, DMA issue!\n",
->> -						   ring->start);
->> +					netdev_err(bgmac->net_dev,
->> +						   "Invalid RX length %u at slot %d (flags %#x)\n",
->> +						   len, ring->start, flags);
-> 
-> [Severity: Medium]
-> Does this new bound drop frames that the driver itself tells the MAC to
-> accept, and whose MTU it advertises?
-> 
-> bgmac_chip_init() sets the MAC max frame length to 1550:
-> 
-> 	bgmac_umac_write(bgmac, UMAC_MAX_FRAME_LEN, 32 + ETHER_MAX_LEN);
-> 
-> bgmac_change_mtu() sets it to 32 + mtu, which can be as large as 1564:
-> 
-> 	bgmac_umac_write(bgmac, UMAC_MAX_FRAME_LEN, 32 + mtu);
-> 
-> bgmac_enet_probe() sets max_mtu without subtracting ETH_HLEN or VLAN_HLEN:
-> 
-> 	net_dev->max_mtu = BGMAC_RX_MAX_FRAME_SIZE - ETH_FCS_LEN;
-> 
-> The driver accepts any MTU from 1519 to 1532. At those MTUs a full-sized
-> frame can be up to 14 + 1532 + 4 = 1550 bytes. Such a frame is now always
-> dropped, logged as an invalid RX length, and counted in rx_length_errors.
-> 
-> Before this patch these frames were delivered with stale tail bytes, so
-> dropping them is safer. However, the new comment and the commit message
-> assume that len > BGMAC_RX_MAX_FRAME_SIZE can only come from a DMA error.
-> 
-> Should max_mtu and/or UMAC_MAX_FRAME_LEN also be clamped to the
-> per-descriptor capacity? One option for max_mtu is
-> BGMAC_RX_MAX_FRAME_SIZE - ETH_HLEN - ETH_FCS_LEN, possibly minus VLAN_HLEN.
-> Could the commit message also mention that these frames are now dropped?
+>> +	/* The ingress hook runs before IPv4 rejects non-host Ethernet frames. */
+>> +	if (unlikely(skb->pkt_type != PACKET_HOST))
+>> +		return NF_ACCEPT;
 > 
 > [Severity: High]
-> This is a pre-existing issue, and the new check does not appear to close
-> it. Can a remote sender get stale buffer contents delivered as a received
-> frame through an overflow-continue slot?
+> Could this turn off the software fast path for flows that pass through a
+> bridge or VLAN upper device?
 > 
-> bgmac_dma_rx_ring_enable() turns on overflow-continue:
+> This hook runs at netdev ingress on the lower device. At that point
+> pkt_type still holds what eth_type_trans() set by comparing h_dest with
+> the lower device's own MAC. In __netif_receive_skb_core(), nf_ingress()
+> runs before both places that reclassify the frame:
 > 
-> 	ctl |= BGMAC_DMA_RX_OVERFLOW_CONT;
+> __netif_receive_skb_core()
+>      nf_ingress()          <- nf_flow_offload_ip_hook() runs here
+>      vlan_do_receive()
+>      rx_handler()          <- br_handle_frame()
 > 
-> Each descriptor holds only BGMAC_RX_BUF_SIZE, which is 30 + 1536 bytes.
-> The MAC accepts frames up to 1550 bytes by default, and up to 1564 bytes
-> after an MTU change.
+> net/8021q/vlan_core.c:vlan_do_receive() {
+>      ...
+> 	if (unlikely(skb->pkt_type == PACKET_OTHERHOST)) {
+> 		/* ... */
+> 		if (ether_addr_equal_64bits(eth_hdr(skb)->h_dest, vlan_dev->dev_addr))
+> 			skb->pkt_type = PACKET_HOST;
+> 	}
+>      ...
+> }
 > 
-> With overflow-continue, the DMA64 engine writes the rest of an oversized
-> frame as raw data at offset 0 of the next descriptor's buffer. That buffer
-> has no RX status header. brcmsmac's dma_rx() drives the same engine with
-> the same 0x400 bit, and it handles these continuation buffers explicitly:
+> net/bridge/br_input.c:br_handle_frame() {
+>      ...
+> 	if (ether_addr_equal(p->br->dev->dev_addr, dest))
+> 		skb->pkt_type = PACKET_HOST;
+>      ...
+> }
 > 
-> 	resid = len - (di->rxbufsize - di->rxoffset);
-> 	...
-> 	while ((resid > 0) && (p = _dma_getnextrxp(di, false))) {
-> 		pkt_len = min_t(uint, resid, di->rxbufsize);
+> The flowtable supports DEV_PATH_BRIDGE and DEV_PATH_VLAN paths.
+> nft_dev_path_info() puts the upper device's dev_addr in h_source, but the
+> ingress ifindex is the lower port. Hosts therefore send routed traffic to
+> the bridge or VLAN MAC.
 > 
-> bgmac_dma_rx_read() treats every slot as an independent frame. The new
-> check drops the first slot when len > 1536. The next slot is then parsed
-> as a fresh frame:
+> Two setups hit this:
 > 
-> 	len = le16_to_cpu(rx->len);
-> 	flags = le16_to_cpu(rx->flags);
+>    - A bridge port whose MAC differs from the bridge MAC. This is common in
+>      a multi-port bridge, because the bridge takes one port's MAC.
+>    - A VLAN device with its own MAC.
 > 
-> In that slot, rx->len and rx->flags are frame bytes 1536..1539, which the
-> sender controls. A value in [4, 1536] passes both the poison check and the
-> new bound. build_skb() and skb_put() then deliver up to about 1532 bytes
-> starting at buffer offset 30.
+> In both cases, every packet of an offloaded flow would be PACKET_OTHERHOST
+> at this hook. It would return NF_ACCEPT before nf_flow_offload_lookup().
+> The IPv4 stack later sees PACKET_HOST and forwards these packets.
 > 
-> DMA wrote only the first (frame_len - 1536) bytes of that buffer in this
-> round, which is at most 28 bytes. The rest is stale netdev_alloc_frag()
-> memory, because bgmac_dma_rx_skb_for_slot() only writes the poison header.
-> The resulting skb goes to eth_type_trans() and napi_gro_receive(). From
-> there it can be processed locally, bridged, or forwarded.
+> Given that, does the patch keep "the IPv4 input path's forwarding
+> decision", as the commit message says? Would it work better to compare
+> h_dest with the address the flow expects (for example after the tuple
+> lookup) rather than test the lower device's raw pkt_type?
 > 
-> The old BGMAC_RX_ALLOC_SIZE check let through an even wider range of
-> lengths. This patch narrows that range but does not remove it.
+>> +
+>>   	if (!nf_flow_skb_encap_protocol(&ctx, skb))
+>>   		return NF_ACCEPT;
+>>   
 > 
-> Could multi-descriptor frames be tracked so the continuation slots are
-> dropped too? Alternatively, could UMAC_MAX_FRAME_LEN and max_mtu be capped
-> at the single-buffer capacity?
+> [Severity: High]
+> Is the same bypass still open for IPv6? In the same file,
+> nf_flow_offload_ipv6_hook() has no pkt_type check. It goes straight to the
+> lookup, forward and nf_flow_queue_xmit6() steps:
 > 
->>   				put_page(virt_to_head_page(buf));
->>   				bgmac->net_dev->stats.rx_length_errors++;
->>   				bgmac->net_dev->stats.rx_errors++;
+> net/netfilter/nf_flow_table_ip.c:nf_flow_offload_ipv6_hook() {
+>      ...
+> 	if (!nf_flow_skb_encap_protocol(&ctx, skb))
+> 		return NF_ACCEPT;
+> 
+> 	if (unlikely(ctx.ether_type != htons(ETH_P_IPV6)))
+> 		return NF_ACCEPT;
+> 
+> 	tuplehash = nf_flow_offload_ipv6_lookup(&ctx, flow_table, skb);
+>      ...
+> }
+> 
+> Classic IPv6 forwarding drops these frames:
+> 
+> net/ipv6/ip6_output.c:ip6_forward() {
+>      ...
+> 	if (skb->pkt_type != PACKET_HOST)
+> 		goto drop;
+>      ...
+> }
+> 
+> nf_flow_offload_inet_hook() sends ETH_P_IPV6 to the unpatched hook. With
+> this patch, an inet flowtable would reject non-host frames for IPv4. For
+> IPv6 it would still forward frames sent to an unrelated unicast,
+> broadcast or multicast MAC, as long as the 5-tuple matches an installed
+> flow.
 > 
 
-[Medium] RX bound vs. MAC max frame length / max_mtu
+[High] pkt_type breaks bridge/VLAN offload
 
-Valid. The driver programmed UMAC_MAX_FRAME_LEN to 32 + ETHER_MAX_LEN 
-(or 32 + mtu), and max_mtu ignored ETH_HLEN, so the MAC could accept 
-frames larger than one RX descriptor can hold, which the new check then
-drops. In v2, UMAC_MAX_FRAME_LEN is clamped to BGMAC_RX_MAX_FRAME_SIZE 
-and max_mtu becomes BGMAC_RX_MAX_FRAME_SIZE - ETH_HLEN - VLAN_HLEN -
-ETH_FCS_LEN (1514). MTUs 1515..1532 are no longer accepted; frames of
-that size were already delivered with stale tail bytes. The commit
-message now says so.
+Agreed. The hook runs on the lower device before vlan_do_receive() and
+br_handle_frame() reclassify skb->pkt_type, so frames sent to a bridge
+or VLAN MAC are PACKET_OTHERHOST at this point and every such flow would
+fall back to the slow path.
 
-[High, pre-existing] overflow-continue continuation slots
+v2 drops the early pkt_type test. After the flow lookup it compares the
+Ethernet destination with the address the peers of the flow send to,
+i.e. the source MAC recorded for the reverse direction, which is the MAC
+of the upper device for bridge and VLAN paths. If the reverse direction
+carries no MAC, or the device is not Ethernet, it falls back to
+skb->pkt_type, since the hook then runs on the routing device itself.
 
-The analysis is right: with BGMAC_DMA_RX_OVERFLOW_CONT, the tail of an
-oversized frame lands at offset 0 of the next descriptor, which has no 
-RX header, and was previously parsed as a new frame. Rather than 
-tracking multi-descriptor frames, v2 caps the MAC maximum frame length 
-at the single-buffer capacity (the clamp above), so oversized frames are 
-dropped by the MAC and never spill into a following descriptor.
+[High] IPv6 not covered
 
-[Low] commit message
+Agreed. v2 applies the same check in nf_flow_offload_ipv6_hook() and 
+adds a Fixes: tag for the IPv6 flowtable support.
 
-Fixed in v2: it now describes the skb_over_panic()/BUG() cases (len <
-ETH_FCS_LEN and len above the tailroom) and the delivery of
-uninitialized netdev_alloc_frag() bytes.
+[Low] Signed-off-by typo
+
+Will be fixed in v2.
 
 pw-bot: cr
 -- 
