@@ -1,98 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.222.98
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.160.99
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795032840;
-	b=STlKGXb4EuVDNr5+UeQNTiGdN6d2ZG6Fy5c29AvNSTWMpiIow9UA/zd2j2YHuuBhRCJ/
-	 IAlfy02yGa7Uo6gZ2mvUIM/jKEBaqXpZuzDIO8yzr57YT29nMTxUIAVqG0DBEGiCRPjAl
-	 R9gzCwiGNXsqERaIBP27JLSNTdAidDWR8YcQT/BY06UusCO3hZsZMgMwihWRqMBjBwn5C
-	 JOHnW3mSMjhkNuatSkH9cXYgEsGRxzkyrafLXF9xtVHYysIXp88FH1L0Dfz2p8kHJc78c
-	 IjrF/0k8afwXS1KUR4SH01M+TAsAzfWC5BpV7uHGrpmM29prc2SJYT3k5DcGU35lR4Q==
+	t=1795032843;
+	b=mK/8NtV3VMf1VAEgwQjouhZyFkYTRo/ZANSCzT/w/At7aX3eE16j83uJBKxVgSnturTg
+	 2Q/nTC20oH8dGX4GNoSbVRQ68ghB0wmNJ6HEBCWnpzwc0PCsbGaRbvY1nH/dyAz/V4OcV
+	 +7k3Y0EAVO8XV1iwD+as+WdE/r0aBBvccolmuK+olkK80US7QEIdiSBk+GzE3WUTTTva3
+	 +HYeIKxh/yiqDuAC9LicRBwWiqO3g154z7aWQaVC9++4A1Ojr2RJvd9Jtr8eenNybpAtt
+	 XPweMfFEG0karluGkU5qsis4XhkriYBXLC3tSV8qAaDR628gi313MX4nhs/QgLOmeDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795032840;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795032843;
 	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:X-Relaying-Domain:
 	 X-CFilter-Loop:Received:DKIM-Signature:X-Forwarded-Encrypted:
 	 X-Received:X-Received:Received:From:To:Cc:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-DetectorID-Processed;
-	bh=6BKivAUJdW3D7tOMGZMvh3uAleH7WHkI+8KsFf6iZ14=;
-	b=BtTp4MbaPL71DDzp0TitArfp8u6epdEvvoqFq96xl/Mt5/KP0OsY4xfgytY848/md3p6
-	 /tebp6CnJGa++fdKv+WQsmL7Een5fpc00VcOKCwjLGTu5734IrSInav62q3JtISi0ci8e
-	 HY3upw9vwg7sa5ObjLZ5mkFaUbQDEN9tXfSq7tAc8h9OZUcG3cEo/4JhGcJdKLoBSXsBp
-	 3aTcb00oSrW9ms0Ehs7rDRZmnXepyX+sVpjqrNgYiNTAmSX4g0AarM5bZ0IfUAlXVuhBA
-	 /EV3sJlteHB71n4+VNGAzS2lPqxJ9b2ccW9RD7ipPAPOwSNlmuuvVvPMj/rB4LQ9hpw==
+	bh=vSBhZbeGE3VX6ynSB31DPcPBMZfKELXkzIaDElyU+Zc=;
+	b=T8wXUFaA9/nVPKtr9JJvJu80n+pCeeqIbsVR59A/0RIF6YSs2jEW8UlW4ppsbDwJmEeX
+	 zEpf2fTX7Zyc/IQVpDfHH8jvAQW56zsrRJP8SPgDvQ4VpNsmGTAGafEN34n/Fi0HeollQ
+	 nDneORDMoTAfJjQusX5qrT0KPLVV7lHwIkcFypbjQ4Hxme2RLVLnPdxBty/nNMsQi/Y+P
+	 NIMwg+LKBflqcPE6+OuAf2kUShaWY4uWlfJvQ2nQ9KMIaVPegzNvFxXCsDU8EAT4bpj5f
+	 n7sy6i/V14uvOM9Jty5LP+wvhtdR5xdZRQf5PwwymtNolW5E8UnnAm8ZObzv5nyamVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=broadcom.com;
 	spf=fail smtp.mailfrom=broadcom.com;
-	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=OCxVS8ew;
-	arc=none smtp.remote-ip=209.85.222.98
-Received: from mail-ua1-f98.google.com (mail-ua1-f98.google.com [209.85.222.98])
+	dkim=pass header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b="ERW5y/pZ";
+	arc=none smtp.remote-ip=209.85.160.99
+Received: from mail-oa1-f99.google.com (mail-oa1-f99.google.com [209.85.160.99])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC4D260A2605
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 20:13:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CC4D260A2605
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC6F360A3814
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 20:14:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AC6F360A3814
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=broadcom.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=OCxVS8ew
-Received: by mail-ua1-f98.google.com with SMTP id a1e0cc1a2514c-992f6d8cb51so343745241.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 12:13:59 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=broadcom.com header.i=@broadcom.com header.a=rsa-sha256 header.s=google header.b=ERW5y/pZ
+Received: by mail-oa1-f99.google.com with SMTP id 586e51a60fabf-4a85c656c58so992118fac.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 12:14:02 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795032839; x=1795637639;
+        d=1e100.net; s=20260707; t=1795032841; x=1795637641;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:dkim-signature:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=6BKivAUJdW3D7tOMGZMvh3uAleH7WHkI+8KsFf6iZ14=;
-        b=egRaM+c6xU9fKAfhTTWTwMbU9iMYtXrZNsDl4JGbydtFDFW9uQtSDYmUVfVhQdnA8G
-         p3pj6Oze39PGQbrkygENpNS4qcX0Y+D6v+a4yBMKa1Fxr3BjDaAmnfK3oPRin9prUtlJ
-         7v8Otl0uEr6n7OA5Xe+UbmZd7WrAQgTP6gbBtDvA0El6QOjFxukx9pYDY9FgI5Ftn04F
-         WqyTL1adRVXMzeLQBynqwqc6fIh/AvApiovwQhovQXbxTLF/ms5X53QznUv5dElfJ2/q
-         w9oaLni6yw36Z35CbxFsvGhuolRyuA6SgMSGKmlESWh9Y467nNgahXPd4NQ+0SdoY5Px
-         54LQ==
-X-Forwarded-Encrypted: i=1; AL+hErG3pmdL2axvBdBO9ChEa6h7UtQSk+7JHe9e49hpS+CxgoYOYSnGNRLHRawV2bHkgfNBqwVurWEJI7ZAaFz+11k=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9Ze3s4SK2mMy1FNflARc6/t1d6mTdke9giDwQv66O/AjLmX81p
-	j70X+yLoJ/FhGw9EsNbzLe5yLdq0Tfy0noQr0Js6xq78VEkKf7mxzvIOJ/jYD67lYx296OqRGIl
-	QpXHmIZ4DQW0Lkje+5LadnmDXCO/YFPoxIlu0OcKrMcVkAGKyLhyoeSColA0riVS99hEwbH68Jn
-	x/B+f3BpRei+LkX1E2kLxQjnOsA8Ombbdnl6jf40NQJ4JSuf4BgTxrnstrPGUvr8I6tZxGkdHlG
-	ODu/MB6BlohuggTp8OIPHwaxBEu
-X-Gm-Gg: AYBFou3MedRmuYkbQXaCwwbfxeMtCz8G8sUZ25xL0WWltYkoJrD09ETYBUD0IAlIGll
-	hi3R6JdMjHY+zwWQ0jHH33SPEGb4iLsgSelVK0oJPJD75A9nTNdO8a28vkxmqSjaV35oznCenYw
-	GRFy+pWh5/5UWTaZ+8J04qCrRaKLp1wqs6WNkpvjEDXsXXtbKhmPSUaVzKab+H4KYCslqkwV0Ml
-	ZZNi940bGYrujKzpNHKELpg/bDzB+GI8c67ErtSor/kEYF0+3Auj1ldBu5FwgIgbe2TObhf/wPD
-	87YsYGdvqXJHIVPZd6lg+NMOgcNEv4PJRj+THP8rjHRaE5Hn0/hm1LIXpaJ+5XGSkr/PW9Se+K2
-	Te1+EWfck8D65pRIiRXsEhPfedfIPPtcz5HPjhaJ5I4q9BSbQO3enB/EX0XIHmfNKMbM2Z1O49v
-	8U7qCV8ZIImhS6W0/MwREb7iwTOO1XI8y78iTyaEaY+Tg=
-X-Received: by 2002:a05:6102:578b:b0:7cc:ccb:ce68 with SMTP id ada2fe7eead31-7d6ba493db8mr1492734137.29.1795032838567;
-        Wed, 18 Nov 2026 12:13:58 -0800 (PST)
-Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-123.dlp.protect.broadcom.com. [144.49.247.123])
-        by smtp-relay.gmail.com with ESMTPS id a1e0cc1a2514c-99e4a5fa27esm330659241.16.2026.11.18.12.13.58
+        bh=vSBhZbeGE3VX6ynSB31DPcPBMZfKELXkzIaDElyU+Zc=;
+        b=zY7ub4fjW70U8WAprW7rzB1qCowEFkf+Yo3NmcTl9eFpVsuAwACKVRRwOSdIbVcnls
+         Tv2FtmEUlrvB8cXl0ZS6VPyo5JJxG2Rm8z6VrnuAp1QFPQeHDHUYsRd9q9JRo40+O9TO
+         X8GGSgaAvV2k/XQwLJPdqrNlHB3XPDheB7UxOX8i8LRX0X7ieGmrWmMukK/Tigch55UB
+         JjbjKEWuZRrpGXXz2nI2WC99DqM7YD/U6JBo1ykvIn4fCDZsst8mCnyS8UVrD/Am+HLB
+         p9qtFrcnfLawdf1H/WyGmj3w5tEobYihUrVbu4mLm6VUTcOG54P9nOrFwiNJQYcBENPg
+         vzVw==
+X-Forwarded-Encrypted: i=1; AL+hErEBv1FVhDckv2+xKJ/ow2V3oniTXzcb9FEayLjQCW3fAvNFa9c/LXU8emrb8IGumGs4G973XYENtpHTgqT0oqQ=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8MIrBjo83XmPprAYea/CaWR+cKLAEArUTr5B5Iyw8BjuSHV21t
+	E3fQBXNpDDZ8X6+vgUXcKYCDn96VLKUbX+0QBOZUrh3p1rDm7wX+/S8rltz6XOwGaDQ9rPa0039
+	yP+hqJC31I4Owi+Ysw52U2W2C53AF7IThpg9vtv8pK3nNTg8ZAKmn4vgZbEUs8Ja+fXNoq4eN1W
+	tNyNyTForTQ8AZ81BDxovBbl5yzWRk/v7xDVga1hmtgsmx0khs87MGNcxXE7irG2zUoe/Di666M
+	y1hdUkSjr9GShNCzLv9qQveGtSl
+X-Gm-Gg: AYBFou0EpVZCwS26yIxt/nxEaL+rt5srUCtj3Ium5f36QZpZa0LpA+pTOB6g5ernBhE
+	0fy0x3D0VjBsPdtMmIWvX6zBl3b7FO1MsP+qQ9SargoHtWJTWTvAnMcHTuAz4XBLOOR/A/rpx9Q
+	i7orgq1QqJlaZ1hdTrZuQNQjbzpcBDqOGCK+0bWFjZX6rLm2xynoieDxgQUIohYQTGraXtl8aRR
+	Mh8NguUFQmsdq4KqTtkLshoh2zCMJvgg/AZJEAPKngU6GNFc6+1MsvSk3o/RAwO2eQvMYQD4Bi4
+	ke4KUz91hc2UNdTNhYK2Yxr2saOdLHVoBu4HoWn2bS9hN+i+9v5CgDGzIcs4xJGZhhe96XBHWE5
+	pN9cdV0w9jT/MD6BLC+bPkd6XxmaHpQFbTYo0uv65miXB68sk1ElaeUY4BD2PXSGvd4XhNci4jk
+	1fFOxpZbrst5hQKIXxvWrIUzLFTsBPY6HLIUykgwrq
+X-Received: by 2002:a05:6870:5586:b0:4a6:9418:da4e with SMTP id 586e51a60fabf-4b762ca496dmr3237031fac.60.1795032841426;
+        Wed, 18 Nov 2026 12:14:01 -0800 (PST)
+Received: from smtp-us-east1-p01-i01-si01.dlp.protect.broadcom.com (address-144-49-247-28.dlp.protect.broadcom.com. [144.49.247.28])
+        by smtp-relay.gmail.com with ESMTPS id 586e51a60fabf-4b73fc59bf3sm39123fac.3.2026.11.18.12.14.01
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 18 Nov 2026 12:13:58 -0800 (PST)
+        Wed, 18 Nov 2026 12:14:01 -0800 (PST)
 X-Relaying-Domain: broadcom.com
 X-CFilter-Loop: Reflected
-Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-55d62b80650so22859431cf.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 12:13:58 -0800 (PST)
+Received: by mail-qt1-f199.google.com with SMTP id d75a77b69052e-55c644cea0bso28291561cf.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 12:14:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=broadcom.com; s=google; t=1795032838; x=1795637638; darn=vger.kernel.org;
+        d=broadcom.com; s=google; t=1795032840; x=1795637640; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=6BKivAUJdW3D7tOMGZMvh3uAleH7WHkI+8KsFf6iZ14=;
-        b=OCxVS8ew+QQA3YfI5r+I4q2VHX4U/MICExxfuJIfOQ50bJopAd831gCFTn6CGk0JSj
-         pZb2UFZe0j7oV2IaQAJ+XbeuGKW5xiyh/q9qLBgFgZvK6EsoLGyF+xSaQtCAk1z/z/0p
-         p0qLdCivOLbizBQUw56wjh2yjPUW72ERv9HGE=
-X-Forwarded-Encrypted: i=1; AL+hErEPbBPcplcnta6nHpNy2TwJOO64bD4L2woQ2agesfJF/IoSyk1F5MPcWsTHRUAwdvhVIZRkbp+pnlHRcXcYgck=@vger.kernel.org
-X-Received: by 2002:ac8:640a:0:b0:55d:5ba6:bf25 with SMTP id d75a77b69052e-55d5ba6c316mr47681561cf.0.1795032837515;
-        Wed, 18 Nov 2026 12:13:57 -0800 (PST)
-X-Received: by 2002:ac8:640a:0:b0:55d:5ba6:bf25 with SMTP id d75a77b69052e-55d5ba6c316mr47680971cf.0.1795032836861;
-        Wed, 18 Nov 2026 12:13:56 -0800 (PST)
+        bh=vSBhZbeGE3VX6ynSB31DPcPBMZfKELXkzIaDElyU+Zc=;
+        b=ERW5y/pZa02HZWFqIP4pk4md7RjaXJOTzIG4miGCEG3WevVGToLUFcHlIRjQuO5Z8g
+         /pFHojz/MfA3TfWLBBZHXxEtknBK9OIFVr5wE0aMl0StQ3mQifDYv/YqR3BqGSt5xqam
+         gWLLWQgLoQwtzU74USWJJOKhVv8KwtgMOb4E4=
+X-Forwarded-Encrypted: i=1; AL+hErEMN+MgImqsbCjZbr8aI+on5RPclCkwRQmhahPKPc+LfNwWK3mJ/T0JDi+z/kmwrp0nyfJMALr0iSYkhw7S1NA=@vger.kernel.org
+X-Received: by 2002:a05:622a:a0b:b0:55c:cff6:5683 with SMTP id d75a77b69052e-55d5a3087d5mr57399901cf.1.1795032840085;
+        Wed, 18 Nov 2026 12:14:00 -0800 (PST)
+X-Received: by 2002:a05:622a:a0b:b0:55c:cff6:5683 with SMTP id d75a77b69052e-55d5a3087d5mr57399301cf.1.1795032839284;
+        Wed, 18 Nov 2026 12:13:59 -0800 (PST)
 Received: from fainelli-desktop.igp.broadcom.net ([192.19.223.252])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d66c2a5a2sm7675091cf.21.2026.11.18.12.13.54
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-55d66c2a5a2sm7675091cf.21.2026.11.18.12.13.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Nov 2026 12:13:55 -0800 (PST)
+        Wed, 18 Nov 2026 12:13:58 -0800 (PST)
 From: Florian Fainelli <florian.fainelli@broadcom.com>
 To: netdev@vger.kernel.org
 Cc: Florian Fainelli <florian.fainelli@broadcom.com>,
@@ -110,9 +110,9 @@ Cc: Florian Fainelli <florian.fainelli@broadcom.com>,
 	netfilter-devel@vger.kernel.org (open list:NETFILTER),
 	coreteam@netfilter.org (open list:NETFILTER),
 	linux-kselftest@vger.kernel.org (open list:KERNEL SELFTEST FRAMEWORK)
-Subject: [PATCH net 3/4] selftests: netfilter: check hardware offload work after DESTROY
-Date: Wed, 18 Nov 2026 12:12:49 -0800
-Message-ID: <20261118201250.2075007-4-florian.fainelli@broadcom.com>
+Subject: [PATCH net 4/4] selftests: netfilter: check the GRE timeout after flowtable teardown
+Date: Wed, 18 Nov 2026 12:12:50 -0800
+Message-ID: <20261118201250.2075007-5-florian.fainelli@broadcom.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20261118201250.2075007-1-florian.fainelli@broadcom.com>
 References: <20261118201250.2075007-1-florian.fainelli@broadcom.com>
@@ -128,220 +128,199 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-DetectorID-Processed: b00c1d49-9d2e-4205-b15f-d015386d3d5e
 
-Add a test for "netfilter: flowtable: do not queue offload work after
-DESTROY". A TCP flow in a hardware offload flowtable is closed: its
-hardware rule is destroyed, and the flow stays in the flowtable until it
-expires, where the garbage collector keeps finding it. No STATS or
-REPLACE work may be queued for it once DESTROY was.
+Add a test for "netfilter: flowtable: restore the GRE conntrack timeout on
+teardown". A GRE tunnel between two namespaces goes through a router with a
+flowtable offloading the GRE flow. The flowtable is removed, which tears
+the flow down, and the timeout of the conntrack entry must be the GRE one,
+not the day set when the flow was offloaded.
 
-The flowtable devices are netdevsim ports, the only devices which accept a
-hardware offload flowtable, and the work is told apart by its workqueue
-with the workqueue_queue_work tracepoint, as netdevsim does not show it.
-The REPLACE case of the fix is a race between a packet reader and the
-garbage collector which cannot be triggered from user space; this
-checks the same rule through the STATS work, which the garbage collector
-queues after DESTROY without the fix.
+Without the fix, the entry has 86399 seconds left after teardown and the
+test fails. With it, the entry has 179 seconds left, the GRE stream
+timeout minus the time which went by.
 
-Without the fix, 6 work items are queued after DESTROY in a 20 seconds TCP
-flowtable timeout run in a VM, and the test fails. With it, none are.
+Add the GRE tunnel and conntrack helper options to the config.
 
 Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
 ---
  .../testing/selftests/net/netfilter/Makefile  |   1 +
- tools/testing/selftests/net/netfilter/config  |   1 +
- .../net/netfilter/nft_flowtable_hw_destroy.sh | 162 ++++++++++++++++++
- 3 files changed, 164 insertions(+)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_flowtable_hw_destroy.sh
+ tools/testing/selftests/net/netfilter/config  |   3 +
+ .../net/netfilter/nft_flowtable_gre.sh        | 137 ++++++++++++++++++
+ 3 files changed, 141 insertions(+)
+ create mode 100755 tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh
 
 diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
-index df3c20c90f5d..75d7d4495623 100644
+index 75d7d4495623..eefc520f3a0e 100644
 --- a/tools/testing/selftests/net/netfilter/Makefile
 +++ b/tools/testing/selftests/net/netfilter/Makefile
 @@ -30,6 +30,7 @@ TEST_PROGS := \
  	nft_fib.sh \
  	nft_fib_nexthop.sh \
  	nft_flowtable.sh \
-+	nft_flowtable_hw_destroy.sh \
++	nft_flowtable_gre.sh \
+ 	nft_flowtable_hw_destroy.sh \
  	nft_interface_stress.sh \
  	nft_meta.sh \
- 	nft_nat.sh \
 diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index 629b2b29ed1a..bf7be95f7d25 100644
+index bf7be95f7d25..5525f05d0eb6 100644
 --- a/tools/testing/selftests/net/netfilter/config
 +++ b/tools/testing/selftests/net/netfilter/config
-@@ -16,6 +16,7 @@ CONFIG_DUMMY=m
- CONFIG_FAIL_FUNCTION=y
- CONFIG_FAULT_INJECTION=y
- CONFIG_FAULT_INJECTION_DEBUG_FS=y
-+CONFIG_FTRACE=y
- CONFIG_FUNCTION_ERROR_INJECTION=y
- CONFIG_INET_DIAG=m
- CONFIG_INET_ESP=m
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable_hw_destroy.sh b/tools/testing/selftests/net/netfilter/nft_flowtable_hw_destroy.sh
+@@ -55,6 +55,8 @@ CONFIG_NETFILTER_XT_MATCH_STATE=m
+ CONFIG_NETFILTER_XT_MATCH_STRING=m
+ CONFIG_NETFILTER_XT_NAT=m
+ CONFIG_NETFILTER_XT_TARGET_REDIRECT=m
++CONFIG_NET_IPGRE=m
++CONFIG_NET_IPGRE_DEMUX=m
+ CONFIG_NET_IPIP=m
+ CONFIG_NET_L3_MASTER_DEV=y
+ CONFIG_NET_NS=y
+@@ -66,6 +68,7 @@ CONFIG_NF_CONNTRACK=m
+ CONFIG_NF_CONNTRACK_EVENTS=y
+ CONFIG_NF_CONNTRACK_FTP=m
+ CONFIG_NF_CONNTRACK_MARK=y
++CONFIG_NF_CONNTRACK_PPTP=m
+ CONFIG_NF_CONNTRACK_PROCFS=y
+ CONFIG_NF_CONNTRACK_ZONES=y
+ CONFIG_NF_CT_NETLINK=m
+diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh b/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh
 new file mode 100755
-index 000000000000..c0675378bd86
+index 000000000000..5efad6908b3f
 --- /dev/null
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable_hw_destroy.sh
-@@ -0,0 +1,162 @@
++++ b/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh
+@@ -0,0 +1,137 @@
 +#!/bin/bash
 +# SPDX-License-Identifier: GPL-2.0
 +#
-+# Once the hardware rule of a flow is destroyed, no more hardware offload work
-+# must be queued for it. The flow is removed from the flowtable later, by the
-+# garbage collector, which can still find it in the meantime.
++# Check the conntrack timeout of a GRE flow once its flowtable entry is
++# removed. A GRE flow is offloaded with the timeout of its conntrack entry set
++# to a day, which is restored to the GRE timeout when the flow is torn down.
 +#
-+# A TCP flow with a FIN has its hardware rule destroyed while it stays in the
-+# flowtable until it expires. Check the workqueues used for the offload work,
-+# which the netdevsim devices of the flowtable do not otherwise show.
++# ns1 (10.0.1.2) <-> nsr1 (10.0.1.1, 10.0.2.1) <-> ns2 (10.0.2.2)
 +#
-+# ns1 <-> (nsim) nsr1 (nsim) <-> ns2
++# A GRE tunnel connects ns1 and ns2, and nsr1 offloads the tunnel's flow.
 +
 +source lib.sh
 +
 +ret=0
-+tracing=/sys/kernel/tracing
-+trace_mounted=0
-+tmpfile=$(mktemp)
-+nsim_ids=""
 +
 +checktool "nft --version" "run test without nft tool"
-+checktool "socat -h" "run test without socat"
++checktool "conntrack --version" "run test without conntrack tool"
++
++setup_ns ns1 ns2 nsr1
 +
 +cleanup() {
-+	if [ -d "$tracing/events/workqueue" ]; then
-+		echo 0 > "$tracing/events/workqueue/workqueue_queue_work/enable"
-+		echo > "$tracing/trace"
-+	fi
-+	[ "$trace_mounted" -eq 1 ] && umount "$tracing"
-+	ip netns pids "$ns1" 2>/dev/null | xargs -r kill 2>/dev/null
-+	ip netns pids "$ns2" 2>/dev/null | xargs -r kill 2>/dev/null
 +	cleanup_all_ns
-+	for id in $nsim_ids; do
-+		cleanup_netdevsim "$id"
-+	done
-+	rm -f "$tmpfile"
 +}
 +
 +trap cleanup EXIT
 +
-+setup_ns ns1 ns2 nsr1
++ip link add veth0 netns "$nsr1" type veth peer name eth0 netns "$ns1"
++ip link add veth1 netns "$nsr1" type veth peer name eth0 netns "$ns2"
 +
-+if [ ! -d "$tracing/events/workqueue" ]; then
-+	mount -t tracefs nodev "$tracing" 2>/dev/null && trace_mounted=1
-+fi
-+if [ ! -d "$tracing/events/workqueue/workqueue_queue_work" ]; then
-+	echo "SKIP: workqueue tracepoints are not available"
-+	exit $ksft_skip
-+fi
-+
-+modprobe -q netdevsim
-+if [ ! -d /sys/bus/netdevsim ]; then
-+	echo "SKIP: netdevsim is not available"
-+	exit $ksft_skip
-+fi
-+
-+nsim_new() {
-+	local id="$1" ns="$2" name
-+
-+	echo "$id 1" > /sys/bus/netdevsim/new_device || return 1
-+	nsim_ids="$nsim_ids $id"
-+	name=$(ls /sys/bus/netdevsim/devices/netdevsim"$id"/net)
-+	ip link set "$name" name "nsim$id" netns "$ns" || return 1
-+	echo "nsim$id"
-+}
-+
-+nsim_ifindex() {
-+	ip netns exec "$1" cat /sys/class/net/"$2"/ifindex
-+}
-+
-+base=$((256 + RANDOM % 128 * 4))
-+a1=$(nsim_new "$base" "$ns1") || exit $ksft_skip
-+a2=$(nsim_new $((base + 1)) "$nsr1") || exit $ksft_skip
-+b1=$(nsim_new $((base + 2)) "$nsr1") || exit $ksft_skip
-+b2=$(nsim_new $((base + 3)) "$ns2") || exit $ksft_skip
-+
-+# Link the peers: netdevsim takes a netns file descriptor and an ifindex.
-+exec {fd1}</var/run/netns/"$ns1"
-+exec {fdr}</var/run/netns/"$nsr1"
-+exec {fd2}</var/run/netns/"$ns2"
-+
-+link=/sys/bus/netdevsim/link_device
-+if ! echo "$fd1:$(nsim_ifindex "$ns1" "$a1") $fdr:$(nsim_ifindex "$nsr1" "$a2")" > $link ||
-+   ! echo "$fdr:$(nsim_ifindex "$nsr1" "$b1") $fd2:$(nsim_ifindex "$ns2" "$b2")" > $link; then
-+	echo "SKIP: Could not link the netdevsim devices"
-+	exit $ksft_skip
-+fi
-+
-+ip -net "$ns1" link set "$a1" up
-+ip -net "$nsr1" link set "$a2" up
-+ip -net "$nsr1" link set "$b1" up
-+ip -net "$ns2" link set "$b2" up
-+
-+ip -net "$ns1" addr add 10.0.1.2/24 dev "$a1"
-+ip -net "$nsr1" addr add 10.0.1.1/24 dev "$a2"
-+ip -net "$nsr1" addr add 10.0.2.1/24 dev "$b1"
-+ip -net "$ns2" addr add 10.0.2.2/24 dev "$b2"
-+ip -net "$ns1" route add 10.0.2.0/24 via 10.0.1.1
-+ip -net "$ns2" route add 10.0.1.0/24 via 10.0.2.1
++ip -net "$nsr1" link set veth0 up
++ip -net "$nsr1" link set veth1 up
++ip -net "$nsr1" addr add 10.0.1.1/24 dev veth0
++ip -net "$nsr1" addr add 10.0.2.1/24 dev veth1
 +ip netns exec "$nsr1" sysctl -q net.ipv4.conf.all.forwarding=1
 +
-+# The statistics of a flow are polled once a tenth of its timeout went by, and
-+# the flow must stay around for longer than that after it is closed.
-+ip netns exec "$nsr1" sysctl -q net.netfilter.nf_flowtable_tcp_timeout=20
++ip -net "$ns1" link set eth0 up
++ip -net "$ns1" addr add 10.0.1.2/24 dev eth0
++ip -net "$ns1" route add 10.0.2.0/24 via 10.0.1.1
++
++ip -net "$ns2" link set eth0 up
++ip -net "$ns2" addr add 10.0.2.2/24 dev eth0
++ip -net "$ns2" route add 10.0.1.0/24 via 10.0.2.1
++
++if ! ip -net "$ns1" link add gre1 type gre local 10.0.1.2 remote 10.0.2.2 2>/dev/null; then
++	echo "SKIP: Could not create a GRE tunnel"
++	exit $ksft_skip
++fi
++ip -net "$ns2" link add gre1 type gre local 10.0.2.2 remote 10.0.1.2
++
++ip -net "$ns1" addr add 192.168.100.1/30 dev gre1
++ip -net "$ns1" link set gre1 up
++ip -net "$ns2" addr add 192.168.100.2/30 dev gre1
++ip -net "$ns2" link set gre1 up
 +
 +if ! ip netns exec "$nsr1" nft -f - <<EOF
 +table inet filter {
 +	flowtable ft {
 +		hook ingress priority 0
-+		devices = { $a2, $b1 }
-+		flags offload
++		devices = { veth0, veth1 }
 +	}
 +
 +	chain forward {
 +		type filter hook forward priority 0; policy accept
-+		ip protocol tcp ct state established flow add @ft
++		ip protocol gre ct state established flow add @ft
 +	}
 +}
 +EOF
 +then
-+	echo "SKIP: Could not load a hardware offload flowtable"
++	echo "SKIP: Could not load the flowtable ruleset"
 +	exit $ksft_skip
 +fi
 +
-+if ! ip netns exec "$ns1" ping -q -c 1 -W 2 10.0.2.2 > /dev/null; then
-+	echo "SKIP: no connectivity through the netdevsim devices"
++# The timeout of an offloaded entry is not shown by the conntrack tool.
++gre_entry_offloaded()
++{
++	ip netns exec "$nsr1" conntrack -L -p gre 2>/dev/null | grep -q OFFLOAD
++}
++
++gre_entry_timeout()
++{
++	ip netns exec "$nsr1" conntrack -L -p gre 2>/dev/null | \
++		sed -n 's/^gre *47 \([0-9]*\) .*/\1/p' | head -n 1
++}
++
++gre_ping()
++{
++	ip netns exec "$ns1" ping -q -c 1 -W 1 192.168.100.2 > /dev/null
++}
++
++if ! gre_ping; then
++	echo "FAIL: no connectivity through the GRE tunnel"
++	exit 1
++fi
++
++# Keep sending, the flow needs a packet after the entry is established.
++offloaded=0
++for i in $(seq 1 10); do
++	gre_ping
++	if gre_entry_offloaded; then
++		offloaded=1
++		break
++	fi
++	sleep 0.5
++done
++
++if [ "$offloaded" -eq 0 ]; then
++	echo "SKIP: The GRE flow was not offloaded"
 +	exit $ksft_skip
 +fi
 +
-+ip netns exec "$ns2" socat -u TCP-LISTEN:12345,reuseaddr /dev/null &
-+sleep 1
-+
-+echo 1 > "$tracing/events/workqueue/workqueue_queue_work/enable"
-+echo > "$tracing/trace"
-+
-+# Send data for the flow to be offloaded, then close the connection.
-+(for _ in 1 2 3 4 5 6; do echo data; sleep 0.3; done) | \
-+	ip netns exec "$ns1" socat -u - TCP:10.0.2.2:12345
-+
-+# The garbage collector runs every second: let it destroy the hardware rule,
-+# and go through the flow a few more times before it expires.
-+sleep 8
-+
-+cat "$tracing/trace" > "$tmpfile"
-+echo 0 > "$tracing/events/workqueue/workqueue_queue_work/enable"
-+
-+destroy=$(grep -n "workqueue=nf_ft_offload_del" "$tmpfile" | head -n 1 | cut -d: -f1)
-+if [ -z "$destroy" ]; then
-+	echo "SKIP: the hardware rule of the flow was not destroyed"
-+	exit $ksft_skip
++# The entry has the timeout of an offloaded flow: remove the flowtable, which
++# tears down its flows. Nothing else refreshes the conntrack entry.
++if ! ip netns exec "$nsr1" nft delete table inet filter; then
++	echo "FAIL: could not remove the flowtable"
++	exit 1
 +fi
 +
-+late=$(tail -n +"$((destroy + 1))" "$tmpfile" | grep -c "workqueue=nf_ft_offload_\(stats\|add\)")
-+if [ "$late" -ne 0 ]; then
-+	echo "FAIL: $late offload work items were queued after the hardware rule was destroyed"
++if gre_entry_offloaded; then
++	echo "FAIL: the GRE entry is still marked as offloaded"
++	ret=1
++fi
++
++timeout=$(gre_entry_timeout)
++max=$(ip netns exec "$nsr1" sysctl -n net.netfilter.nf_conntrack_gre_timeout_stream 2>/dev/null)
++[ -z "$max" ] && max=180
++
++if [ -z "$timeout" ]; then
++	echo "FAIL: no conntrack entry for the GRE flow"
++	ret=1
++elif [ "$timeout" -gt "$max" ]; then
++	echo "FAIL: the GRE entry timeout is $timeout seconds after teardown, expected at most $max"
 +	ret=1
 +else
-+	echo "PASS: no offload work was queued after the hardware rule was destroyed"
++	echo "PASS: the GRE entry timeout was restored to $timeout seconds"
 +fi
 +
 +exit $ret
