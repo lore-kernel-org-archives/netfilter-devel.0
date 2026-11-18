@@ -1,55 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.55
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794991107;
-	b=GAXvl/CjXrXkkO9kovwuDkFo/zGXUczk53H4rywEK4Y9nYRI/dBsGxaxDCnEMFrlIOoP
-	 Sw4+x6hOx9c5OKnFCojb5TOprGGiV8SIQqp5z8Za+QLD1Eaq6ff/35iGQRkrOXse/mO50
-	 2y2O9eaUdHc5Ckt4ofubbOYh1hqwa23hTkIGXe1hWZNn3ecpmDY9LWRaMxzxegr19t0vN
-	 7Hm5RxjYqgNoYzGzN3InHYYlqczIeHz567Y0eQUzaW6OggxNY3aNZ4xfGyoCJLsVEJDzW
-	 wHre+ii72P4o2RkKDIW1nM3opQsLkdQElI5K81ghQopSKZQ6OfSvqYEgu2BiG63FlgA==
+	t=1794996509;
+	b=Yl0NA9xILu/aM37vhlL7KxwSEqm3iWhCd8orSpeKg7RmbJeR1K2Q02eKG12gCNLJ1eQ8
+	 BbLGkL6BbS6PuUemRJ+6sKc2ADXAvW1iOFnFOYCq2Q19ANTnQSInbT/wZcrR5jzK8lIWx
+	 5rkz3RcZ3CpORiWpN4Fxn+wZdkDhUieUrJX4lBFMzGFSELfaUo4aVAbHFhUFPpmVIkpzO
+	 RRFYzlsz0dNMhLui8VHB/7Ta4U4rETjE1fqPQfqI4VyeOsyRs1s9o+xnxdjB/LkJIbTRV
+	 uJc5BShJey0EZQeGmrfGL3xQqR6yjPfEMFwGYVJjSqkw2MVnqW5jVh/IqcwC0Hrb9jw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794991107;
-	h=Received:DKIM-Signature:Received:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Received:MIME-Version:References:In-Reply-To:
-	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
-	 Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
-	bh=KRtJKN4D7KTr1hM8wuPqB24BsqKEkGefeClnbMZYA8w=;
-	b=F91iQ4jA93uEWaviIzwYOVzFSLJPr83yEgHnIkhH74sDEaRCVjqVylcXNWDxrhChd/Fz
-	 9Q6sI5ubC3d1+7oy/LAipI0YsxmKKEhOsCqooPocnbBtd4mRPyRU8JNYynivxVDQ+sdQd
-	 Yio2n50l+q7Vd8OCDf0FuecBYnN8ElhsGJ5o0FbskEbELing5jzvu4i6PbShQXRLUR1X+
-	 7SCqKsuKDagI5zOyIpt7MbBBVpLLZg9dXYrSFiwpzUwfspz/HF3vAtO8M9PPLZlh/Krkh
-	 KXheYFbSb4RSBJ8RQtGrzstg1Nj3PA9Y5rT99JDrkwWSC+9IVTHzdhxFJefH6Fv7wsQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794996509;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=Qz2aEB2Nm1ekmcMD9FQ6yh0BCWvEwRLtp4myOxqi53s=;
+	b=xvug7MeTFHxSZDrQ3/Tz0EUfZMckjb48J66FBj15crC3Xkctuv3c9n1GNuLvDPHRlDvp
+	 ynmI8lN3VV9C7TvUWHs9NgxK8rP86IKOuAt58YfvPtn7KO9/nkzkErIdQRb6rkJfLeLpr
+	 eOn4Gr7gPO3NuReIVZnNV7XzdNZjN9O99LEUN97+mZU+aOOzkdedChx5iLClk4TLPbDlN
+	 x4MJfO3WT5hdCLmGE1hlEL53ELt3kV1o5g56B6GgVL/McEmYtUbwAV/KQAQpQoCme0vAC
+	 1kS+k9Ej18VxGgKr9x4rfiVStvJsaw88v4QZ+ca87XOKzp6mL/fk5UxJ4NhYXyS0qJg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KpndDx47;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=pvWn780c;
+	arc=none smtp.remote-ip=91.218.175.55
+Received: from mta0.migadu.com (out-55.mta0.migadu.com [91.218.175.55])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBBED606A887
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 08:38:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BBA3606A320
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 10:08:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1BBA3606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=KpndDx47
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F1C41F000CE
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 08:38:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794991107;
-	bh=KRtJKN4D7KTr1hM8wuPqB24BsqKEkGefeClnbMZYA8w=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc;
-	b=KpndDx47BE5PHN3YkOr4wC8d2bDJvwZ4SWTFzw18wMRjvayc1gsqvYI0hZDC95qEF
-	 ALU6Ze17g/ca//vsoZfQitysDrcDOAqRb8C6Z9C6WWVMlGc8xxqYZnItOeZi4Qvy1u
-	 THrX/P3h/6FWt0iKQM+SpbJKLRqZDrq4qceAioNTxpGQWMNfoeCUXpgcyOsBPjAIM4
-	 +KAj4GEshy4eUi/SneVPy2sMqiVN5rC/rwY8bIsmDvIXhvcqiihnlY/ThlrEkJS0W2
-	 p10X6mpZ/hOtZ/GIJmDZ11yXq9f4nlF+UxlERuE4BHt7Rws/1bZxmtcR44mlj//x/u
-	 ugYQxA0b91DEg==
-Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-70b875f6f1fso653980eaf.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 00:38:27 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AL+hErHCdOj0f2jI4LpgvQ/zkj9/ZSg04SGLbgCksDAWFd+vuga8VpmZgHWOapxCuQprP0I/5WvhvrTrHgecQqxmRh0=@vger.kernel.org
-X-Gm-Message-State: APuU4Z+D4Oh/nbbUnArjHivoFWEIdxdPICIDb2RMV2igzp65ATdZtRMb
-	bJHay1+XYF+BF1yJHnEPNecll0FY8eyDRRHDOoUyA7fTUy4vZGzUhsbrAwhpUBcBxXJ81/66egF
-	cpAcC8vfK5k6Xu2jdFdSme2u7k8Q5YjE=
-X-Received: by 2002:a05:6820:1c8f:b0:71a:ecfc:4406 with SMTP id
- 006d021491bc7-71b187ad482mr1476088eaf.64.1794991106787; Wed, 18 Nov 2026
- 00:38:26 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=pvWn780c
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=gTWWkKNqiGiRm5q5+vRO1BZhUiAhUFJJwPIYPbRkP/0=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794996506; v=1; x=1795601306;
+ b=pvWn780cvjz07h0JxdIkHrHAA27ZRq2+QqgnlGqPSPRyIooFg3Xi5ZYYLtM2vLo72rP+o2c3
+ HbYBls0ph9N+wm9SG5hyXsris8Ks7igLmdNHikAPjhcmVSMz1Ywr9gE9MNTw/G6uoLDEYYlKmsL
+ Ow/5niY1FJxFehINNkag3asE=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 7d48908e68266c64;
+	Wed, 18 Nov 2026 10:08:26 +0000
+X-Mizu-Trace-ID: 7d48908e68266c64
+X-Migadu-Flow: FLOW_OUT
+Message-ID: <10f12bd4-6b0b-4e94-8228-04d73a62daf0@linux.dev>
+Date: Wed, 18 Nov 2026 19:08:19 +0900
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -59,50 +58,82 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-References: <20261118070524.310356-1-jiayuan.chen@linux.dev>
-In-Reply-To: <20261118070524.310356-1-jiayuan.chen@linux.dev>
-From: Eric Dumazet <edumazet@kernel.org>
-Date: Wed, 18 Nov 2026 09:38:15 +0100
-X-Gmail-Original-Message-ID: <CAL4WiioCxT9izsNuNAXWg4NPbJJMR3z8AXCSj=f+2_+frQ0mmQ@mail.gmail.com>
-X-Gm-Features: AclHuK--9fXfiLB24KQhCJA7_PKXTYTcPONOafDRgYRYIXUHHUrYJaZBcAt_Dk8
-Message-ID: <CAL4WiioCxT9izsNuNAXWg4NPbJJMR3z8AXCSj=f+2_+frQ0mmQ@mail.gmail.com>
-Subject: Re: [PATCH net-next] net: dropreason: add SKB_DROP_REASON_FRAG_MEM_LIMIT
-To: Jiayuan Chen <jiayuan.chen@linux.dev>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Alexander Aring <alex.aring@gmail.com>, Stefan Schmidt <stefan@datenfreihafen.org>, 
-	Miquel Raynal <miquel.raynal@bootlin.com>, David Ahern <dsahern@kernel.org>, 
-	Ido Schimmel <idosch@nvidia.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-	Phil Sutter <phil@nwl.cc>, linux-kernel@vger.kernel.org, linux-wpan@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nf v2 0/2] netfilter: nf_tables: only disable tables on a
+ dormant transition
+To: Ma Xinmeng <1564938642@qq.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>
+References: <tencent_80CDC0280E0D4030AF01A16E583E88E7970A@qq.com>
+From: Xuanqiang Luo <xuanqiang.luo@linux.dev>
+In-Reply-To: <tencent_80CDC0280E0D4030AF01A16E583E88E7970A@qq.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Le mer. 18 nov. 2026 =C3=A0 08:05, Jiayuan Chen <jiayuan.chen@linux.dev> a =
-=C3=A9crit :
->
-> This is used to track fragments dropped when the reassembly memory is
-> over the limit (ipfrag_high_thresh, ip6frag_high_thresh).
->
-> Fragments dropped because high_thresh is 0 get this reason too, the
-> same way they are counted in IPSTATS_MIB_REASMFAILS.
->
-> Tested with pwru.
->
-> Before:
->
-> ... PROTO  MTU   LEN   FUNC
-> ... 0x0800 65536 1500  ip_defrag
-> ... 0x0800 65536 548   ip_defrag
-> ... 0x0800 65536 548   sk_skb_reason_drop(SKB_DROP_REASON_NOT_SPECIFIED)
->
-> After:
->
-> ... PROTO  MTU   LEN   FUNC
-> ... 0x0800 65536 1500  ip_defrag
-> ... 0x0800 65536 548   ip_defrag
-> ... 0x0800 65536 548   sk_skb_reason_drop(SKB_DROP_REASON_FRAG_MEM_LIMIT)
->
-> Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+On 2026/11/18 at 1:14 Ma Xinmeng wrote:
+> Hi,
+> 
+> This is v2 of the fix for the nftables WARN below. v1 was sent as
+> [PATCH net] and tracked a per-basechain "registered" flag. Xuanqiang
+> suggested fixing the commit condition instead: a dormant table never has
+> a registered basechain hook, and nf_tables_commit() should not call
+> nf_tables_table_disable() for a table that is already dormant.
+> 
+> v2 drops the new field and changes only the NEWTABLE commit path:
+> 
+> - if (table->flags & NFT_TABLE_F_DORMANT)
+> + if (table->flags & __NFT_TABLE_F_WAS_AWAKEN)
+>        nf_tables_table_disable(net, table);
+> 
+> __NFT_TABLE_F_WAS_AWAKEN records a real awake-to-dormant transition.
+> Since table adoption added __NFT_TABLE_F_WAS_ORPHAN, __NFT_TABLE_F_UPDATE
+> can be set for an adoption that leaves the table dormant, so the old
+> check disabled the table and unregistered a hook that was never
+> registered.
+> 
+> The WARN was found by FuzzAnything's AI-assisted kernel fuzzer while
+> fuzzing nftables netlink messages in a user and network namespace, and
+> I reproduced it at runtime on 7.3.0-rc4, 7.3.1, 7.4-rc1, 7.4-rc2, and
+> 7.4-rc3. The baseline 7.4-rc3 dmesg is:
+> 
+>    hook not found, pf 2 num 3
+>    WARNING: net/netfilter/core.c:522 at __nf_unregister_net_hook+0x71/0x1b0
+>    Call Trace:
+>      nft_table_disable+0x78/0xa0
+>      nf_tables_commit+0x1c03/0x1ec0
+>      nfnetlink_rcv_batch+0x939/0xaf0
+> 
+> v2 was tested on 7.4.0-rc3-c027fixv2: the PoC returns 0 and dmesg has no
+> WARN. I also checked a real awake-to-dormant transition: after the table
+> became dormant, a ping left the basechain counter at 0, so the hook was
+> still unregistered correctly.
+> 
+> Changes in v2:
+> - remove the per-basechain registered field
+> - check __NFT_TABLE_F_WAS_AWAKEN instead of NFT_TABLE_F_DORMANT
+> - add Fixes: 31bf508be656 ("netfilter: nf_tables: Implement table adoption support")
+> - use [PATCH nf] as requested
+> - add a selftest as 2/2
+> 
 
-Reviewed-by: Eric Dumazet <edumazet@kernel.org>
+It would be nice to add a link to v1 here.
+
+> The selftest uses the nft owner/persist table flags to create the
+> dormant orphan, and checks the kernel taint state rather than parsing
+> dmesg. It fails on unpatched 7.4-rc3 and passes on v2.
+> 
+> Thanks,
+> Ma Xinmeng
+> 
+> Ma Xinmeng (2):
+>    netfilter: nf_tables: only disable tables on a dormant transition
+>    selftests: netfilter: test re-owning an already dormant table
+> 
+>   net/netfilter/nf_tables_api.c                 |  2 +-
+>   .../testing/selftests/net/netfilter/Makefile  |  1 +
+>   .../net/netfilter/nft_table_dormant_adopt.sh  | 57 +++++++++++++++++++
+>   3 files changed, 59 insertions(+), 1 deletion(-)
+>   create mode 100755 tools/testing/selftests/net/netfilter/nft_table_dormant_adopt.sh
+> 
+
