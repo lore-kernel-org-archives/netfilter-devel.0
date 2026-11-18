@@ -1,97 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.179
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.19
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794976197;
-	b=DARv+dsP6Vj/CK6lA3vrqYwBLGUAq4lXy72v2EJbECLPiGM4H2dJ7KHEcE98XW7VzjD7
-	 DxvXSm9oqTawrRWX5nsimUV8rAUklSPyCUrXZwMeD7DmvRR/F2QIOR/GM1DH2/HuNXfvX
-	 gDz1BjCNbl21b89p++0FdB9suoB1mtTFHJVpT6mbiFMh4jYt0f83Wo5tZoLAA7rlrQj0E
-	 SZxjFkPaeL38CcJeHuBUdrSAIYr5RbA55NMRr0QaN+tA4/z2Zn2wvSXf9FF9bBIrsgdv/
-	 pVB+N7WJl2kpTRAHxVWWs4EzXHL20g0CmNAsaQ0uwPyf57Fp1zEjQsNyHyLVyUQWtDg==
+	t=1794985537;
+	b=Cz781a3r6A0J8Q7lZPoTRdDPy0NyfuHgHMZFLOJrZVdVUdiu+2LV9sPbdccEa5F4sfhL
+	 bzbvrZT5fmYYuDeOvebXU1MeAxNcRLjW9hBU19BKKe4S8VNAV+KxeZ+sRGHz4owV2Jp3W
+	 +qAv0UWexJ/NYVWm7yWhhtt3EhPswyrrOzZqD0ly0yT1NK7pEuVcphRzEtMKbluu/fa6p
+	 bXEH+8sOFhgWmZUBm056LKhiw0mbG1Xy082cbG3sRzkHd4eKsVj0NLyPcsQEsqjH5qvCO
+	 CtKdKJbLA6tjtv8dyiyixc1DFXU0KnsVYrSYqfbEvKlvDTFtEuvjwHIdPHDq0+34U/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794976197;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=LJ9gCj2jGGmLVFKvuakf/3ErIiC4ZxE44mtjMvsbMAw=;
-	b=UxfhoOSzXeg2SK3U4EqQ+AZ/rt1GVmcqqY7f7/k2SM0802jPRndByFiBYh8kz1xl1sqM
-	 OkolhVqkTK096fpCvo/1nHn2ElEkivZycGHBIrVmq6tfnOcuefMADUpLYFtkwvZ8KwMbr
-	 IEenNw0/2X2aNtnJ0DGTgJLvQCvbxa441fUV1peTCTwQ6OjNkyBdqxKNEITV2zqzMbkbe
-	 ojvUntAmpjqT3bneYxwKg4os85tpWbbtLzvPUW4IodMwvm3HHPPxRYBhT0MxSWafoMe1Z
-	 oFc/sq4L14QGFalj/lOtEUkiVNeHVZYBa5HJa6Bp1Pxko1mAFPzyTKKzgHYeQJ4aRLg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794985537;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=mjq3meMdrcgGtZQ1Co1hA6n/sOXNFEBDu4lniMuprQQ=;
+	b=a//ksLvTR79RVx7hCrhrFQVscMDFi3KobQK7MmL2hjGEdz6+fAKj3NVX9jl9JljEF67n
+	 IdgejKbztwc8sK2HUZ17di5w5RDa7gPC+wT4d4fHauetkU1aUILhxxtZTS3UEKf+tGx+P
+	 eYwiYS7c7pnenXu1HDCVXFpfe2Ryfq6PPBneMOKEYIgNTJBQ0Ty8Pv7whQu1qikbD/pjs
+	 FdtqrL/C8WOY8YkQq0hwZYAG2K5Wh8GBZfoQdXg9CrpJwrKf1yw+bAEq8rsCMw/ClIVM4
+	 4H34FAb3M8RD2QSo1LQBQY5Sg1G6vn7izdSl2A+L3+1Yw2n/5B9Iixjuh7A8iXAmP9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KX6CghMX;
-	arc=none smtp.remote-ip=74.125.82.179
-Received: from mail-dy1-f179.google.com (mail-dy1-f179.google.com [74.125.82.179])
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=kQI0m0iY;
+	arc=none smtp.remote-ip=91.218.175.19
+Received: from mta0.migadu.com (out-19.mta0.migadu.com [91.218.175.19])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4D75606A32F
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 04:29:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4D75606A32F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02384606A32A
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 07:05:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 02384606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=KX6CghMX
-Received: by mail-dy1-f179.google.com with SMTP id 5a478bee46e88-3704d30b84fso872850eec.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2026 20:29:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794976196; x=1795580996; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=LJ9gCj2jGGmLVFKvuakf/3ErIiC4ZxE44mtjMvsbMAw=;
-        b=KX6CghMXtqwmXH+k2x/YLE7ck2w8PI3LkWfSrobtdaskFNDxfHjRjdQHJwSlA2lp3v
-         M2Lma+VM5Mvr2z4dHyaAPidQnBDGfDc0BzaIz57a/eAz57BrEnOY4Cw1kjjsJdJk6cBk
-         i4DjvGrvP+HoXxsx9ANrheHnFYwYxTnAWJPoXSRzVQCGBx2OaY/aLQP7+3z8xscMCYa5
-         o0E/xqMWa3vPnUq5p8PMF7vAkaa8FVy8z7qKC0Ur5llGkwwywXPNqZuYg1lXYqyEj9mI
-         H1rWSWz5uaQoszbm2uVYFp/yzLrfBwZ+bTbROX9Xe07+AGtBOS78t3g/KhHB1OL8AsiO
-         xpuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794976196; x=1795580996;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=LJ9gCj2jGGmLVFKvuakf/3ErIiC4ZxE44mtjMvsbMAw=;
-        b=NFCUdGAqpso0jzPzi5pt9DDXraUjDC6xubOCaepVqIHxxg7yxi7rz8lUR8edu7DbV3
-         nqJG85iql1UjRvDRr9wHxemreJ9++Ikk4q3F4lCYeZEHR3Nn17N2tqMgv+RyF/6uS4wc
-         TczsdFsN/vZDMK/6wSUuDaWP6633vfocmlwy8nFbcPjDGiLnBgj8RKqN6xkhKt7LW9H2
-         j47UtU+ok0R8hYlkcKZI9oLKWtPoM/lzJMVMZrGNfvDU6usUMIhj0oWia5Xi6xdzNrv8
-         d1/rv2f/Dhl3LQQ0+TR2mbTqs/6QrgniV+33dePzruzI6QdO9ftjLgHWZbU7xjuqpU96
-         f4OQ==
-X-Forwarded-Encrypted: i=1; AL+hErFlgApsdpKHEbNXDNKIHTi1Z4m6YVDWERrEp7sbXy/H0AMEm0wX4HPPlbFhe1T38989YlScEdMg4vaMM5V0e2s=@vger.kernel.org
-X-Gm-Message-State: APuU4Z+M0HBtpUC9T9yp5G/k5rGtvy3M1MV7CeWfioGNI92c9Hu5daFF
-	fNANofhN+TKu9OBNjhKrhMOVxTzr291QXtz/FR4htzmovc0ninAjRaKO4hAXXqoc
-X-Gm-Gg: AZFdTZddHAfBzhsj2CIM/GKMEwCmqOqb0zvjbNPyM5/Yy3rdpRCp4+iyURKfLoZW53v
-	spKnquLXenHRTwAjU8s9xj6NaK2GIemB7iSQTfaNVmGO3AkCjltboVefEWMUy3yZKu+X8jaJaTv
-	6qoek/wcWg21az4QXtfdpbkaNHvwaWZM3nSTw04MVhObQ1/Ob2bSA8XTWddivJL03CLdFFWs6TA
-	lybQoesFrpAt2zPsuR+wmgnl5AHyJJz4hK3xsTlukxRgdHgAIoYOiMHcVJSt1MQXAV/OQJXmom/
-	ZjUH7YrtVQRJvF1OUG2+y2VbNCJOnsnaD4QtGZ8O5UtOql37nvc/2GoYi8isnoqMOQ4HsXKejxd
-	gdG6Q+eWmF29Suix7m3W1lVK8woiS562CvBz8X7iaId22oT2a+ps7D6Yy6EmqJOzSzHZXHPgRab
-	faT57gdisVn9hWNbjO0T1uPvUEDF84ouHWNDRwclZu8lGrXYTgaFfCldAagLK1CTYCYYTe1VLKf
-	m7/asQFGvqefPDBn+fW+oMvxNSf/k5geRMOFvmqud3y3Ivb5FCMYf8ETMCr6uW7uNvnUoMEo4Yi
-	yxx3i9w8s9GGo3LnpPbrp9aAvjFEAKD2knMfxBO3BA54QQlHMY6+KFxWvYsB81D8NgL83GawdK/
-	Rdjsr2YLIYhLBja/O6pRmvFbf19V6v4uHb0l29KAGmPn4Nm/aW0KWfp18OhKocC+dLB9CkLHYCO
-	O9Cn28ztOe/8MtI7acZ65AasCpu5HDcJXQaPhzcBPr18rYlhs1RJ15Lukcca9gpu0w6mqE2jO/I
-	rfEzZeBLfC4q6pDP1JgWv0G81Vw
-X-Received: by 2002:a05:7301:1823:b0:379:3c04:2cdd with SMTP id 5a478bee46e88-3828181119cmr1441606eec.31.1794976195799;
-        Tue, 17 Nov 2026 20:29:55 -0800 (PST)
-Received: from FT6N242TWK ([223.181.117.48])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-382a6304efbsm5273447eec.7.2026.11.17.20.29.52
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Tue, 17 Nov 2026 20:29:55 -0800 (PST)
-From: Shashank Mohan Jain <jain.sm@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>,
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=kQI0m0iY
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=ca/pNcctimUgIrRQnFieYRz/dmOQ2n2YtK9gXeLDLIY=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1794985535; v=1; x=1795590335;
+ b=kQI0m0iYqmNqwiAWJCoDFA9gf3bg61VNfOINGKhwKU5jCSucCpn4BL3b/+f2tnrXhYiGKyRK
+ c73mohE9I7fbKVTO/bD+nQiV9K4FsSSahm1L9sEMulUrPTxXeiVfELxn/B3keEzCWXWQ/69iUfI
+ VCj47Mno0pk9Kr1qNd9hYzt8=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 8ae76fde31622f60;
+	Wed, 18 Nov 2026 07:05:33 +0000
+X-Mizu-Trace-ID: 8ae76fde31622f60
+X-Migadu-Flow: FLOW_OUT
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+To: netdev@vger.kernel.org
+Cc: Jiayuan Chen <jiayuan.chen@linux.dev>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Alexander Aring <alex.aring@gmail.com>,
+	Stefan Schmidt <stefan@datenfreihafen.org>,
+	Miquel Raynal <miquel.raynal@bootlin.com>,
+	David Ahern <dsahern@kernel.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	linux-kernel@vger.kernel.org,
+	linux-wpan@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH nf] netfilter: ctnetlink: apply port filters to SCTP and GRE entries
-Date: Wed, 18 Nov 2026 09:59:50 +0530
-Message-ID: <20261118042950.83129-1-jain.sm@gmail.com>
-X-Mailer: git-send-email 2.54.0
+	coreteam@netfilter.org
+Subject: [PATCH net-next] net: dropreason: add SKB_DROP_REASON_FRAG_MEM_LIMIT
+Date: Wed, 18 Nov 2026 15:05:19 +0800
+Message-ID: <20261118070524.310356-1-jiayuan.chen@linux.dev>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -103,58 +81,227 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-ctnetlink_filter_match_tuple() only compares CTA_PROTO_SRC_PORT and
-CTA_PROTO_DST_PORT for TCP and UDP. SCTP and GRE also parse these
-attributes into the filter tuple (both use nf_ct_port_nlattr_to_tuple()),
-so a filter such as "protonum SCTP, src port X" is accepted, but the
-port part is then ignored and every SCTP entry matches.
+This is used to track fragments dropped when the reassembly memory is
+over the limit (ipfrag_high_thresh, ip6frag_high_thresh).
 
-CTA_FILTER is also honoured by IPCTNL_MSG_CT_DELETE
-(ctnetlink_flush_conntrack()), so a filtered flush that asks for one
-SCTP port deletes all SCTP conntrack entries in the netns, and a
-filtered dump returns all of them. The same applies to GRE keys.
+Fragments dropped because high_thresh is 0 get this reason too, the
+same way they are counted in IPSTATS_MIB_REASMFAILS.
 
-The port and the GRE key share the same offset in
-nf_conntrack_man_proto and in the dst union, so the existing
-comparison works for both.
+Tested with pwru.
 
-Found by reading the code with LLM assistance. Tested on x86_64 under
-QEMU: with three SCTP and three GRE entries, a delete filtered on one
-source port (or GRE key) removed all three entries of that protocol
-before this change and only the matching one with it. Filtered dumps
-show the same difference.
+Before:
 
-Fixes: cb8aa9a3affb ("netfilter: ctnetlink: add kernel side filtering for dump")
-Cc: stable@vger.kernel.org
-Assisted-by: LLM
-Signed-off-by: Shashank Mohan Jain <jain.sm@gmail.com>
+... PROTO  MTU   LEN   FUNC
+... 0x0800 65536 1500  ip_defrag
+... 0x0800 65536 548   ip_defrag
+... 0x0800 65536 548   sk_skb_reason_drop(SKB_DROP_REASON_NOT_SPECIFIED)
+
+After:
+
+... PROTO  MTU   LEN   FUNC
+... 0x0800 65536 1500  ip_defrag
+... 0x0800 65536 548   ip_defrag
+... 0x0800 65536 548   sk_skb_reason_drop(SKB_DROP_REASON_FRAG_MEM_LIMIT)
+
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 ---
-Prepared with Claude Code (Anthropic), model Claude Opus 5.5
-(claude-opus-5-5).
+ include/net/dropreason-core.h           |  7 +++++++
+ include/net/inet_frag.h                 |  3 ++-
+ net/ieee802154/6lowpan/reassembly.c     |  2 +-
+ net/ipv4/inet_fragment.c                |  8 ++++++--
+ net/ipv4/ip_fragment.c                  | 10 ++++++----
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  2 +-
+ net/ipv6/reassembly.c                   | 10 ++++++----
+ 7 files changed, 29 insertions(+), 13 deletions(-)
 
-Based on nf.git main 734bef548a96. Tested with a small raw ctnetlink
-program in a busybox initramfs under QEMU (x86_64, TCG). It adds three
-SCTP, three GRE and three TCP entries, then sends dumps and
-IPCTNL_MSG_CT_DELETE requests with CTA_FILTER set to protonum plus
-source port. TCP behaves the same before and after. Also built for
-i386; W=1 shows no warnings for nf_conntrack_netlink.c before or after.
-
- net/netfilter/nf_conntrack_netlink.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1f8d94a05..5e8e0b93b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1127,6 +1127,8 @@ static int ctnetlink_filter_match_tuple(struct nf_conntrack_tuple *filter_tuple,
- 	switch (ct_tuple->dst.protonum) {
- 	case IPPROTO_TCP:
- 	case IPPROTO_UDP:
-+	case IPPROTO_SCTP:
-+	case IPPROTO_GRE:
- 		if ((flags & CTA_FILTER_FLAG(CTA_PROTO_SRC_PORT)) &&
- 		    filter_tuple->src.u.tcp.port != ct_tuple->src.u.tcp.port)
- 			return 0;
+diff --git a/include/net/dropreason-core.h b/include/net/dropreason-core.h
+index 27bc63cbc020f..5b7a758603d90 100644
+--- a/include/net/dropreason-core.h
++++ b/include/net/dropreason-core.h
+@@ -98,6 +98,7 @@
+ 	FN(DUP_FRAG)			\
+ 	FN(FRAG_REASM_TIMEOUT)		\
+ 	FN(FRAG_TOO_FAR)		\
++	FN(FRAG_MEM_LIMIT)		\
+ 	FN(TCP_MINTTL)			\
+ 	FN(IPV6_BAD_EXTHDR)		\
+ 	FN(IPV6_TOO_MANY_EXTHDRS)	\
+@@ -493,6 +494,12 @@ enum skb_drop_reason {
+ 	 * (/proc/sys/net/ipv4/ipfrag_max_dist)
+ 	 */
+ 	SKB_DROP_REASON_FRAG_TOO_FAR,
++	/**
++	 * @SKB_DROP_REASON_FRAG_MEM_LIMIT: reassembly memory is over the limit.
++	 * (/proc/sys/net/ipv4/ipfrag_high_thresh,
++	 * /proc/sys/net/ipv6/ip6frag_high_thresh)
++	 */
++	SKB_DROP_REASON_FRAG_MEM_LIMIT,
+ 	/**
+ 	 * @SKB_DROP_REASON_TCP_MINTTL: ipv4 ttl or ipv6 hoplimit below
+ 	 * the threshold (IP_MINTTL or IPV6_MINHOPCOUNT).
+diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
+index c1fb419a9cf03..ea5a5484c65ef 100644
+--- a/include/net/inet_frag.h
++++ b/include/net/inet_frag.h
+@@ -130,7 +130,8 @@ void fqdir_exit(struct fqdir *fqdir);
+ 
+ void inet_frag_kill(struct inet_frag_queue *q, int *refs);
+ void inet_frag_destroy(struct inet_frag_queue *q);
+-struct inet_frag_queue *inet_frag_find(struct fqdir *fqdir, void *key);
++struct inet_frag_queue *inet_frag_find(struct fqdir *fqdir, void *key,
++				       enum skb_drop_reason *reason);
+ 
+ void inet_frag_queue_flush(struct inet_frag_queue *q,
+ 			   enum skb_drop_reason reason);
+diff --git a/net/ieee802154/6lowpan/reassembly.c b/net/ieee802154/6lowpan/reassembly.c
+index ddb6a5817d098..dcbadb1abb0f4 100644
+--- a/net/ieee802154/6lowpan/reassembly.c
++++ b/net/ieee802154/6lowpan/reassembly.c
+@@ -76,7 +76,7 @@ fq_find(struct net *net, const struct lowpan_802154_cb *cb,
+ 	key.src = *src;
+ 	key.dst = *dst;
+ 
+-	q = inet_frag_find(ieee802154_lowpan->fqdir, &key);
++	q = inet_frag_find(ieee802154_lowpan->fqdir, &key, NULL);
+ 	if (!q)
+ 		return NULL;
+ 
+diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+index f330d0a398233..728fa78f56b37 100644
+--- a/net/ipv4/inet_fragment.c
++++ b/net/ipv4/inet_fragment.c
+@@ -421,14 +421,18 @@ static struct inet_frag_queue *inet_frag_create(struct fqdir *fqdir,
+ 	return q;
+ }
+ 
+-struct inet_frag_queue *inet_frag_find(struct fqdir *fqdir, void *key)
++struct inet_frag_queue *inet_frag_find(struct fqdir *fqdir, void *key,
++				       enum skb_drop_reason *reason)
+ {
+ 	/* This pairs with WRITE_ONCE() in fqdir_pre_exit(). */
+ 	long high_thresh = READ_ONCE(fqdir->high_thresh);
+ 	struct inet_frag_queue *fq = NULL, *prev;
+ 
+-	if (!high_thresh || frag_mem_limit(fqdir) > high_thresh)
++	if (!high_thresh || frag_mem_limit(fqdir) > high_thresh) {
++		if (reason)
++			*reason = SKB_DROP_REASON_FRAG_MEM_LIMIT;
+ 		return NULL;
++	}
+ 
+ 	prev = rhashtable_lookup(&fqdir->rhashtable, key, fqdir->f->rhash_params);
+ 	if (!prev)
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index ef7fd61284a3f..7eb40c1041ef9 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -197,7 +197,8 @@ static void ip_expire(struct timer_list *t)
+  * this IP datagram, and create new one, if nothing is found.
+  */
+ static struct ipq *ip_find(struct net *net, struct iphdr *iph,
+-			   u32 user, int vif)
++			   u32 user, int vif,
++			   enum skb_drop_reason *reason)
+ {
+ 	struct frag_v4_compare_key key = {
+ 		.saddr = iph->saddr,
+@@ -209,7 +210,7 @@ static struct ipq *ip_find(struct net *net, struct iphdr *iph,
+ 	};
+ 	struct inet_frag_queue *q;
+ 
+-	q = inet_frag_find(net->ipv4.fqdir, &key);
++	q = inet_frag_find(net->ipv4.fqdir, &key, reason);
+ 	if (!q)
+ 		return NULL;
+ 
+@@ -475,6 +476,7 @@ int ip_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ {
+ 	struct net_device *dev;
+ 	struct ipq *qp;
++	SKB_DR(reason);
+ 	int vif;
+ 
+ 	__IP_INC_STATS(net, IPSTATS_MIB_REASMREQDS);
+@@ -483,7 +485,7 @@ int ip_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ 	rcu_read_lock();
+ 	dev = skb->dev ? : skb_dst_dev_rcu(skb);
+ 	vif = l3mdev_master_ifindex_rcu(dev);
+-	qp = ip_find(net, ip_hdr(skb), user, vif);
++	qp = ip_find(net, ip_hdr(skb), user, vif, &reason);
+ 	if (qp) {
+ 		int ret, refs = 0;
+ 
+@@ -499,7 +501,7 @@ int ip_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ 	rcu_read_unlock();
+ 
+ 	__IP_INC_STATS(net, IPSTATS_MIB_REASMFAILS);
+-	kfree_skb(skb);
++	kfree_skb_reason(skb, reason);
+ 	return -ENOMEM;
+ }
+ EXPORT_SYMBOL(ip_defrag);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index f25ff2a12a824..019f6669015d0 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -159,7 +159,7 @@ static struct frag_queue *fq_find(struct net *net, __be32 id, u32 user,
+ 					    IPV6_ADDR_LINKLOCAL)))
+ 		key.iif = 0;
+ 
+-	q = inet_frag_find(nf_frag->fqdir, &key);
++	q = inet_frag_find(nf_frag->fqdir, &key, NULL);
+ 	if (!q)
+ 		return NULL;
+ 
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index 91a65fe673500..649f2e3283656 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -82,7 +82,8 @@ static void ip6_frag_expire(struct timer_list *t)
+ }
+ 
+ static struct frag_queue *
+-fq_find(struct net *net, __be32 id, const struct ipv6hdr *hdr, int iif)
++fq_find(struct net *net, __be32 id, const struct ipv6hdr *hdr, int iif,
++	enum skb_drop_reason *reason)
+ {
+ 	struct frag_v6_compare_key key = {
+ 		.id = id,
+@@ -97,7 +98,7 @@ fq_find(struct net *net, __be32 id, const struct ipv6hdr *hdr, int iif)
+ 					    IPV6_ADDR_LINKLOCAL)))
+ 		key.iif = 0;
+ 
+-	q = inet_frag_find(net->ipv6.fqdir, &key);
++	q = inet_frag_find(net->ipv6.fqdir, &key, reason);
+ 	if (!q)
+ 		return NULL;
+ 
+@@ -337,6 +338,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
+ 	struct inet6_dev *idev;
+ 	struct frag_hdr *fhdr;
+ 	struct frag_queue *fq;
++	SKB_DR(reason);
+ 	u8 nexthdr;
+ 	int iif;
+ 
+@@ -385,7 +387,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
+ 
+ 	iif = skb->dev ? skb->dev->ifindex : 0;
+ 	rcu_read_lock();
+-	fq = fq_find(net, fhdr->identification, hdr, iif);
++	fq = fq_find(net, fhdr->identification, hdr, iif, &reason);
+ 	if (fq) {
+ 		u32 prob_offset = 0;
+ 		int ret, refs = 0;
+@@ -409,7 +411,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
+ 	rcu_read_unlock();
+ 
+ 	__IP6_INC_STATS(net, idev, IPSTATS_MIB_REASMFAILS);
+-	kfree_skb(skb);
++	kfree_skb_reason(skb, reason);
+ 	return -1;
+ 
+ fail_hdr:
 -- 
 2.43.0
 
