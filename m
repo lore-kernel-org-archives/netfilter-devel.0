@@ -1,21 +1,21 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795003076;
-	b=OgpoUBIdMeqo4kNWTsFeRj993YXt/71ZFgfKz+4qfxtesgJr/Puf615vA+M2out80bF7
-	 MYMUfDmZ6AtOceblgE5lYrWyb0y/BL+C/VwU2Db2fB2nnnDYKfwoVp8DpmykY654r/wD/
-	 XpI4bU/M7Y8kR3kLiSNZTrtiRKYXuYyLVNKTat08nsXO98lFthG0eMo+K/itsXJ89cG9x
-	 +Ih9MQHLmOzFM5ZrEtEY6Sx8JWEmTlDM0Tv5Y3p+LamoHdlKYbU7g2bk/d2XnXA2X6/At
-	 +JGnS+qYgoKU0hVBN2QKMQHTrFfAEhg+zLOX3jFTYcZIHNtKL3iTgrYJXxtekQRtpPw==
+	t=1795003079;
+	b=W4lcKljGEK8kk/6+VhU6PTOIMTopvcH/xVxH0j87DCSsYSzI/qmf+1RG64oHmmGPd0oV
+	 x+seyFZvTQ/gqgqZ6Sjdmtq2XLnqfwKkl9xMUO/yrxNk0YaPwnCm97bIiz5coBIf4AkTA
+	 Z8DqF4aGIb6VIWdyLvzzw/dntB90GZtfGz/a44tRuggk3PQm58bHKmAv1Ka41H6TqGguI
+	 Jv8+joTAz/zO75zWPyLo2wC6bgrMuxLE/ULrNW4qGXOKObhj/ueS3JjP043aT5kzbyjfF
+	 ZBoVIxW9yms9B0Vqy+6HM1tmMzeSbWAwYEtEOf3lF/GPtBJWN5Q0JDucjfUYh5oB1PA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795003076;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795003079;
 	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=VHKQ3bQrrrEvEPNL3VtQJO/izgx37XMfGj2lAfV+LmU=;
-	b=qgrS0mlci/wBUFlJ04Gw+Ip681HvDVALs54htf4uA1B4jbiCxadExwcHzjwPETlIVifl
-	 vMm4Gq3QKwwsZJLiafjY3G5Ml2QXbYQNc7GoDIhOczUtLOr5g0+LJgl4Vu4GSG1RoyGfK
-	 k5vy7foAZL3Q0WJvbSVJUafE4kWLN2TLm6dnljR2tyF5Zpoin7ZrwysFAXtzEq50X5dAL
-	 SlW3kD3uEg/KrMBX/zFflJy96xW0ZGtaXA0+tE+MUcfxnrWbUrEGNBZGZAawKgRls3mCD
-	 Rgz+ESfvmz+8pDDUBIY8QmdHn15nsfGeDaB8EH63ktuNuEaZMANzZsY7gGxMmS65VOQ==
+	bh=PboycpyJSQVKX1Ua3mPKeblcIjJVkPl2+Y+HGZGFVH4=;
+	b=uY+2r/UF06RWPNjE80VoLxlsWEaIAMhZx12bnBZjIuTPXNaCD1viDg96FCf9CTZXx93z
+	 J/u3oN1noO9AdQUlzKlK3xHt2BrCyaSBezDpTb0/YBqpO+tWgjh1Z6Gsm/PF9/OJiYl06
+	 3zT6NNiBdbobSP8QVL+mv9GAE+BhKIi0aEKQ4YgEtWau8d8vRxLnYtrIEOymW43Fh7ZSz
+	 ldA63VYyjQoZYD2ZwWv3LRp2SBISnZKCm3GlRHO2Ft/OomTgd5r+GEHzD5PwCeV7MSuFf
+	 kXxoIzoJTpaEW+WfI+no2eR6F2HH8VVx61ICktfAA4b4N+DiC5zvgxmlP/a/nEJnnKQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=strlen.de;
 	spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc;
@@ -24,19 +24,19 @@ Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.21
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46EE3606A320
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 11:57:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46EE3606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7222606A32C
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2026 11:57:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E7222606A32C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6E85760D56; Wed, 18 Nov 2026 12:57:48 +0100 (CET)
+	id EEC8960633; Wed, 18 Nov 2026 12:57:56 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 1/6] netfilter: nf_log: remove dead ARPHRD_SIT handling from MAC/HW header logging
-Date: Wed, 18 Nov 2026 12:57:27 +0100
-Message-ID: <20261118115732.9529-2-fw@strlen.de>
+Subject: [PATCH nf-next v2 3/6] netfilter: nfnetlink_log: fix up dev_parse_header usage
+Date: Wed, 18 Nov 2026 12:57:29 +0100
+Message-ID: <20261118115732.9529-4-fw@strlen.de>
 X-Mailer: git-send-email 2.56.1
 In-Reply-To: <20261118115732.9529-1-fw@strlen.de>
 References: <20261118115732.9529-1-fw@strlen.de>
@@ -51,100 +51,256 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-dump_mac_header() in nf_log_syslog.c and the HWHEADER dump in
-nfnetlink_log.c special-case ARPHRD_SIT devices by backing the header
-pointer up by ETH_HLEN before dumping dev->hard_header_len bytes, on the
-assumption that a SIT tunnel's "hard header" covers the underlying
-device's real Ethernet header plus the tunnel's IPv4 header.
+dev_parse_header() grabs the source hw address from the skb and stores
+it in the given buffer.
 
-That assumption stopped holding after commit 8ef9ba4d6666 ("IPv6: Set
-SIT tunnel hard_header_len to zero"), which zeroed dev->hard_header_len
-for SIT tunnels.
+e.g.: eth_header_parse() is a simple:
 
-The syslog call site was gated on dev->hard_header_len being nonzero,
-so the ARPHRD_SIT branch there has been unreachable dead code for every
-SIT device ever since.
+int eth_header_parse(const struct sk_buff *skb,
+		     const struct net_device *dev, unsigned char *haddr) {
+	memcpy(haddr, eth_hdr(skb)->h_source, ETH_ALEN);
+	return ETH_ALEN;
+}
 
-For nfnetlink_log the branch was still reachable, but the adjusted
-pointer is never read: nla_put() for the NFULA_HWHEADER attribute uses
-dev->hard_header_len as the length, which is 0 for SIT tunnels.
+Problem is that the compound structure used by the UABI in nfnetlink_log
+and nfnetlink_queue has a fixed 8-byte size.
 
-Remove the ARPHRD_SIT special-handling; it's been 6 years and no one
-reported this ever since.
+Enough for ETH_ALEN, but not necessarily enough for other address types.
+Move this to a helper and allow sharing it between the copypasted users.
 
-Also use the ingress device for the netlink message size estimate of
-the hardware header attributes: skb->dev can have been repointed to a
-device with a different hard_header_len before the hook runs (multicast
-routing does so before the FORWARD hook), and it is dereferenced
-without a NULL check.
+The struct layout of the two container structures have same layout:
+add BUILD_BUG_ON checks to assert this.
 
+Due to the nature of the dev_parse_header() helpers:
+
+1. skb MUST have a valid mac header, else we read garbage
+2. users MUST NOT use this when ingress device and skb->dev
+have diverged (we can't know we would decode something
+meaningful anymore).
+3. Because container structure only has space for 8 octets,
+   we have to clamp the result.
+
+Do all of this in the common helper.
+
+The helper also rejects skbs whose network header ended up below the
+mac header: encapsulation (ip_encap(), xfrm) can do this and the
+unsigned skb_mac_header_len() would then wrap to a huge value,
+bypassing the sanity checks.  The mac header must also span the
+device's full hard_header_len, not just min_header_len:
+header_ops->parse() implementations read fixed offsets sized for the
+complete header format (ipgre leaves min_header_len at 0 but
+ipgre_header_parse() reads offset 12..15 of the mac header).
+
+This is an LLM finding, no bug was ever reported about this.
+
+Fixes: 0597f2680d66 ("[NETFILTER]: Add new "nfnetlink_log" userspace packet logging facility")
+Fixes: 7af4cc3fa158 ("[NETFILTER]: Add "nfnetlink_queue" netfilter queue handler over nfnetlink")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v2: use  nla_total_size(in->hard_header_len), not
- skb->dev.
+ v2: more paranoia checks that AI insists are needed
+ (ip_encap, ipgre, ...)
 
- net/netfilter/nf_log_syslog.c | 17 +----------------
- net/netfilter/nfnetlink_log.c |  8 ++------
- 2 files changed, 3 insertions(+), 22 deletions(-)
+ net/netfilter/nfnetlink_log.c        |  18 +----
+ net/netfilter/nfnetlink_log_common.h | 117 +++++++++++++++++++++++++++
+ net/netfilter/nfnetlink_queue.c      |  18 +----
+ 3 files changed, 125 insertions(+), 28 deletions(-)
+ create mode 100644 net/netfilter/nfnetlink_log_common.h
 
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index c3fd398ffcd7..910f6975cdf7 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -820,26 +820,11 @@ static void dump_mac_header(struct nf_log_buf *m,
- 		const unsigned char *p = skb_mac_header(skb);
- 		unsigned int i;
- 
--		if (dev->type == ARPHRD_SIT) {
--			p -= ETH_HLEN;
--
--			if (p < skb->head)
--				p = NULL;
--		}
--
--		if (p) {
-+		if (1) {
- 			nf_log_buf_add(m, "%02x", *p++);
- 			for (i = 1; i < dev->hard_header_len; i++)
- 				nf_log_buf_add(m, ":%02x", *p++);
- 		}
--
--		if (dev->type == ARPHRD_SIT) {
--			const struct iphdr *iph =
--				(struct iphdr *)skb_mac_header(skb);
--
--			nf_log_buf_add(m, " TUNNEL=%pI4->%pI4", &iph->saddr,
--				       &iph->daddr);
--		}
- 	}
- 	nf_log_buf_add(m, " ");
- }
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index d923f2cb1398..90e87c34df85 100644
+index 90e87c34df85..37f3e7b6b538 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -610,11 +610,7 @@ __build_packet_message(struct nfnl_log_net *log,
+@@ -47,6 +47,8 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #endif
  
- 		hwhdrp = skb_mac_header(skb);
++#include "nfnetlink_log_common.h"
++
+ #define NFULNL_COPY_DISABLED	0xff
+ #define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
+ #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
+@@ -587,20 +589,8 @@ __build_packet_message(struct nfnl_log_net *log,
+ 	    nla_put_be32(inst->skb, NFULA_MARK, htonl(skb->mark)))
+ 		goto nla_put_failure;
  
--		if (skb->dev->type == ARPHRD_SIT)
--			hwhdrp -= ETH_HLEN;
+-	if (indev && skb->dev &&
+-	    skb_mac_header_was_set(skb) &&
+-	    skb_mac_header_len(skb) != 0) {
+-		struct nfulnl_msg_packet_hw phw;
+-		int len;
 -
--		if (hwhdrp >= skb->head &&
--		    nla_put(inst->skb, NFULA_HWHEADER,
-+		if (nla_put(inst->skb, NFULA_HWHEADER,
- 			    skb->dev->hard_header_len, hwhdrp))
- 			goto nla_put_failure;
- 	}
-@@ -772,7 +768,7 @@ nfulnl_log_packet(struct net *net,
- 		+ nlmsg_total_size(sizeof(struct nfgenmsg));	/* NLMSG_DONE */
+-		memset(&phw, 0, sizeof(phw));
+-		len = dev_parse_header(skb, phw.hw_addr);
+-		if (len > 0) {
+-			phw.hw_addrlen = htons(len);
+-			if (nla_put(inst->skb, NFULA_HWADDR, sizeof(phw), &phw))
+-				goto nla_put_failure;
+-		}
+-	}
++	if (nfnetlink_put_hwaddr(inst->skb, skb, indev, NFULA_HWADDR))
++		goto nla_put_failure;
  
- 	if (in && skb_mac_header_was_set(skb)) {
--		size += nla_total_size(skb->dev->hard_header_len)
-+		size += nla_total_size(in->hard_header_len)
- 			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
- 			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
- 	}
+ 	if (indev && skb_mac_header_was_set(skb)) {
+ 		if (nla_put_be16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type)) ||
+diff --git a/net/netfilter/nfnetlink_log_common.h b/net/netfilter/nfnetlink_log_common.h
+new file mode 100644
+index 000000000000..99012543b32f
+--- /dev/null
++++ b/net/netfilter/nfnetlink_log_common.h
+@@ -0,0 +1,117 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _NF_NETLINK_LOG_COMMON_H
++#define _NF_NETLINK_LOG_COMMON_H
++
++#include <linux/netdevice.h>
++#include <linux/skbuff.h>
++#include <net/netlink.h>
++#include <linux/netfilter/nfnetlink_queue.h>
++#include <linux/netfilter/nfnetlink_log.h>
++
++/* nfnetlink_log and nfnetlink_queue suffer from copypaste; avoid adding
++ * more and place shared code here.
++ */
++static __always_inline void assert_nfqnl_nfunl_hdrs(void)
++{
++	struct nfulnl_msg_packet_hw phwu;
++	struct nfqnl_msg_packet_hw phwq;
++
++	BUILD_BUG_ON(sizeof(phwu) != sizeof(phwq));
++
++#define X(memb) offsetof(struct nfulnl_msg_packet_hw, memb) != \
++		offsetof(struct nfqnl_msg_packet_hw, memb)
++
++	BUILD_BUG_ON(X(hw_addrlen));
++	BUILD_BUG_ON(X(hw_addr));
++#undef X
++#define X(memb) sizeof(phwu.memb) != sizeof(phwq.memb)
++	BUILD_BUG_ON(X(hw_addrlen));
++#undef X
++}
++
++/**
++ * nfnetlink_put_hwaddr - Serialize L2 hardware address into netlink attr
++ *
++ * @nlskb: netlink message to append the attribute to.
++ * @skb: the packet whose hardware address is being serialized.
++ * @indev: the input device that received @skb.
++ * @attr: netlink attribute type identifier.
++ *
++ * Extracts the MAC header from @skb using @indev's header_ops and appends
++ * it as a netlink attribute of type @attr to @nlskb.
++ *
++ * UAPI NOTE: The attribute is serialized in a legacy container structure
++ * (nfulnl_msg_packet_hw / nfqnl_msg_packet_hw) rather than a plain
++ * nla_put(hwaddr, len).
++ * The hw_addrlen member in that structure is redundant -- userspace knows
++ * the size from the netlink attribute length -- but is retained for ABI
++ * compatibility. nfnetlink_queue duplicates this layout; both structs are
++ * layout-identical, so this one helper serves both.
++ *
++ * The maximum address length is 8 octets, even though netlink itself
++ * supports longer addresses. This is a limitation of the
++ * compound-structure ABI (hw_addr[8] member).
++ *
++ * This helper checks:
++ *  - @indev is non-NULL and implements header_ops->parse.
++ *  - network_header is not below mac_header (encapsulation), so
++ *    skb_mac_header_len() does not wrap.
++ *  - L2 header is present and at least @indev's hard_header_len, so
++ *    header_ops->parse does not read past a short or missing header.
++ *
++ * @indev, not @skb->dev, is used: @skb->dev may have been changed since
++ * the packet was received, so it is not necessarily the device whose
++ * header_ops can parse the L2 header.
++ *
++ * Return: 0 on success or if the attribute is skipped (no parser, no or
++ * short L2 header, or empty address), -EMSGSIZE if the tailroom of the
++ * skb is insufficient to store the attribute header and payload.
++ */
++static inline int
++nfnetlink_put_hwaddr(struct sk_buff *nlskb,
++		     const struct sk_buff *skb,
++		     const struct net_device *indev,
++		     u16 attr)
++{
++	char hw_addr[MAX_ADDR_LEN];
++	unsigned int mac_len;
++	int len;
++
++	if (!indev || !indev->header_ops || !indev->header_ops->parse ||
++	    !skb_mac_header_was_set(skb))
++		return 0;
++
++	/* encap (ip_encap, xfrm) can set network_header < mac_header:
++	 * skb_mac_header_len() would wrap and bypass the checks below.
++	 */
++	if (skb->network_header < skb->mac_header)
++		return 0;
++
++	mac_len = skb_mac_header_len(skb);
++	/* parse() reads fixed offsets sized for the full header
++	 * (ipgre: min_header_len 0, reads offset 12..15).
++	 */
++	if (mac_len == 0 || mac_len < indev->hard_header_len)
++		return 0;
++
++	len = indev->header_ops->parse(skb, indev, hw_addr);
++	if (len > 0) {
++		struct nfulnl_msg_packet_hw phw;
++		const int max_hwlen = (int)sizeof(phw.hw_addr);
++
++		assert_nfqnl_nfunl_hdrs();
++
++		/* UAPI limitation, must clamp. */
++		if (len > max_hwlen)
++			len = max_hwlen;
++
++		memset(&phw, 0, sizeof(phw));
++		memcpy(phw.hw_addr, hw_addr, len);
++		phw.hw_addrlen = htons(len);
++
++		return nla_put(nlskb, attr, sizeof(phw), &phw);
++	}
++
++	return 0;
++}
++#endif
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 862d2a762106..37f8953b7c49 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -57,6 +57,8 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #endif
+ 
++#include "nfnetlink_log_common.h"
++
+ #define NFQNL_QMAX_DEFAULT 1024
+ #define NFQNL_HASH_MIN     8
+ #define NFQNL_HASH_MAX     32768
+@@ -917,20 +919,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	    nla_put_be32(skb, NFQA_PRIORITY, htonl(entskb->priority)))
+ 		goto nla_put_failure;
+ 
+-	if (indev && entskb->dev &&
+-	    skb_mac_header_was_set(entskb) &&
+-	    skb_mac_header_len(entskb) != 0) {
+-		struct nfqnl_msg_packet_hw phw;
+-		int len;
+-
+-		memset(&phw, 0, sizeof(phw));
+-		len = dev_parse_header(entskb, phw.hw_addr);
+-		if (len) {
+-			phw.hw_addrlen = htons(len);
+-			if (nla_put(skb, NFQA_HWADDR, sizeof(phw), &phw))
+-				goto nla_put_failure;
+-		}
+-	}
++	if (nfnetlink_put_hwaddr(skb, entskb, indev, NFQA_HWADDR))
++		goto nla_put_failure;
+ 
+ 	if (nfqnl_put_bridge(entry, skb) < 0)
+ 		goto nla_put_failure;
 -- 
 2.56.1
 
