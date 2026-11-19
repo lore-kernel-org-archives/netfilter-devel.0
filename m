@@ -1,57 +1,59 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795093622;
-	b=mxv5ZDYkuCBOs0OL8ayhaZqYMYA+0dTajlVCbMp1FcU5X36R9GHcPrF9O89BnnBYmiwv
-	 wT4Le3qEFBvSCl/ZHW8mSh8vFqSso0D+xCJe4ME64O9ofuDCiUvn3RUCcOnpa9c/vUK+4
-	 X1BtZP0H+dScAGcyvienUjEBuQUhq6TwdRL9Y+BdAS0xGNBuGbKFcBNxMe9nnIxj92aKs
-	 xofwE+ywTKxwIhyqJZgmueizNPhbTkKGJHk/AOfqNiydYFQDfVx34AbxS5/Tj7BwThiGB
-	 GZLmjpaqtouZR0wx/x27uXUb4+RuVbh5vo3HRy7+mhXFOCxbspZHhFOhm9agjfCYdRQ==
+	t=1795093623;
+	b=oPD59ngpHyyQi9luJDBTzac0nvhYDPzP5WbOtEsDWNS1wR+v+qI6te5TRRmjq4oFpr37
+	 zv6PxjekKLQdri/WumwWgw6i+MMVULGw/vsMJzFX/ajNQB7y1KJRY8gNc35/l6sdtoFVk
+	 nkoHt8jeLzcaqhhNnES6LJzLNNNuVPcZQC3CJZO3SUxrJClKzXYkmMJrS0WZ3WwvxcxVf
+	 6JYRW5hVzxdcoO/O3Jgl8b0zAUdM0gBn0NQxWADVhyfi3nONe+Oov6Ux90/2moaoUMM66
+	 hlceHRdRtXcb4x8tdYHYygda0sdOtPpvTMvTo329tyk9TMQbEWUoPuLlkEesEtjxVqg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795093622;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795093623;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
-	 X-Spam-Checker-Version;
-	bh=2V8qTmfQ9rMDLCf2G61UvCTC/e3zNeWHkb6NzFZFblI=;
-	b=KZqMLBlZ9eFrIxt5GMa/lTP3xv9Gpfpo9EC6t3XwEZh7bwMbsgzdOjzfyNB5ybBH1xIh
-	 /pA6v7nQvAz+WTYQuR1QiENhThMe7sIdh/XRl7C+cXIgYHkrXjCVu7VV4UMOB/ujoz9Rw
-	 Fr4Kjw7J3EX3xtNYBBRx4czaRwOwYZvxtTilFRy4aG8k6oAJXyV0grTsGUYhLIALznDB3
-	 Ek1Cm7Z7yWpRzwkLOj0ow4vix4r4Fw73sQ0NdZH5CvU5thAful+gjGvWA1XKOnooPDl2f
-	 DYL8jEqK7Y6zTq/hIzRXIs8gjdVLLgkFGz8TmZDFtNO4GFZLvXcdD8R3hH5bSuiqKtw==
+	 X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
+	bh=g1zTJL2LsmlRB1N2gMtT3dJP+MLvHxkpCg5As69styQ=;
+	b=DEgeQh33WW294qT3rylm43L1H4ovR8i1MHqoiJQgOPnq7awtgdBVjqCJQQgAI40k/apf
+	 cia3XaK9/ys8cxiiHRvsU85CnQryDhiqulxI9AuJPDbiwOYZVnbm//psBCeDjg9YN20hb
+	 31p3UHlM5VvdcV0kd6VVvJI80LcPIDSkiwNO4QFaf80+Fe0f5yfZOFgGVN8hDWT/1GtZh
+	 1rFHLiMhKoQsDJHlPSwdDcIobQLmViGvF8bmxoIxB56aN2YdjKo/u6CyfpiltnnUpilAC
+	 MoYigkUv8wj7Hq1z5AHTBuQrwdhwvzQ09zI4pD0Upj19kmSDmYo/aSJrImMmwF84ZPA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=MflohkA1;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Xyghx1rt;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AB50606A320
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 13:07:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7AB50606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FC72606A324
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 13:07:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6FC72606A324
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=MflohkA1
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Xyghx1rt
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795093613;
-	bh=2V8qTmfQ9rMDLCf2G61UvCTC/e3zNeWHkb6NzFZFblI=;
-	h=From:To:Subject:Date:From;
-	b=MflohkA1SolDDiN9HSSVsj6eOFqaca+kyClNUj/AAyVY7zEWeEysi6wFs7HSybJPC
-	 kRJbln4Y/yfgrvKV3NXoS6/A4CrsStOSAMgKIZTLA5ZjFkeG7jPuwVPeSNy/zaHk3m
-	 WNC/SN1XVsKh+od29qHolHRUIWzGR+tjFcIaLYeMbcuYqLJvrgzgB0A7VFnh7KH7Nb
-	 402ieeZu4+hsR78Q9YQ+R19I3InxJbOW32RRiXeGyXNWFNc27m+DFzRnZW14NfeQol
-	 Nt7G+rAz5q+1R9TScGPLzwqbBwYszA31azpGYUWoiDN+nWI9zQkozDLnFZxOqpACBh
-	 aYenM0nCir8Wg==
+	s=2025; t=1795093614;
+	bh=g1zTJL2LsmlRB1N2gMtT3dJP+MLvHxkpCg5As69styQ=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=Xyghx1rt5EXcUVcnduzeW/m8Fi70xvsQ4to7SqPIH6YXBRPUCg0/nwFox9ywwcP4j
+	 Wy6QjaDcZUOXdj5q+Gclpw6MaXLmbqfxTW7V83YZJ4nA0DwKWHeCBWrHRxZpqtHew2
+	 pqnxiVRGQts5HwpbhrilD932RAiO6PqZTytCGY1IN7PDO4kC7O1S6ScfLYaC8fbc+f
+	 nJueLaZBuPyELRzGoDYJYwf54KppB1f3IB272P+RAE811ECSVfi0F53lAEgpRXobhQ
+	 YReF79XjbFVlc4e5bSZmaxZg9d2NBSyTj7Wk0gRKIJPsMXq+2Dsg2iQmHwVZQ8P+uL
+	 2lipn2luBo0UA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5649E6005B
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 14:06:53 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AF3E460090
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 14:06:54 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3 1/2] netfilter: nf_tables: add NFT_HOOK_UNREGISTERED and use it
-Date: Thu, 19 Nov 2026 14:06:49 +0100
-Message-ID: <20261119130650.3369358-1-pablo@netfilter.org>
+Subject: [PATCH nf,v3 2/2] netfilter: nf_tables: perform unbind callback on hook release
+Date: Thu, 19 Nov 2026 14:06:50 +0100
+Message-ID: <20261119130650.3369358-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261119130650.3369358-1-pablo@netfilter.org>
+References: <20261119130650.3369358-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,225 +65,173 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration
-in netns path") fixes a race in the netns exit path with netdev device
-event handler. The netns pre_exit handler unregisters the hooks, then
-exit release them. In between this two calls, the netdev event might
-show up and try to unregister the hooks again. This patch revisit this
-fix by adding a new NFT_HOOK_UNREGISTERED flag which allows us to skip
-the hook from the netdevice and flowtable event handlers.
+Commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
+binding") breaks hardware offload by unbinding the flow_block too early,
+this results in leaving entries in the hardware. Any pending offload
+work will be ignored because there is no flow_block anymore in place.
 
-This patch is a prerequisit for another follow up fix for the flowtable
-hardware offload which allows to unregister the flow_block once the
-entries in hardware have been removed.
+This patch restores the strategy followed by commit 5acab91458ce
+("netfilter: nf_tables: unbind callbacks from flowtable destroy path")
+by performing the flow_block unbind command from the destroy path, right
+before the hook is released.
 
+In the flowtable update path, the list of hooks is local to the
+transaction so these hooks are not reachable until the commit step.
+
+Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: untoggle unregistered bit when hook is registered again
-    to address possible issue with dormant table.
-
- include/net/netfilter/nf_tables.h |  3 +-
- net/netfilter/nf_tables_api.c     | 53 +++++++++++++++----------------
- net/netfilter/nft_chain_filter.c  |  6 ++--
- 3 files changed, 31 insertions(+), 31 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9d597482363d..5edff5d7dacd 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1209,7 +1209,8 @@ struct nft_stats {
- 	struct u64_stats_sync	syncp;
- };
+v3: address serveral issues:
+    - restore error path in newflowtable(), still use nft_hooks_destroy()
+    - restore nft_flowtable_hook_unlink_free_rcu()
+    - missing UNBIND in error path of nft_register_flowtable_net_hooks
  
--#define NFT_HOOK_REMOVE	(1 << 0)
-+#define NFT_HOOK_REMOVE		(1 << 0)
-+#define NFT_HOOK_UNREGISTERED	(1 << 1)
- 
- struct nft_hook {
- 	struct list_head	list;
+Left behind: sashiko refers to a race between commit path flowtable removal
+and the flowtable event handler which could zap netdevice before commit_release().
+But I don't see how that can happen, because flowtable commit path removes
+the flowtable from the table list.
+
+ net/netfilter/nf_tables_api.c | 63 +++++++++++++++++++++++++----------
+ 1 file changed, 45 insertions(+), 18 deletions(-)
+
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8b94b5e7dbdb..d3c04a71c924 100644
+index d3c04a71c924..0d50540fb04c 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -329,6 +329,7 @@ static int nft_netdev_register_hooks(struct net *net,
- 
- 			j++;
- 		}
-+		hook->flags &= ~NFT_HOOK_UNREGISTERED;
- 	}
- 	return 0;
- 
-@@ -340,6 +341,7 @@ static int nft_netdev_register_hooks(struct net *net,
- 
- 			nf_unregister_net_hook(net, ops);
- 		}
-+		hook->flags |= NFT_HOOK_UNREGISTERED;
- 	}
- 	return err;
- }
-@@ -406,19 +408,17 @@ static void nft_netdev_unregister_trans_hook(struct net *net,
- 
- static void nft_netdev_unregister_hooks(struct net *net,
- 					const struct nft_table *table,
--					struct list_head *hook_list,
--					bool release_netdev)
-+					struct list_head *hook_list)
- {
--	struct nft_hook *hook, *next;
-+	struct nft_hook *hook;
- 	struct nf_hook_ops *ops;
- 
--	list_for_each_entry_safe(hook, next, hook_list, list) {
-+	list_for_each_entry(hook, hook_list, list) {
- 		if (!(table->flags & NFT_TABLE_F_DORMANT)) {
- 			list_for_each_entry(ops, &hook->ops_list, list)
- 				nf_unregister_net_hook(net, ops);
- 		}
--		if (release_netdev)
--			nft_netdev_hook_unlink_free_rcu(hook);
-+		hook->flags |= NFT_HOOK_UNREGISTERED;
- 	}
+@@ -380,6 +380,22 @@ static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
+ 	nft_netdev_hook_free_rcu(hook);
  }
  
-@@ -447,8 +447,7 @@ static int nf_tables_register_hook(struct net *net,
- 
- static void __nf_tables_unregister_hook(struct net *net,
- 					const struct nft_table *table,
--					struct nft_chain *chain,
--					bool release_netdev)
-+					struct nft_chain *chain)
++static void nft_flowtable_hook_unlink_free_rcu(struct nft_flowtable *flowtable,
++					       struct nft_hook *hook)
++{
++	struct nf_hook_ops *ops;
++
++	/* This unbind command needs to come this late, otherwise offload
++	 * worker finds no flow_block and entries are not cleaned up from
++	 * hardware.
++	 */
++	list_for_each_entry(ops, &hook->ops_list, list) {
++		flowtable->data.type->setup(&flowtable->data, ops->dev,
++					    FLOW_BLOCK_UNBIND);
++	}
++	nft_netdev_hook_unlink_free_rcu(hook);
++}
++
+ static void nft_trans_hook_destroy(struct nft_trans_hook *trans_hook)
  {
- 	struct nft_base_chain *basechain;
- 	const struct nf_hook_ops *ops;
-@@ -460,8 +459,7 @@ static void __nf_tables_unregister_hook(struct net *net,
+ 	list_del(&trans_hook->list);
+@@ -9026,12 +9042,9 @@ nft_flowtable_type_get(struct net *net, u8 family)
  
- 	/* must also be called for dormant tables */
- 	if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
--		nft_netdev_unregister_hooks(net, table, &basechain->hook_list,
--					    release_netdev);
-+		nft_netdev_unregister_hooks(net, table, &basechain->hook_list);
- 		return;
- 	}
- 
-@@ -478,7 +476,7 @@ static void nf_tables_unregister_hook(struct net *net,
- 				      const struct nft_table *table,
- 				      struct nft_chain *chain)
+ /* Only called from error and netdev event paths. */
+ static void nft_unregister_flowtable_ops(struct net *net,
+-					 struct nft_flowtable *flowtable,
+ 					 struct nf_hook_ops *ops)
  {
--	return __nf_tables_unregister_hook(net, table, chain, false);
-+	return __nf_tables_unregister_hook(net, table, chain);
+ 	nf_unregister_net_hook(net, ops);
+-	flowtable->data.type->setup(&flowtable->data, ops->dev,
+-				    FLOW_BLOCK_UNBIND);
  }
- 
- static bool nft_trans_collapse_set_elem_allowed(const struct nft_trans_elem *a, const struct nft_trans_elem *b)
-@@ -9038,8 +9036,7 @@ static void nft_unregister_flowtable_ops(struct net *net,
  
  static void __nft_unregister_flowtable_net_hooks(struct net *net,
- 						 struct nft_flowtable *flowtable,
--						 struct list_head *hook_list,
--					         bool release_netdev)
-+						 struct list_head *hook_list)
- {
- 	struct nft_hook *hook, *next;
- 	struct nf_hook_ops *ops;
-@@ -9047,8 +9044,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+@@ -9043,7 +9056,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 
  	list_for_each_entry_safe(hook, next, hook_list, list) {
  		list_for_each_entry(ops, &hook->ops_list, list)
- 			nft_unregister_flowtable_ops(net, flowtable, ops);
--		if (release_netdev)
--			nft_netdev_hook_unlink_free_rcu(hook);
-+
-+		hook->flags |= NFT_HOOK_UNREGISTERED;
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
+ 
+ 		hook->flags |= NFT_HOOK_UNREGISTERED;
+ 	}
+@@ -9114,7 +9127,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 			if (i-- <= 0)
+ 				break;
+ 
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
++			flowtable->data.type->setup(&flowtable->data, ops->dev,
++						    FLOW_BLOCK_UNBIND);
+ 		}
+ 		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+@@ -9141,9 +9156,9 @@ static void nft_flowtable_unregister_trans_hook(struct net *net,
+ 	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
+ 		hook = trans_hook->hook;
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
+ 
+-		nft_netdev_hook_unlink_free_rcu(hook);
++		nft_flowtable_hook_unlink_free_rcu(flowtable, trans_hook->hook);
+ 		nft_trans_hook_destroy(trans_hook);
  	}
  }
- 
-@@ -9056,7 +9053,7 @@ static void nft_unregister_flowtable_net_hooks(struct net *net,
- 					       struct nft_flowtable *flowtable,
- 					       struct list_head *hook_list)
- {
--	__nft_unregister_flowtable_net_hooks(net, flowtable, hook_list, false);
-+	__nft_unregister_flowtable_net_hooks(net, flowtable, hook_list);
+@@ -9229,9 +9244,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ err_flowtable_update_hook:
+ 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
+ 		if (unregister) {
+-			list_for_each_entry(ops, &hook->ops_list, list)
+-				nft_unregister_flowtable_ops(ctx->net,
+-							     flowtable, ops);
++			list_for_each_entry(ops, &hook->ops_list, list) {
++				nft_unregister_flowtable_ops(ctx->net, ops);
++				flowtable->data.type->setup(&flowtable->data, ops->dev,
++							    FLOW_BLOCK_UNBIND);
++			}
+ 		}
+ 		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+@@ -9752,10 +9769,19 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ 	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
  }
  
- static int nft_register_flowtable_ops(struct net *net,
-@@ -9833,8 +9830,10 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
++static void nft_flowtable_hooks_destroy(struct nft_flowtable *flowtable,
++					struct list_head *hook_list)
++{
++	struct nft_hook *hook, *next;
++
++	list_for_each_entry_safe(hook, next, hook_list, list)
++		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
++}
++
+ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ {
+ 	flowtable->data.type->free(&flowtable->data);
+-	nft_hooks_destroy(&flowtable->hook_list);
++	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
+ 	kfree(flowtable);
+@@ -9830,10 +9856,9 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
  				continue;
  
  			/* flow_offload_netdev_event() cleans up entries for us. */
--			nft_unregister_flowtable_ops(dev_net(dev),
--						     flowtable, ops);
-+			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
-+				nft_unregister_flowtable_ops(dev_net(dev),
-+							     flowtable, ops);
-+			}
+-			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
+-				nft_unregister_flowtable_ops(dev_net(dev),
+-							     flowtable, ops);
+-			}
++			if (!(hook->flags & NFT_HOOK_UNREGISTERED))
++				nft_unregister_flowtable_ops(dev_net(dev), ops);
++
  			list_del_rcu(&ops->list);
  			kfree_rcu(ops, rcu);
  			break;
-@@ -11291,10 +11290,13 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		nf_tables_table_destroy(trans->table);
+@@ -11311,10 +11336,12 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nft_obj_destroy(&ctx, nft_trans_obj(trans));
  		break;
- 	case NFT_MSG_NEWCHAIN:
--		if (nft_trans_chain_update(trans))
-+		if (nft_trans_chain_update(trans)) {
- 			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
+ 	case NFT_MSG_NEWFLOWTABLE:
+-		if (nft_trans_flowtable_update(trans))
+-			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
 -		else
-+			free_percpu(nft_trans_chain_stats(trans));
-+			kfree(nft_trans_chain_name(trans));
++		if (nft_trans_flowtable_update(trans)) {
++			nft_flowtable_hooks_destroy(nft_trans_flowtable(trans),
++						    &nft_trans_flowtable_hooks(trans));
 +		} else {
- 			nf_tables_chain_destroy(nft_trans_chain(trans));
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
 +		}
  		break;
- 	case NFT_MSG_NEWRULE:
- 		nf_tables_rule_destroy(&ctx, nft_trans_rule(trans));
-@@ -11383,11 +11385,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_NEWCHAIN:
- 			if (nft_trans_chain_update(trans)) {
- 				nft_netdev_unregister_hooks(net, table,
--							    &nft_trans_chain_hooks(trans),
--							    true);
--				free_percpu(nft_trans_chain_stats(trans));
--				kfree(nft_trans_chain_name(trans));
--				nft_trans_destroy(trans);
-+							    &nft_trans_chain_hooks(trans));
- 			} else {
- 				if (nft_trans_chain_bound(trans)) {
- 					nft_trans_destroy(trans);
-@@ -12048,11 +12046,10 @@ static void __nft_release_hook(struct net *net, struct nft_table *table)
- 	struct nft_chain *chain;
- 
- 	list_for_each_entry(chain, &table->chains, list)
--		__nf_tables_unregister_hook(net, table, chain, true);
-+		__nf_tables_unregister_hook(net, table, chain);
- 	list_for_each_entry(flowtable, &table->flowtables, list)
- 		__nft_unregister_flowtable_net_hooks(net, flowtable,
--						     &flowtable->hook_list,
--						     true);
-+						     &flowtable->hook_list);
- }
- 
- static void __nft_release_hooks(struct net *net)
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index e04e689f2228..99a591d15f3d 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -337,7 +337,8 @@ static int nft_netdev_event(unsigned long event, struct net_device *dev,
- 			if (!ops || (changename && match))
- 				continue;
- 
--			if (!(table->flags & NFT_TABLE_F_DORMANT))
-+			if (!(table->flags & NFT_TABLE_F_DORMANT) ||
-+			    !(hook->flags & NFT_HOOK_UNREGISTERED))
- 				nf_unregister_net_hook(dev_net(dev), ops);
- 
- 			list_del_rcu(&ops->list);
-@@ -356,7 +357,8 @@ static int nft_netdev_event(unsigned long event, struct net_device *dev,
- 
- 			ops->dev = dev;
- 
--			if (!(table->flags & NFT_TABLE_F_DORMANT) &&
-+			if ((!(table->flags & NFT_TABLE_F_DORMANT) ||
-+			     !(hook->flags & NFT_HOOK_UNREGISTERED)) &&
- 			    nf_register_net_hook(dev_net(dev), ops)) {
- 				kfree(ops);
- 				return 1;
+ 	}
+ 	kfree(trans);
 -- 
 2.47.3
 
