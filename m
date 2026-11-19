@@ -1,59 +1,120 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795093623;
-	b=oPD59ngpHyyQi9luJDBTzac0nvhYDPzP5WbOtEsDWNS1wR+v+qI6te5TRRmjq4oFpr37
-	 zv6PxjekKLQdri/WumwWgw6i+MMVULGw/vsMJzFX/ajNQB7y1KJRY8gNc35/l6sdtoFVk
-	 nkoHt8jeLzcaqhhNnES6LJzLNNNuVPcZQC3CJZO3SUxrJClKzXYkmMJrS0WZ3WwvxcxVf
-	 6JYRW5hVzxdcoO/O3Jgl8b0zAUdM0gBn0NQxWADVhyfi3nONe+Oov6Ux90/2moaoUMM66
-	 hlceHRdRtXcb4x8tdYHYygda0sdOtPpvTMvTo329tyk9TMQbEWUoPuLlkEesEtjxVqg==
+	t=1795098500;
+	b=uC5N0S+lSam6tk/gNNXbFbWISWv8dqAcxnWhcRXylNqI0UW4le7ouJy7LJHmHU9TIvBR
+	 GI20ckc9VWnnRhbGEO7BGMZOQzKfLNHFkxE4a0cPV+logqrybdClBD44ghRN4rxyON7a9
+	 z/o6Mi2w/L/OZpqdDK0vtOmpCe6MN7COTyJoba3O6u9XkFGJXMpZ4jCqjK87oqsQDTu6m
+	 Cgdls6+yJKJtPRSy1XSIVVSluCqm/V28Qkf7v1lcWhj16kHtj8ZE8qX5Q+bwoI/jznOeE
+	 Q87fIfLsDlY/8jIX5afB8v0HBEyKSsVmOhRSEXQ5fVkM2tTuacvvUqrRPT6PgHg6ucA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795093623;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=g1zTJL2LsmlRB1N2gMtT3dJP+MLvHxkpCg5As69styQ=;
-	b=DEgeQh33WW294qT3rylm43L1H4ovR8i1MHqoiJQgOPnq7awtgdBVjqCJQQgAI40k/apf
-	 cia3XaK9/ys8cxiiHRvsU85CnQryDhiqulxI9AuJPDbiwOYZVnbm//psBCeDjg9YN20hb
-	 31p3UHlM5VvdcV0kd6VVvJI80LcPIDSkiwNO4QFaf80+Fe0f5yfZOFgGVN8hDWT/1GtZh
-	 1rFHLiMhKoQsDJHlPSwdDcIobQLmViGvF8bmxoIxB56aN2YdjKo/u6CyfpiltnnUpilAC
-	 MoYigkUv8wj7Hq1z5AHTBuQrwdhwvzQ09zI4pD0Upj19kmSDmYo/aSJrImMmwF84ZPA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795098500;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Transfer-Encoding;
+	bh=9T6tFEDCgpYCKcFgHJzfl3vLbUXzdhPs6It4k/cVCSk=;
+	b=fiJjiMZAlvvFZCwgs5eD+ciqH6VwYdpvrvkG/cal2swtX29pB5LhAyhCDjDaYSxRL6h0
+	 oUpUU7BzVmKXehU9hnutr+g4GjNRa2kfoHfRSmkZc1l6of4R3zG5SgvYLnF+Nt2/aZWTe
+	 AB66irCreVqqpUMK96FNsoPoyUxjLmbchtQRFsouQNCF3AoRC4+awMd3R2gpZBvavWuZ6
+	 uEEnEfvD+cSa2kR1NbcOFaaFT0xH1VuncSIztzXsJmX0Wc3WzFi9yHWTeNdhNsivQ376c
+	 uYEjBP8ScxOfv+FzJT2WRTPJXnqemcJva9ZGNV5A1vb8IruhCoviPjw8DldGNrWyC1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=netfilter.org;
-	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Xyghx1rt;
-	arc=none smtp.remote-ip=217.70.190.124
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=blackwall.org;
+	spf=none smtp.mailfrom=blackwall.org;
+	dkim=pass header.d=blackwall.org header.i=@blackwall.org header.a=rsa-sha256 header.s=google header.b=awp6Bwub;
+	arc=none smtp.remote-ip=209.85.221.45
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FC72606A324
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 13:07:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6FC72606A324
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF88606A338
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 14:28:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2DF88606A338
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=blackwall.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=blackwall.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Xyghx1rt
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795093614;
-	bh=g1zTJL2LsmlRB1N2gMtT3dJP+MLvHxkpCg5As69styQ=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=Xyghx1rt5EXcUVcnduzeW/m8Fi70xvsQ4to7SqPIH6YXBRPUCg0/nwFox9ywwcP4j
-	 Wy6QjaDcZUOXdj5q+Gclpw6MaXLmbqfxTW7V83YZJ4nA0DwKWHeCBWrHRxZpqtHew2
-	 pqnxiVRGQts5HwpbhrilD932RAiO6PqZTytCGY1IN7PDO4kC7O1S6ScfLYaC8fbc+f
-	 nJueLaZBuPyELRzGoDYJYwf54KppB1f3IB272P+RAE811ECSVfi0F53lAEgpRXobhQ
-	 YReF79XjbFVlc4e5bSZmaxZg9d2NBSyTj7Wk0gRKIJPsMXq+2Dsg2iQmHwVZQ8P+uL
-	 2lipn2luBo0UA==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AF3E460090
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 14:06:54 +0100 (CET)
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v3 2/2] netfilter: nf_tables: perform unbind callback on hook release
-Date: Thu, 19 Nov 2026 14:06:50 +0100
-Message-ID: <20261119130650.3369358-2-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=blackwall.org header.i=@blackwall.org header.a=rsa-sha256 header.s=google header.b=awp6Bwub
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-492f563d1c6so895135f8f.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2026 06:28:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=blackwall.org; s=google; t=1795098498; x=1795703298; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=9T6tFEDCgpYCKcFgHJzfl3vLbUXzdhPs6It4k/cVCSk=;
+        b=awp6Bwub+sVdEgAt2b7Ki9zjLVh5kXE+aVJmbNL1CsstYlUKCluufG71VxXFmzE1hT
+         57MJc/jEBaIc7BLUAvlRFS0mWRevKIZ+17dbiHN2vYeSnqcQlTevGXBA9SPJfn69vYix
+         bXscRm7zvDdldiE9Cie5M/VDVNTUUmOV2OQVSty9R4iOHUDAw6DlAfL82xP6WQLhEfJW
+         1qxyoZN7IOygBHOQztHhtls7Tly7gb5TIZ8GLQTj5m6zciyE8LhJXGR+O2fid8omqJth
+         aOKYUCzNGBOxMCR54fwbbxZly+M9hGqCTLs+lanrJpHoWRv3PYB4mmDaeMIeTwOWFXWJ
+         PYkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795098498; x=1795703298;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=9T6tFEDCgpYCKcFgHJzfl3vLbUXzdhPs6It4k/cVCSk=;
+        b=COOY/GkkojxbfJtliX9Y6xgGofxnZQoqaOJPriM1BJjBtBsp25WRLYBiH3gUbUP0Zt
+         gSbXujT/N7ACKA6WesSuYWSiG0dIp6WlvFNYlXek0jtDq1F9JEGOaRywAlJ9EH5MMGVf
+         mdfY6dEIEIYcm0J6PArxwkK53DUUF3QwM9twV8dN3yb7WsieuuKQq2qKwy7ddE+nTYuz
+         RS0yHM5KjpiY6UuX/euMITYsaFvIE1FQwIcIDrY5qQ/Mm6EmrudFeVlYTBNMSSePM6B4
+         P2mxMrX5ixGwiKP//pVU0RUNWdodZAQeyQxppgrs06feRdEaWdnFFWpbGGk91gDFiChd
+         r0hg==
+X-Forwarded-Encrypted: i=1; AL+hErE6Db31/pqTTqrYi0eYeFEZUW0ddDxYfNnzonsJXDhvXPXVw1IHvfEf0xo6wvaMItYhWz68svv7YGBlukdphS0=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8iAMWRtumdLRzWh0QWao7KvZYfIc0Sa+c+MU01TdjJkZyhsYzh
+	0D7einZCJkpiLScl95/hGefnK5tFDusYN6cYcGfMcwbjxkYi+rBPid2PtMHIx2e32l4=
+X-Gm-Gg: AZFdTZets2zxLJ0nkB3Y1sY+yPZ4M8A28FloMQ/kymrd1Bkgw6C1tHX9KCSYZB0VMr6
+	dGefEgWeDJlpbJ/9iMvg7kLIFCfPzJdT4u7N+gWsr8r8NegoqeJnulMnfU3FQOCG1bbGTvnzAMy
+	HdET5GRHlCfC1fAXn4ZoowDtmd/SJ0OMiLHj/9HA1kCDLorzfTXQAs9Cc/w84JIWA4DIHNNoNcJ
+	tDGJCaxOosIRV8tJEgc5QEg9GEWqLD9vfExtWVra3CUcjHO+gz5UBfVDQYMM+tyzL+hjR/SsgL6
+	VP4AhjkhSZKMXcs5KTLoVtm28kjYcuLAziG7E+VVNFxBHTCM5VfBPYBnRRHnzKyoS0ZH4US8Vf+
+	lNnyr3Myj5x2ryz3mPodrAKd4dtEXuMAwSA0HMp+IYXx74esVWKhg0R+5XaoS+QksWyeqqoZ2PN
+	JvZdNQV6GUIghkOr27qxab1EiWv7bd5YbX73P+OTElWQGFbKfIlAWgu7B4zo4lvauEhWNikRCqL
+	YC/lmELnM0YVYyDXGVmCZQfX1ydzv3z1zFIGu3FOhQy9JH2bd8BG0pJ1DAcDiOPEeCscth4p6pB
+	XeWfdRBhTejooHI7FhbKfnDicmc2lHvqYWp/deuLqiH7EcBetF0uWZC+tkQfitYsMTbk+uHv
+X-Received: by 2002:a05:6000:22c5:b0:4a6:ed6f:7a6d with SMTP id ffacd0b85a97d-4a6ed6f7c2dmr11897798f8f.28.1795098498460;
+        Thu, 19 Nov 2026 06:28:18 -0800 (PST)
+Received: from localhost (78-154-14-127.ip.btc-net.bg. [78.154.14.127])
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-4ab53e89050sm121821f8f.16.2026.11.19.06.28.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 19 Nov 2026 06:28:16 -0800 (PST)
+From: Nikolay Aleksandrov <razor@blackwall.org>
+To: bpf@vger.kernel.org
+Cc: Nikolay Aleksandrov <razor@blackwall.org>,
+	Paul Chaignon <paul@isovalent.com>,
+	Alasdair McWilliam <alasdair.mcwilliam@isovalent.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Kuniyuki Iwashima <kuniyu@google.com>,
+	Willem de Bruijn <willemb@google.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Emil Tsalapatis <emil@etsalapatis.com>,
+	Ihor Solodrai <ihor.solodrai@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Stanislav Fomichev <sdf@fomichev.me>
+Subject: [PATCH bpf-next 2/8] net: track references owned by prefetched socket assignments
+Date: Thu, 19 Nov 2026 16:22:24 +0200
+Message-ID: <20261119142231.2612515-3-razor@blackwall.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261119130650.3369358-1-pablo@netfilter.org>
-References: <20261119130650.3369358-1-pablo@netfilter.org>
+In-Reply-To: <20261119142231.2612515-1-razor@blackwall.org>
+References: <20261119142231.2612515-1-razor@blackwall.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,173 +126,191 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
-binding") breaks hardware offload by unbinding the flow_block too early,
-this results in leaving entries in the hardware. Any pending offload
-work will be ignored because there is no flow_block anymore in place.
+Add sock_pfree_ref() for skb-owned references whose release must not
+depend on SOCK_RCU_FREE. Teach receive lookup, NFQUEUE and reuseport
+selection to preserve and transfer this ownership for egress assignment.
+This ownership bookkeeping is needed for subsequent patches that allow
+bpf_sk_assign to be used in egress paths.
 
-This patch restores the strategy followed by commit 5acab91458ce
-("netfilter: nf_tables: unbind callbacks from flowtable destroy path")
-by performing the flow_block unbind command from the destroy path, right
-before the hook is released.
-
-In the flowtable update path, the list of hooks is local to the
-transaction so these hooks are not reachable until the commit step.
-
-Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Nikolay Aleksandrov <razor@blackwall.org>
 ---
-v3: address serveral issues:
-    - restore error path in newflowtable(), still use nft_hooks_destroy()
-    - restore nft_flowtable_hook_unlink_free_rcu()
-    - missing UNBIND in error path of nft_register_flowtable_net_hooks
- 
-Left behind: sashiko refers to a race between commit path flowtable removal
-and the flowtable event handler which could zap netdevice before commit_release().
-But I don't see how that can happen, because flowtable commit path removes
-the flowtable from the table list.
+CC: Paul Chaignon <paul@isovalent.com>
+CC: Alasdair McWilliam <alasdair.mcwilliam@isovalent.com>
+CC: David S. Miller <davem@davemloft.net>
+CC: Eric Dumazet <edumazet@kernel.org>
+CC: Jakub Kicinski <kuba@kernel.org>
+CC: Paolo Abeni <pabeni@redhat.com>
+CC: Simon Horman <horms@kernel.org>
+CC: Kuniyuki Iwashima <kuniyu@google.com>
+CC: Willem de Bruijn <willemb@google.com>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>
+CC: Florian Westphal <fw@strlen.de>
+CC: Phil Sutter <phil@nwl.cc>
+CC: netdev@vger.kernel.org
+CC: netfilter-devel@vger.kernel.org
+CC: coreteam@netfilter.org
+CC: Alexei Starovoitov <ast@kernel.org>
+CC: Daniel Borkmann <daniel@iogearbox.net>
+CC: Andrii Nakryiko <andrii@kernel.org>
+CC: Eduard Zingerman <eddyz87@gmail.com>
+CC: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+CC: Martin KaFai Lau <martin.lau@linux.dev>
+CC: Song Liu <song@kernel.org>
+CC: Yonghong Song <yonghong.song@linux.dev>
+CC: Jiri Olsa <jolsa@kernel.org>
+CC: Emil Tsalapatis <emil@etsalapatis.com>
+CC: Ihor Solodrai <ihor.solodrai@linux.dev>
+CC: John Fastabend <john.fastabend@gmail.com>
+CC: Stanislav Fomichev <sdf@fomichev.me>
 
- net/netfilter/nf_tables_api.c | 63 +++++++++++++++++++++++++----------
- 1 file changed, 45 insertions(+), 18 deletions(-)
+ include/net/inet6_hashtables.h | 10 +++++++---
+ include/net/inet_hashtables.h  | 10 +++++++---
+ include/net/request_sock.h     |  8 +++++---
+ include/net/sock.h             |  4 +++-
+ net/core/sock.c                |  7 +++++++
+ net/netfilter/nf_queue.c       | 16 +++++++---------
+ 6 files changed, 36 insertions(+), 19 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d3c04a71c924..0d50540fb04c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -380,6 +380,22 @@ static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
- 	nft_netdev_hook_free_rcu(hook);
- }
+diff --git a/include/net/inet6_hashtables.h b/include/net/inet6_hashtables.h
+index 2cc5d416bbb5..5a109a48cc14 100644
+--- a/include/net/inet6_hashtables.h
++++ b/include/net/inet6_hashtables.h
+@@ -134,10 +134,14 @@ struct sock *inet6_steal_sock(struct net *net, struct sk_buff *skb, int doff,
+ 	if (!reuse_sk)
+ 		return sk;
  
-+static void nft_flowtable_hook_unlink_free_rcu(struct nft_flowtable *flowtable,
-+					       struct nft_hook *hook)
-+{
-+	struct nf_hook_ops *ops;
-+
-+	/* This unbind command needs to come this late, otherwise offload
-+	 * worker finds no flow_block and entries are not cleaned up from
-+	 * hardware.
-+	 */
-+	list_for_each_entry(ops, &hook->ops_list, list) {
-+		flowtable->data.type->setup(&flowtable->data, ops->dev,
-+					    FLOW_BLOCK_UNBIND);
+-	/* We've chosen a new reuseport sock which is never refcounted. This
+-	 * implies that sk also isn't refcounted.
++	/* egress bpf assignment can hold a reference on the prefetched
++	 * socket and reuseport returns an rcu protected socket so if it
++	 * differs we have to release the original reference
+ 	 */
+-	WARN_ON_ONCE(*refcounted);
++	if (reuse_sk != sk && *refcounted) {
++		sock_put(sk);
++		*refcounted = false;
 +	}
-+	nft_netdev_hook_unlink_free_rcu(hook);
-+}
+ 
+ 	return reuse_sk;
+ }
+diff --git a/include/net/inet_hashtables.h b/include/net/inet_hashtables.h
+index 6e2fe186d0dc..787bf9e394a8 100644
+--- a/include/net/inet_hashtables.h
++++ b/include/net/inet_hashtables.h
+@@ -474,10 +474,14 @@ struct sock *inet_steal_sock(struct net *net, struct sk_buff *skb, int doff,
+ 	if (!reuse_sk)
+ 		return sk;
+ 
+-	/* We've chosen a new reuseport sock which is never refcounted. This
+-	 * implies that sk also isn't refcounted.
++	/* egress bpf assignment can hold a reference on the prefetched
++	 * socket and reuseport returns an rcu protected socket so if it
++	 * differs we have to release the original reference
+ 	 */
+-	WARN_ON_ONCE(*refcounted);
++	if (reuse_sk != sk && *refcounted) {
++		sock_put(sk);
++		*refcounted = false;
++	}
+ 
+ 	return reuse_sk;
+ }
+diff --git a/include/net/request_sock.h b/include/net/request_sock.h
+index faa6dc49cea8..1d1204e4f754 100644
+--- a/include/net/request_sock.h
++++ b/include/net/request_sock.h
+@@ -103,6 +103,8 @@ static inline struct sock *skb_steal_sock(struct sk_buff *skb,
+ 	}
+ 
+ 	*prefetched = skb_sk_is_prefetched(skb);
++	*refcounted = true;
++#ifdef CONFIG_INET
+ 	if (*prefetched) {
+ #if IS_ENABLED(CONFIG_SYN_COOKIES)
+ 		if (sk->sk_state == TCP_NEW_SYN_RECV && inet_reqsk(sk)->syncookie) {
+@@ -114,10 +116,10 @@ static inline struct sock *skb_steal_sock(struct sk_buff *skb,
+ 			return sk;
+ 		}
+ #endif
+-		*refcounted = sk_is_refcounted(sk);
+-	} else {
+-		*refcounted = true;
++		*refcounted = skb->destructor == sock_pfree_ref ||
++			      sk_is_refcounted(sk);
+ 	}
++#endif
+ 
+ 	skb->destructor = NULL;
+ 	skb->sk = NULL;
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 3144efad8c36..33cc361e941f 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -1874,6 +1874,7 @@ void sock_efree(struct sk_buff *skb);
+ #ifdef CONFIG_INET
+ void sock_edemux(struct sk_buff *skb);
+ void sock_pfree(struct sk_buff *skb);
++void sock_pfree_ref(struct sk_buff *skb);
+ 
+ static inline void skb_set_owner_edemux(struct sk_buff *skb, struct sock *sk)
+ {
+@@ -3034,7 +3035,8 @@ static inline bool
+ skb_sk_is_prefetched(struct sk_buff *skb)
+ {
+ #ifdef CONFIG_INET
+-	return skb->destructor == sock_pfree;
++	return skb->destructor == sock_pfree ||
++	       skb->destructor == sock_pfree_ref;
+ #else
+ 	return false;
+ #endif /* CONFIG_INET */
+diff --git a/net/core/sock.c b/net/core/sock.c
+index ad414878dc5b..3b1f60eaa73e 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -2871,6 +2871,13 @@ void sock_pfree(struct sk_buff *skb)
+ 	sock_gen_put(sk);
+ }
+ EXPORT_SYMBOL(sock_pfree);
 +
- static void nft_trans_hook_destroy(struct nft_trans_hook *trans_hook)
- {
- 	list_del(&trans_hook->list);
-@@ -9026,12 +9042,9 @@ nft_flowtable_type_get(struct net *net, u8 family)
- 
- /* Only called from error and netdev event paths. */
- static void nft_unregister_flowtable_ops(struct net *net,
--					 struct nft_flowtable *flowtable,
- 					 struct nf_hook_ops *ops)
- {
- 	nf_unregister_net_hook(net, ops);
--	flowtable->data.type->setup(&flowtable->data, ops->dev,
--				    FLOW_BLOCK_UNBIND);
- }
- 
- static void __nft_unregister_flowtable_net_hooks(struct net *net,
-@@ -9043,7 +9056,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
- 
- 	list_for_each_entry_safe(hook, next, hook_list, list) {
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 
- 		hook->flags |= NFT_HOOK_UNREGISTERED;
- 	}
-@@ -9114,7 +9127,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 			if (i-- <= 0)
- 				break;
- 
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
-+			flowtable->data.type->setup(&flowtable->data, ops->dev,
-+						    FLOW_BLOCK_UNBIND);
- 		}
- 		nft_netdev_hook_unlink_free_rcu(hook);
- 	}
-@@ -9141,9 +9156,9 @@ static void nft_flowtable_unregister_trans_hook(struct net *net,
- 	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
- 		hook = trans_hook->hook;
- 		list_for_each_entry(ops, &hook->ops_list, list)
--			nft_unregister_flowtable_ops(net, flowtable, ops);
-+			nft_unregister_flowtable_ops(net, ops);
- 
--		nft_netdev_hook_unlink_free_rcu(hook);
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, trans_hook->hook);
- 		nft_trans_hook_destroy(trans_hook);
- 	}
- }
-@@ -9229,9 +9244,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- err_flowtable_update_hook:
- 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
- 		if (unregister) {
--			list_for_each_entry(ops, &hook->ops_list, list)
--				nft_unregister_flowtable_ops(ctx->net,
--							     flowtable, ops);
-+			list_for_each_entry(ops, &hook->ops_list, list) {
-+				nft_unregister_flowtable_ops(ctx->net, ops);
-+				flowtable->data.type->setup(&flowtable->data, ops->dev,
-+							    FLOW_BLOCK_UNBIND);
-+			}
- 		}
- 		nft_netdev_hook_unlink_free_rcu(hook);
- 	}
-@@ -9752,10 +9769,19 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
- 	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
- }
- 
-+static void nft_flowtable_hooks_destroy(struct nft_flowtable *flowtable,
-+					struct list_head *hook_list)
++/* variant of sock_pfree for sockets where a refcount was explicitly taken */
++void sock_pfree_ref(struct sk_buff *skb)
 +{
-+	struct nft_hook *hook, *next;
-+
-+	list_for_each_entry_safe(hook, next, hook_list, list)
-+		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
++	sock_gen_put(skb->sk);
 +}
-+
- static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
- {
- 	flowtable->data.type->free(&flowtable->data);
--	nft_hooks_destroy(&flowtable->hook_list);
-+	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
- 	kfree(flowtable->name);
- 	module_put(flowtable->data.type->owner);
- 	kfree(flowtable);
-@@ -9830,10 +9856,9 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
- 				continue;
++EXPORT_SYMBOL(sock_pfree_ref);
+ #endif /* CONFIG_INET */
  
- 			/* flow_offload_netdev_event() cleans up entries for us. */
--			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
--				nft_unregister_flowtable_ops(dev_net(dev),
--							     flowtable, ops);
--			}
-+			if (!(hook->flags & NFT_HOOK_UNREGISTERED))
-+				nft_unregister_flowtable_ops(dev_net(dev), ops);
-+
- 			list_del_rcu(&ops->list);
- 			kfree_rcu(ops, rcu);
- 			break;
-@@ -11311,10 +11336,12 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 		nft_obj_destroy(&ctx, nft_trans_obj(trans));
- 		break;
- 	case NFT_MSG_NEWFLOWTABLE:
--		if (nft_trans_flowtable_update(trans))
--			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
--		else
-+		if (nft_trans_flowtable_update(trans)) {
-+			nft_flowtable_hooks_destroy(nft_trans_flowtable(trans),
-+						    &nft_trans_flowtable_hooks(trans));
-+		} else {
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
-+		}
+ /*
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index bd603e3a99a5..d920a67b6fa0 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -195,17 +195,15 @@ static int __nf_queue(struct sk_buff *skb, const struct nf_hook_state *state,
  		break;
  	}
- 	kfree(trans);
+ 
+-	if (skb_sk_is_prefetched(skb)) {
+-		struct sock *sk = skb->sk;
+-
+-		if (!sk_is_refcounted(sk)) {
+-			if (!refcount_inc_not_zero(&sk->sk_refcnt))
+-				return -ENOTCONN;
++#ifdef CONFIG_INET
++	if (skb->destructor == sock_pfree && !sk_is_refcounted(skb->sk)) {
++		if (!refcount_inc_not_zero(&skb->sk->sk_refcnt))
++			return -ENOTCONN;
+ 
+-			/* drop refcount on skb_orphan */
+-			skb->destructor = sock_edemux;
+-		}
++		/* drop refcount on skb_orphan */
++		skb->destructor = sock_edemux;
+ 	}
++#endif
+ 
+ 	entry = kmalloc(sizeof(*entry) + route_key_size, GFP_ATOMIC);
+ 	if (!entry)
 -- 
 2.47.3
 
