@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795134624;
-	b=Cr1qJATx2fiksb7zy/RuoHw0XiHYPSJiQbeQ2e5X0ihiNpOi3JabLDzw0idHkHm9UyLf
-	 yVbi8m2Ka3LhmaNJPCZzAwkeV5e0hn2HueAxxuaOTNcA+/UEMX+opNe/0eTfYi+lB3AY1
-	 UsdVdjKllLuJcvn2sGwjFU9jUK5dTYGANiy9vcjWP3NhCBEj5tATW595pq/dy9esNA3L3
-	 PlK0U9a6+DCRVRQZYTRcG7eVaSxr9Z7PZPY7ZETS7WX18Zb9ou3uIURTsYkiyUydswkDH
-	 EIfbJ+pmHl7Uu7MV8z+K4DrawcAUrk2GyRDvRKSf+Il1GIU8nvqgT/BSniavZDjgmgw==
+	t=1795134626;
+	b=oz4NS3SMH9UwwU854kjovU56pLOHlu+TDZGOLzcwcTzLsYXVT8kfcTwDUOdzMCHbnhEz
+	 zCM/P7SjP573qzNQgWsFnDcP6n0qY036CmlLTuBQcg0ZT7U62u/z19kYBvG1bK7zG7TM+
+	 ZnefSNuM9529KwE8H4ZHFFIpi+TcQEmhDK9VApQY0sAwvxUpTKpe1v37Oym5C6qytwg0B
+	 2Q+jxpeVXiziiTBgpkORNj8hzYlSw91ZzQndIh390sOOL0iz1Cvs69tZqKRcKNxT/1UgB
+	 fH09G81TyGydf9OnqyVj7cK4QgrsxuQJahHnwS+MXUO+bvl/zVgKfe0+sXDgvBjXLFA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795134624;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795134626;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
 	 X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=dcJtOzCahS1n5v4vdyKF/AYuAt8N0bDuM9kuNElu8Sw=;
-	b=r0pDEJPnAFdv9IUkL99QKFwHdn1gD3046dWUTYlZa0G6WAr7PKV+YIAuamsKbHh6oheg
-	 1yZ8KTcmStwHbynWW6PoVD9lPDQPSX/yNUMSaYVJ+xXuNtnBIl4Outd72ymE7P2UTw4mW
-	 j0wIFEamIHrM/+TIRkmZYMPdEEypjxFxk5gpbqApRVRtUeeJl478vcnidEzTl0hJRMNUH
-	 GNyJCaOVd/RMrvavfKWC0Y4yW8JZ8jYsz4EDT27uPa1CkppzrdqZ8qyG1iY+omFujcK+K
-	 kEZlSTGMiQ3TrvdwWeEt2r2DQOxjHJ6MXVN2VHmWKv5mSHMnz9ueRgyrxS89pAVEFIA==
+	bh=yD3LqA13igTgWhCk5BF69zeN2lO541b1eW4ajgTd5Mk=;
+	b=NtQvZsjJNQUoRSBbPwQg6j0L0kBlsZhCNohUwsp2ti6Nwaa4MKNaDAHqJZ2DkWSsJm0c
+	 Z2XxNqrfTF6aIYw/xS7+OgktltupZLqDc75MRNWpP9DfP+Gut25ODuc2xsWo8empH7QTC
+	 qykBP5xe2vZcRga4iq9i7R/7dbbenza3dZx1uBrD8NkDdxiVHTOSP7BEhGUV2BXw8r1Kx
+	 XHvh6Cv/lgB/9xtIVWR7Rtho+nKbZ1shGhgg6tnl25T408ljqz7AO9HNMrBcJ3z3h32+0
+	 rSuM9gfbvxhQyZJaRVXbT/sPDqfBZ0LyYW+Z3UeRojskzQpezN9ru1fGG1KMHY+31Ag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dyIOvMH+;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=NKtijHu8;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C2560A261C
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 00:30:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 00C2560A261C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E37CC606A336
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 00:30:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E37CC606A336
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=dyIOvMH+
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=NKtijHu8
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795134621;
-	bh=dcJtOzCahS1n5v4vdyKF/AYuAt8N0bDuM9kuNElu8Sw=;
+	s=2025; t=1795134623;
+	bh=yD3LqA13igTgWhCk5BF69zeN2lO541b1eW4ajgTd5Mk=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=dyIOvMH+4V1PG1nwmgWrv/R6EEBXeib+DvrLUAth+TLcbgGDKSz49+hZYEBwuIJpb
-	 QorM/Yf2IVN9bXHl/Z2SM30yl8ci3dAY2EtToXUGgtnkD61aLOUUt6A0kH+9TiELE9
-	 6qzcH3tAwTf1avWlc+3YZ8C8LiULlHiS+S9TKf6mVRhMWMoSG9RGASKbSr4oHcCEgU
-	 WJtwiWaeoNGaBzS8G6v+6LwJ5z4cXKgICSYbTNySjheLRqa4O0lN23c9CSdJPvGqXZ
-	 aMax+q5VBTecIJVfWwsPNCMO0BAeIpwARFdSU+5anN4fCKnocKUmtmzFxcIW6EhroT
-	 lxmJWL1yG1a/Q==
+	b=NKtijHu8Plsv7HzYlKRLs8hgyAqhAkh2OB1dEmABKl7Nuh2J3CpwTgeO069vagvc7
+	 pf7jYuhhee71wFbnma3EaANkQkGE/LhMcOzoaNcwaJG16/0K+jVBROtFlBqZs/urd5
+	 gJyM4kIcCCAoSDOhAzgV6+C5LorMLkeYAO3M7GqkzMAvmHH4nOvkJy/5WIejdv6TZa
+	 p7CafGTx7qwa4Rp7M/JxZOnOLEHM7IHSy6eOvM9r6dnt+s0JudJC4lIMJ0ta/0r0/r
+	 pRUdmR7Xt0RNHT7/kYPlTdDlUUF/4bJXc2ZNqYHeGISTAvwqQdPNtr2TdTABc4S4k8
+	 78JeA/lbOgOpw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B45A360088
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 01:30:21 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id EFBF26008A
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 01:30:22 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v4 2/3] netfilter: nf_tables: flush destroy work from flowtable netdev event handler
-Date: Fri, 20 Nov 2026 01:30:12 +0100
-Message-ID: <20261120003013.3441877-2-pablo@netfilter.org>
+Subject: [PATCH nf,v4 3/3] netfilter: nf_tables: unbind flowtable on hook release
+Date: Fri, 20 Nov 2026 01:30:13 +0100
+Message-ID: <20261120003013.3441877-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261120003013.3441877-1-pablo@netfilter.org>
 References: <20261120003013.3441877-1-pablo@netfilter.org>
@@ -65,67 +65,163 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sashiko reports that the following race is possible while dismantling
-the flowtable with hardware offload:
+Commit 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable
+binding") breaks hardware offload by unbinding the flow_block too early,
+this results in leaving entries in the hardware. Any pending offload
+work will be ignored because there is no flow_block anymore in place.
 
-CPU0                                  CPU1 (kworker)
-nf_tables_commit()
-  list_del_rcu(&flowtable->list)
-  nft_unregister_flowtable_net_hooks()
-nf_tables_commit_release()
-  schedule_work(&destroy_work)
-  mutex_unlock(&commit_mutex)
-                                      nf_tables_trans_destroy_work()
-                                        synchronize_rcu()
-                                        ...
-unregister_netdevice()
-  nf_tables_flowtable_event()
-    /* flowtable not in
-     * table->flowtables, ops->dev
-     * stays on flowtable->hook_list
-     */
-  free_netdev(dev)
-                                        nf_tables_flowtable_destroy()
-                                          nft_flowtable_hooks_destroy()
-                                            ...
-                                            flowtable->data.type->setup(
-                                              ..., ops->dev,
-                                              FLOW_BLOCK_UNBIND)
-                                              <-- use-after-free
+This patch restores the strategy followed by commit 5acab91458ce
+("netfilter: nf_tables: unbind callbacks from flowtable destroy path")
+by unregistering the hook first, then unbind the flow_block from the
+error and destroy paths, right before the hook is released.
 
-A netdevice event could happen in between the netns .pre_exit and .exit.
-After .pre_exit, the flowtable has been removed from the table list,
-therefore, it is not reachable by the flowtable netdevice handler so the
-hook cannot be unregistered and a stale reference to the netdevice
-remains in place, leading to possible UaF from the commit_release path
-when accessing the netdevice.
-
-Fix this by flushing the pending destroy work before handling netdevice
-events.
-
-This patch is a requirement for the follow up commit ("netfilter:
-nf_tables: perform unbind callback on hook release").
-
+Fixes: 13210fc63f35 ("netfilter: nf_tables: imbalance in flowtable binding")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v4: new in this series
+v4: - add missing FLOW_BLOCK_UNBIND in flowtable event handler
+    - update patch subject and description
 
- net/netfilter/nf_tables_api.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_tables_api.c | 62 ++++++++++++++++++++++++++---------
+ 1 file changed, 46 insertions(+), 16 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d3c04a71c924..24db948b851b 100644
+index 24db948b851b..ecb23bb1df3b 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -9902,6 +9902,8 @@ static int nf_tables_flowtable_event(struct notifier_block *this,
- 	nft_net = nft_pernet(net);
- 	mutex_lock(&nft_net->commit_mutex);
+@@ -380,6 +380,22 @@ static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
+ 	nft_netdev_hook_free_rcu(hook);
+ }
  
-+	nf_tables_trans_destroy_flush_work(net);
++static void nft_flowtable_hook_unlink_free_rcu(struct nft_flowtable *flowtable,
++					       struct nft_hook *hook)
++{
++	struct nf_hook_ops *ops;
 +
- 	if (event == NETDEV_CHANGENAME) {
- 		if (__nf_tables_flowtable_event(NETDEV_REGISTER, dev, true)) {
- 			ret = NOTIFY_BAD;
++	/* This unbind command needs to come this late, otherwise offload
++	 * worker finds no flow_block and entries are not cleaned up from
++	 * hardware.
++	 */
++	list_for_each_entry(ops, &hook->ops_list, list) {
++		flowtable->data.type->setup(&flowtable->data, ops->dev,
++					    FLOW_BLOCK_UNBIND);
++	}
++	nft_netdev_hook_unlink_free_rcu(hook);
++}
++
+ static void nft_trans_hook_destroy(struct nft_trans_hook *trans_hook)
+ {
+ 	list_del(&trans_hook->list);
+@@ -9026,12 +9042,9 @@ nft_flowtable_type_get(struct net *net, u8 family)
+ 
+ /* Only called from error and netdev event paths. */
+ static void nft_unregister_flowtable_ops(struct net *net,
+-					 struct nft_flowtable *flowtable,
+ 					 struct nf_hook_ops *ops)
+ {
+ 	nf_unregister_net_hook(net, ops);
+-	flowtable->data.type->setup(&flowtable->data, ops->dev,
+-				    FLOW_BLOCK_UNBIND);
+ }
+ 
+ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+@@ -9043,7 +9056,7 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
+ 
+ 		hook->flags |= NFT_HOOK_UNREGISTERED;
+ 	}
+@@ -9114,7 +9127,9 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 			if (i-- <= 0)
+ 				break;
+ 
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
++			flowtable->data.type->setup(&flowtable->data, ops->dev,
++						    FLOW_BLOCK_UNBIND);
+ 		}
+ 		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+@@ -9141,9 +9156,9 @@ static void nft_flowtable_unregister_trans_hook(struct net *net,
+ 	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
+ 		hook = trans_hook->hook;
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+-			nft_unregister_flowtable_ops(net, flowtable, ops);
++			nft_unregister_flowtable_ops(net, ops);
+ 
+-		nft_netdev_hook_unlink_free_rcu(hook);
++		nft_flowtable_hook_unlink_free_rcu(flowtable, trans_hook->hook);
+ 		nft_trans_hook_destroy(trans_hook);
+ 	}
+ }
+@@ -9229,9 +9244,11 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ err_flowtable_update_hook:
+ 	list_for_each_entry_safe(hook, next, &flowtable_hook.list, list) {
+ 		if (unregister) {
+-			list_for_each_entry(ops, &hook->ops_list, list)
+-				nft_unregister_flowtable_ops(ctx->net,
+-							     flowtable, ops);
++			list_for_each_entry(ops, &hook->ops_list, list) {
++				nft_unregister_flowtable_ops(ctx->net, ops);
++				flowtable->data.type->setup(&flowtable->data, ops->dev,
++							    FLOW_BLOCK_UNBIND);
++			}
+ 		}
+ 		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+@@ -9752,10 +9769,19 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ 	nfnetlink_set_err(ctx->net, ctx->portid, NFNLGRP_NFTABLES, -ENOBUFS);
+ }
+ 
++static void nft_flowtable_hooks_destroy(struct nft_flowtable *flowtable,
++					struct list_head *hook_list)
++{
++	struct nft_hook *hook, *next;
++
++	list_for_each_entry_safe(hook, next, hook_list, list)
++		nft_flowtable_hook_unlink_free_rcu(flowtable, hook);
++}
++
+ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ {
+ 	flowtable->data.type->free(&flowtable->data);
+-	nft_hooks_destroy(&flowtable->hook_list);
++	nft_flowtable_hooks_destroy(flowtable, &flowtable->hook_list);
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
+ 	kfree(flowtable);
+@@ -9831,9 +9857,11 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
+ 
+ 			/* flow_offload_netdev_event() cleans up entries for us. */
+ 			if (!(hook->flags & NFT_HOOK_UNREGISTERED)) {
+-				nft_unregister_flowtable_ops(dev_net(dev),
+-							     flowtable, ops);
++				nft_unregister_flowtable_ops(dev_net(dev), ops);
++				flowtable->data.type->setup(&flowtable->data, ops->dev,
++							    FLOW_BLOCK_UNBIND);
+ 			}
++
+ 			list_del_rcu(&ops->list);
+ 			kfree_rcu(ops, rcu);
+ 			break;
+@@ -11313,10 +11341,12 @@ static void nf_tables_abort_release(struct nft_trans *trans)
+ 		nft_obj_destroy(&ctx, nft_trans_obj(trans));
+ 		break;
+ 	case NFT_MSG_NEWFLOWTABLE:
+-		if (nft_trans_flowtable_update(trans))
+-			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
+-		else
++		if (nft_trans_flowtable_update(trans)) {
++			nft_flowtable_hooks_destroy(nft_trans_flowtable(trans),
++						    &nft_trans_flowtable_hooks(trans));
++		} else {
+ 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
++		}
+ 		break;
+ 	}
+ 	kfree(trans);
 -- 
 2.47.3
 
