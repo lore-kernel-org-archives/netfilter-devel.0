@@ -1,94 +1,104 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795172245;
-	b=up6lk5MCnlX5XTc+l4SbIvwukTTxzJSGTGSiDWiBQMirOIBfyzCFOTKlCzx6dwQhu6J/
-	 VV6duXhapvZkRo4MUm4yGxQUcJ0CRhJy43e/gnHnTb45CweZRkLnOlSC1BoFUeObTk2LJ
-	 l3Zpm68SvZfqdd++If2L75w5iEVOqRCbfvoRnPAqRv0skG4D0Q54wSLglfzKnwEO29PYm
-	 PAcrNvWdWhz0TVj1FZbp+9e310wxbVjswyDwhrR9ZiwwLUa0CKlkgq4iSpReMDDgCMox8
-	 BMBTLQxtU4nYG2ogw22mre+RFJ1D8mCSspjZyAhQOal82ZspKe+J6FGvY8PiZfaVBog==
+	t=1795172468;
+	b=Su+WLwJKEvd0RfniwehDXs5XJfGqfvHiRwOEYDvDd/uq9r0DYzALJTrMTrXBzBXc7yly
+	 3q9GT8YjMqqK8DP/7aB40awMHdKCrqUzQ9Ygqygcqo8NZs9+omPn1r4igfnHnL6Eysade
+	 aQNU9a4bqXb6x09SV4qKrrJTUlbPj5nW9tHsDE4NoY4PhaygEJf87zlPrxlMIgioTQ0lA
+	 t2WZ7XdkW7/E2ymRpI8qRgCStwUI0eMqnIw0FRrTV7n2GiJIwWU9VxK8+NlsjS6KTKs5a
+	 LYPdcm8eVJd+L2wlBujPpMoTS1CGY428AsDfoxIHTx16Rg/TgxvGZmAqQV/KSwLoC4A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795172245;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=DtNV5VxWZRYPm+qkkMJsylA6Vg/UOHe+uIII8BQIetA=;
-	b=tgxQZUsg5kizB/gqULIFlEUyaftQsGVBF0zdCwZZB6Z/rP2hsblE/Qvr/Byhb5crC2Re
-	 thErN5CY2rwGfntTDNkp+wvlR3PhtophZtf8eFyCE8LK9IoxPJEBTMQ18tduIhTNymgD4
-	 UJu7b/tYXIGkQ4zNTBwasuyz6RGlHvuc6Rc++yCS1YXtjzqeNbRrxhLCdiOzeXBDzRV36
-	 iEoBeoB5rClEGPgNGCRv0laHSJbExjjpsKgMxyhxUOyvCPdnvKiWCzcBqTYhZCq1ESRbo
-	 9v0wRCa52NwJEsERI97dpzJnpn4/FFWuGsMs7DATSded2qv9QiyPsVFQplwPBHaUAxA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795172468;
+	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
+	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
+	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Queue-Id:X-Spam-Level:
+	 X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:
+	 X-Spam-Score;
+	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
+	b=n1eRBD15/G3PZc5zFEsDscEQbaihAEG6KP4uK7atI+w5GoMOaPVGuZ+FBT1j/tw4YVzZ
+	 p+FBxQz1YmXST2mNxyl9KxUuxy6lguG1x0WRyA5eXp3XvkW7N6LFD99vC7OA14hLx1yuk
+	 cr/SH+pK3Eq28W07qCHrgzVBwWYkpL76sTYL+7OftvrTpSTgHyCcHjAEYBF0NL0sfOt7P
+	 G/OeHgMkFVRL33Sv6OdR9gdcQf4hMOu3EtWOMbpR/Obu5npxlNSc2iLhP+IEgVHEIyH8l
+	 sqaQTolIL+hWP3KnYxj5dpmGB605tZxEKcQf6kVS+HHA2SbnImUhF/xSKY0WFdHRB2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=SoU36Rrp;
-	arc=none smtp.remote-ip=209.85.214.175
-Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=pass header.from=suse.de;
+	spf=pass smtp.mailfrom=suse.de;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vudTzhJP;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSDrjOne;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1mSu2OUI;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qvYcOky0;
+	arc=none smtp.remote-ip=195.135.223.130
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA93606A325
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 10:57:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CBA93606A325
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E497606A320;
+	Fri, 20 Nov 2026 11:01:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E497606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=SoU36Rrp
-Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2f02ee04378so5831645ad.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 02:57:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795172244; x=1795777044; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DtNV5VxWZRYPm+qkkMJsylA6Vg/UOHe+uIII8BQIetA=;
-        b=SoU36RrpP0fAvcxfHnVD1gS9A6b1JLHYlH953RVwxmM3EYg81GAjCqrR03smdAsG9X
-         MUUQttVK7hSH6Bp/t+dU3YLFaGzwsQY0RosxNJOGVl/cCcTeB0sIOq5lDj+lGiUcUt/P
-         3nMcbs0RABVK4edyFJiHfbBPwo1v70GsNfpYTxui4PP+TY7zFarBa0O+Fag0Qa7qy6eC
-         N/6Q4fj8LqN3aL76KXZAVcqjxMPhc5xZhZn+qTKNqIHpjDI9J93r+hK/U6FPB5QU/jAu
-         v7NwCdO7Q2opz+nXTbtCos5wZhHiYm5tbPZgJYrT512lDFSipRI3GGKAmj15+OdukaYh
-         wl5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795172244; x=1795777044;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=DtNV5VxWZRYPm+qkkMJsylA6Vg/UOHe+uIII8BQIetA=;
-        b=gdRBIfzO23vykcp6y9a7H3VWFu6vX9fyouVlt8d3Auk9bAmOpRb7RtrVO4PjSq9Y5S
-         pHMJTf3exZtDDyJq6Aewy2pttSbv+819maF2ZDm5Vg/X84gYRRkSbJHBjAwKDQDbVHYz
-         EnBmDxxO0rd8gta/NHVEKhObrvRopbAwEihAbFeIotAdNTtmJX71RcwbEQCzQgeasZjg
-         0OuIi73vxuTXruQ1ANKAz3cfMieOp+uBns0G4jptwQSGa6ckR0jQIKbENBYqeyqS8s3r
-         1dgKLkMApbum7bzCgcmGsMhVbo1liaafeEIzYEbKcxFkhmRiyHrvyXF0NVUUKDRvedLx
-         Mg8A==
-X-Forwarded-Encrypted: i=1; AL+hErEUYvhRBvX2NcGTQcXotTLHype+Rnap0W2+C5HqyUg7iokHHind003D+OgYIPxWpJfW1TuCbe/FchMALjSNArg=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/HyHDZmFu9EGj7cGXWUN7vWxtdVBNgMmLjriNwXAv14WPY9JF2
-	TRjyMfni1nMpqF6T03YbhWLwYk0mrn/1XciSthYRbpMxGx8aUiD+f7Rdg7csNKla
-X-Gm-Gg: AZFdTZcOIf8AbPhx+pq+D8Ku8YAJZUYCQIShijEonEPYuKvltX1U3P/HCUp+qokZWEj
-	NWvmWctom+EthMeF+8u1zrOEU7OdeAW3cyVTeXVN/XKJVlUfmCILvOtH7UfcN+rQI36n87SUgAv
-	L32evDpPffmtgB9IgyNpR+Vl8R7lFng/P3MaOcY7eE/qRJk02+0q3M4tYRkM1q2RWiVsUueO6xJ
-	GZPHTf4nHyZvgT/hG5qa+2QKOZfQUNWPrao/SZZ1BWD2garOQ8x0Z8WVxw0ON8mHLGBInL797WW
-	wfTBffzRxVvnwktMfZNiEtXXdc4Z+SuMPxsaT3Uq9vl1VqWiN3gPc4aky9Ymix7tDa1ENeE86s7
-	t0AJHWQP2YVmKsPw952iHXDPu/wrQXFtx/EZyk7IV1NH83cXVkQXszkIbdx30eZKT/S+lMDj5ET
-	1m21dkkxcAws9DwUQe0RXVOoGdgfqoX+kE9pgNRM3twfyEzUHAdwXQXWgPd5PzBhX4ow2LekTJe
-	z+iE4Kob0CmHlneo9YsmC+m8sAhKidQaM12cLiP267N3Txi+m+0ugulO+5IgLzaepIk/RRc+2O9
-	sHIUBrSD2KzWjCZWySgfQJZUSJ9vwFOqxY5y8eT62e1O6rd9cZ8=
-X-Received: by 2002:a17:90a:d607:b0:3ac:4291:f569 with SMTP id 98e67ed59e1d1-3b41c7c776bmr2760098a91.8.1795172244164;
-        Fri, 20 Nov 2026 02:57:24 -0800 (PST)
-Received: from localhost.localdomain ([112.170.44.210])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b41ad0b52dsm4176886a91.5.2026.11.20.02.57.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Nov 2026 02:57:23 -0800 (PST)
-From: Junyoung Jang <graypanda.inzag@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: Junyoung Jang <graypanda.inzag@gmail.com>,
-	Gwanhyun Lee <gwanhyunlee@gmail.com>,
-	Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: [PATCH nf] netfilter: nfnetlink_queue: drain cleanup work on netns exit
-Date: Fri, 20 Nov 2026 19:57:17 +0900
-Message-ID: <20261120105718.866862-1-graypanda.inzag@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vudTzhJP;
+	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSDrjOne;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1mSu2OUI;
+	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qvYcOky0
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 0F3822258D;
+	Fri, 20 Nov 2026 11:01:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1795172466; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
+	b=vudTzhJPUj2RIlkrgT6d1STBxe6jUpqQdk4hHolBEhm56LMH7zD8gfqQSi7CtyUB6NarKS
+	PFibV7YWaOHfWf6iIGnN6x94DSj280TwdKNX1n7iNijGv/+nEYzoE791djl/V7FuxSxlvS
+	iNK7k45+jbDTEn9l6zj3Q6ynEaEpqY8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1795172466;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
+	b=fSDrjOnepEtaZMUHGwfXzhtGRliEbvPtyIvNC9LNvN9I/BSyUZCyH0oYbR4xU58F46+heN
+	KAH8Oxco3bs2IwCw==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=1mSu2OUI;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=qvYcOky0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1795172465; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
+	b=1mSu2OUICDfDL/lQOrikeDEjkPCqZBX3otAbIOF22DOKdcP7LfnaPePBoSZsJTqriat0ZB
+	bRMdgjyjCMYb4wNv+UwsEUh0F15dfzrUtPLXDmXRP/hcA6qlDOHCugN80C+Ll4jTVufks1
+	EQY8HAtnshE68L32+X+UHU50hZH6H1w=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1795172465;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
+	b=qvYcOky0XG7nMWFQI7HsyFg06k/Ty38jHdMNYrzhZ4hmErlo6bfiImwKI8SviEmpvppLTZ
+	pt7n+KpX3FFzuTCQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5DCAF1342D;
+	Fri, 20 Nov 2026 11:01:04 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id NpUWDHAoAGsiVwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 20 Nov 2026 11:01:04 +0000
+Message-ID: <e2349ba1-454a-4f1c-b7af-d71ff984a693@suse.de>
+Date: Fri, 20 Nov 2026 12:00:55 +0100
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -98,77 +108,126 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] netfilter: bpf: reject a repeated bpf_ct_set_nat_info()
+To: Andrey Misiurov <amisiurov@cloudlinux.com>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org
+References: <20261119163328.878804-1-amisiurov@cloudlinux.com>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20261119163328.878804-1-amisiurov@cloudlinux.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 0F3822258D
+X-Spam-Level: 
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-13.50 / 50.00];
+	SUSE_INTERNAL_BYPASS(-9.00)[];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	XM_UA_NO_VERSION(0.01)[];
+	MX_GOOD(-0.01)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[8];
+	RCVD_TLS_ALL(0.00)[];
+	TO_DN_SOME(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,cloudlinux.com:email,suse.de:dkim];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Spam-Score: -13.50
 
-NETLINK_URELEASE unlinks an NFQUEUE instance and schedules its
-destruction through queue_rcu_work(). The RCU callback queues
-instance_destroy_work() on nfq_cleanup_wq. Queued entries retain
-entry->state.net, but nf_queue_entry_get_refs() pins only their
-sockets and network devices.
+On 11/19/26 5:33 PM, Andrey Misiurov wrote:
+> bpf_ct_set_nat_info() checks the l3 protocol and the manip type but not
+> whether NAT for that manip was already set up. A BPF program holding an
+> unconfirmed nf_conn___init can call it twice with the same manip. The first
+> call sets IPS_SRC_NAT_DONE (or IPS_DST_NAT_DONE); the ct is still
+> unconfirmed, so the second call passes the confirmed check and reaches
 
-A migratable device can return to init_net as the old namespace exits.
-cleanup_net() waits for the RCU callback but not the work it queued.
-It can free the namespace before instance_destroy_work() calls
-nfqnl_reinject(entry, NF_DROP), which dereferences the old state.net
-in nf_hook_entries_head().
+What confirmed check passes? I think there is no such check at all.
 
-A source review assisted by a coding agent identified this race. A
-65,536-queue reproducer on unmodified mainline with
-KASAN and lockdep enabled reported:
+> WARN_ON(nf_nat_initialized()) in nf_nat_setup_info():
+> 
+>    WARNING: CPU: 1 PID: 21673 at net/netfilter/nf_nat_core.c:674 nf_nat_setup_info+0x251/0x2b0 [nf_nat]
+>    CPU: 1 PID: 21673 Comm: loader
+>    RIP: 0010:nf_nat_setup_info+0x251/0x2b0 [nf_nat]
+>    Call Trace:
+>     bpf_ct_set_nat_info+0x81/0xb0 [nf_nat]
+>     bpf_prog_e4b00ba35d2f7a6b_nf_skb_ct_nat_twice+0x110/0x13f
+>     bpf_test_run+0x172/0x2e0
+>     bpf_prog_test_run_skb+0x2e5/0x4f0
+>     __sys_bpf+0x7f8/0xe90
+>     __x64_sys_bpf+0x1a/0x30
+>     do_syscall_64+0x5f/0xe0
+>     entry_SYSCALL_64_after_hwframe+0x76/0x7e
+> 
+> With panic_on_warn this is a DoS. It is the same BPF-reachable WARN class
+> that 16d464013ec2 closed for an invalid manip value; the repeated-setup
+> case was left open.
 
-  BUG: KASAN: slab-use-after-free in nfqnl_reinject
-  Workqueue: nfq_workqueue instance_destroy_work
+Yes, although this is a completely different issue.
 
-The free stack included cleanup_net(). The trigger used
-initial-namespace CAP_NET_ADMIN and a migratable virtio-net device;
-it required no kernel modification or fault injection.
+> 
+> Reject the call with -EEXIST when NAT for that manip is already initialised,
+> before nf_nat_setup_info() is reached.
+> 
+> Fixes: 16d464013ec2 ("netfilter: bpf: reject invalid NAT manipulation types")
 
-Drain NFQUEUE cleanup in the pernet exit batch. rcu_barrier() waits
-for pending RCU callbacks to enqueue their work; flush_workqueue()
-then completes that work before cleanup_net() frees the namespace.
-The batch hook avoids a barrier for each exiting namespace.
+I think this fixes tag is incorrect. That fix was checking a completely 
+different problem. In any case it would be:
 
-The same mainline revision with this patch built without warnings and
-completed two 90-second reproducer runs in KVM with no KASAN or
-lockdep reports. No netfilter selftests were run.
+Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
 
-Fixes: 936206e3f6ff ("netfilter: nfnetlink_queue: make hash table per queue")
-Co-developed-by: Gwanhyun Lee <gwanhyunlee@gmail.com>
-Signed-off-by: Gwanhyun Lee <gwanhyunlee@gmail.com>
-Signed-off-by: Junyoung Jang <graypanda.inzag@gmail.com>
----
-A custom LLM-based coding assistant helped identify this race and prepare the reproducer
-and patch draft; both authors manually verified the source paths,
-teardown ordering, and KVM test results. The standalone C reproducer
-and complete serial logs are available on request.
+> Signed-off-by: Andrey Misiurov <amisiurov@cloudlinux.com>
+> ---
+> Found during a backport review.
+> 
+> Reproduced on almalinux9 5.14.0-687.61.1 with a BPF_PROG_TEST_RUN SCHED_CLS
+> prog that calls bpf_ct_set_nat_info() with NF_NAT_MANIP_SRC twice: without
+> the fix the second call returns -ENOMEM and WARNs as above; with the fix it
+> returns -EEXIST and there is no WARN.
+> 
+>   net/netfilter/nf_nat_bpf.c | 4 ++++
+>   1 file changed, 4 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
+> --- a/net/netfilter/nf_nat_bpf.c
+> +++ b/net/netfilter/nf_nat_bpf.c
+> @@ -42,6 +42,10 @@
+>   	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
+>   		return -EINVAL;
+>   
+> +	/* a repeated manip on an unconfirmed ct would WARN */
 
- net/netfilter/nfnetlink_queue.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This comment is a bit too verbose. Can we just drop it? The check is 
+simple enough to be self-documented.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a8aa7ad832c3..5eaa314ed59f 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -2201,9 +2201,17 @@ static void __net_exit nfnl_queue_net_exit(struct net *net)
- 		WARN_ON_ONCE(!hlist_empty(&q->instance_table[i]));
- }
- 
-+static void __net_exit nfnl_queue_net_exit_batch(struct list_head *net_exit_list)
-+{
-+	/* Wait for RCU callbacks to queue instance cleanup work. */
-+	rcu_barrier();
-+	flush_workqueue(nfq_cleanup_wq);
-+}
-+
- static struct pernet_operations nfnl_queue_net_ops = {
- 	.init		= nfnl_queue_net_init,
- 	.exit		= nfnl_queue_net_exit,
-+	.exit_batch	= nfnl_queue_net_exit_batch,
- 	.id		= &nfnl_queue_net_id,
- 	.size		= sizeof(struct nfnl_queue_net),
- };
+In addition, please use [PATCH nf] for the next revision of this patch 
+so we know we tree should we use for the fix.
 
-base-commit: 65e4fd942f72a9dba0e4e257290c4fa1aa756854
--- 
-2.43.0
+Thanks,
+Fernando.
+
+> +	if (nf_nat_initialized(ct, manip))
+> +		return -EEXIST;
+> +
+>   	memset(&range, 0, sizeof(struct nf_nat_range2));
+>   	range.flags = NF_NAT_RANGE_MAP_IPS;
+>   	range.min_addr = *addr;
 
