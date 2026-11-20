@@ -1,63 +1,57 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795206297;
-	b=LTStE+/E3t4rtxcG7oEq0Rt08btKneT/jj1qSj2ks3lbng0XpHZS8rS+epAGnoxlGR7P
-	 Y3526wmm8DQ72M65+CDSHWlzDCKh/6Cf3k++A1Uuz8vg9xcOWM7bkynpRqnWgEm7ASpE2
-	 Y3WcYvbbfp4zdxQ268ZLVlbcZyIlChT+ZAoLSEm6ThsHpBspAlRjWTsi8Xj1ZNMLe+KPF
-	 IhCKwhD6Q110UHXKCevsQDo40QexKN4gMZ/18RXLMITZTsMBGeWZuyhLyrhLVTq7cfyfm
-	 sUuX6XsoQjVwhtntgThtLhvC1a9L23VMaXGrP2PZVvmiFRgtcCw8jvpERZIkXQNzKRg==
+	t=1795215163;
+	b=ZPbHgmZFKehcLT6nsM/w8iydPI89LC6UfbqHUj2HyQpiWwZwTvm4pqs8emojwgLm6Nl1
+	 n6m2swnhavMFHOuIOP/g0KFvdGunIDefjuF9WCoQ3OxDj61BRhkKW/bWAym6D/EBiSbmd
+	 g4DND49HPB7Ojo1UgOCwUvqbCo/rBhbxuukZGqwzCzQ2Im/NPkGWXidJiTq1qbmYVqxMo
+	 r2uYNMgKw7jVLE0/wHGm3xU+uaaucTm7iPsCLcRUap/QwdZ+3za2PG+vE0WeBv2WkRoqg
+	 DoJ4YXoG7MBtRTqF/I4DG2wQLpwqZrbYPjvFkHsscI/oe82/ENXcMWpY4ZSzU5NPdiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795206297;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=LBmp+kQFbYMunYHvbbFyWE9yLcRxqnYUGM4QcwasHMM=;
-	b=c/0IHzUsk3NZxWeZQqh8KJThH1qJo7+x9xhqxDDtMKy+hARKYfjLqibhFXIJrXPmGL2d
-	 71yC9nMFjCKq9uAMoKOt17S3N/cUtCixAE7+lwmjWr8My/0ev5mvns+6M7qea964dFrCH
-	 takYpBbf95lcebIQ7QxH8QeSrI/ETWApNXY6krbWftdPabVY3rEsWE4A+N/dFBB/rmcEg
-	 l7D4oxHznJ7G1F4lDwOZsbqrjCeuB3oZBv7+ShcrWa6IfScA0QaqsjPmTHm6r3V4ORkUl
-	 D/8a5I/tK9UIYbH2BJxYZcV08Z6gjWOIcBV7siWfzUybIxwguvYVuIgxwZekfXAt1pg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795215163;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
+	 X-Mailer:MIME-Version:Content-Transfer-Encoding:X-Spam-Status:
+	 X-Spam-Checker-Version;
+	bh=7bOogpDVgkETL/PHndFneONJEa0PXveDb0KR7stqI3E=;
+	b=FBnOgtAy4PV4sdEeUOJsnLtLsWpwN74Jg1xYhgiJctpnGIMf2MWZtlPScdwqagJE76f9
+	 cDlPPbwOvh7O6E2HKAwqeBkL1YjR0CqFzQTPpU9ioufuYBaQ7LOiIVyiRdkDKSKCOX3aY
+	 GPGgahgQGGwiR0WDaoji1tP2a5GPW8rNd4QeWDZZuZ057L7xTk47mVsC2FrFWvu27YKcn
+	 0SE/VCKini9eUB5XfZ7aMJsBAwCkdzjS7X8xi7A7Hej2OOu3n8Wxy6EiSNM8HjghHCQJV
+	 AYDUI/+Dpbxei1y7IQcHQ9+Q9I5Jvf6STofDPRd3iwh0/0smsLZtB8XZ0HnrMJhxIuA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=nwl.cc;
-	spf=pass smtp.mailfrom=nwl.cc;
-	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=qWJ1AKXG;
-	arc=none smtp.remote-ip=151.80.46.58
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Dhx31fwI;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1B8606A6ED
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 20:24:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6E1B8606A6ED
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F453606A68F
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 22:52:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1F453606A68F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=qWJ1AKXG
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=LBmp+kQFbYMunYHvbbFyWE9yLcRxqnYUGM4QcwasHMM=; b=qWJ1AKXGxYHNsrPqXe4eBu5YKq
-	EiI79xqSxYC3kP+ajqmVwuRkgGkpKp8/SpdkltnZ/a1Q79pyNftdwj1BRFJhdQH5pqdMVgKePhjks
-	hXAXTCLe1nqjmDeP3uPn01PtcOZMnxWwxZg3kOiCBlFHSPaVEptSabDhJBJ24LNKKSOM9UY+628Yv
-	ly4XezCnf8bc2/hXILYD5WPgNEdNf+gDFzBv5rg8fjvHxQRN5YhixTICJPh3w46Jsya1yrHcujPmY
-	2xBMtLKouVAHcA8xENgr6bIAVGSufvB3Qu/miXDPKvva6JG0janoUn2jL/QzOhI13jfzye9YfN0Po
-	zS5WpXiA==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=tia)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1xUVA0-000000005tf-02co;
-	Fri, 20 Nov 2026 21:24:40 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nf-next PATCH 1/2] netfilter: br_netfilter: Fix for missing refrag of VLAN packets
-Date: Fri, 20 Nov 2026 21:24:33 +0100
-Message-ID: <20261120202434.1084006-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.54.0
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Dhx31fwI
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1795215150;
+	bh=7bOogpDVgkETL/PHndFneONJEa0PXveDb0KR7stqI3E=;
+	h=From:To:Subject:Date:From;
+	b=Dhx31fwIsCncKAHE8/tSKWREz/K+fOe6UFuiMvPYk4oq3FmQxdrWEQCuNBwJRBwLh
+	 olCWXKcP+4+McxobGB3nyyvtXWR2Rw1oQ4F5JVaoxWXPQlRzA1IFrH0EC3y49eAej/
+	 ImtoUZDDu7CSTiz9KpY7rUtWqPVmhz8Z4IyIr05cjAzsUOsqfT3LKZ+Y7bS0ebGIUy
+	 bS71vP4Tmmb3LJPFPn4qPdoOIa2yLawkJM0Qxw1kRn50vbA5KN8lOG6Etb2ZgKGpv/
+	 YTQgSKYoJBUv14A9N/sNFVoclYqodXI1fwfyr56r/r7c+ySnadthtPAnXFrKBp55n7
+	 SIWwhorx9Ks3Q==
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id CA99E60058
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 23:52:30 +0100 (CET)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v6 1/3] netfilter: flowtable: remove redundant ifidx field in tuple output union
+Date: Fri, 20 Nov 2026 23:52:25 +0100
+Message-ID: <20261120225227.3565643-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -69,78 +63,71 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-It is possible to create a VLAN-aware bridge via IFLA_BR_VLAN_FILTERING
-netlink attribute while keeping the global bridge-nf-filter-vlan-tagged
-sysctl off.
+The XMIT_NEIGH and XMIT_DIRECT types use an output ifidx field to
+determine the destination netdevice. Remove the redundant ifidx field in
+the flow_offload_tuple union that represents the output path, use the
+existing struct.
 
-When combining this constellation with conntrack, incoming traffic is
-defragmented but due to the failing is_vlan_* macros, packet
-refragmentation does not happen.
+No functional change, this is just a preparation patch.
 
-In detail, br_nf_forward hook has to set nf_bridge->physoutdev so
-br_nf_post_routing hook does not return early and ip_do_fragment gets
-called (via br_nf_dev_queue_xmit and br_nf_ip_fragment).
-
-Extending the is_vlan_* macros to also take into account the bridge's
-BROPT_VLAN_ENABLED flag fixes for all this.
-
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/br_netfilter_hooks.c | 29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+v6: no changes
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 3b28f81a461a..ae7cae0a82c7 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -90,27 +90,38 @@ static inline __be16 vlan_proto(const struct sk_buff *skb)
- 		return 0;
- }
+ include/net/netfilter/nf_flow_table.h | 3 ---
+ net/netfilter/nf_flow_table_core.c    | 2 +-
+ net/netfilter/nf_flow_table_ip.c      | 4 ++--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index 5b22d31cb140..61ac43b17dc9 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -160,9 +160,6 @@ struct flow_offload_tuple {
+ 	struct dst_entry		*dst_cache;
  
--static inline bool is_vlan_ip(const struct sk_buff *skb, const struct net *net)
-+static inline bool is_vlan_enabled(const struct sk_buff *skb,
-+				   const struct net *net)
- {
- 	struct brnf_net *brnet = net_generic(net, brnf_net_id);
-+	struct net_bridge_port *port = NULL;
-+
-+	if (brnet->filter_vlan_tagged)
-+		return true;
-+
-+	if (skb->dev)
-+		port = br_port_get_rcu(skb->dev);
-+
-+	if (port && port->br)
-+		return br_opt_get(port->br, BROPT_VLAN_ENABLED);
-+
-+	return false;
-+}
- 
--	return vlan_proto(skb) == htons(ETH_P_IP) && brnet->filter_vlan_tagged;
-+static inline bool is_vlan_ip(const struct sk_buff *skb, const struct net *net)
-+{
-+	return vlan_proto(skb) == htons(ETH_P_IP) && is_vlan_enabled(skb, net);
- }
- 
- static inline bool is_vlan_ipv6(const struct sk_buff *skb,
- 				const struct net *net)
- {
--	struct brnf_net *brnet = net_generic(net, brnf_net_id);
--
--	return vlan_proto(skb) == htons(ETH_P_IPV6) &&
--	       brnet->filter_vlan_tagged;
-+	return vlan_proto(skb) == htons(ETH_P_IPV6) && is_vlan_enabled(skb, net);
- }
- 
- static inline bool is_vlan_arp(const struct sk_buff *skb, const struct net *net)
- {
--	struct brnf_net *brnet = net_generic(net, brnf_net_id);
--
--	return vlan_proto(skb) == htons(ETH_P_ARP) && brnet->filter_vlan_tagged;
-+	return vlan_proto(skb) == htons(ETH_P_ARP) && is_vlan_enabled(skb, net);
- }
- 
- static inline __be16 pppoe_proto(const struct sk_buff *skb)
+ 	union {
+-		struct {
+-			u32		ifidx;
+-		};
+ 		struct {
+ 			u32		ifidx;
+ 			u8		h_source[ETH_ALEN];
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 2aa2647ed9df..a7b4fc5766a9 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -142,7 +142,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 		break;
+ 	case FLOW_OFFLOAD_XMIT_XFRM:
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+-		flow_tuple->ifidx = route->tuple[dir].out.ifindex;
++		flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
+ 		flow_tuple->dst_cache = dst;
+ 		flow_tuple->dst_cookie = flow_offload_dst_cookie(flow_tuple);
+ 		break;
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 19cafae748ab..115c54ad4633 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -867,7 +867,7 @@ static int nf_flow_queue_xmit4(struct sk_buff *skb,
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rtable(tuplehash->tuple.dst_cache);
+-		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.ifidx);
++		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
+ 		if (!xmit.outdev) {
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
+@@ -1196,7 +1196,7 @@ static int nf_flow_queue_xmit6(struct sk_buff *skb,
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+-		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.ifidx);
++		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
+ 		if (!xmit.outdev) {
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
 -- 
-2.54.0
+2.47.3
 
