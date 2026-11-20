@@ -1,62 +1,107 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795173054;
-	b=gpC5YpdlU3oERjGMlE/rtnl4dqo7iEStwGRGJs0RrfZssSRP+ErCzhAXpH4LfMieaUlR
-	 DP5puifLHY3CddpHgmuAFLSljfTRkS1bCgBmrZOzHuBrWlh/r0KnRSYoNK4iEiLeq/T4L
-	 puiTn8wfMA1IwyRPcC9yGd6USt1bXFud/i4Sq3cUHuOUbmFosZYUx/6l4/O10Q9lU2xay
-	 glYoYfxHHT1Q5xyQNZ1mkAgerCBQKAxYd4Wg+o61Um0a+X6LpN533i4mfyVCQ63/OjLw3
-	 bg4m2Ec2UkwFzNOtS4fmgqriHj4JUxhvpb8CRG4/DTiwIsMuq4x8I8WDW9a2lolBocw==
+	t=1795173558;
+	b=14arLkfHnZmdp+gAfmqJY1pfOZdC2N3u+FPp36qAbmf3VFgIsV+O4tJQihztX7m+Owas
+	 5KMvFuKLraWqWc9nwloUl+ZLYH4mMvrrXv4ZH92JqsCgcxJZGBuRmLDfb/uET8/wVL/lo
+	 sQQACYUYclbwpLIYii9HU+2l58RRK39pMeh/AKqqJmpN6ndfDSmkDXk+KibUs5w7I6s55
+	 +EAfda2Zs6hi4BnpXCdRL0It4njLZfScjmCk+agk3V3XjzbBirlUnA21taQX+K0H2Zxhu
+	 MWCVfBDdI1e8419EL4fEYDnh+8gEu4w4GJEECtdUMPAKXSuwXnimba1O/bGUIZkZLIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795173054;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=2bj2WTnjPiLjsE3k43qjyadZlVuZzndDK7/3eTPwHqQ=;
-	b=aAihYe/vJ4lApYROn/f9u0naFnDAakSz7fNtkmpOHXI3xBvJiVGO1y41baKZFcZTGP78
-	 QU5hwUukIPzxorOpVtCP/9FN+4OsK3oB2Fvtvt6g32kXO1FzhW5XHzXoqLEjlT3zc6C1T
-	 042NPqKpR5dCCbrCK8rryJlyQmFNJ/nn8+CGXEW+bdChDcqzzV4rtGFF0vzNoiiOuf4kS
-	 KFt8iQgal0WYdEfJmfN3ppU1USnVCSPCr9Duv4HCBrJt1gwPrnXaqeClNiDHpysZHoJSD
-	 MSGeeTUVJltbGweHr/nnagsy89D57ctZ5vGlImXsOdazqfHbTQXYuO3jm/tlqAKAbvg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795173558;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=cO7QiRpUot9Vz25lkQZDD0fNa3WCQpmTa73WBgTVjk8=;
+	b=dtb5QthjFLgkqazEH07N6JoteUAFgQxYSTmMrFrwHN3/kbeByibUPtOhifs3W5Op60ZE
+	 4uiMTEEQRHMtzQU1UCjXnOZBmZH24zbjbZTCuRlB/WZH1K7fQSEckERO+32AwMcGIKdRE
+	 fivNwCeFtNODvsMn5bXR/TZibOKFKBF42vrf4OwM/jjm2it7oVRGBzfI/nEfkI7sS/IJO
+	 5AGCQCG8smglboCiU2ilakankyVzLbum3KyM6LC4rJAaYkMbSZCtgto0s9JAH6b9hTdus
+	 ReAiEZDD1mAB/MlQK3nVIYNM9eo7z+Ec3z9D28o0VrFTBluqXtJ6pKuzHj/WWV5EhFA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Z4gIouMy;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=uvqD4Pve;
+	arc=none smtp.remote-ip=209.85.210.174
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A9E606A336;
-	Fri, 20 Nov 2026 11:10:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0303D606A326
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 11:19:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0303D606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Z4gIouMy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 434E11F000D8;
-	Fri, 20 Nov 2026 11:10:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795173054;
-	bh=2bj2WTnjPiLjsE3k43qjyadZlVuZzndDK7/3eTPwHqQ=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=Z4gIouMy2gpXBaY3WJ92xqOrONrBgfanHc39m1N5Hu9RlQQcAyvzr41n0hCNe+1z7
-	 m9cpuNaO0X4sTrpy1GWC+mYR05yX3WG8ac//p95Bz1Kz7glAHpg3rJ5k+nJgy5N/4l
-	 C5FDahJrW/v4Z4zKunw95Z9W3W73+9m7YxBITsLCmWJ8tz92cu2Ti0keTDiuF4n4bL
-	 brIgEo77x3MD++ZDTy5bWXBAb6JOuCY4JObzTt5Z5HZloAi/fDjQU37f3GOjGpUskZ
-	 iwWqPQoyMMDRPvzjXzSpzirRx/CjpQUV6HZGzHBT38rZNa7YHWjXC93Bu9T9zNkvdc
-	 PXWpWEXjV2SQg==
-Subject: Re: [PATCH net v4 2/2] selftests: netfilter: cover IPv6 FIB prefix
- suppression
-From: netdev-bot+sashiko@kernel.org
-To: leonard@lausen.nl
-Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
- shuah@kernel.org, daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-kselftest@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Date: Fri, 20 Nov 2026 11:10:52 +0000
-Message-ID: <179517305282.3136.16580929973360319234@kernel.org>
-In-Reply-To: <20261117110813.9894-4-leonard@lausen.nl>
-References: <20261117110813.9894-4-leonard@lausen.nl>
-X-sashiko-severity: Low
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=uvqD4Pve
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8a06e79e152so416110b3a.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 03:19:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795173557; x=1795778357; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=cO7QiRpUot9Vz25lkQZDD0fNa3WCQpmTa73WBgTVjk8=;
+        b=uvqD4PvefDfCYawdcK8xfOke5kh4ebqkVLbhfhlyznmi+YdFEJnYB7CLXX+DqFiLBi
+         +AUAn7T0N9wKeWlPwzfk/TfhssK5JetXq4D6Ut6A+OsxsT0aZwOsLDtP039n3y60/6Jg
+         7w39bpMSKj3XVfubN7DviLW+G0hW6VpYKSf1hYdEno2jT5ky/UV/+c8VjkvSgYyTY9yZ
+         2Asz1rjgQuM7Ex9rMxoDFJuFtHA40XPSM2/WXlXfi4EaYEWzfUgRqRPL1RmMoUZrkVxR
+         t+oZ6HleMIMRUAM6sHW89GT7YSyrDxDLav6AnF4UwNQcRxV8Ybw21iS5IrCB9P39yNEr
+         FVJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795173557; x=1795778357;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cO7QiRpUot9Vz25lkQZDD0fNa3WCQpmTa73WBgTVjk8=;
+        b=ZIg7Y0BdgRdMsbFLmiEdJ03Tkp06RWlbihDikZKBXDyuw0xvwyV0sxykn1/9DAG/GA
+         o1JCbFjnUZkq2C5NrdUMEFxMZUP8D1a35c1OdmDg734EnRufY2IHp3hcYcis6H6RoCOD
+         ceFf+Oep5gYJsU6FTnQ0QPDt/6Fj9MsiBhKs9SqJ4zpRh30qwEQR6tNlxCTAcSpzLnqp
+         dlC+jLWK3DKmSietvEOuVGqaYVqmdyxcpe3n4E/NOUrO3YsVK4r0oyCd8KgDXtuJAI/U
+         fvluBLmHr+49X0bBgMTg+Bt8VcjTzqFKYHedbxxtaXxV4XiaDEEgzyamLnpchI2Mz1rR
+         ImvA==
+X-Forwarded-Encrypted: i=1; AL+hErFwghDBCopUlO/yYLsCbN/oyheI5HzcFILxoVExweQV4Pa0LLb+Lpo4BX5X8qk8rEUgHoyC4fPGwoJCbENh4dM=@vger.kernel.org
+X-Gm-Message-State: APuU4Z91s6nUVz8fR6W3dmZ/ziyVEaiqRKhO88Ddq4FOkJVE17vfekZc
+	ZAWlf8RFvuwpoqUGHWKVj9pvgtz4iZzfE2lvSy3F6QJL2CWmQ4C7APYR
+X-Gm-Gg: AYBFou0XMcZUVIgJkbveEL5Qp5I2RH5uvlAxb8LXk3buik5yd17lIzZaGoOdLpbTAC/
+	N1kIWC0sHVS+IsvkZGjZnTTpeGvSLxonLpOSaxT2nY2hkgLxj4YlkPFI6/4HIitACbctAKNVBSk
+	8kohZqr+tNFZxNKc1L89CBzracg48g/HBKWmoBXbyp23I4lrkEar+TY+xbpGYaq+M1Cm2OQWSxR
+	dJ632UhT8z1CRv8dt4TfHN5gcKbywyM04JQ9tV4UckkguVatKv9ltZrTN+oR8ydhGBpURzkgb/p
+	RVfsP9sFElS/7UUscqMqgPOiX++9W8g6PBspAL0jX7JgYbZhNOZlSwqYibYsPks47SmUqjMJTlg
+	LdKYMmXEDFhU/HZxBrHMFGJnAZJECOES2knfr4OMNFW1QnwpiA+WGuTPnluyjbH2OSrolKH/xOF
+	n18eZA6U9dyw4rFoyxw1cJ3lvTvwSjulTT2VeH62u5+v0YZhXhub8cJxUcNXb2UPget8QzVpv6C
+	kc08c/MwpLbRxjb1CWBpWizJlz/ifk7sRpnE5bLYug/q2VAThojPYcV0Xbplc9DCI9L3OmztzZj
+	54xSUMH+savcZ3xuwmncLkm87AZtmXODz4IbbZWcSo62D+VJmaqsz81dFLKbrLtb3v5IdI5I2YM
+	ijNPqD6SfdlpG
+X-Received: by 2002:a05:6a21:4d8e:b0:3fb:a69:8480 with SMTP id adf61e73a8af0-4014e35c584mr2272208637.87.1795173556776;
+        Fri, 20 Nov 2026 03:19:16 -0800 (PST)
+Received: from JUNVYYANG-MC1.tencent.com ([43.132.141.24])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87285c14fsm1367050b3a.15.2026.11.20.03.19.13
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Fri, 20 Nov 2026 03:19:16 -0800 (PST)
+From: Jun Yang <juny24602@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	aconole@redhat.com,
+	yifanwucs@gmail.com,
+	manizada@pm.me,
+	david.lee@trailofbits.com,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	junvyyang@tencent.com,
+	corvus@tencent.com,
+	stable@kernel.org
+Subject: [PATCH nf] netfilter: ipset: do not destroy shared extensions on hash resize
+Date: Fri, 20 Nov 2026 19:18:57 +0800
+Message-ID: <20261120111910.67379-1-juny24602@gmail.com>
+X-Mailer: git-send-email 2.54.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -66,85 +111,93 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Thank you for your contribution! Sashiko AI review found more severe
-issue(s) in other patches of this series. This mail is only an FYI, in case
-you want to address the nit picks below when you respin.
+From: Jun Yang <junvyyang@tencent.com>
 
-Low priority / nit picks for your consideration:
+mtype_resize() copies the elements into the replacement table with a
+plain memcpy(), so the comment extension is shared between an element
+and its copy until the resize completes.
 
-- [Low] The new in-tree comment before the IPv6 prefix-suppression block
-  in tools/testing/selftests/net/netfilter/nft_fib.sh says "The router's…
+Commit cffcf57bf03cb ("netfilter: ipset: exclude gc when resize is in
+progress") stopped gc from freeing it behind the copy, but the packet
+path still does: mtype_add() reusing a timed out element and
+mtype_del() destroy the extension on the old table before queueing the
+operation for replay.  The replay finds the copy in the replacement
+table and frees the same ip_set_comment_rcu again:
 
---
+  BUG: KASAN: double-free in rcu_free_sheaf+0x1b/0xe0
+  Free of addr ffff8881056b9480 by task poc/798
+   kfree+0x12f/0x4e0
+   hash_ip4_resize+0x1268/0x18e0 [ip_set_hash_ip]
+   call_ad+0x367/0x8e0 [ip_set]
+  Allocated by task 798:
+   ip_set_init_comment+0xbe/0x220 [ip_set]
+   hash_ip4_add+0x19c7/0x22f0 [ip_set_hash_ip]
 
-selftests: netfilter: cover IPv6 FIB prefix suppression
+A replayed add can instead leave the copy holding the stale pointer,
+because ip_set_init_comment() is skipped for kernel side adds since
+commit a442c8a89fb9 ("netfilter: ipset: do not update comments from
+kernel-side adds"), and the second free then happens at set destroy.
 
-This adds IPv6 checks to nft_fib.sh for suppress_prefixlength 0. They
-verify that a default route is suppressed while a more-specific route is
-retained, and that blackhole, unreachable and prohibit routes (including
-a blackhole nexthop object) stay terminal. The checks run after the
-existing default-table tests.
+Destroy the extension on the old table only when the operation is not
+queued for replay: the replacement table owns the element from the
+replay on, and the old table is freed with ext_destroy == false.  An
+element deleted before the copy loop reaches it is not copied, so its
+comment is leaked instead of freed twice.
 
-The commit message says:
+Fixes: f66ee0410b1c ("netfilter: ipset: Fix "INFO: rcu detected stall in hash_xxx" reports")
+Cc: stable@kernel.org
+Reported-by: TencentOS Corvus AI <corvus@tencent.com>
+Signed-off-by: Jun Yang <junvyyang@tencent.com>
+---
+A KASAN reproducer for this issue is available if requested.
 
-> The router's logging RPF rules have already been removed by then,
-> allowing neighbour discovery during intentionally different reverse-route
-> states.
+ net/netfilter/ipset/ip_set_hash_gen.h | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-The same statement appears as a comment in the patch, covered inline
-below.
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 80ca523f304b..e84341ae9ab6 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -1068,7 +1068,11 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		data = ahash_data(n, j, set->dsize);
+ 		if (!deleted) {
+ 			mtype_del_cidr_all(set, h, data);
+-			ip_set_ext_destroy(set, data);
++			/* The resize copy shares this extension:
++			 * the replayed add destroys it.
++			 */
++			if (!(t->resizing && ext && ext->target))
++				ip_set_ext_destroy(set, data);
+ 			t->hregion[r].elements--;
+ 		}
+ 		goto copy_data;
+@@ -1223,11 +1227,10 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 			smp_store_release(&n->pos, --pos);
+ 		t->hregion[r].elements--;
+ 		mtype_del_cidr_all(set, h, d);
+-		ip_set_ext_destroy(set, data);
+-
+ 		if (t->resizing && ext && ext->target) {
+-			/* Resize is in process and kernel side del,
+-			 * save values
++			/* Resize is in process and kernel side del, save
++			 * values.  The resize copy shares the extension:
++			 * the replayed del destroys it.
+ 			 */
+ 			x = kzalloc_obj(struct mtype_resize_ad, GFP_ATOMIC);
+ 			if (x) {
+@@ -1236,6 +1239,8 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 				       sizeof(struct mtype_elem));
+ 				x->flags = flags;
+ 			}
++		} else {
++			ip_set_ext_destroy(set, data);
+ 		}
+ 		for (; i < pos; i++) {
+ 			if (!test_bit(i, n->used))
 
-> diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-> index 04544905c2164..25e13197f0578 100755
-> --- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-> +++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-
-[ ... ]
-
-> @@ -845,6 +889,52 @@ test_fib_type "default table"
->  ip netns exec "$nsrouter" nft delete table ip filter
->  ip netns exec "$nsrouter" nft delete table ip6 filter
->  
-> +# Keep the earlier IPv6 checks on the path without custom rules.
-> +# The router's logging RPF rules have already been removed here.
-
-[Severity: Low]
-Is this comment accurate? Earlier, the script calls
-load_pbr_ruleset "$nsrouter", and that installs a logging RPF check in
-table inet filter:
-
-load_pbr_ruleset() {
-    ...
-table inet filter {
-	chain forward {
-		type filter hook forward priority raw;
-		fib saddr . iif oif gt 0 accept
-		log drop
-	}
-}
-    ...
-}
-
-Between that load and this block, the only deletions are
-"nft delete table ip filter" and "nft delete table ip6 filter", after
-each test_fib_type call. Table inet filter is not flushed until the
-"flush ruleset" in load_ruleset_vrf().
-
-The prerouting nft_rpfilter logging rules from load_ruleset() are gone
-at this point, since the earlier "nft flush ruleset" removed them. The
-forward-hook "log drop" chain is still loaded, though.
-
-The new probes (ping to dead:1::1) and neighbour discovery are delivered
-locally and never reach the forward hook, so the checks still pass.
-Could the comment, and the matching sentence in the commit message, say
-that it is the prerouting nft_rpfilter rules that have been removed,
-rather than all of the router's logging RPF rules?
-
-> +if ip -net "$nsrouter" -6 rule add pref 100 to dead:1::99 table 128 \
-> +	suppress_prefixlength 0; then
-
-[ ... ]
-
+base-commit: 4d67cf2fd2352f130c42494a933ba9158b925c65
 -- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261117110813.9894-2-leonard%40lausen.nl
+2.56.1
