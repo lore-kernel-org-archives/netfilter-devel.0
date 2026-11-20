@@ -1,102 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=79.135.106.98
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795173559;
-	b=sNtW11oppDzVp4jDv+NQl9LUzx3TCqFn9Zq9y9tInG+0/nomdhVxAhD/QQf0PBYkSCP2
-	 uwXT/afb2ng1oQxkZhlmebW0w2nYiIeWiwTPF76e3tJOtFe/46yr5anoyk3P6Bslf9E3M
-	 kLT+sMCytnp5Kfo5h/uZKv/P3DXlMBs6wskgRvPHsjVBBE1YrTphf2xINfCGjpJEvyeEz
-	 zo1pfv844qG78jl55yKwROpHe8ZDaU96uC6yXoLs12AX67tADbe+2MOGcdptipCSBIqP/
-	 HuBft3pRsyg6A8ve8UYnDOEj0YoCyiR7L1pcWUBBWpDqqwDO+u6MmI2NmiAT1CKYSXw==
+	t=1795177842;
+	b=TiwbS6XSbyCMYzypOLl2KY2Q9S9kKeVmjRMf1BFz44EIkMvce4pRAUsRG7CJMUbfMyDy
+	 UJ6B0XEWUfn34k7jIHYlNEk+p4wtBNNhnaLpurF6GPHr46lEXN4QqEW/YcCdpN6LhOcGZ
+	 77fZTrn1geDrgF3bswysX0Ag+HpJoMD5skM5YpCvk9Ly+I1bJddnC28sG/BR6xXuFiEN8
+	 CK1+CjKTnbtJu65hWXhsqbK4nm3OYCZFKq/M3gJ5nn2uPYKbu9fJDa05S1bhM2iY1bbrw
+	 S/BoEA4P6tAZQF7vEMs5n2kXxGxsmPKnv/hOFnddLpXc6oTtnfc4rA+na/4KUx9QF0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795173559;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Spamd-Result:X-Spam-Score:
-	 X-Spam-Level:X-Spam-Flag;
-	bh=I8GhJnpKnYfJgSMigvxn0tzrVe47bEBLTm791b8puxo=;
-	b=kEB1of75jXvBzvV74ulnUbYetwValCi+qW+VsumA+ZG9ox40Abz2PZYg2hRZam/SVr9V
-	 VmtgO33HSIVW+eTeoc7Q7lqOmmENHKZKX7dwOMfbgIt8PS9apHxVTqXm0+DZpJTYx2jYk
-	 UHnoTewpqz89tMSrqAFSFjEVkdcwiHclHsls3ZISXZBwbE1dQ0dYEvdue9qODXsk8lAsR
-	 VJE6c5SAuZRhNqhJACtKxcg8gf+OcwICyg5qSMmhjnRzKoA7wwhyRXHc+2oy58pk40BRV
-	 BOesJbrw37GBDbBdWz7YioFusEYlEnY6tQDHPJcPw8ASibZO+DROCkppgEBZqKjIFGA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795177842;
+	h=DMARC-Filter:DKIM-Signature:Date:To:From:Cc:Subject:Message-ID:
+	 In-Reply-To:References:Feedback-ID:X-Pm-Message-ID:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=3x2uiAzQDyjRyuSsB/NleI/o1rLWVIuk9GwKt/3SqVY=;
+	b=htUvuMT3UNcm1JpBECr9P7rvMRpgihl4Kh75eQehH4xLAFV9nZ447YRHRNARYXqaMZ+u
+	 QhGPCq5QusfFGnJ9m2BGWCKU2WeAQ/d4abyr1Q3HmZqDRxzpbTKb9bsxyGcLK3YIsnnzA
+	 czOUFJxHCOI8lfPc1rAfBg5PNAEE9lYPi6phgW5Ek04teyy/nGdjODFsDdGHcX3j1329q
+	 TlOtEEmhQBB89BeroNnP6RoDz1G4o5Ey2zR3S1OXB58eN5TojIkW/WGPBnjYOKCXa0gxC
+	 fNLbyQjW3PMX9+4FvYKiaywB8vT2335BYBKezFb8UUaQHqxF8+SWYbLMq2H5C0ngAdA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=gnnpH+uJ;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=QxV7G8eT;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=gnnpH+uJ;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=QxV7G8eT;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	dmarc=pass header.from=protonmail.com;
+	spf=pass smtp.mailfrom=protonmail.com;
+	dkim=pass header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=iL2IYH33;
+	arc=none smtp.remote-ip=79.135.106.98
+Received: from mail-10698.protonmail.ch (mail-10698.protonmail.ch [79.135.106.98])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DF20606A333
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 11:19:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6DF20606A333
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C06C606A320;
+	Fri, 20 Nov 2026 12:30:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1C06C606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=gnnpH+uJ;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=QxV7G8eT;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=gnnpH+uJ;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=QxV7G8eT
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id B073B224FF;
-	Fri, 20 Nov 2026 11:19:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1795173556; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8GhJnpKnYfJgSMigvxn0tzrVe47bEBLTm791b8puxo=;
-	b=gnnpH+uJOXVAICz1FuL7VxrEIlnbTy1B41fQVR0oyN6xxTM356FAPy0QBwBCjwqiG9ONvg
-	tfRH8bkZX8ioq8ZZ36FwFxAfK5opqdkbt3OzmqDJNKw6fUvIk3zdCClqA6l4zo7d/+VGJ8
-	ZgtDfe+CqwNRMJe+sGqQEw7FsaeXkXw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1795173556;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8GhJnpKnYfJgSMigvxn0tzrVe47bEBLTm791b8puxo=;
-	b=QxV7G8eTm0ISY0HkcSGkjixv40fRPOIG8UAjCkz9iXFnxBWdRPcNmN+1ERt2uQSzUUQNId
-	Y3t0StLBen30ECCw==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1795173556; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8GhJnpKnYfJgSMigvxn0tzrVe47bEBLTm791b8puxo=;
-	b=gnnpH+uJOXVAICz1FuL7VxrEIlnbTy1B41fQVR0oyN6xxTM356FAPy0QBwBCjwqiG9ONvg
-	tfRH8bkZX8ioq8ZZ36FwFxAfK5opqdkbt3OzmqDJNKw6fUvIk3zdCClqA6l4zo7d/+VGJ8
-	ZgtDfe+CqwNRMJe+sGqQEw7FsaeXkXw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1795173556;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=I8GhJnpKnYfJgSMigvxn0tzrVe47bEBLTm791b8puxo=;
-	b=QxV7G8eTm0ISY0HkcSGkjixv40fRPOIG8UAjCkz9iXFnxBWdRPcNmN+1ERt2uQSzUUQNId
-	Y3t0StLBen30ECCw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5E0C41342D;
-	Fri, 20 Nov 2026 11:19:16 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 3gKpC7QsAGsvaQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 20 Nov 2026 11:19:16 +0000
-Message-ID: <1a37d867-cb36-4f9f-9b60-9f5dc3055d45@suse.de>
-Date: Fri, 20 Nov 2026 12:19:15 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=protonmail.com header.i=@protonmail.com header.a=rsa-sha256 header.s=protonmail3 header.b=iL2IYH33
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1795177839; x=1795437039;
+	bh=3x2uiAzQDyjRyuSsB/NleI/o1rLWVIuk9GwKt/3SqVY=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=iL2IYH33shWhvLf/J0TVsbZNoH/IWweuJfYJCpwaxxyKFzjUWKHjVuXZoEPmYLLHT
+	 g7L/1A0EEWg6hqIMcv99DPwA6iGPQQFrZSxeke+f7hhicr5XOfiqu2nuswo95/yT4k
+	 D46J696zRvkLABfDSg4CHYG3Nqf1vmDOuGpFaTBOKdukrxTttpjF9P3GvB8sl4rGY7
+	 uVslTnlx1t7ZzFeVBUnzjGSXmLorIKw1r6GDfmfto7w2SRKV0sX4/FOxXHC9ro6r28
+	 GEyyRMeXPpX2H7AgGLf8/mlUa6OB856doI9Hh8K80UaSI5LtXFusfy6Aq6dPNz4sWh
+	 CPsgt+yCDWjBQ==
+Date: Fri, 20 Nov 2026 12:30:34 +0000
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: John <shffr@protonmail.com>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "coreteam@netfilter.org" <coreteam@netfilter.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "regressions@lists.linux.dev" <regressions@lists.linux.dev>
+Subject: Re: [REGRESSION] netfilter: flowtable: XMIT_NEIGH flows sent to 00:00:00:00:00:00 once the next hop's neighbour entry is gone
+Message-ID: <mnTRsDnjFGwkaEs2TyBhSVGORGNjDv2jpYzwr8fY9E3xMMohO6nE5PDALNhJYrjPVDAfxziY2rjCLBNeJ5zs7vRg-6LyTC56Ypk4TKStDKg=@protonmail.com>
+In-Reply-To: <av-RdjXsq4IXsnMg@chamomile>
+References: <MAEpYNlWKRd7lM0j62YlEZ97Ux1h5AyjSuFRm4Lxk2Q6haeDGTKqX8lpDRZ8slvBu6qA7Bbt18zpr9fyF_jArrEemTgRqzqluxmsGH7UcFk=@protonmail.com> <avSIBUcLH4kZyISX@chamomile> <avTngTkNKE5ApQW8@chamomile> <LCJrB-Fde--T9NiYx2QfFb-X-9W-vsYYmtmrHwIKuKgM8enKRWF2DYypz2_zJKSKQBMUdb9sS6xMEfPihv1YO2FLjX1OUN-Td3Hq1eAdLgw=@protonmail.com> <av-RdjXsq4IXsnMg@chamomile>
+Feedback-ID: 9232920:user:proton
+X-Pm-Message-ID: d0bec2f19f1968670e03cb0da2155cefd3870d42
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -106,51 +64,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf,v5] netfilter: nf_reject_ipv6: fix locally generated
- packet to local address
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-References: <20261117221509.3108808-1-pablo@netfilter.org>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20261117221509.3108808-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-13.28 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-0.99)[-0.987];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	XM_UA_NO_VERSION(0.01)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email]
-X-Spam-Score: -13.28
-X-Spam-Level: 
-X-Spam-Flag: NO
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On 11/17/26 11:15 PM, Pablo Neira Ayuso wrote:
-> Fix reject expression in inet/ingress for locally generated IPv6 packets
-> that are sent to a local address on ethX arrives through lo, really
-> perform the similar handling as ip6_rcv_core().
-> 
-> Reported by sashiko.
-> 
-> Fixes: 73a73d442f99 ("netfilter: nf_reject: initialize IPCB at inet ingress")
-> Tested-by: Fernando Fernandez Mancera <fmancera@suse.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Thanks for the series. I tested v4 on 7.4-rc3 with the same two
+tests as in my earlier mail, IPv4 and IPv6, and no packets were
+lost. In the GC test the entries went from STALE through PROBE
+back to REACHABLE for the whole run and were never deleted.
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+v4 adds a new problem for flows that leave the router through a
+tunnel device, which plain rc3 handles correctly. I put a GRE or
+WireGuard tunnel between the router and the server, with the
+tunnel device and the client's veth in the flowtable, and sent
+one UDP datagram per second for 60 s. On plain rc3 the flow is
+offloaded once and stays offloaded. With v4 the flowtable GC
+tears it down within 0.2 s of every offload and the next packet
+offloads it again, 53 to 55 times in 60 s. Each datagram from the
+server arrived after a teardown, so 59 of the 60 took the classic
+path, against 5 on plain rc3. Nothing was lost, so the cost is
+the classic path and the churn.
 
-Thanks Pablo!
+As far as I can tell nf_flow_dst_check_gc() returns false for the
+direction out through the tunnel, because the neighbour on that
+device fails the addr_len !=3D ETH_ALEN check (GRE has 4, WireGuard
+0). nft_dev_fill_forward_path() already treats such devices as
+non-Ethernet and offloads them with a zero h_dest, so perhaps the
+GC check should skip them the same way.
+
+A 6.18.y backport probably also needs 871df5007eda, since 6.18.y
+still offloads a flow when the next hop is unresolved.
+
+John
+
+
+-------- Original Message --------
+On Friday, 11/20/26 at 01:17 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On Thu, Nov 12, 2026 at 09:08:27AM +0000, John wrote:
+> Hi Pablo, Thorsten,
+>
+> Thorsten: I first saw this on 6.18.60 and have reproduced it on
+> 6.18.62 and v7.4-rc2. 6.18.63 has the same nf_flow_table_ip.c.
+> b5964aac51e0 came into 6.18.y with 6.18.45, the release named in
+> the thread you linked.
+>
+> Pablo: on 7.4-rc2 your patch stops the black hole, but as you
+> noticed, one packet is still lost each time the next hop's entry
+> goes away, which with neighbour GC happens about every 75 s on a
+> long-lived flow. 6.18.44, before b5964aac51e0, lost nothing in
+> the same tests. On 6.18.y the patch only works together with
+> 871df5007eda.
+
+For the record, I posted these series to address this issue:
+
+https://lore.kernel.org/netfilter-devel/20261119090736.3342541-1-pablo@netf=
+ilter.org/T/
+
