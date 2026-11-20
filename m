@@ -1,75 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795198766;
-	b=coE2Pjx4gkpyEZVak239dj4c+tXwi/GAP9BQcxIekhzcGm+yC4sebg/Eck4COJ7G2Zi+
-	 VeqNt2Fe3Xwj3pTDHKdUYSPRNLeBbcImuM09sVDaK2T/fyjm2O+QwqHBy45JHrcnC9v+r
-	 soR8X+j81q3AbvM3VlXlqyG8NGUxeWtMdalnBP+o6v6o1RDnp2Vdt0/DdSMK2FcUQDcXM
-	 ozdMX3hgz7+DDtO/lmqUC2C7Lt0MIod7Aw1G0myOFXONEHFK4sRYjqMmx9KC+8DI3JMN0
-	 mq65MsDbGjU4kHuhrc+5ui2hFBKaBoBKBXYn4X4xAvhRK1C+2foNC/UioFxFtxDReZg==
+	t=1795206288;
+	b=B70xGMXyRHfYzKDlmxLslhKKS5OexaB+mKtPRsTK2StBFwRELYWdwPZr6lUOO2dEIMm/
+	 OdVnOuXpQKEWanqYkwK0nD482MAgPHOTgAr3ngGQ3t9kvJVqsXha8yIXNMUnMXuv8p2ky
+	 MFfv57/6fD1XVUgwC7TLlCYnoAYdJWp5Rs37NQT1idSghL0npq4QdDnRyX7B2snYm9IZl
+	 zGYNRl50Pw9EHYXWKHfUNBZJJ3PrfUCA0QlRmVfd+zMKNY1OBN9CUtgsq7s+g1Hlbkvm1
+	 TAcgUvsu2P9t/q5tyPtRMLQm5iThTKGsh2/vpAK3p+wJ7Fiqcj4weNZZoTgJYy3m37Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795198766;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:Received:Date:
-	 From:To:cc:Subject:In-Reply-To:Message-ID:References:MIME-Version:
-	 Content-Type;
-	bh=0Se2BgcBICHHpenWI5YyQcemR/vbNVfPDexy+lHoP/k=;
-	b=0uc01TmxpNIfkOY2mYJgZTRQHpSXo0+k1knXRQupbpeA0XUsGyFjY6t5hA2+y/dlsQu3
-	 uEHMFB5cKks7nXvbzgQBp1EUn/natCbB2aVBpLdnaeH5sjWbiV7VP8HfMD9+8hBzYFOdK
-	 DuOA/qofiDVMj3y9uAsJoW0A2j/h95J5RvvOIvk3h5n/ARVdpxvxtyfUe85IKWyxB8+wP
-	 DE7fhYIaDQ4Rr1SNVn/lGoa35HPyjSAtBSvZIMX0EnJZA/TbX0Y/+lRCrnxjB+NJ40xpM
-	 tLYLkNqNXeLYAdHCHMv0PYdNr2xrCZGSqw0kAvHJEwEc5ICJYO8Nn6D6iGYsnRtNtuA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795206288;
+	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=8pAQlwJ+4lIgmRyKaN7x+yCnTkxYkAqDPCpo/PEx3UM=;
+	b=at/IINOehnkdAhDmgTsO8NB1Fhkmi9RWceD1cKph9MJrJj44loUDuLqAh0y0jBMHvZmX
+	 bHvd7W04QdsXYbV0/djUpj6W4atTXEQ2lHOV0HGqP28n1zyfKMBV0RECFjsYK4YplKUh9
+	 Jg7WDsJS5Z/p+NIjMcuDnSmv8CUJM8B5VA/8wo5+iCKoZAfHfRL2x4HqZjS+KZdmIDo0d
+	 UiS+cfgbfNyd/LhIMtjRo51SQrWQ+nVym2QFG+3vdRaMr4acRYGEYu9N+Mxaf1uLaM+Ps
+	 /cs2j/VPOnBkWEn1jVYxntgACn8MSjsF3CSXNaJQ2YnUBeqRHlrBlgvD4AFyv/DdppQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ssi.bg;
-	spf=pass smtp.mailfrom=ssi.bg;
-	dkim=pass header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b="LSkvrL7/";
-	arc=none smtp.remote-ip=193.238.174.39
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	dmarc=none header.from=nwl.cc;
+	spf=pass smtp.mailfrom=nwl.cc;
+	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=NLJO6kUk;
+	arc=none smtp.remote-ip=151.80.46.58
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FF3B606A8BF;
-	Fri, 20 Nov 2026 18:19:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4FF3B606A8BF
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F0D606A6E7
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2026 20:24:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4F0D606A6E7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.a=rsa-sha256 header.s=ssi header.b=LSkvrL7/
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id E039421FDB;
-	Fri, 20 Nov 2026 20:19:22 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=0Se2BgcBICHHpenWI5YyQcemR/vbNVfPDexy+lHoP/k=; b=LSkvrL7/kLCG
-	tam6bejtoOZmess8nnzfd+Tx+bJWKCVCFDl9u7WfzG9hrvMYvTnYZsp0O3ZQqwBW
-	nT4ZCw4Fb3oy2NgzfJLUcqiig3qCOJZeJKTeiFgdOnLqkEXOOyr3JhzObFAFGXDZ
-	QXoKePfkRKxD4TemGS7G9XISJs8GIz1fpKW+v8+ESzcAINDYzf9MQlClDmb++U1T
-	/lunQq1qNFLevAM1OqoNSAqPu45MQQfYW4zQ3BAHbK2+lFGZTKO0WhoX5lMZ6aOL
-	2Z9JXYxsW+GRDUG9RNy973XZnfJXX9DNpEmS/lbTUUqVMTW496HJQ5w0r2EKFhc2
-	r4Ut7IoOLq7POGHNy8y8Sbzh9Y8tu+YNtdIt7QoAyu68kmcTv/0OXGan/oi85w3M
-	fOM79rn8O31sv0ZL7Swr5AuoA5JCUUVi7q/If2+DzPZgQ9NKWtSo4EOuNN3qubbB
-	OGED3IG0M/4KoTblM+jjHxvXkqlwuXl/gPi9KK7weX7P+/xuQspbeqsFCXQ2jC4j
-	isTKmC1Z1Eublhgsm/SEZ9HOqj7L1pIGXu7w6nD5IEpn1yVMjDXd/8F/DQuQzYyt
-	lJFuIhO1IY7DgKgB/KhP0unZu9PiXbcUQyRbE4NRcExOpNb1UQOhJPtdhnj2dn5R
-	CGQjZQqm2Ts5zIRg0IlLTG/rnuQGc98=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Fri, 20 Nov 2026 20:19:22 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id B13F062424;
-	Fri, 20 Nov 2026 20:19:21 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.2/8.18.2) with ESMTP id 6AKIJKBN098631;
-	Fri, 20 Nov 2026 20:19:20 +0200
-Date: Fri, 20 Nov 2026 20:19:20 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v5] ipvs: pass correct sk to update_pmtu and on
- tunneling
-In-Reply-To: <20261119160650.133060-1-ja@ssi.bg>
-Message-ID: <b08132bb-f09e-d74c-f930-c9e804daf4f8@ssi.bg>
-References: <20261119160650.133060-1-ja@ssi.bg>
+	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=NLJO6kUk
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=8pAQlwJ+4lIgmRyKaN7x+yCnTkxYkAqDPCpo/PEx3UM=; b=NLJO6kUkRz22pLvnkpLvgOrt0W
+	uLYBi0jTLMIgWOq8t1yFEqU0CJ4b8ACyFLrK3DU4VcZaB1re0xkHZCfn1/FLUzpyn1UwtGio7icO0
+	a2/eWXW7K1SUhVVS8dwGPW3uw5T/Ue5pjs7OvNhwdKSLwk3X2URhdax/3Se9odXOBT2EB6zLHYFzI
+	cmbM4lgJJyKpNhCU3VGfkOm2vkfVfgV8hfW2UZ+AmPFdOKf+Z0JwVBA7o8TNxCPAQnV0HT4xUFNdn
+	Rw1NQ2Qxqiw3kQBQT+GAGf4Hdjh7bngUBJoPJ5sBPjVa6O9QLtVwLcSHHWvHnfqx0PBO2WRkzZGqu
+	b21bKmqA==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=tia)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1xUV9z-000000005tZ-25D2;
+	Fri, 20 Nov 2026 21:24:39 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nf-next PATCH 2/2] selftests: netfilter: Add minimal VLAN test case to br_netfilter.sh
+Date: Fri, 20 Nov 2026 21:24:34 +0100
+Message-ID: <20261120202434.1084006-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.54.0
+In-Reply-To: <20261120202434.1084006-1-phil@nwl.cc>
+References: <20261120202434.1084006-1-phil@nwl.cc>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -79,86 +70,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Cover at least the bridge's ability to tag/untag packets and assert
+oversize packets are fragmented again after being defragmented for
+conntrack.
 
-	Hello,
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ .../selftests/net/netfilter/br_netfilter.sh   | 23 +++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-On Thu, 19 Nov 2026, Julian Anastasov wrote:
-
-> This commit fixes two cases of providing sk on tunneling,
-> one to the update_pmtu handler and the second case is to
-> the ip_local_out() call.
-> 
-> For local clients, we can see at LOCAL_OUT a netfilter hook's
-> state->sk that is different from the protocol's skb->sk. This
-> can be the case for tunnels where different sk is provided to
-> ip_local_out. If such packet is then forwarded via IPVS tunnel
-> we may need to provide state->sk to the update_pmtu handler,
-> not skb->sk.
-> 
-> Fix that by passing the netfilter's hook state via the
-> packet_xmit and conn_schedule handlers to call the update_pmtu
-> handler with state->sk.
-> 
-> While here, change maybe_update_pmtu() to be family independent
-> by using dst and do not request neigh confirm via the last
-> update_pmtu arg because we do not generate the event based on
-> remote signal.
-> 
-> Sashiko has some warnings for the update_pmtu handlers because
-> we provide only sk, not skb:
-> 
-> - we do not provide skb because the handlers assume they are
-> called from tunnel transmitters where skb->dev is present
-> but for IPVS skb->dev is not set yet
-> 
-> - without skb, the zero destination address for unconnected
-> sockets can be blindly used for FIB nexthop or route exceptions.
-> So, we now restrict the sk to be for TCP_ESTABLISHED state
-> where the sk is connected to destination address. All other
-> sockets can receive the PMTU update via the ICMP replies.
-> 
-> - as we provide the original sk (from state->sk) for the original
-> IP header, make sure we do not provide sk from one family to
-> the update_pmtu handler for different family. Still, allow
-> IPv4 packets to update PMTU for IPv6 dual sockets.
-> 
-> The second problem is that on tunnel forwarding we call
-> ip_local_out() with skb->sk. As we push our own outer IP header
-> in ip_vs_tunnel_xmit*(), the right thing is to provide NULL
-> instead, as done by other tunnels (IPIP/SIT/GRE).
-> 
-> For consistency, even if we do not walk the netfilter hooks and
-> just pass the packet with NF_ACCEPT, provide ip_vs_null_xmit_v6
-> handler to properly indicate that we are sending IPv6 packet.
-> Before now we used ip_vs_null_xmit for both families.
-> 
-> Link: https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261113011447.2357709-1-pablo%40netfilter.org
-> Link: https://sashiko.dev/#/patchset/20261113121303.42549-1-ja%40ssi.bg
-> Link: https://sashiko.dev/#/patchset/20261103152550.60449-1-ja%40ssi.bg
-> Fixes: 79b16aadea32 ("udp_tunnel: Pass UDP socket down through udp_tunnel{, 6}_xmit_skb().")
-> Fixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okfn().")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-
-	Dropping v5 after Sashiko review:
-
-	https://sashiko.dev/#/patchset/20261119160650.133060-1-ja%40ssi.bg
-
-	Just posted v6.
-
-pw-bot: changes-requested
-
-> ---
->  Changes in v5:
->  * Match the packet's daddr with the socket's connected address
->  * IPv6 dual sockets connected to IPv4 mapped address can be updated too
-> 
->  Link to v4:
->  https://lore.kernel.org/all/20261113121303.42549-1-ja@ssi.bg/
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/tools/testing/selftests/net/netfilter/br_netfilter.sh b/tools/testing/selftests/net/netfilter/br_netfilter.sh
+index 011de8763094..e1c258b23998 100755
+--- a/tools/testing/selftests/net/netfilter/br_netfilter.sh
++++ b/tools/testing/selftests/net/netfilter/br_netfilter.sh
+@@ -33,9 +33,10 @@ do_ping()
+ {
+ 	fromns="$1"
+ 	dstip="$2"
++	shift 2
+ 
+-	if ! ip netns exec "$fromns" ping -c 1 -q "$dstip" > /dev/null; then
+-		echo "ERROR: ping from $fromns to $dstip"
++	if ! ip netns exec "$fromns" ping -c 1 -q "$@" "$dstip" > /dev/null; then
++		echo "ERROR: ping${@:+ $@} from $fromns to $dstip"
+ 		ip netns exec "$ns0" nft list ruleset
+ 		ret=1
+ 	fi
+@@ -163,6 +164,24 @@ bcast_ping "$ns3" 10.23.0.255
+ # same, this time via veth4:macvlan4.
+ bcast_ping "$ns4" 10.23.0.255
+ 
++# test vlan filtering
++# veth1 -> trunk
++# veth2 -> pvid 2
++checktool "bridge -Version" "run test without bridge tool"
++ip -net "$ns0" link set br0 type bridge vlan_filtering 1
++ip netns exec "$ns0" bridge vlan add dev veth1 vid 2
++ip netns exec "$ns0" bridge vlan del dev veth2 vid 1
++ip netns exec "$ns0" bridge vlan add dev veth2 vid 2 pvid untagged
++ip -net "$ns1" link add link eth0 name eth0.2 type vlan id 2
++ip -net "$ns1" link set eth0.2 up
++ip -net "$ns1" addr del 10.0.0.11/24 dev eth0
++ip -net "$ns1" addr add 10.0.0.11/24 dev eth0.2
++do_ping "$ns2" 10.0.0.11
++do_ping "$ns1" 10.0.0.12
++# make sure defrag'n'refrag work
++do_ping "$ns2" 10.0.0.11 -s 1477 -M dont
++do_ping "$ns1" 10.0.0.12 -s 1477 -M dont
++
+ read t < /proc/sys/kernel/tainted
+ if [ "$t" -eq 0 ];then
+ 	echo PASS: kernel not tainted
+-- 
+2.54.0
 
