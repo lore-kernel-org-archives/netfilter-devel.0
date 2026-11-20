@@ -1,104 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795172468;
-	b=Su+WLwJKEvd0RfniwehDXs5XJfGqfvHiRwOEYDvDd/uq9r0DYzALJTrMTrXBzBXc7yly
-	 3q9GT8YjMqqK8DP/7aB40awMHdKCrqUzQ9Ygqygcqo8NZs9+omPn1r4igfnHnL6Eysade
-	 aQNU9a4bqXb6x09SV4qKrrJTUlbPj5nW9tHsDE4NoY4PhaygEJf87zlPrxlMIgioTQ0lA
-	 t2WZ7XdkW7/E2ymRpI8qRgCStwUI0eMqnIw0FRrTV7n2GiJIwWU9VxK8+NlsjS6KTKs5a
-	 LYPdcm8eVJd+L2wlBujPpMoTS1CGY428AsDfoxIHTx16Rg/TgxvGZmAqQV/KSwLoC4A==
+	t=1795173052;
+	b=n/p74he5uiz35KAGG+YUDvOx+UVmUzEKnxKTcGovgszclchWcoueS4QOMiMnrwoXmxXg
+	 OvUtiP7r2IwvszD4o0zTTF2lYuJjVrcOEXLpMZxqpN5/EeCyls/FaRoJcukpaOou+asK+
+	 IAwU8l3AT6GFjUK4CoLj2thJY2CjjyuAh6lHCGzFGqI8EWIxfT0f/0FHCQamXvOJTCGdk
+	 fxv8gPAggg5sHGtHhdj1Zeg3GpkmBbtPD/Q4EFYPHEDkGqa5VcImUHVoHTxlYp1QigAKM
+	 0DGwCdHpI+otI9RZHfLx7qomeLpfy7QHjxu+KFRTPU0mqMxpLVbxQv+51fBdPzqsi4A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795172468;
-	h=DMARC-Filter:Received:DKIM-Signature:DKIM-Signature:DKIM-Signature:
-	 DKIM-Signature:Received:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Rspamd-Queue-Id:X-Spam-Level:
-	 X-Rspamd-Server:X-Rspamd-Action:X-Spam-Flag:X-Spamd-Result:
-	 X-Spam-Score;
-	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
-	b=n1eRBD15/G3PZc5zFEsDscEQbaihAEG6KP4uK7atI+w5GoMOaPVGuZ+FBT1j/tw4YVzZ
-	 p+FBxQz1YmXST2mNxyl9KxUuxy6lguG1x0WRyA5eXp3XvkW7N6LFD99vC7OA14hLx1yuk
-	 cr/SH+pK3Eq28W07qCHrgzVBwWYkpL76sTYL+7OftvrTpSTgHyCcHjAEYBF0NL0sfOt7P
-	 G/OeHgMkFVRL33Sv6OdR9gdcQf4hMOu3EtWOMbpR/Obu5npxlNSc2iLhP+IEgVHEIyH8l
-	 sqaQTolIL+hWP3KnYxj5dpmGB605tZxEKcQf6kVS+HHA2SbnImUhF/xSKY0WFdHRB2Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795173052;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=OjQ3KTookU9b8nB1FsPKUZ7d491idzwEmHx59C7R6BM=;
+	b=vZVDGXeeMSe3GIbEpjZ8TNnC6IZhAuEec8s974Nh3zk888MvtXRVo9cIM1ZlaR0D7Gn6
+	 kcLAgiDW+qdtPxGHfOWc0YxLMF/dUK2vHP+Eu+4fpQG3YHB8rPc6PLDspJTLAk3wLMtUJ
+	 HBbtczlE/nRg3VlxtL+bKL0YqdPrXiX8KaNpvuLNk0CD905p0wZqLUvbmFHdUJP7FoJsG
+	 GKOel+69ZSazTxmmWKiYY33aSFOPLURJ2Z7+xWg+BkU+bxOHvsaBfUy2VkJY9isBlTIt3
+	 LSI8Tn1CRWEA53wvti4lt1uTNOSFz8gmrLdZM3ZFbxEuApNF16Nb4yn+hVcuK9DlS4w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=suse.de;
-	spf=pass smtp.mailfrom=suse.de;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vudTzhJP;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSDrjOne;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1mSu2OUI;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qvYcOky0;
-	arc=none smtp.remote-ip=195.135.223.130
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BLDTG8QU;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E497606A320;
-	Fri, 20 Nov 2026 11:01:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4E497606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AD6E606A33B;
+	Fri, 20 Nov 2026 11:10:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=vudTzhJP;
-	dkim=pass header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=fSDrjOne;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.a=rsa-sha256 header.s=susede2_rsa header.b=1mSu2OUI;
-	dkim=neutral header.d=suse.de header.i=@suse.de header.a=ed25519-sha256 header.s=susede2_ed25519 header.b=qvYcOky0
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 0F3822258D;
-	Fri, 20 Nov 2026 11:01:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1795172466; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
-	b=vudTzhJPUj2RIlkrgT6d1STBxe6jUpqQdk4hHolBEhm56LMH7zD8gfqQSi7CtyUB6NarKS
-	PFibV7YWaOHfWf6iIGnN6x94DSj280TwdKNX1n7iNijGv/+nEYzoE791djl/V7FuxSxlvS
-	iNK7k45+jbDTEn9l6zj3Q6ynEaEpqY8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1795172466;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
-	b=fSDrjOnepEtaZMUHGwfXzhtGRliEbvPtyIvNC9LNvN9I/BSyUZCyH0oYbR4xU58F46+heN
-	KAH8Oxco3bs2IwCw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=1mSu2OUI;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=qvYcOky0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1795172465; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
-	b=1mSu2OUICDfDL/lQOrikeDEjkPCqZBX3otAbIOF22DOKdcP7LfnaPePBoSZsJTqriat0ZB
-	bRMdgjyjCMYb4wNv+UwsEUh0F15dfzrUtPLXDmXRP/hcA6qlDOHCugN80C+Ll4jTVufks1
-	EQY8HAtnshE68L32+X+UHU50hZH6H1w=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1795172465;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Uf+/EdEL7JPB/0l1SJZyw/OKDRO9feHxkTVo/cD1+t4=;
-	b=qvYcOky0XG7nMWFQI7HsyFg06k/Ty38jHdMNYrzhZ4hmErlo6bfiImwKI8SviEmpvppLTZ
-	pt7n+KpX3FFzuTCQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5DCAF1342D;
-	Fri, 20 Nov 2026 11:01:04 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id NpUWDHAoAGsiVwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 20 Nov 2026 11:01:04 +0000
-Message-ID: <e2349ba1-454a-4f1c-b7af-d71ff984a693@suse.de>
-Date: Fri, 20 Nov 2026 12:00:55 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=BLDTG8QU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AD811F000C4;
+	Fri, 20 Nov 2026 11:10:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795173052;
+	bh=OjQ3KTookU9b8nB1FsPKUZ7d491idzwEmHx59C7R6BM=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=BLDTG8QUIZwPZtvB3To/8I1CRem2qx6oo5aVCAgbdiE3Sq8PdeeY8vnPjGOkAhS6z
+	 GZsK7P2ZKvlsBHzaXlr18ZwB2vmRL8b95js7W6vhnRxrGX7lRCr7MJulMiKLCITQ9M
+	 LjaxjdHsZ2rHpq7rvI54T+z7ribxMWaGzgReEL8XcO7UCxITOE/7vCQV7FmGRf4WEe
+	 FDfKz2RL1H8vJ2fwr3wIzVsNEmnYpm4RGbNRRihTpPIIjQ9B7EfTToczGed4fNP8Fj
+	 z0mIct1XAsZLfAtMjsZ5WHi8fX7Z8APyByqNeMSjgZT5fCG3TPkqIDWCiZFs7ELVph
+	 P2DM1RSYQ0TgA==
+Subject:
+ Re: [PATCH net v4 1/2] ipv6: Honor suppress_prefixlength in fib6_lookup()
+From: netdev-bot+sashiko@kernel.org
+To: leonard@lausen.nl
+Cc: netdev@vger.kernel.org, dsahern@kernel.org, idosch@nvidia.com,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ horms@kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
+ shuah@kernel.org, daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, linux-kselftest@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Date: Fri, 20 Nov 2026 11:10:50 +0000
+Message-ID: <179517305064.3136.1004033364873817896@kernel.org>
+In-Reply-To: <20261117110813.9894-3-leonard@lausen.nl>
+References: <20261117110813.9894-3-leonard@lausen.nl>
+X-sashiko-severity: Medium
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -108,126 +66,149 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] netfilter: bpf: reject a repeated bpf_ct_set_nat_info()
-To: Andrey Misiurov <amisiurov@cloudlinux.com>,
- Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- linux-kernel@vger.kernel.org
-References: <20261119163328.878804-1-amisiurov@cloudlinux.com>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20261119163328.878804-1-amisiurov@cloudlinux.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: 0F3822258D
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-13.50 / 50.00];
-	SUSE_INTERNAL_BYPASS(-9.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	XM_UA_NO_VERSION(0.01)[];
-	MX_GOOD(-0.01)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[8];
-	RCVD_TLS_ALL(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,cloudlinux.com:email,suse.de:dkim];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Score: -13.50
 
-On 11/19/26 5:33 PM, Andrey Misiurov wrote:
-> bpf_ct_set_nat_info() checks the l3 protocol and the manip type but not
-> whether NAT for that manip was already set up. A BPF program holding an
-> unconfirmed nf_conn___init can call it twice with the same manip. The first
-> call sets IPS_SRC_NAT_DONE (or IPS_DST_NAT_DONE); the ct is still
-> unconfirmed, so the second call passes the confirmed check and reaches
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-What confirmed check passes? I think there is no such check at all.
+Critical: 0 · High: 0 · Medium: 1 · Low: 1
 
-> WARN_ON(nf_nat_initialized()) in nf_nat_setup_info():
-> 
->    WARNING: CPU: 1 PID: 21673 at net/netfilter/nf_nat_core.c:674 nf_nat_setup_info+0x251/0x2b0 [nf_nat]
->    CPU: 1 PID: 21673 Comm: loader
->    RIP: 0010:nf_nat_setup_info+0x251/0x2b0 [nf_nat]
->    Call Trace:
->     bpf_ct_set_nat_info+0x81/0xb0 [nf_nat]
->     bpf_prog_e4b00ba35d2f7a6b_nf_skb_ct_nat_twice+0x110/0x13f
->     bpf_test_run+0x172/0x2e0
->     bpf_prog_test_run_skb+0x2e5/0x4f0
->     __sys_bpf+0x7f8/0xe90
->     __x64_sys_bpf+0x1a/0x30
->     do_syscall_64+0x5f/0xe0
->     entry_SYSCALL_64_after_hwframe+0x76/0x7e
-> 
-> With panic_on_warn this is a DoS. It is the same BPF-reachable WARN class
-> that 16d464013ec2 closed for an invalid manip value; the repeated-setup
-> case was left open.
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-Yes, although this is a completely different issue.
+- [Medium] The new RTF_REJECT exemption in fib6_rule_suppress() is
+  justified in the commit message by "Do not suppress such routes so…
+- [Low] The commit message names only the nftables FIB expression as
+  affected.
 
-> 
-> Reject the call with -EEXIST when NAT for that manip is already initialised,
-> before nf_nat_setup_info() is reached.
-> 
-> Fixes: 16d464013ec2 ("netfilter: bpf: reject invalid NAT manipulation types")
+--
 
-I think this fixes tag is incorrect. That fix was checking a completely 
-different problem. In any case it would be:
+ipv6: Honor suppress_prefixlength in fib6_lookup()
 
-Fixes: 0fabd2aa199f ("net: netfilter: add bpf_ct_set_nat_info kfunc helper")
+This patch makes fib6_rule_suppress() check suppress_prefixlength against
+the prefix length of the FIB entry when the lookup goes through
+fib6_lookup(). On that path res->rt6 is not populated. Routes with
+RTF_REJECT set in the result are not suppressed, so they still end the
+lookup.
 
-> Signed-off-by: Andrey Misiurov <amisiurov@cloudlinux.com>
-> ---
-> Found during a backport review.
-> 
-> Reproduced on almalinux9 5.14.0-687.61.1 with a BPF_PROG_TEST_RUN SCHED_CLS
-> prog that calls bpf_ct_set_nat_info() with NF_NAT_MANIP_SRC twice: without
-> the fix the second call returns -ENOMEM and WARNs as above; with the fix it
-> returns -EEXIST and there is no WARN.
-> 
->   net/netfilter/nf_nat_bpf.c | 4 ++++
->   1 file changed, 4 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_nat_bpf.c b/net/netfilter/nf_nat_bpf.c
-> --- a/net/netfilter/nf_nat_bpf.c
-> +++ b/net/netfilter/nf_nat_bpf.c
-> @@ -42,6 +42,10 @@
->   	if (manip != NF_NAT_MANIP_SRC && manip != NF_NAT_MANIP_DST)
->   		return -EINVAL;
->   
-> +	/* a repeated manip on an unconfirmed ct would WARN */
+Link: https://github.com/firewalld/firewalld/issues/1600
 
-This comment is a bit too verbose. Can we just drop it? The check is 
-simple enough to be self-documented.
+> diff --git a/net/ipv6/fib6_rules.c b/net/ipv6/fib6_rules.c
+> index 0ffd7b47a0460..7efb0515b5c8b 100644
+> --- a/net/ipv6/fib6_rules.c
+> +++ b/net/ipv6/fib6_rules.c
+> @@ -286,6 +286,12 @@ INDIRECT_CALLABLE_SCOPE bool fib6_rule_suppress(struct fib_rule *rule,
+>  	struct rt6_info *rt = res->rt6;
+>  	struct net_device *dev = NULL;
+>  
+> +	if (arg->lookup_ptr == fib6_table_lookup) {
 
-In addition, please use [PATCH nf] for the next revision of this patch 
-so we know we tree should we use for the fix.
+[Severity: Low]
 
-Thanks,
-Fernando.
+The commit message only mentions the nftables FIB expression. However,
+every fib6_lookup() caller takes this branch once
+net->ipv6.fib6_has_custom_rules is set. Should the changelog also mention
+the other callers whose results change?
 
-> +	if (nf_nat_initialized(ct, manip))
-> +		return -EEXIST;
-> +
->   	memset(&range, 0, sizeof(struct nf_nat_range2));
->   	range.flags = NF_NAT_RANGE_MAP_IPS;
->   	range.min_addr = *addr;
+For example, bpf_ipv6_fib_lookup() in net/core/filter.c calls
+fib6_lookup() when BPF_FIB_LOOKUP_DIRECT is not set:
 
+    err = fib6_lookup(net, oif, &fl6, &res, strict);
+
+So XDP and tc programs that call bpf_fib_lookup() for AF_INET6 will now
+get the route from a later table, not the suppressed default route in the
+main table.
+
+Gateway validation in ip6_route_check_nh() in net/ipv6/route.c also goes
+through fib6_lookup():
+
+    err = fib6_lookup(net, cfg->fc_ifindex, &fl6, &res, flags);
+
+This path is used for IPv6 nexthop objects. Outside a VRF,
+nh_create_ipv6() sets fc_table from l3mdev_fib_table(dev), which is 0. It
+is also used for route adds when the gateway is not found in
+cfg->fc_table.
+
+A gateway that used to resolve through a no-gateway route such as
+"default dev X" can now resolve to a different device once that route is
+suppressed. If no later rule finds a route on the requested device, the
+add fails with -EHOSTUNREACH.
+
+This probably brings IPv6 closer to the ip6_route_output() and IPv4
+fib4_rule_suppress() behaviour, which is likely what you want. Since the
+Fixes: tag will take this to stable, could the changelog mention the
+user-visible changes to bpf_fib_lookup() and to route and nexthop
+validation?
+
+> +		/* fib6_table_lookup() returns 0 for reject routes. */
+> +		return !(res->fib6_flags & RTF_REJECT) &&
+> +		       res->f6i->fib6_dst.plen <= rule->suppress_prefixlen;
+
+[Severity: Medium]
+
+Does the RTF_REJECT exemption also catch RTN_THROW routes?
+
+The commit message says:
+
+    Do not suppress such routes so that they continue to terminate the
+    lookup, as with ip6_route_output() and IPv4.
+
+But rtm_to_fib6_config() sets RTF_REJECT for throw routes as well:
+
+    if (rtm->rtm_type == RTN_UNREACHABLE ||
+        rtm->rtm_type == RTN_BLACKHOLE ||
+        rtm->rtm_type == RTN_PROHIBIT ||
+        rtm->rtm_type == RTN_THROW)
+            cfg->fc_flags |= RTF_REJECT;
+
+On the fib6_lookup() path, fib6_rule_action_alt() returns 0 for any
+matched entry other than fib6_null_entry:
+
+    err = fib6_table_lookup(net, table, *oif, flp6, res, flags);
+    if (!err && res->f6i != net->ipv6.fib6_null_entry)
+            err = fib6_rule_saddr(net, rule, flags, flp6,
+                                  res->nh->fib_nh_dev);
+    else
+            err = -EAGAIN;
+
+So fib_rules_lookup() calls fib6_rule_suppress(). This branch returns
+false because RTF_REJECT is set, and the rule walk stops with an
+RTN_THROW result.
+
+On the ip6_route_output() path, __fib6_rule_action() returns
+rt->dst.error, which comes from fib6_prop[RTN_THROW] = -EAGAIN. IPv4
+fib_table_lookup() returns fib_props[RTN_THROW].error = -EAGAIN. In both
+cases fib_rules_lookup() goes on to the next rule, so a throw route never
+ends the lookup there.
+
+For example, take "throw default" in the main table with a "table main
+suppress_prefixlength 0" rule. ip6_route_output() would continue to the
+next rule, but fib6_lookup() stops at the throw route.
+
+nft_fib6_eval_type() then reports RTN_THROW, and nft_fib6_eval() returns
+no oif:
+
+    if (ret || res.fib6_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+            return;
+
+That can lead to strict RPF drops. bpf_ipv6_fib_lookup() also returns
+BPF_FIB_LKUP_RET_NOT_FWDED even though a later rule would match.
+
+The throw handling in fib6_rule_action_alt() predates this patch.
+However, before 1c32b24c234b the nft code used ip6_route_lookup() and
+nf_ip6_route(), which handled throw routes correctly. The reject-route
+checks described in the notes seem to cover only blackhole, unreachable
+and prohibit routes.
+
+Could fib6_rule_action_alt() return -EAGAIN when res->fib6_type ==
+RTN_THROW? The RTF_REJECT exemption here would then cover only routes
+that really end the lookup.
+
+> +	}
+
+[ ... ]
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261117110813.9894-2-leonard%40lausen.nl
