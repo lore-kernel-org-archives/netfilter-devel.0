@@ -1,60 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.125.25.13
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=83.166.143.171
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795271684;
-	b=QPl8eKOYLzZWkZu+zDFUMgL45P96K9+rDCGrDV3Qs8xgehphVXkr/mD7JhmgmDabBNui
-	 M8uPkXOQXvPI9Oc/wG8CJRt8/gHLsVmCNoKSl4xV5Pnaf98CTs43KjPSFsXh93NRpWC5R
-	 i2uRK7janaEZO+muhDZvvb83bRxC+jvgxq8bEhstH7nwocHbS3oFXIJbh/Y0mzN2NPFd3
-	 bgQPybd2zpajoOr096mLAyRbEIFRn+4JDgkSlGmw0bTNYl6kt36Iw5XhruS6baKFQdZu0
-	 uVV26gBCUEvzm2JddgtPowv/6CcMiOCch7c0MINvIVaAf1EUVrOOVOxHdIPzT4EEGxQ==
+	t=1795271686;
+	b=elivWylSN6WeKAiknUhfkPDiOLNr6oB4wfD4wQJOa2pgrCr4Cu7QQlqMzruIQUrUJeDh
+	 gFuPeQK1zvGPm62K4fwTrFllcI8F2UUELIHYREJfTfGuXuQFHycLy42ntjwdP9RC26gF4
+	 7vyCBU1221NAoY+Z69+t4nOBZN62h73f3j3uMu3db1KYnhmxGhE4+uvQMD9NVeOab0bNQ
+	 ECN+xGh6x96I57EBqIiTQln16O+SSCIoAoWVPfbAfKkeFJvCvn2NWA2xGOdlvcpvfjqn4
+	 chl8kapz+83kPxsDIsnTSXHhVnta8v2Sf5b0oDvijsgLDX17TE24xbhODHfw9bmcu5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795271684;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795271686;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Infomaniak-Routing;
-	bh=BzC8uNR1Bz26Zr1bJ1kRnam8fI6ABQyT2mLGoAMpGPk=;
-	b=dHdnlmgtKR5O6CnfIKPfb1ilRF29vh4i+Wc3z/x3y15fQIT+V8EvjhmA9aGnocDiguCV
-	 ezj9+tFEKF49Z78fk0oy22wgrZMTikYAoqRVceW6dqVjRMOzYN/vhUL0fukLUnavZ0qUN
-	 1nNKN0IKzFwU3BMDyI0xpsaH6rH45uow5+96mdOENMutcusBFWg7z/7JGZ0rTTF79vSpK
-	 H0vxXxkEPEcfNrDrMUX4B1vogJGW+sY9/8TmFPrlnmeAbJmzGNwZ/zMcTigvoCyPEVZ+U
-	 aG/1vuRNSkiVMghyRnDZOmioRKD5hpSPq20Sd4/lHTBb4KLxt/6pOPhQNMy+6Yl09hg==
+	bh=aZvBGzirPSsLR3yXQ3wprP8lYJdjT8YDuavqwECtL+4=;
+	b=DUqP5Y8P7pTCz6qFqcHV9546FkXaOUGqaNRjGJ5LG37gS80Ig+gjtKHCX0dKoxJFSA78
+	 tb63jagBfXnThzaBcl8N1XEMAQ5ZBJ7xCU4FeSTBjhYWm6gJ82UkbHzuSSEy+cgE5R404
+	 TEbT/F4BIy0yxBJw3S8D2fw0yh9Z6p5Cmo7urBJ5Ipt1Fbc2xSLI3U8wR3w/u5nnicy9+
+	 J0V8iPubnjQT/hQDYE7mCLSeZLTWsCFDjJWWIZSk3ER5ZRFmKRiM2+pEVxo7L8eh9ZVlf
+	 /XJCesKoPLkksAGZedbaLXpN3RJQjo5Hd42jA4q+xPqISbnvwKLT2vdpHwGoczraqKg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=harvester.fr;
 	spf=pass smtp.mailfrom=harvester.fr;
-	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=oNl03MFL;
-	arc=none smtp.remote-ip=185.125.25.13
-Received: from smtp-190d.mail.infomaniak.ch (smtp-190d.mail.infomaniak.ch [185.125.25.13])
+	dkim=pass header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=C4QW6wzm;
+	arc=none smtp.remote-ip=83.166.143.171
+Received: from smtp-8fab.mail.infomaniak.ch (smtp-8fab.mail.infomaniak.ch [83.166.143.171])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B628606A33F
-	for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2026 14:34:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1B628606A33F
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7C7606A33A
+	for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2026 14:34:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BE7C7606A33A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=harvester.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=oNl03MFL
+	dkim=pass (2048-bit key) header.d=harvester.fr header.i=@harvester.fr header.a=rsa-sha256 header.s=20260519 header.b=C4QW6wzm
 Received: from smtp-4-0000.mail.infomaniak.ch (smtp-4-0000.mail.infomaniak.ch [10.7.10.107])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jWvqH5lFmzZyH;
-	Sat, 21 Nov 2026 15:34:35 +0100 (CET)
+	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4jWvqL4fLWzcDW;
+	Sat, 21 Nov 2026 15:34:38 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=harvester.fr;
-	s=20260519; t=1795271675;
-	bh=BzC8uNR1Bz26Zr1bJ1kRnam8fI6ABQyT2mLGoAMpGPk=;
+	s=20260519; t=1795271678;
+	bh=aZvBGzirPSsLR3yXQ3wprP8lYJdjT8YDuavqwECtL+4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oNl03MFLqfw/g+mpl58Ojulh08EjMlok7AqfBYuHcmPuJsFnChzzbZF9/t7Hf0dqn
-	 Q2YoQxD6jCp4UojToSfI+XUIPTfQDRJYFniKjnfoW6ttUsvjZnO9Rz7vMybikkhzO+
-	 LX7i1MNuA0tGGIwX0XFROPkqRJ9WAQn39u/KXSbwfXoflQNodSPkerksoHmnn4/EhX
-	 a3gkErKboK1XstI4A6DNddRrjqijkdcBi9Cw0AqeQvoaCNOjcgfXMUYbmFulD4HnH0
-	 F1zbk9mz5aSr/Xc8QkGxkN0swnOVT8/d6p+3eB2yhoRK3CZq49/USKzXmsZpHlkHHm
-	 GA5DIpXrQt6Yw==
-Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jWvqH0WF0z7KQ;
-	Sat, 21 Nov 2026 15:34:35 +0100 (CET)
+	b=C4QW6wzmJKOSqcD0Ov9wL8mA3KPKGxEayaTNxMKVrAMzPc5MSNVedh9eZ+PHTgXBp
+	 rGs8w3n2mMoxb8Em8UbkFkPDQF8TlbnLnEJw+3nd5bhjLdO9vcRDgQ1uJopj4QSPsj
+	 rod1NXJk7MwesVWsnnUj208KOnO2Xgt6ZXbDG/TYNsZU2a5CLzPvrMtUXtHVR1sCYC
+	 +DdgUrrbaOHpH+k8TXFN8WLBWzMEDkt5YCPNKpeou2/7cHHjk8Csb795HUzVfI0iQr
+	 Xm4hjKEFgsZK2vWMshIoRTTSqK6Fim80LMSgTbMgdp3CBJMalZ6gAN6OLNhqKr5q+U
+	 bL+kY7sRuyHOg==
+Received: from unknown by smtp-4-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4jWvqK5bZzz6f8;
+	Sat, 21 Nov 2026 15:34:37 +0100 (CET)
 From: Florian Stosse <florian.stosse@harvester.fr>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
 	Florian Stosse <florian.stosse@harvester.fr>
-Subject: [PATCH libmnl v2 1/2] nlmsg: do not read past nlmsg_len in mnl_nlmsg_fprintf()
-Date: Sat, 21 Nov 2026 15:34:06 +0100
-Message-ID: <20261121143407.19426-2-florian.stosse@harvester.fr>
+Subject: [PATCH libmnl v2 2/2] callback: remove the errno sign workaround in mnl_cb_error()
+Date: Sat, 21 Nov 2026 15:34:07 +0100
+Message-ID: <20261121143407.19426-3-florian.stosse@harvester.fr>
 X-Mailer: git-send-email 2.56.0.windows.4
 In-Reply-To: <20261121143407.19426-1-florian.stosse@harvester.fr>
 References: <20261121143407.19426-1-florian.stosse@harvester.fr>
@@ -70,63 +70,55 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Infomaniak-Routing: alpha
 
-mnl_nlmsg_fprintf_payload() prints the message in 4-byte words while
-i < nlmsg_len. mnl_nlmsg_ok() does not require nlmsg_len to be a multiple
-of 4, so for an unaligned length the last word reads up to 3 bytes past
-the end of the message, and past the buffer when it ends there.
+The kernel reports the error of an NLMSG_ERROR message as a negative
+errno, or 0 for an acknowledgment. mnl_cb_error() also accepts a
+positive value, a workaround for very old kernels. Remove it and always
+negate the error.
 
-Only print complete words in the loop, then print the 1 to 3 bytes left
-over on a last row labelled "trailing bytes", so that the dump shows
-them:
-
-| 42 42 42     |	| trailing bytes |
+An NLMSG_ERROR with a positive error now sets a negative errno.
 
 Assisted-by: LLM
 Signed-off-by: Florian Stosse <florian.stosse@harvester.fr>
 ---
 
 Notes:
-    v2: print the 1 to 3 bytes left over on a last row labelled
-    "trailing bytes" instead of skipping them, as suggested. Aligned messages
-    print exactly as before.
+    v2: drop the INT_MIN check and remove the workaround instead, as
+    suggested.
+    
+    The branch that goes is the one for positive values. The kernel sends a
+    negative errno (netlink(7): "Negative errno or 0 for acknowledgements"),
+    so the negation stays. Two consequences:
+    
+    - -err->error still overflows for an NLMSG_ERROR whose error is INT_MIN.
+      The kernel never sends that value, so only a hand-built message gets
+      there. UBSan reports:
+      "negation of -2147483648 cannot be represented in type 'int'"
+    - A positive error now gives a negative errno.
+    
+    If you prefer no undefined behaviour at all,
+    errno = -(unsigned int)err->error avoids it without a special case.
+    I left it out of the patch.
 
- src/nlmsg.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ src/callback.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index f8eed79..0db0fa7 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -302,7 +302,7 @@ static void mnl_nlmsg_fprintf_payload(FILE *fd, const struct nlmsghdr *nlh,
- 	if (fdnum != -1)
- 		colorize = isatty(fdnum);
- 
--	for (i=sizeof(struct nlmsghdr); i<nlh->nlmsg_len; i+=4) {
-+	for (i=sizeof(struct nlmsghdr); i + 4 <= nlh->nlmsg_len; i+=4) {
- 		char *b = (char *) nlh;
- 		struct nlattr *attr = (struct nlattr *) (b+i);
- 
-@@ -346,6 +346,20 @@ static void mnl_nlmsg_fprintf_payload(FILE *fd, const struct nlmsghdr *nlh,
- 				isprint(b[i+3]) ? b[i+3] : ' ');
- 		}
+diff --git a/src/callback.c b/src/callback.c
+index 703ae80..6bd8259 100644
+--- a/src/callback.c
++++ b/src/callback.c
+@@ -24,11 +24,7 @@ static int mnl_cb_error(const struct nlmsghdr *nlh, void *data)
+ 		errno = EBADMSG;
+ 		return MNL_CB_ERROR;
  	}
-+	/* nlmsg_len is not a multiple of 4: print the bytes left over. */
-+	if (i < nlh->nlmsg_len) {
-+		const char *b = (const char *) nlh;
-+		unsigned int j;
-+
-+		fprintf(fd, "|");
-+		for (j = i; j < i + 4; j++) {
-+			if (j < nlh->nlmsg_len)
-+				fprintf(fd, " %.2x", 0xff & b[j]);
-+			else
-+				fprintf(fd, "   ");
-+		}
-+		fprintf(fd, "  |\t| trailing bytes |\n");
-+	}
- 	fprintf(fd, "----------------\t------------------\n");
- }
+-	/* Netlink subsystems returns the errno value with different signess */
+-	if (err->error < 0)
+-		errno = -err->error;
+-	else
+-		errno = err->error;
++	errno = -err->error;
  
+ 	return err->error == 0 ? MNL_CB_STOP : MNL_CB_ERROR;
+ }
 -- 
 2.56.0.windows.4
 
