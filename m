@@ -1,59 +1,69 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795302404;
-	b=4PjjxS6i2uZKWWS4VtjW6Zj8N2K2Wv2YEqbXQLVcIEKQ3NB74PYDeB7qPUtdmQ2zO3ah
-	 zg7ErSH0PV8tjHVMYXJhy+xQsKwFLmGQOBo6UnUqJfigQXXFEX68zdlRTwK7XcZPi11Nu
-	 MgkM+b9S/qFALiKIKBbwi/heL/+kSCujy7FD+cCvTA9989/Lj70ePhjbiaiAu0VljhFS4
-	 LAjB2zPOEWmAePyTtvNYPlf3wuC0dnWAdPSUYIEoP5BBU3z06RR6kw2bGjJxxtRWWmeBe
-	 WZEiya1lcjM/pbuDDe5G98PjvqS1IvhxDEZ9TQQusiN3O1U60YvFjWyEQZd+9zPpUuQ==
+	t=1795302641;
+	b=JSaKVbOlgjZkYmuc9DugQ17OhgErYBWNbd04rE+KlvcJi97E8igCTLS9lFtS6kwmkMtL
+	 I6t+8YwXy9smVLWcJ5rv3LWeQAyYP2i3Z55qt29XzrwqlOLvcL7yXH1LdRJqI/K81klrJ
+	 T4Z9Oji2eb4HEJGuzRT7YU0Sf1n3i4MFxhLuRwZbJarPZOpXh8UKcb9uWuKyFBwC2J72r
+	 tvznPT7TvCSWqVOJNOpPmJvlPZ28x9xFD76SK7kvKTkTCqI+LT8iNfN+A0CSsbMHwWWDK
+	 ccjdpoQ0OfUIIUAmghHoevf0oW9GXz/Sib3EiUS57uavP2dz4sdB0ypoXFBRvZKzJiQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795302404;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=Ifz5ujdQDRbM864KEhzlk3SR6Spbp6CMzKRGYXrFizA=;
-	b=mk8Zl9cZxualWiptLtTn6XRBmGm4lIKGNxOlLtcOC0BlxRI99rh/0ihGVGTbVkZ9/tsv
-	 kMayJR5/spWNMI7pD6eJ//Hq+RQX1/b9Omo/lb0JHuLECnJ+08cSP2cEAhiW1QQYmebX/
-	 pOzPsSmbcMEWfg6k/dwuMR2zdOwFrL6Wp8tDNZlmCbI4/85e90uflkgYCbOCMnPAQO3bJ
-	 qrUssTIBMzvddr3/t9zJv5/nGZtD03n/YsYRWMmjyJOThiVfrDtFx7943LBu8Yx9LXnC9
-	 MGABZeVE4TKrbK6n22tLFJkD324kRST302eGrVZX+LXtdNRJ+t3c8ZJevDBW9+pvziA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795302641;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=E9/g6o7R3K4v+CNdU1O2I9n3rAKPMOd33E4vaKpYOIc=;
+	b=IJTXoVglYtu42cz9eXlICP764G6MjUYKrKuDlbUnycjw1V6kLkGKAHUt3mqwBIKEl8Eg
+	 ShYtl+PosAubXPnmlzmQB8H1Pwu8gHNCtOrZfyY/hQDQ2l+ArBuEjrHFknwwR1dv5jx9E
+	 RnFnbEpx9mCSg7++NyaaK3cptqA+mf9ygekUTD5695EupT6XOGMIGKPEfUDwn6vVBGMv0
+	 zDEEdwr7u/v5ophg0zy/XY6PZeE9a9A4VfSzcvAb8g07z6HSbx4xaEXyME8Dv8DzQATjH
+	 Yi+NdnXQ7Xc+l4qxgBgJdbEzCSdEpG8GnQyW7fNYhe3MUO18cc/87VKXSu5N/v5LQqA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=CWQBANZ5;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=hgKJt0zK;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67122606A336
-	for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2026 23:06:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 67122606A336
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id F39F7606A320;
+	Sat, 21 Nov 2026 23:10:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F39F7606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=CWQBANZ5
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=hgKJt0zK
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795302397;
-	bh=Ifz5ujdQDRbM864KEhzlk3SR6Spbp6CMzKRGYXrFizA=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=CWQBANZ5ZpeYpc/XEs9nRDCOHqWogD4jz09PBjH1fFLaVdEdchiKADKvhdv7Ks6mz
-	 Ql1FNb3JVpVG9mPIKUwG3X47/S0Se+rYX302E9vDVLSNU0//QQ9IZ0pR7kud0V4yZb
-	 lA288enOOAhLKrH+Oc/izNRhO6SxWuJhSszmhDNSuX5LEaWgusNO2CTpcn3VO7RYXh
-	 1LzgTd9zO3i1aO9PCLilO6YyCOAs2MZIFeM6gVqGDsSEu1kaej84QsJpEM2XFHYz0+
-	 brdI9MEJdoAMDeBys2jfTrm605FdAH+g4N+j/6/JGa9rBsDJZkUGZ8B5jqDQaqXWsC
-	 cP97y81yTnHlA==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 27AA760078
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 00:06:37 +0100 (CET)
+	s=2025; t=1795302638;
+	bh=E9/g6o7R3K4v+CNdU1O2I9n3rAKPMOd33E4vaKpYOIc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=hgKJt0zK8Ed92EIDgai/GbkljCzw05uxAoLux0phFBmi9iaYcpqV3aQll1LGlEBoC
+	 S22xC5ZE2lh8nXS47k2jgw4yLt0VVS3QkURh+GrpLV+94WMthQhhkNtR83hsgevEbD
+	 8XxowqhyeOfXtq43MPKG1AxeZ7CnSTADa6ZE5r8zQOVW/nDbj3GY/o1dn+BBJB7crZ
+	 hARAbIedqc3kqiqBlLLV2IIEey6kofjASM4H5ZbE0Dt5b1STQIkZIm4ZFZNb3POAar
+	 WodswVSvoMbwSK3wOe7CP6KU0KqUF4UASFVwBolnky70t93sbtx77H9nCF8ynefCcX
+	 neOYSt4Jlk5Rg==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6A32460058;
+	Sun, 22 Nov 2026 00:10:38 +0100 (CET)
+Date: Sun, 22 Nov 2026 00:10:35 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v7 3/3] netfilter: flowtable: unify direct and neigh xmit path
-Date: Sun, 22 Nov 2026 00:06:29 +0100
-Message-ID: <20261121230629.3744139-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261121230629.3744139-1-pablo@netfilter.org>
-References: <20261121230629.3744139-1-pablo@netfilter.org>
+To: Florian Fainelli <florian.fainelli@broadcom.com>
+Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	Toshiaki Makita <toshiaki.makita1@gmail.com>,
+	open list <linux-kernel@vger.kernel.org>,
+	"open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+	"open list:NETFILTER" <coreteam@netfilter.org>,
+	"open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>
+Subject: Re: [PATCH net 2/4] netfilter: flowtable: restore the GRE conntrack
+ timeout on teardown
+Message-ID: <awIk65mKn6iBATE0@chamomile>
+References: <20261118201250.2075007-1-florian.fainelli@broadcom.com>
+ <20261118201250.2075007-3-florian.fainelli@broadcom.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,115 +73,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261118201250.2075007-3-florian.fainelli@broadcom.com>
 
-Since commit ("netfilter: flowtable: cache destination hw address for
-XMIT_NEIGH type"), it is possible to possible to consolidate xmit path
-further since the caching of the neighbour entry. To make it happen, do
-not attach the cached dst to the skbuff, let's just transmit it via
-dev_queue_xmit() without it.
+Hi Florian,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v7: - keep skb_drop_dst() in place.
+On Wed, Nov 18, 2026 at 12:12:48PM -0800, Florian Fainelli wrote:
+> flow_offload_add() sets the timeout of the conntrack entry to NF_CT_DAY
+> for every offloaded flow, and the GC keeps extending it for GRE too.
+> flow_offload_fixup_ct() only restores the conntrack timeout of TCP and
+> UDP flows when the flow is torn down, so an offloaded GRE entry which does
+> not see any other packet on the slow path stays for up to a day instead
+> of expiring after the GRE conntrack timeout.
+> 
+> Restore the GRE timeout, replied or unreplied, as for UDP. GRE has no
+> offload timeout of its own, flow_offload_get_timeout() uses the default
+> flowtable timeout for it, so use that one when the flow expired.
 
- net/netfilter/nf_flow_table_ip.c | 72 ++++++++++----------------------
- 1 file changed, 22 insertions(+), 50 deletions(-)
+I think GRE has never worked then. I have been a bit skeptical about
+this support, but tc/ct developers wanted to have this in.
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index da15783a36a4..1948fcd30201 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -854,33 +854,19 @@ static int nf_flow_queue_xmit4(struct sk_buff *skb,
- 				tuplehash->tuple.dst_cache) < 0)
- 		return NF_DROP;
- 
--	switch (tuplehash->tuple.xmit_type) {
--	case FLOW_OFFLOAD_XMIT_NEIGH:
--		rt = dst_rtable(tuplehash->tuple.dst_cache);
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
--			xmit.dest = tuplehash->tuple.out.h_dest;
--
--		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
--		break;
--	case FLOW_OFFLOAD_XMIT_DIRECT:
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		xmit.dest = tuplehash->tuple.out.h_dest;
--		xmit.source = tuplehash->tuple.out.h_source;
--		break;
--	default:
--		WARN_ON_ONCE(1);
-+	xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
-+	if (!xmit.outdev) {
-+		flow_offload_teardown(flow);
- 		return NF_DROP;
- 	}
-+	if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
-+		xmit.dest = tuplehash->tuple.out.h_dest;
-+
-+	if (tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
-+		xmit.source = tuplehash->tuple.out.h_source;
-+
-+	skb_dst_drop(skb);
-+
- 	xmit.tuple = other_tuple;
- 	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
-@@ -1177,33 +1163,19 @@ static int nf_flow_queue_xmit6(struct sk_buff *skb,
- 				tuplehash->tuple.dst_cache) < 0)
- 		return NF_DROP;
- 
--	switch (tuplehash->tuple.xmit_type) {
--	case FLOW_OFFLOAD_XMIT_NEIGH:
--		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
--			xmit.dest = tuplehash->tuple.out.h_dest;
--
--		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
--		break;
--	case FLOW_OFFLOAD_XMIT_DIRECT:
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		xmit.dest = tuplehash->tuple.out.h_dest;
--		xmit.source = tuplehash->tuple.out.h_source;
--		break;
--	default:
--		WARN_ON_ONCE(1);
-+	xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
-+	if (!xmit.outdev) {
-+		flow_offload_teardown(flow);
- 		return NF_DROP;
- 	}
-+	if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
-+		xmit.dest = tuplehash->tuple.out.h_dest;
-+
-+	if (tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
-+		xmit.source = tuplehash->tuple.out.h_source;
-+
-+	skb_dst_drop(skb);
-+
- 	xmit.tuple = other_tuple;
- 	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
--- 
-2.47.3
+I think no crash is going, so let's better route this through
+nf-next.git.
 
+> Fixes: 4e8d9584d154 ("netfilter: flowtable: Support GRE")
+> Signed-off-by: Florian Fainelli <florian.fainelli@broadcom.com>
+> ---
+>  net/netfilter/nf_flow_table_core.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 2aa2647ed9df..051b15aecd89 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -237,6 +237,18 @@ static void flow_offload_fixup_ct(struct flow_offload *flow)
+>  		timeout = READ_ONCE(tn->timeouts[state]);
+>  		expired = nf_flow_has_expired(flow);
+>  		offload_timeout = READ_ONCE(tn->offload_timeout);
+> +#ifdef CONFIG_NF_CT_PROTO_GRE
+> +	} else if (l4num == IPPROTO_GRE) {
+> +		const struct nf_gre_net *tn = nf_gre_pernet(net);
+> +		enum gre_conntrack state =
+> +			test_bit(IPS_SEEN_REPLY_BIT, &ct->status) ?
+> +			GRE_CT_REPLIED : GRE_CT_UNREPLIED;
+> +
+> +		timeout = READ_ONCE(tn->timeouts[state]);
+> +		expired = nf_flow_has_expired(flow);
+> +		/* GRE has no offload timeout: see flow_offload_get_timeout(). */
+> +		offload_timeout = NF_FLOW_TIMEOUT;
+> +#endif
+>  	} else {
+>  		return;
+>  	}
+> -- 
+> 2.53.0
+> 
+> 
