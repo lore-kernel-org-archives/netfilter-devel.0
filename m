@@ -1,59 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795306310;
-	b=2t4EVhbOWSORGXUvL60+LoMh/LCFiucbfGStOyPNE9tKOzZG9f8Tr/mlSRDMhYfora2/
-	 TkaimpLzK/t7+MISARZsIHqY/k7qG8wJ+oFSvpKUZBuNwoD6OTQTQTEafECqsjvwjcjx9
-	 AtjcpovRaHtesbiTn5PFsTH143/p/TWwtxVs4EzaROfh6Ka7vRXSAPEoZ/fo1VWVb92gu
-	 O5RJffiMSlZz4q2ujqYTm0WCZ1GC2wdzDbkBngm1gSpEbc6dyAJcIg4mAozEqhOO0dC2L
-	 sTVkc0SZ3ZxKyc7uYPBAHXxZsu4zVObMJ3zTdic92AgDPHSMuH9xtEfZs1WwR0jJSDA==
+	t=1795307121;
+	b=d1xtCMqb2nRObTx5d27fk0KPD96ShA72ZZdpw+n8sHQinW86sWwipgd387PkPUvRzFPS
+	 d+cn3FKRycK68fLQKbrvxOwagKijfkeQYbxjURo8HlCs8kDmbW8bgrIY3owO6Z8LtmBOX
+	 K6E+UuRfKQN+m5k4Q9HOBuqe/CQzsD0l95cehdbP0KdT3vAG9uHGqJOTTtYZ6UXqIXSl6
+	 snXOo6yrR7s/NiKqtbP61QFXcoKgPBBlRJpeDEBvJoa1Ac3xiTjcZFQ5NvSxWbGAP19bi
+	 12KoubsoEX5jzPSis6kp3P56S9Z8MtF5/ZXlOLKQCv3p6bJnGlPgrJRlBG3qj8nvT+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795306310;
-	h=DMARC-Filter:DKIM-Signature:Received:From:To:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=z4HP4t09toWp82DMbGDQwhhmP5dRtq68cZhmD8hgLpM=;
-	b=bjgM4JMLR+omYFqiLiqmxyjqEhSODd4PWKibSeuuP2Jm3RL2WlOlzwC+JM3caCNGIePl
-	 4WzHUdMoQ5tYbLS8zJat/CR8ku6HY1fL/zQR6xIOADwpQJbhyl4yB//pb27e9KguuBv1z
-	 AkTwetj8de6ARXVjrALr8/H3rWDcw3QT/guGRklcdZ+Eb3hRoIGR6r1fYjFP9mhwWgRer
-	 0cl56VuMcAkD1NSBn5dH0sibG29FAbPbFIRRphJYDiZcEGblTM4lLw++trvGr1GHRjTi0
-	 NI0Q98NpGOILbydummB60V+BY9AwvWiuxJ6NchNIbRWP8W19DtefSBrNL0xq3q0rQUQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795307121;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=SiX4JcxZnW41+EeuKOdxLyKKqqijqbX88nwK0mLsnfw=;
+	b=GHKu/x+6WZgFwrJD2IWrEc/qwG4cGv8zYDfJNoNnA3bjbQ+U2rSyjF0obhilHWeZBWud
+	 cmusaBP24Sq9T+Qziz8mYd8LHLot4gcaqHj6RltyxbV5M4LG5mla7BHEs2Jyv/7oLUTKi
+	 ac93eNYks2/MSoNZgvUSzwk9RdDiTPh9F2Z2Ldg+708b5hGqdAelo7MPpWXjxjx0FklRU
+	 aT1IrQs3DPXGRULhTp+KQvo7SGRMTfNZinerjv/hru9OAtmII1TWUVW4arWVmvR/BKpJd
+	 KouPma54PTKgY4FJdEA9NhFAbe+uGNucJ5ZVKzN6RL9n7DnLNJIupK+APPNVwWjsLgg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fASTBcKu;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KNzzAWBb;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1068606A330
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 00:11:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1068606A330
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 246E4606A320
+	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 00:25:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 246E4606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=fASTBcKu
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=KNzzAWBb
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795306308;
-	bh=z4HP4t09toWp82DMbGDQwhhmP5dRtq68cZhmD8hgLpM=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=fASTBcKuUHvQOLMwrnNwfUH7ulMIAuLXkSEIIdEu6d0/c1640q8UORPOkZzmAonuJ
-	 b5PdGkwKIpqHiOXfFiSzYfg/pIo8U8tqK2VFZsW9qUSq0RM76xV/3r8qnoopLXdYgb
-	 EMs0UwrKeL45dk8vyZaKYTTb2UL1/8Z8C2AcYTDNZYeDkf+94QcxzOJSnXgxoF5SCe
-	 HJmr3mK9+t/TQ7BeyxkZnzYLbOyiY0uRaxqGl5fP85qKiCwlZfrdGPxMHbjAWFsSWA
-	 RQoAJoOsE2d5KYP+lE7BWNL/6SyoJ+xousC0t+ZajZHPnGIRDpy8OW0YyERP3oa+iX
-	 sPHfAgydKyi4w==
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D72EB6005C
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 01:11:47 +0100 (CET)
+	s=2025; t=1795307118;
+	bh=SiX4JcxZnW41+EeuKOdxLyKKqqijqbX88nwK0mLsnfw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KNzzAWBbPJ4V3HvPi3QjR6TBO247Plk0s8wdMYLN0scHkFyXyb4ItHbLLXBq5zosP
+	 WhkBHwrqTN3dEPn71Ij4KxxT+8gXlS6gfsQiZ6PycO7M3oXlCp+YTgLYzsqiiS9cIO
+	 D3e1567yfqm9T7Fvmx22bm1CCajPlVKHQ0RENi7BiiSciN5hNU+2uwc9aEEEj/mV9A
+	 t578ovEWia0e28lypchd+JpOleHXcHzyJnE8UE6mIBpI8iiATZNTOy015kFJ/OhEBu
+	 5cysaslapPPo/GQyo9Xj+stQAO6EnIl+xsMHPnvsKlZomoX1DvCFPuDdOv1jlKvhe3
+	 mqWZI0Q6EScVg==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A88606005C;
+	Sun, 22 Nov 2026 01:25:18 +0100 (CET)
+Date: Sun, 22 Nov 2026 01:25:16 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v9 3/3] netfilter: flowtable: unify direct and neigh xmit path
-Date: Sun, 22 Nov 2026 01:11:40 +0100
-Message-ID: <20261122001140.3768172-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20261122001140.3768172-1-pablo@netfilter.org>
-References: <20261122001140.3768172-1-pablo@netfilter.org>
+To: Julius Bairaktaris <julius@bairaktaris.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf,v6 2/3] netfilter: flowtable: cache destination hw
+ address for XMIT_NEIGH type
+Message-ID: <awI2bKH0J7f8xMZZ@chamomile>
+References: <20261120225227.3565643-1-pablo@netfilter.org>
+ <20261120225227.3565643-2-pablo@netfilter.org>
+ <20261121235548.2567423-1-julius@bairaktaris.de>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -63,115 +65,39 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261121235548.2567423-1-julius@bairaktaris.de>
 
-Since commit ("netfilter: flowtable: cache destination hw address for
-XMIT_NEIGH type"), it is possible to possible to consolidate xmit path
-further since the caching of the neighbour entry. To make it happen, do
-not attach the cached dst to the skbuff, let's just transmit it via
-dev_queue_xmit() without it.
+On Sun, Nov 22, 2026 at 12:55:48AM +0100, Julius Bairaktaris wrote:
+> On Fri, Nov 20, 2026 at 11:52:26PM +0100, Pablo Neira Ayuso wrote:
+> > @@ -383,6 +400,7 @@ static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+> >  	path->tun.dst = &rt->dst;
+> >  	path->dev = ctx->dev;
+> >  
+> > +	memcpy(ctx->daddr, ha, ETH_ALEN);
+> >  	ctx->dev = rt->dst.dev;
+> 
+> With this, an ipip or ip6tnl tunnel whose underlay device is a bridge
+> gets offloaded: br_fill_forward_path() finds the outer next hop's MAC
+> in the fdb and nft_dev_path_info() makes the tuple
+> FLOW_OFFLOAD_XMIT_DIRECT. On nf-next without the series such a flow is
+> not offloaded.
+> 
+> > +static inline bool nf_flow_dst_check_gc(struct flow_offload *flow, int dir)
+> > +{
+> [...]
+> > +	if (tuple->xmit_type != FLOW_OFFLOAD_XMIT_NEIGH)
+> > +		return true;
+> 
+> For that direct tuple the gc returns here and never compares out.h_dest
+> with the neighbour entry. When the next hop behind the bridge changes its
+> MAC and the router's neighbour entry is replaced, the flow keeps sending
+> to the old MAC: IPIP and IP6IP6 over a bridge stall, 3 of 3 runs each
+> (QEMU, nf-next 994089a3fa38 with this series). IPIP over a plain port is
+> neigh xmit, is torn down and offloaded again, 3 of 3. A bridged direct
+> flow without a tunnel stalls the same way, here (3 of 3) and on nf-next
+> without the series (1 run).
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v9: no changes
-
- net/netfilter/nf_flow_table_ip.c | 72 ++++++++++----------------------
- 1 file changed, 22 insertions(+), 50 deletions(-)
-
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index da15783a36a4..1948fcd30201 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -854,33 +854,19 @@ static int nf_flow_queue_xmit4(struct sk_buff *skb,
- 				tuplehash->tuple.dst_cache) < 0)
- 		return NF_DROP;
- 
--	switch (tuplehash->tuple.xmit_type) {
--	case FLOW_OFFLOAD_XMIT_NEIGH:
--		rt = dst_rtable(tuplehash->tuple.dst_cache);
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
--			xmit.dest = tuplehash->tuple.out.h_dest;
--
--		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
--		break;
--	case FLOW_OFFLOAD_XMIT_DIRECT:
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		xmit.dest = tuplehash->tuple.out.h_dest;
--		xmit.source = tuplehash->tuple.out.h_source;
--		break;
--	default:
--		WARN_ON_ONCE(1);
-+	xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
-+	if (!xmit.outdev) {
-+		flow_offload_teardown(flow);
- 		return NF_DROP;
- 	}
-+	if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
-+		xmit.dest = tuplehash->tuple.out.h_dest;
-+
-+	if (tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
-+		xmit.source = tuplehash->tuple.out.h_source;
-+
-+	skb_dst_drop(skb);
-+
- 	xmit.tuple = other_tuple;
- 	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
-@@ -1177,33 +1163,19 @@ static int nf_flow_queue_xmit6(struct sk_buff *skb,
- 				tuplehash->tuple.dst_cache) < 0)
- 		return NF_DROP;
- 
--	switch (tuplehash->tuple.xmit_type) {
--	case FLOW_OFFLOAD_XMIT_NEIGH:
--		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
--			xmit.dest = tuplehash->tuple.out.h_dest;
--
--		skb_dst_drop(skb);
--		skb_dst_set_noref(skb, &rt->dst);
--		break;
--	case FLOW_OFFLOAD_XMIT_DIRECT:
--		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
--		if (!xmit.outdev) {
--			flow_offload_teardown(flow);
--			return NF_DROP;
--		}
--		xmit.dest = tuplehash->tuple.out.h_dest;
--		xmit.source = tuplehash->tuple.out.h_source;
--		break;
--	default:
--		WARN_ON_ONCE(1);
-+	xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.out.ifidx);
-+	if (!xmit.outdev) {
-+		flow_offload_teardown(flow);
- 		return NF_DROP;
- 	}
-+	if (!is_zero_ether_addr(tuplehash->tuple.out.h_dest))
-+		xmit.dest = tuplehash->tuple.out.h_dest;
-+
-+	if (tuplehash->tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT)
-+		xmit.source = tuplehash->tuple.out.h_source;
-+
-+	skb_dst_drop(skb);
-+
- 	xmit.tuple = other_tuple;
- 	xmit.needs_gso_segment = tuplehash->tuple.needs_gso_segment;
- 
--- 
-2.47.3
-
+So you're suggesting nf_flow_dst_check_gc() should run for
+FLOW_OFFLOAD_XMIT_DIRECT too?
