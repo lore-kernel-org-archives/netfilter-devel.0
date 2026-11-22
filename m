@@ -1,99 +1,99 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.45
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795348926;
-	b=1IweiVgiRlNhJ5xrX5VzMy3iIwHRCOKd4KwwN+M4P0rkTFrD2kKc+2dTipV4hEmNosXN
-	 VN7U5jNUkq6ny52amEFZuxweyIgKRV6E2WGLMsEsHjE28qR/XtT4jBUDLW8wPLkaBSDEg
-	 AXQylkEG69z6OA0dhVuf+uqX2PUdK8/gcywCjVNiL1aXh3+6WpMOPM4iRKTiacm9D6s8T
-	 BiA8wxT5XGG+yg4lIcEJ6+a2O34e1PDa2jBz3M3rIgznQCkrelqJcO2P6fDEBJ0AVVcNz
-	 zMIEmYZCrDFEBHHxOqmQOGKhfz4SS/WhA2x72IZkB0PHYVlKJXmR1CiCIs1sjvtW6JA==
+	t=1795348956;
+	b=HOkJQI8f/xyIodPY82Sb8NOVVONvQ2H2c82eGn8uk3kVnjz0T2TbAte1hXsGI44/K8Oo
+	 jfNRbXzF8Iiv7s6szD0b70ziWG57LtYIr9d801BKUE4m+BfiVQ1PHir9eeqKuSMvOr4KI
+	 hQFExvMuS8gweoRrDBwsk8luqVw6nzV4HgmWEaXmP28zJce2gOZ7GG/uzj8Cn3k2UqBDa
+	 P53AGZQXYdggvoOFlhzgymZNLzzYrXoV/piK5Pk6bzGKNU7QWqpq5vvxAhBGudDwuRlFw
+	 AN7Rh3TxhXv5JIpMEHB8QOidojfKnvj7J85Fgdzj46P3DEeGD42BvWVWH+UFqtwgMgw==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795348926;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795348956;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
 	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
-	bh=VDAY2l0Py9SC2OiRZKfmkxrUpoDnsAjefW9a1e5gT+g=;
-	b=POy73u42US9ZChhEuII0nc5K7oHz3ECwHPNbl/hBtJzgw92wPjxa9syy9kL3eSvUmEzo
-	 KnjPSTQ14odvCHDDtom65Lsn2SmYCc8IiB9+zFRGySQ546vlbuOH9wZC6Hcg7tF+9EFza
-	 9JSC1ipoKJAAjcfxSw79RYwrXMoXqoiwICmleSl6U3XWcbOQ1VhNRstHNfoVXwTFEHox0
-	 hoxneGg7bE4kmIVxKJ2bnR9f/jZ8JseFksbH3sPpUJnylyIzcMKzgqWhQWqwQYqPdOxl8
-	 /fcKdybpnAdfDiUD5IzFQSY2eXi/9u0p/snzTg0G172rch/3HT14zPv/fYlqQKPz2Xw==
+	bh=jnq/u6zdganm+2HN7xLl1QbJ2GTHXYQe3JfnfpQdzaA=;
+	b=RpqkDc6/xQcT+aCgbT34ffifLNsv1UWu0wP6Z2C+uySz+ZmLovsAN7mQBF8US89uH7/G
+	 +ZpvsuBLPtG1T5zXo9ftdlHtuDdcgCdxMThxQjy8YQsr/WtI2ogsKv8EkK1KhBXnUgSck
+	 p10WKKg9VzdJKNGlP/uoz4wrg2yU2s+hZ3O0x208Yy10GI6pfkP4UpXax2Qe4SHyAz3gN
+	 p2lVBGqdDC8N8vJNcd3tOQrSn+pLr50FhxhOxmco128unfRoT5gfJpWxV/yVWWD/ONw9v
+	 YvZ0Cbd+oT1xQPFj5Z2e3O6qxWqP1V9gh8YQsZQM7Vf+jterSnWwD1iLTx2K88xTeGA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=bairaktaris.de;
 	spf=pass smtp.mailfrom=bairaktaris.de;
-	dkim=pass header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=GSa20sQr;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.128.172
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
+	dkim=pass header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=s+8Vh9k8;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.45
+Received: from mail-yx1-f45.google.com (mail-yx1-f45.google.com [74.125.224.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1397606A320
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 12:02:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E1397606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7D2606A320
+	for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 12:02:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EB7D2606A320
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bairaktaris.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=GSa20sQr
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-8b4e18369c8so13141437b3.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 04:02:05 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1795348925; cv=none;
+	dkim=pass (2048-bit key) header.d=bairaktaris.de header.i=@bairaktaris.de header.a=rsa-sha256 header.s=google header.b=s+8Vh9k8
+Received: by mail-yx1-f45.google.com with SMTP id 956f58d0204a3-67dc7eb1442so2501561d50.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 04:02:35 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795348955; cv=none;
         d=google.com; s=arc-20260327;
-        b=IvTL322NJIHSknIiFaDCN8SC1kghesd9HJFDHpvM/RDhSWleHxCLzCo/wdxs9uZHeM
-         5/UUiropQ81GGE2xazeSHHgNV1O4x4zDDT5DOgiVi0i9A3VXokik8fapE/3uzLM0Ba4R
-         OK1UuWB+W4Wnw0pX+/Vcfsza4JA+Fu2nUB7wJf1DHWeyARQCk3FwHo5BMQF1piHm0SZa
-         lO+2icvmJ9HbnjJaY1KhBgSjlqRWLEDgmEH/LiEk3qHh0cxE7CPhpjPzN9DJI5EQWE9I
-         cbV3G6/K2EshtLpl8ZuH6DEu6oV8OrqLcULnoc/aBHcvRHT9XzdRVQTjWdjrWzNe/beH
-         Z3kw==
+        b=XMxr4kIkX5xqRhJ303ZbstpIgdVQdxJBn/i7AFsYvlQ/NXYnyuG9UNJO6HaDgp9iGV
+         h2l/MsxQ8mx94q6tOnjQWLoSS3Oi0q4xlbEhh4EoGZZ8aWDutGHaRN2YYHZsUkMhHMhh
+         +bYj6uLMzJZEO3MJ7CrniVHNmUunWVrNJRoE/jVn66fpgbzuQg8WTSVTs/cIUrUYtUVk
+         +iJRUHPOJb5IbEyxjBVU66NPsJrqIx4i6XVfBk4EQdKTP4VtM7wNrnDaXtyUlTHTeHXh
+         l9m4HjeZ27p8WIShhS1nXqlqy+hiY64h/xuFDJ4v9ItIi2qyBZVvllQ1n8mH27jYaN2n
+         UUfg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
         h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=VDAY2l0Py9SC2OiRZKfmkxrUpoDnsAjefW9a1e5gT+g=;
-        fh=mVa/O56zbHAIr31Ynior3G8WAwMH1L2wmXiu/rGe0h4=;
-        b=SPkCIjSsfs0FzRoiklNh5RM8L2UPhMbjVz5hdQG3qJm/eV/nGRNuTSbi472Al/nrxL
-         vCK8OMkyJ+ytXb8wdoiHc1lH9LQEOD/qUmroZVhdtYmUzQfV9bndNLOs2AIXIPXHprpC
-         OBR5Mx8LNmQZ6IVNY6dXtSzJgPYt+3y9lxcClo8dggDAm2qleC9gyszkYBNQoce/LA3K
-         aBWE3fMw40oc+phYyRLgCm0BnwreQ4CERFgpvNjAUaVzt2Zf4yGbCqIdmYYRq1UGUeQu
-         HXOTDh3M+5vApEWuKBBqM1SF7rQOVXakeA41yFbNBxOZyc9l09mHbGzSQu7HRE1jja8g
-         3fnw==;
+        bh=jnq/u6zdganm+2HN7xLl1QbJ2GTHXYQe3JfnfpQdzaA=;
+        fh=sWunJObW40wC9mQ4a7QrK/qy7kji+583Qr+lrn42S9U=;
+        b=aByRuNifLl2Qy+yYtnRmRQEM2GZxBhFu3MTsIGNjv4XoOdas8cJbRRI+UDXcGRoaYL
+         13GmJejxL0s9rvEq7zfenj8GFui13UzS9X8iN7IIboDTo+f1BSjjah3aQnRqDRz6Vpik
+         kXxgqPPgaXDn10kEBFiYXQDReBEqopz3VIjohhVRhQd69VzFoLJV7XPI98Ln0wiUdTgZ
+         IBaerofVoMwj10VD3qhuedgZ891NKMEHtEnlsae5M8T0hAXPIux53IDJwtCY9G3sSvGU
+         19mqpt7snb8S0ctzvcy/AJVjWoMuoD0WUD8y/rQb3870M2807EcJV8dzkNIDk3pNuZi+
+         0rzg==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bairaktaris.de; s=google; t=1795348925; x=1795953725; darn=vger.kernel.org;
+        d=bairaktaris.de; s=google; t=1795348955; x=1795953755; darn=vger.kernel.org;
         h=content-type:cc:to:subject:message-id:date:from:mime-version:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VDAY2l0Py9SC2OiRZKfmkxrUpoDnsAjefW9a1e5gT+g=;
-        b=GSa20sQrHDNKTwqo480osbvm+10D+MIqy4bM6L+DapIHb2+q32BNJpyla/6tGUYXG7
-         +LJhhd0SpTrDDH2g/XM8D1aHXxHPaaAkoPTyPApDq9UflQdqV7zoj0XLGRdw6ncSem79
-         tcdx1fdOemsgY7A/iop/NZJHRVtlp/ZupsaqrTTIvwsBH0e3enpDWIwatPwA/uFEneZh
-         2OCB8R9fL0TFOLbZDOciy33FJaka1jNWVeowsQq4eJfVNS1vJbqdJ/lbjELoUczjcDX5
-         dNcR/NUkb+CLyr3k1Dr3lwiPEk6LpTTu3xV5UgDiMV2Wftlu1+gIYmfwIcGcFd/U9D8O
-         Ahng==
+        bh=jnq/u6zdganm+2HN7xLl1QbJ2GTHXYQe3JfnfpQdzaA=;
+        b=s+8Vh9k8muPmhi851ob4ALsHVgL3c+xjuGj8gKKuxfV1/DygWj7dRcrz15s1vtyUpc
+         VqNcvoor2ZijsLhwcBOi9RuaBtRbX+82DXpOUoorEeBtJecrFnbNl4cjNd6NqR50Ct+n
+         U9z+kbHdbzVqfQOXq4+Hi120Os0WgbfqQOJ8TquXwKts2knLqhMWplQXDE1toW0nQHg8
+         FU9wdLfEY7LHBdtujAyfBxPrL4GSVCsgMN34cVW29KKMT/XNaKefzZxnNbuIV+IFMdXp
+         G4u+7bKYq2rZ9Zp5GipxsV2RivDQAKKYXpwmmhR7djtr/vLKUUguSM/6cEXc2OSBJRBv
+         Vz2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795348925; x=1795953725;
+        d=1e100.net; s=20260707; t=1795348955; x=1795953755;
         h=content-type:cc:to:subject:message-id:date:from:mime-version
          :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to:content-type;
-        bh=VDAY2l0Py9SC2OiRZKfmkxrUpoDnsAjefW9a1e5gT+g=;
-        b=QGxbAvn7LHWCL3FCLoOFZLgjFHKaoIvlvBy+WhqW/1FKTH8Jj5pHb2i33JZbkgjnRt
-         VAqnSFCIGV35yn1GGci4AZ/BOpvoDCimUEzrVDpyGcSFzstc1TfCyIrZevnwCHJIdrWw
-         lkdFx8s2srCSvwHeiHvznyInIPTytof7jdr/c3YhNUVZ5yeunT9WBTp8ac0OV7kjg7hf
-         jUU2FMAHzkJmZe6hy0AiqfEwOjpGftPR7XjUz4eoUpa1hdBd+A9n4rCB22jU1mGJUrdY
-         gv80KKNVHs0GW4SpWIq6U4C504uams/3EQA3oERTlTVoWu70av9Z9ToqXDsZNWEZwbR1
-         rfDg==
-X-Gm-Message-State: APuU4Z9RZZdRi5C6DWYdklDrNcuO5P7zO4eBWuJXDXpAjHZZ0cZvEIHa
-	WzgdZoL402mKTiTY3ecK6XH3OA1cfWi5V3R73frCFBTUApbE7ex9paNzlRIn+VW1qtdTb2+JQF/
-	fn++GLMrtF2JNYHpB4GIiMJmNVO2gvA4cWEPClOkr
-X-Gm-Gg: AZFdTZethSp4ca0ySCXDs1oL5/hOAxAeDIkcpqD7lZsWzdV/5Xg6uk9kj9yM+Yu90Ob
-	YxDC2FtcfZJ3FQbrC40ploKSqzeFMBgVBvPzddBlErjcEKk8Kgk0h2+KmfMvorDoRl4js4tRaOi
-	SsTnhU7rWuNTuFRIDftC3ZSglzKdZc4mdiJ9x92DWmzFlPzQzhsWqOYDHQ27KWxAscEMRhJnK0B
-	iJDHSj86me7Zs20DQDm9/QlKNz+hStdOj0ce5rog0GS7C2M1zvXS+/bhwsNuhABjXMg54isz5nB
-	tbwPb3Ybgnp1sN0NviG/S4S1Y/87xKUIPSCN7U8tiXQqDdssOLT8okAveiYauvvjNMUhJpD0w/X
-	PuhUsnTcIStGuyUcSpW1HLvkNsJfOJQqI2sCEiJ0KOj0zk+eiyN8G59JUfucJLSuhh+dZlqgAKA
-	lrI9yWrLUzSSgjtkJe708s4hRYkWkj92WYDM4/YurKeTucoTZeIRDgAbBPzca4Q7bk4j5LODnJS
-	c0Sq1/YUkAElJkfsSkHstDKMjGeT6IsCjMuhHCa1MEYxXb7rZbN/zx/zUH4Lb5r4j0RUUrA1PAM
-	RxfMu3DPE4/SS4qjb9Ty9nfTV9ECu1zg+U0lw2dAkNqSScyCQXQy9+YKwdE0Xf3Oeux19wMk8uu
-	3xK9F9VrQAksJ2n9Rxxkgl1xJYisTfYRv9b8y/IIRNpra/Q7b2wg=
-X-Received: by 2002:a05:690c:88d:b0:8b0:d646:95ae with SMTP id
- 00721157ae682-8b520436e42mr29583277b3.18.1795348924716; Sun, 22 Nov 2026
- 04:02:04 -0800 (PST)
+        bh=jnq/u6zdganm+2HN7xLl1QbJ2GTHXYQe3JfnfpQdzaA=;
+        b=w5PI0CV/g+B4/5fVPkeJkfy6YsJhdi9Nw/T2r9GGtYY2a7ww/fTIRVGb5NGc/TUbLa
+         GftGYjpOQF1boNrABt6e6S4xa6yBRJIvvZVmmdD4j8gSWaQFiZUUD2wctXS731r3JCG1
+         xNAF24L4S+jcugfC50upJbe/nx60rTANjoOPpniSogUqRCrTUuHrujUcK1LxQq+AGHXf
+         XLzMLEfqYy5EerK64+oiDpWqPXu1STKt+AwtR9Y5a46vYAOgGu657CmVXm8vpgO6kzVO
+         Z3eJMrCPdwgxnJZ0dsSjeCH4/7qcLXEnAB8wPMd5bHQrsr7Af+H3EaexIULV7fTIYeQZ
+         MS6g==
+X-Gm-Message-State: APuU4Z9cavNTZ/Kt4w/U5UW7N/l+uHeN6cyn5j3fhZYtT+VRKN3e5G9O
+	0D6ouiJ9DJGAayvxnQoaF1xp/WnvHh7tsSUJoAnU1TOz7iab1NkjHsQTUvKBgic8b9uUHnIw+f/
+	ohzZ/UcawAgquTuWneroxN1xxoe6ctJ4BoiT6FrkqGfeSVLhPTEQA2rtX
+X-Gm-Gg: AZFdTZfq7L09uQHG8yEziBh4fqrfJ+63rDTegCOGef/nWhDBuBwyI9DNV2X73+BIArZ
+	6UTmQN9Fpw6OzQR+hbkAZIyuN9WKfPkY3a2wAinmwHwA7vACQos9f1DjrlKeqCI8CPBy7LPjn6n
+	it6OSJ795CIFE0fAt137FJ25pUNSjq35UOCDXGoBVQD7gKLh/srgdeAtMiOVtamEf9N0LCcIrih
+	Aw3enRmFOsP+NhY5j/I+neys8V24V2gj6HRrCLSfUpLshwnB8Gk1G2QvcgRTzJmW3uCpyQ7abDk
+	UBTDlH2/McUrSqsy67/+x8nXqvuXqw/Z97peCpygKJuBJFeKraORScaikSuZ8vucxcM0hlDy3nw
+	TupX1rpB1ZS67DZMtZNTayMWLh+ch+uqvtQNWlM2f/oTcZeE9DWiZ3iQlEvcsgH1gFOGPMkhdct
+	6gj9Xm9JwnzVet5TP93FTb6CGS/6YfYyH+EiirVewsE0Ar+RNpA78PXx9QBMtn+mi8q0M6n1YEQ
+	19DNukQJ3/LEvMDiRZLQqAd6JRTKFtnwQPV4wViGCIYm0Uyo+UuReouOL4II2dUle6cjGtDJLsb
+	Wie0Eo2tQ+eB5QLNQLp9B0Y3XxV2+rgmfqHNtFsF/pGWWYGL539olDDvbbL5GJX/W2TqdMXYDxk
+	+aYDmRdK4gdAkaR7zmDoejyNc1zgDnw==
+X-Received: by 2002:a05:690e:150a:b0:67d:ba55:4be2 with SMTP id
+ 956f58d0204a3-67df448c8acmr3910408d50.84.1795348954949; Sun, 22 Nov 2026
+ 04:02:34 -0800 (PST)
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -104,42 +104,39 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 From: Julius Bairaktaris <julius@bairaktaris.de>
-Date: Sun, 22 Nov 2026 12:01:29 +0000
-X-Gm-Features: Aa3M54pGP5Y5GelDYyIRXPac7qaJVRqnpPRHmYC1fODXTa_3sxZD5zd8Qe6ua_w
-Message-ID: <CAC1t37+WBG97C5ZeimO9SXAKChk0BU1kRC5E6yKAaOHXvWDpMg@mail.gmail.com>
-Subject: Re: [PATCH nf-next v11 2/3] netfilter: flowtable: tear down direct
- xmit flows when the fdb entry moves
+Date: Sun, 22 Nov 2026 12:02:01 +0000
+X-Gm-Features: Aa3M54pH0XPj8PaVHSQQOJG1yc7OI6ojMb4tcH2vVfk07W7DCxGrFZCqrnNjroM
+Message-ID: <CAC1t37KnLKSepB-ct5Vjgyi0obL2BuSFnKoVSOCEK2ALWaJGQA@mail.gmail.com>
+Subject: Re: [PATCH nf,v6 2/3] netfilter: flowtable: cache destination hw
+ address for XMIT_NEIGH type
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>, 
-	Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Shuah Khan <shuah@kernel.org>, Eric Woudstra <ericwouds@gmail.com>, netdev@vger.kernel.org, 
-	bridge@lists.linux.dev, coreteam@netfilter.org, 
-	linux-kselftest@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Sat, Nov 21, 2026 at 10:10:15PM +0100, Pablo Neira Ayuso wrote:
-> > +struct flow_offload_br_outer {
-> > + u16 vid;
-> > + u8 present:1,
-> > + link_vlans:2,
-> > + link_untag:1,
-> > + link_8021ad:1,
-> > + inner_tag:1;
-> > +};
->
-> What scenario are you trying to support with this?
+On Sun, Nov 22, 2026 at 01:57:13AM +0100, Pablo Neira Ayuso wrote:
+> > > So you're suggesting nf_flow_dst_check_gc() should run for
+> > > FLOW_OFFLOAD_XMIT_DIRECT too?
 
-A vlan device of one bridge as port of another: br1.100 is a port of
-br0, which has the router address, and the host moves from rr0, a port
-of br1, to rr2, a port of br0. nf-next offloads the flow to rr0. After
-the move only br0's entry changes; br1's still points to rr0 until it
-ages out, so the gc must also look the host up in br0, through br1.100.
-That is the "stackout" case of 3/3, which stalls on nf-next.
+For a direct tuple that has a dst_cache, yes: the h_dest comparison,
+which runs only for XMIT_NEIGH now. A tuple without a dst_cache has no
+neighbour to look up.
 
-And thanks for the review! Can I send out the other patches to get
-some sashiko reviews, or do you want to keep the rule of 1 patch at a
-time?
+> > This is what this patch does:
+> >
+> > [PATCH nf-next] netfilter: flowtable: teardown flow reaching bridge port on fdb updates
+> >
+> > Until that gets merged, stall is expected.
+
+The fdb check does not see a MAC change: it looks up the old h_dest,
+whose entry stays on the same port or ages out, and both keep the flow.
+With v11 of the roaming series on top of your v6, the bridge cases with
+no tunnel, IPIP and IP6IP6 still stall, 1 run each.
+
+> Ah, I suspect you refer to the XMIT_DIRECT case when hw offload is
+> enabled, which indeed have dst/neigh entries.
+
+No, the software flowtable: the tunnel's underlay device is a bridge,
+which makes the tuple direct, and flow_offload_fill_route() keeps its
+dst_cache because the reply direction has a tunnel.
 
 Julius
