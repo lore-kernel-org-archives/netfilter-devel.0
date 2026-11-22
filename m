@@ -1,61 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795382251;
-	b=VgSjj+0bbtMOY4pX6p7OgsmMDrOXS7DZwOVRHzJQluJI1RIkg7+jqnEdlDcQ0gUV5MVX
-	 MoBo2T8rqyeeVf0y1sWgJmN1nERRR80efTkIU77PPgpRiD4a8QEmF29CnB51yoZuqLYnC
-	 3ZrUWr1OukMYQ6RJAIKU5/yWVVwuq3EiswpurFVwplY3y8gtj5USJW409LvvGNLjoQCsT
-	 6oa8bdky00sWRo31pd05QbrhbOdvBfzh3DKa2HRHPUIaIsvJ7WdiTJirS2pMAEeg/fIbh
-	 uup8xDoeOg9ev7crvcQV1XHpcD7PD2CTyFEodupz1C7Qj7MFfATwr7UWmZ2/DggAtxw==
+	t=1795385771;
+	b=QnwR/74tVH5PfPTpg93DMdCLEwvgbm3OG9BXimActxhUw8iwWRI0tmuh0SUlLdadMsB+
+	 Ujn+gAUwkWSzodLh3jRhKZAcLx3cyJsGZgL2ff4js5EmF+hIgMK9lJZiPpJD8yWu4snQW
+	 cQPjKGmJU0LMrYawmYoWKbpoJwH81mzbViefufV9c8xwbNFg14TVPfuL6/Kbpb5bqcAz1
+	 X9iucB3sI90487dslMdB+2TC+3UgcuF4QYnC5ManuR8tzf/G+nXTuCBTLaN/7ANL2pzIr
+	 vHRFosrXGRQF4R2WUfVLdPEdSNRDP0w1wv3JhIEZ2YXV+I+ZVIxGN1TiDByFTjGqT2w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795382251;
-	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
-	 In-Reply-To:References:X-sashiko-severity:Content-Type:
-	 Content-Transfer-Encoding:MIME-Version;
-	bh=dF78nh4kCBdhP6WNS4FBpyXwSTV7Ima7F2JADUKPcnU=;
-	b=0ma8OwHTXqZhUsbldCL27dg2PQn+mkJZwXpmD0rHYXuMXJfCZISUFSbwQphuxba2UgQe
-	 4GHWK2quUeUw6c5Jwe/8kYP374crmoMIYvcnxYaGx+x74mGvAcQdmhmrIuLC4ebAkRD0Z
-	 7gM9QOAIbNsizvVQCh0r1thT19s6mb9/hMGPjqHy/IfEuF+yepDRyHhMqbZ47QU5w9Wtn
-	 TfQ3UkUcKlZ+oBbsfGKdlwgmnZRD36cRslQ/Z5CeZEDBEC3QL1AnwFWf2773HDkK1EOOu
-	 gfoTzqFBd2IGb6cb2Q0+OsUR4iOXd9WsjWe2GsZG45cHGLJaEI8CAkFCfGjnTi043EQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795385771;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=mGwepXW7KYcugk4KqQl//W14cGi7/Nr85LEGwhqP424=;
+	b=xTs2VzkC2nM/WU/P6f/J/wOQJ67xFDrnBdCgfYDOrnRakhQMwD/i6dN3IWE0Hlbye4ID
+	 yPChqzjjDC5TIEJu3JPUEhsVCuXK8Es0ho2RjVD+EZ2hCHY9biZYlvpsYQFrm97JSkSdQ
+	 U+LyAYRY+oOqFcJUAVNExxCQ6jJCVsgUIung51YXLCHA7kCWi4v5nZugqNQxvbfV7QITn
+	 j3bHTuJDgsVQvOVDz3txpf4kHp9v0SR225SCreex250JaNo2co503L05G+m3yabFaTTTp
+	 T0zH7/bULyz3OZ5Cict+MDHi7zLV9n8NuwC8vF/YlJJcMTmIU+Js+PiFUE7sl0byY8A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U6lSbeRK;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=H9n1IhWH;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E44D606A332;
-	Sun, 22 Nov 2026 21:17:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id E7DF9606A31D;
+	Sun, 22 Nov 2026 22:16:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E7DF9606A31D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U6lSbeRK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19C7C1F000D0;
-	Sun, 22 Nov 2026 21:17:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795382250;
-	bh=dF78nh4kCBdhP6WNS4FBpyXwSTV7Ima7F2JADUKPcnU=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=U6lSbeRKGEbCNsg5IIuTjloDnVBqIhQRbAZoiPzEk+/tJN1vm8yTST6GVhjdGJzPG
-	 iZ+6eVvALd1zGjTUYB3ZdERVNWpxFNnms/XXkLZACJnw8Kmc2trgaUTJpCxaxvQfs9
-	 350sgGwklJmB6O4mANrJp0kfUbOqIP0fj61iTtfjpJ88Fyr04TIXaIuj3nOxBgImqE
-	 dlPhdOc8MBhCa7jZAQu8v0hK48Q6D6JCws92qxAq6FlM4Fdkf6GRt8mqBxv9BAWG0d
-	 ZvbOxn81DTwCaukJ/HP3qV80rY34zE++zhkWOCpwDswBPiVfVnikJCOXHtOEakzjtR
-	 FPGdACkIpU9PA==
-Subject: Re: [PATCH net 4/4] selftests: netfilter: check the GRE timeout after
- flowtable teardown
-From: netdev-bot+sashiko@kernel.org
-To: florian.fainelli@broadcom.com
-Cc: netdev@vger.kernel.org, pablo@netfilter.org, fw@strlen.de, phil@nwl.cc,
- davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
- horms@kernel.org, shuah@kernel.org, toshiaki.makita1@gmail.com,
- linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, linux-kselftest@vger.kernel.org
-Date: Sun, 22 Nov 2026 21:17:29 +0000
-Message-ID: <179538224965.3135.5112190126089308317@kernel.org>
-In-Reply-To: <20261118201250.2075007-5-florian.fainelli@broadcom.com>
-References: <20261118201250.2075007-5-florian.fainelli@broadcom.com>
-X-sashiko-severity: Medium
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=H9n1IhWH
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1795385766;
+	bh=mGwepXW7KYcugk4KqQl//W14cGi7/Nr85LEGwhqP424=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=H9n1IhWHv1woomfQ4RYoN0aTrHZKsx66x92zf49O4WXZTDPfZR5uRcOmj9b1u7nPS
+	 SzVxBfv/9KfIUXGTkoe3CIrX8izXn5N2R6liLtCxn+GwqD4ooemjTXnbuXgaT0v6VG
+	 ZKqkSYfjj58Wiq/T4K10EpWIPoO8bM9/nwBcxPtnkTQDH8aSEC4Fp7ghKui38SetBc
+	 ppo3TttVJaBEgWeE/QPYjbL0vPkKumMUd9pqsk0lU5fW+Qi9KpxR90HjTo6R6bpFoZ
+	 B3HfShERHX7nZzn6Ba96/5if5Nah8/OU0hocxVEL11e96qS4aAOmoY5+swze3qbh3y
+	 vFobbihZY1r1w==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id ACE4F60056;
+	Sun, 22 Nov 2026 23:16:06 +0100 (CET)
+Date: Sun, 22 Nov 2026 23:16:03 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netdev-bot+sashiko@kernel.org
+Cc: florian.fainelli@broadcom.com, netdev@vger.kernel.org, fw@strlen.de,
+	phil@nwl.cc, davem@davemloft.net, edumazet@kernel.org,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	shuah@kernel.org, toshiaki.makita1@gmail.com,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH net 1/4] netfilter: flowtable: do not queue offload work
+ after DESTROY
+Message-ID: <awNpo-FYuOlgfP5a@chamomile>
+References: <20261118201250.2075007-2-florian.fainelli@broadcom.com>
+ <179538224441.3135.6950839726802616846@kernel.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -65,139 +69,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <179538224441.3135.6950839726802616846@kernel.org>
 
-Thank you for your contribution! Sashiko AI review found 2 potential
-issue(s) to consider.
+On Sun, Nov 22, 2026 at 09:17:24PM +0000, netdev-bot+sashiko@kernel.org wrote:
+> The creating CPU then carries on:
+> 
+> CPU1 (creator)                       CPU2 (GC)
+> flow_offload_add()
+>   rhashtable_insert_fast(REPLY)
+>   rhashtable_insert_fast(ORIGINAL)
+>                                      nf_flow_offload_gc_step()
+>                                        teardown, NF_FLOW_HW clear
+>                                        flow_offload_del()
+>                                          flow_offload_free()
+>                                            call_rcu()
+>   nf_flow_offload_add()
+>     set_bit(NF_FLOW_HW)
+>     nf_flow_offload_refresh()
+>       nf_flow_offload_work_alloc()
+>         test_and_set_bit(NF_FLOW_PENDING) succeeds
+>         NF_FLOW_HW_DYING clear, new check passes
+>       queue FLOW_CLS_REPLACE
 
-Critical: 0 · High: 0 · Medium: 1 · Low: 1
-
-If you believe none of the issues are legitimate, please reply to each
-issue of Medium severity or higher and explain why the AI is wrong.
-If any of them are legitimate and you plan to respin, please let patchwork
-know by including "pw-bot: cr" as a separate line at the end of your reply
-(one such reply per series is enough).
-
-- [Medium] In nft_flowtable_gre.sh the test treats `nft delete table inet
-  filter` as tearing down the offloaded GRE flow before the command…
-- [Low] The timeout check in nft_flowtable_gre.sh (lines 127-135) fails
-  only when the restored timeout is greater than…
-
---
-
-selftests: netfilter: check the GRE timeout after flowtable teardown
-
-This adds a selftest that offloads a GRE flow through a flowtable in a
-router namespace and then deletes the flowtable. It checks that the
-conntrack entry timeout goes back to the GRE stream timeout instead of
-the one-day offload timeout. The GRE and PPTP options are also added to
-the selftest config.
-
-> diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh b/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh
-> new file mode 100755
-> index 0000000000000..5efad6908b3fc
-> --- /dev/null
-> +++ b/tools/testing/selftests/net/netfilter/nft_flowtable_gre.sh
-> @@ -0,0 +1,137 @@
-
-[ ... ]
-
-> +# The entry has the timeout of an offloaded flow: remove the flowtable, which
-> +# tears down its flows. Nothing else refreshes the conntrack entry.
-> +if ! ip netns exec "$nsr1" nft delete table inet filter; then
-> +	echo "FAIL: could not remove the flowtable"
-> +	exit 1
-> +fi
-> +
-> +if gre_entry_offloaded; then
-> +	echo "FAIL: the GRE entry is still marked as offloaded"
-> +	ret=1
-> +fi
-> +
-> +timeout=$(gre_entry_timeout)
-
-[Severity: Medium]
-Is the flowtable teardown guaranteed to be finished by the time nft delete
-table returns?
-
-In net/netfilter/nf_tables_api.c, flowtable destruction seems to be
-deferred to a workqueue:
-
-nf_tables_commit_release()
-    schedule_work(&nft_net->destroy_work);
-
-The work item also waits for an RCU grace period before it frees the
-flowtable:
-
-nf_tables_trans_destroy_work()
-    synchronize_rcu();
-    nft_commit_release()
-        nf_tables_flowtable_destroy()
-            nf_flow_table_free()
-                ... flow_offload_teardown()
-
-IPS_OFFLOAD_BIT is cleared and the GRE timeout restored only in
-flow_offload_teardown():
-
-net/netfilter/nf_flow_table_core.c:flow_offload_teardown() {
-	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
-	if (!test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
-		flow_offload_fixup_ct(flow);
-}
-
-If conntrack -L runs before the deferred work completes,
-gre_entry_offloaded() would still see OFFLOAD and print "still marked as
-offloaded".
-
-gre_entry_timeout() would also return nothing. While the entry is
-offloaded, ctnetlink_dump_info() in nf_conntrack_netlink.c does not dump
-the timeout:
-
-	if (!test_bit(IPS_OFFLOAD_BIT, &ct->status) &&
-	    (ctnetlink_dump_timeout(skb, ct, false) < 0 ||
-
-In that case the test also prints the misleading "no conntrack entry for
-the GRE flow" message, even though the entry exists.
-
-Can this make the test fail at random on a fixed kernel? That seems most
-likely on loaded or virtualized CI, where synchronize_rcu() can be slow.
-Would polling with busywait or slowwait from lib.sh, until OFFLOAD clears
-and a timeout is printed, avoid the race?
-
-The comment above ("remove the flowtable, which tears down its flows") and
-the commit message both describe the teardown as synchronous.
-
-> +max=$(ip netns exec "$nsr1" sysctl -n net.netfilter.nf_conntrack_gre_timeout_stream 2>/dev/null)
-> +[ -z "$max" ] && max=180
-> +
-> +if [ -z "$timeout" ]; then
-> +	echo "FAIL: no conntrack entry for the GRE flow"
-> +	ret=1
-> +elif [ "$timeout" -gt "$max" ]; then
-
-[Severity: Low]
-This isn't a bug, but only an upper bound is checked here, so any timeout
-from 0 to 180 is reported as PASS. The check does catch the 86399 regression
-the commit targets.
-
-The "ct state established" rule requires IPS_SEEN_REPLY, and the flow has
-not expired. So flow_offload_fixup_ct() should pick
-tn->timeouts[GRE_CT_REPLIED] without subtracting NF_FLOW_TIMEOUT, giving
-about 179-180 seconds.
-
-The following broken fixups would all still pass this check:
-
-- one that picks GRE_CT_UNREPLIED (30s)
-- one that wrongly subtracts NF_FLOW_TIMEOUT (about 150s)
-- one that clamps the timeout to 0
-
-Would a lower bound, such as max minus a small slack, better match the
-"restored to the GRE timeout" behaviour described in the header comment?
-
-> +	echo "FAIL: the GRE entry timeout is $timeout seconds after teardown, expected at most $max"
-> +	ret=1
-> +else
-> +	echo "PASS: the GRE entry timeout was restored to $timeout seconds"
-> +fi
-
--- 
-Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261118201250.2075007-1-florian.fainelli%40broadcom.com
+Yes, PENDING needs to be held from flow_offload_add() path for this.
