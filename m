@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442265;
-	b=Gmzionc0EUAvyDJsopQ2PcbtGc0ujwZ7uP1oT2bRqFPHJQN6k6tlBG61+c+xiTMzsn5J
-	 OR7dQcHKxfU4hMO1mJK6GUvJ4f5h6qOwKYOMvmDW8Qoa8jEH8QrcbB6QpVqaS+dko2rYe
-	 ttIe+tyIMBU1N2nwE0jLcWkAheoWnrnWrqEjxm1JgZ40N+mMvfOHPP+VdP7hYUEGqsDTq
-	 FwJZWFNQEz7ftnyfU7WO7jf4KC9IKnNcwYTuRua+3R+Umm2X+WMKb+3EOUNDZE6BdcjzY
-	 Hoyl+zoD5vvOaLX8h9TEWt1B7reueOp6//+4OwDhIoEXYdf4ImiOa4rWyknP8gfO91g==
+	t=1795442267;
+	b=TDRCkqC7eNVK+ahTDCnFFq8/fN9cAtx2pZSpYJkwXkalsKEbMSaUtHmdmFlJhL6FR042
+	 rAORjKe1sklGKir72hgPmMIYNDdEj5yllVPwYbaVk/qg1GbnbpuLpUrtdgzN5/Rwg1Iau
+	 dtC8GK28D+/lO7Gn3ANvccqYiVjKwFroqTsCW4s6I7EZkqKBMQA5eojO3fN3jQzCwszUs
+	 O3XTJyIBRRhlltT+nVvBnjzTwtfulwnIPp2OUhWpGaziQknM3VadABsEPG2Dk/YzCH9NK
+	 /l7nclJPYJ5KI3CBfr3szjWWIQNE16C2bBmCIj8Qu1pyTaUB94Cy6B1cYF6EIunbBPA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442265;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442267;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=S7xkWiqqFqg9jXR+/p6MoARXsQBC0WdioQvUUUYQego=;
-	b=v/PykUvk0xWv2q+GTse76uTwRKlnsCzRNLx5t97mTVNgnITG91CUH7HApM3yh+vZjp7o
-	 nWeE6viE0WtbiRHPK0X0HQCnSG1DUTx+S4D+VqzhZktyuLU7pMbiHz5prO+1Pt69I1fTf
-	 42Glhf/aZhdU68MM9/jamxli1q2+pkjWlx1klFF0UxdLpWcmWMdTjCGVVen/LR6Gx5i11
-	 Ro/9e4iIqMVavS/diRpGMyPC3SBT/8Vt11EPKvOku9IJKbsBbuy2OyvXYHn8DB9B9QBd3
-	 OsF8TZXtNn+ZU5ckH/mbkupqmp6Q0H3PKjgLKZEAfF7g3SEqKCoNdCPwflSAJeRT+/A==
+	bh=QvrbKCuFZKn+ULd3Q0YZ3BsxW7qfdkSFiStNK7DWrTA=;
+	b=gMfrvnGAF+FRRU2ab8iMLKzkvl7VqN1UvIxQz14wqj+rBzQoLyGGzy63TJI0N5cUR26n
+	 KkXM2tBravqs9vA5gkXhVVpbgJdVrgvRE0Fcloof91SyGT7VTisVAQsiw24n+tx/K1Hhi
+	 u7FhZeBe3ipmLpYQpaQCBS64dSA6Xz/IMDRty8Rz63KEbxIof8COu/42Urqent8haFG/P
+	 9nTSe+pDgaxHbMvArkEwzkHpCKBLsG5zCaVOz/LO8rb2tWqipWSQfSUFsVpdt9h8wGfQf
+	 jx0vfNXurWHYaAAN2f3JKH4dQSGkOxfKF4HPzCm9TxXnBYpGwyqKKH8EMqHGzX/pu6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GVOJPYlQ;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=hBs3EKDM;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D054606A695;
-	Mon, 23 Nov 2026 13:57:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0D054606A695
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7381606A331;
+	Mon, 23 Nov 2026 13:57:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D7381606A331
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=GVOJPYlQ
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=hBs3EKDM
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795442263;
-	bh=S7xkWiqqFqg9jXR+/p6MoARXsQBC0WdioQvUUUYQego=;
+	s=2025; t=1795442265;
+	bh=QvrbKCuFZKn+ULd3Q0YZ3BsxW7qfdkSFiStNK7DWrTA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GVOJPYlQXyNeZcX6Znigh5a6ZU2OMo/dJCBbaf9XfeVUJ9VzzLnF0Zg9H4DxATih3
-	 ia+ddF+Ni2f4JVl6v7gVVwU0riTenHadJ276caEskG+Cr0ZDMFaf7m+AHmmG4bLFyD
-	 PNBldRS4rJ5HFpgxugcOgPQ1fdP6HZWBimtkuxOz2OoWx5LroD03ZRy3jFcSdEF8Lp
-	 XTEsepUFVq53Tp6RtXA1YmfGne43S4ud/KZjmckwl4LdYXLWT49WaWrYYok8tcbVaY
-	 LSvMj4bdZdonT9tfDqo8C7S6efYKFiXmxLaiUloEqQE6g5LKrn/vs74QThaI88a7Q7
-	 t06Scw9T+xw+A==
+	b=hBs3EKDMuowdck/qqOUIU38pjweFPh5ZZwh+q/ND35io5pnHMTmothEmF6/Qa+Wx7
+	 D3kwiwMOO0sdbBKLoAl/hlqEvjO3vWbyiJxaCP/zB2Kq9HZEjhVRTlhbIvbTIsYqK0
+	 3R2tjnHG6kfmRYoXGcD4UssfyBjF7DvhTM9VZG5FD/quklQ5zTFrjzTVHRTQr2YIxN
+	 nTyBnNVYqY9F36UEQwvGvLAnnIuX0jf+S5ld2NFPX+r8P6rC+Hc8czcqY656RnPjcf
+	 cViBsnAKgjF94ho6QGarwclzhl1p76c7M7jYt+4beJB93cVCmczWu22ZdVUQowU4y5
+	 CSoydIvEHj+KA==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0585E602F5;
-	Mon, 23 Nov 2026 14:57:42 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7932E602ED;
+	Mon, 23 Nov 2026 14:57:44 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 08/15] netfilter: nft_synproxy: only handle pure SYN and ACK packets
-Date: Mon, 23 Nov 2026 14:57:19 +0100
-Message-ID: <20261123135726.3940688-9-pablo@netfilter.org>
+Subject: [PATCH net-next 09/15] netfilter: nft_ct: validate hook and priority for ct zone set
+Date: Mon, 23 Nov 2026 14:57:20 +0100
+Message-ID: <20261123135726.3940688-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261123135726.3940688-1-pablo@netfilter.org>
 References: <20261123135726.3940688-1-pablo@netfilter.org>
@@ -73,71 +73,265 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+From: Florian Westphal <fw@strlen.de>
 
-nft_synproxy treats any segment with SYN set as a client's initial SYN
-and any segment with ACK set as the client's final ACK. A SYN-ACK thus
-gets answered with a fresh SYN-ACK cookie.
+Setting a conntrack zone template via "ct zone set" only makes sense
+before the real conntrack hook runs: nft_ct_set_zone_eval() attaches a
+shared per-cpu template conntrack entry to the skb so that both defrag
+engine and nf_conntrack_in() can pick up the requested zone when creating
+the real connection.
 
-If that reply is routed back to the same host, e.g. to a peer address
-covered by an address on lo, it re-enters the input hook, is answered
-again, and never stops. Every such SYN starts its own endless loop over
-the loopback backlog, so NET_RX softirq keeps the CPU busy and memory
-fills with skbs and rtable entries until workqueues stall and the
-machine OOMs.
+NAT chain types are therefore nonsensical, they only run for new
+conntracks to configure the nat mapping: the eval function will
+be a no-op because of the already-attached conntrack entry.
 
-Use the same flag checks as ip(6)t_SYNPROXY: SYN without ACK, FIN or
-RST is an initial SYN; ACK without SYN, FIN or RST is the client ACK.
-Anything else falls through to the next expression.
+Add a validate callback to reject NAT type chains.
 
-Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
-Reported-by: syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=d7795c8487ca4e20ed88
-Reported-by: syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=d0d2f1a65f45b319d25d
-Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Also, mirror what classic xtables CT target is doing: CT target is
+restricted to the 'raw' table and therefore automatically tied to
+the 'before conntrack' priority implied by the raw table.
+
+This mirrors why the classic xtables CT target is restricted to the
+raw table (PREROUTING/OUTPUT, ahead of conntrack). Add a .validate
+callback restricting the expression to PREROUTING/OUTPUT, to base
+chains with priority before conntrack, to non-NAT chain types, and to
+families where that hook/priority namespace is actually meaningful
+(ip, ip6, inet, bridge).
+
+Bridge is further limited to prerouting only: locally originating
+traffic is tracked at the IP layer already.
+
+Other families are rejected.
+
+Normally the "ct already set" check in nft_ct_set_zone_eval() makes uses
+in the wrong chain priority a no-op, but on paths where no conntrack hook
+runs for the skb afterwards, the unconfirmed per-cpu template can reach
+the conntrack confirm hook and get inserted into the global hash table as
+if it were a genuine connection.
+
+Fixes: edee4f1e9245 ("netfilter: nft_ct: add zone id set support")
+Assisted-by: LLM
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_synproxy.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h |  4 +++
+ net/netfilter/nf_conntrack_core.c |  5 ++++
+ net/netfilter/nf_tables_api.c     | 48 ++++++++++++++++++++++++++++---
+ net/netfilter/nft_ct.c            | 42 +++++++++++++++++++++++++++
+ 4 files changed, 95 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-index 554a96a000f4..ad43faf1dd1b 100644
---- a/net/netfilter/nft_synproxy.c
-+++ b/net/netfilter/nft_synproxy.c
-@@ -53,13 +53,13 @@ static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
- 	struct synproxy_net *snet = synproxy_pernet(net);
- 	struct sk_buff *skb = pkt->skb;
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9d597482363d..a1ab2701bc4a 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1106,10 +1106,14 @@ enum nft_chain_types {
+  *
+  *	@hook_mask: the hook numbers and locations the chain is linked to
+  *	@depth: the deepest call chain level the chain is linked to
++ *	@prio_min: lowest priority the chain was validated with
++ *	@prio_max: highest priority the chain was validated with
+  */
+ struct nft_chain_validate_state {
+ 	u8			hook_mask[NFT_CHAIN_T_MAX];
+ 	u8			depth;
++	s32			prio_min;
++	s32			prio_max;
+ };
  
--	if (tcp->syn) {
-+	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
- 		/* Initial SYN from client */
- 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
- 		synproxy_send_client_synack(net, skb, tcp, opts);
- 		consume_skb(skb);
- 		regs->verdict.code = NF_STOLEN;
--	} else if (tcp->ack) {
-+	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
- 		/* ACK from client */
- 		if (synproxy_recv_client_ack(net, skb, tcp, opts,
- 					     ntohl(tcp->seq))) {
-@@ -84,13 +84,13 @@ static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
- 	struct synproxy_net *snet = synproxy_pernet(net);
- 	struct sk_buff *skb = pkt->skb;
+ /**
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index d2cd9b31507e..707a9006537d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1198,6 +1198,11 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	if (CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL)
+ 		return NF_ACCEPT;
  
--	if (tcp->syn) {
-+	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
- 		/* Initial SYN from client */
- 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
- 		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
- 		consume_skb(skb);
- 		regs->verdict.code = NF_STOLEN;
--	} else if (tcp->ack) {
-+	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
- 		/* ACK from client */
- 		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
- 						  ntohl(tcp->seq))) {
++	if (unlikely(nf_ct_is_template(ct))) {
++		DEBUG_NET_WARN_ON_ONCE(1);
++		return NF_ACCEPT;
++	}
++
+ 	zone = nf_ct_zone(ct);
+ 	local_bh_disable();
+ 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8b94b5e7dbdb..a13b970ee1bd 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -123,6 +123,12 @@ static void nft_validate_state_update(struct nft_table *table, u8 new_validate_s
+ 	table->validate_state = new_validate_state;
+ }
+ 
++static bool nft_chain_vstate_valid_prio(const struct nft_chain_validate_state *v,
++					s32 priority)
++{
++	return v->prio_min <= priority && priority <= v->prio_max;
++}
++
+ static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
+ 				   const struct nft_chain *chain)
+ {
+@@ -137,9 +143,10 @@ static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
+ 	hooknum = base_chain->ops.hooknum;
+ 	type = base_chain->type->type;
+ 
+-	/* chain is already validated for this call depth */
++	/* chain is already validated for this call depth and priority */
+ 	if (chain->vstate.depth >= ctx->level &&
+-	    chain->vstate.hook_mask[type] & BIT(hooknum))
++	    chain->vstate.hook_mask[type] & BIT(hooknum) &&
++	    nft_chain_vstate_valid_prio(&chain->vstate, base_chain->ops.priority))
+ 		return true;
+ 
+ 	return false;
+@@ -2782,6 +2789,25 @@ int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+ 
+ static u64 chain_id;
+ 
++static void nft_chain_vstate_init(struct nft_chain_validate_state *v)
++{
++	memset(v, 0, sizeof(*v));
++
++	/* Inverted.  A chain at priority P can skip valiation
++	 * if min <= P <= max.
++	 *
++	 * The inverted start fails the test for all values of P.
++	 * nft_chain_vstate_update() will shrink prio_min to P
++	 * and grow prio_max to P, so that after first run:
++	 * prio_min == prio_max == P.  A subsequent validation
++	 * request will only skip if P1 == P2 amd revalidate
++	 * otherwise, including an update of either prio_min or
++	 * prio_max.
++	 */
++	v->prio_min = INT_MAX;
++	v->prio_max = INT_MIN;
++}
++
+ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
+ 			      u32 flags, struct netlink_ext_ack *extack)
+ {
+@@ -2850,6 +2876,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
+ 	}
+ 	ctx->chain = chain;
+ 
++	nft_chain_vstate_init(&chain->vstate);
+ 	INIT_LIST_HEAD(&chain->rules);
+ 	chain->handle = nf_tables_alloc_handle(table);
+ 	chain->table = table;
+@@ -4181,15 +4208,21 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
+ 	nf_tables_rule_destroy(ctx, rule);
+ }
+ 
++static void nft_chain_vstate_reinit(struct nft_chain_validate_state *v)
++{
++	nft_chain_vstate_init(v);
++}
++
+ static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain *chain)
+ {
+ 	const struct nft_base_chain *base_chain;
+ 	enum nft_chain_types type;
+ 	u8 hooknum;
++	s32 prio;
+ 
+ 	/* ctx->chain must hold the calling base chain. */
+ 	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain))) {
+-		memset(&chain->vstate, 0, sizeof(chain->vstate));
++		nft_chain_vstate_reinit(&chain->vstate);
+ 		return;
+ 	}
+ 
+@@ -4202,6 +4235,13 @@ static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain
+ 	chain->vstate.hook_mask[type] |= BIT(hooknum);
+ 	if (chain->vstate.depth < ctx->level)
+ 		chain->vstate.depth = ctx->level;
++
++	prio = base_chain->ops.priority;
++	if (prio < chain->vstate.prio_min)
++		chain->vstate.prio_min = prio;
++	if (prio > chain->vstate.prio_max)
++		chain->vstate.prio_max = prio;
++
+ }
+ 
+ /** nft_chain_validate - loop detection and hook validation
+@@ -4280,7 +4320,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 
+ err:
+ 	list_for_each_entry(chain, &table->chains, list)
+-		memset(&chain->vstate, 0, sizeof(chain->vstate));
++		nft_chain_vstate_reinit(&chain->vstate);
+ 
+ 	return err;
+ }
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index a19a839a0fc0..9ed9cad090e4 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_conntrack.h>
+@@ -755,6 +756,46 @@ static const struct nft_expr_ops nft_ct_set_ops = {
+ };
+ 
+ #ifdef CONFIG_NF_CONNTRACK_ZONES
++static int nft_ct_set_zone_validate(const struct nft_ctx *ctx,
++				    const struct nft_expr *expr)
++{
++	unsigned int hooks;
++	int err;
++
++	/* Setting the zone template only makes sense before conntrack has
++	 * assigned a zone to the packet, i.e. in prerouting and output,
++	 * and only if this rule runs before the conntrack hook itself.
++	 * Locally originated bridge traffic is conntrack'd by the IP stack,
++	 * not on the bridge, so only prerouting applies there.
++	 */
++	switch (ctx->family) {
++	case NFPROTO_IPV4:
++	case NFPROTO_IPV6:
++	case NFPROTO_INET:
++		hooks = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT);
++		break;
++	case NFPROTO_BRIDGE:
++		hooks = (1 << NF_INET_PRE_ROUTING);
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	err = nft_chain_validate_hooks(ctx->chain, hooks);
++	if (err)
++		return err;
++
++	if (nft_is_base_chain(ctx->chain)) {
++		const struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
++
++		if (basechain->type->type == NFT_CHAIN_T_NAT ||
++		    basechain->ops.priority >= NF_IP_PRI_CONNTRACK)
++			return -EOPNOTSUPP;
++	}
++
++	return 0;
++}
++
+ static const struct nft_expr_ops nft_ct_set_zone_ops = {
+ 	.type		= &nft_ct_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
+@@ -762,6 +803,7 @@ static const struct nft_expr_ops nft_ct_set_zone_ops = {
+ 	.init		= nft_ct_set_init,
+ 	.destroy	= nft_ct_set_destroy,
+ 	.dump		= nft_ct_set_dump,
++	.validate	= nft_ct_set_zone_validate,
+ };
+ #endif
+ 
 -- 
 2.47.3
 
