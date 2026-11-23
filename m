@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442107;
-	b=E8bsYCeHQFYoPZOAsbjfsGektTInf8oRhHDHV72AyAzI0cqqh2liOfZQtUdJAIwa+mU6
-	 tX0KYXBLk2pxodZ638WlkvJygYlCdMM0gS1m+dyq0/EW2oSpLiuj+/BoICU0v79ontVpQ
-	 a8G5ioz7wYoOrs/huWzVewsi3yQY6wJ5+gkGkNzP5EdHB3kJMXb1A3KRLgnqR/AaiowaH
-	 o+jxLQ0yhiOj2WZTekihMMyHLAvO7yRCiBBqFhW2G+Yi7W7cngbFYwqBNdzUFm3ul8T24
-	 K8ScKb97w2AQni5xqkbs8LmvwEdWJLs0ElqTNIFY3+8X2K+Po/mepssU9atIgVhaagg==
+	t=1795442113;
+	b=zTBqruDOlBNSrf+yFc+ri2hfvOblt7dfPMS/Ztm72HSnK6cXOoSQKCkVHi4Yl67tt3V0
+	 OLnp+0/3BnUEKvPLWrbBuMVFQAabBNHvRgWbKP0ydvUTd28UaPAzV3njw3cC+N4lW/h28
+	 LaDJGpF2H3NkDdiwOD16xZUP8U75esBwT11fIDnhrmhLatAYA5246C9NwUTz/1t60voAw
+	 yzlk07/yPClyFOxoulgL9B6Q70jUZGIt6on1Eief3KstTMbgNiZTjegFC+Gh42aNmIEzk
+	 j62VEwgIdfjmCi76PNmZC/UhxA85V1LT/0A1qhG9xXTxrn274s71d/BvvwpSVMCwrgg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442107;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442113;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=QvrbKCuFZKn+ULd3Q0YZ3BsxW7qfdkSFiStNK7DWrTA=;
-	b=gz4wrmN34QpMKOjLdscLBh275EnfBaKJVip/wzPjVkAjTR4yjDxweEVkXKI5fEWrr9MC
-	 UB7TbRXd7J2GCeJCqY5Bh/6ZJ9ynqYV+R+q/hkRC90ePhXOtmw6SAPeSkYl6kQy4e8ZfM
-	 inHXIyRYbfr75q+Lvb9sG9KVe25thbZGq6FNFNnZq3RpV9EWakQ6FP7dlWjOlA+ben7Ce
-	 sWX4AEzacXXmniGEt/d8RtVaT2uW3eZrCpQItR28Pb3l4bYl+5xEw0hFGJtDAAFbqhUdY
-	 Ccg16y/tCe/HlLc9chcdl3QFAGYfJzUqRl2n+r9tWhiJTKSPgeYFPywycN8OEUrpnpg==
+	bh=coQvEJeU4N5mwWnE1SJ1B/hjtzPBIhF+t9eiTJHL7jw=;
+	b=xNkC+iRz+rla+/1Bc+z7AqzQywdlgK6qS4DYyy9XhIZy/giw2PD4Qpn8Ns44cQMx/sug
+	 yGAaCgFKdQRah3+Xju1fHMYy0pnE4j4HBCu2ZuX1Taus9YehAoeOa0YO8m7SbgA24ksyT
+	 RTkuEaYzzoYvXliw0CSe8/2KK3ln2d686wCkvNzDsuMPPaDGDkVuTMjrLmxNCdFXedA6+
+	 gSuow6WZCRT/8VoT+4YHSCeB7phLPlikQIGuLXw+TBDVAze1bxrnKwmukJIPQeBs7iDiz
+	 l3FRXZ3vGm48emSO5pswrpZ8woISKdT7IHwAxIk9jQ7uh9rArW4W+Bgh4xtpXg9oR8A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=k7hF3hJm;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Lqi3sbnP;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50C5E606A327;
-	Mon, 23 Nov 2026 13:55:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 50C5E606A327
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B392606A31F;
+	Mon, 23 Nov 2026 13:55:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7B392606A31F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=k7hF3hJm
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Lqi3sbnP
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795442103;
-	bh=QvrbKCuFZKn+ULd3Q0YZ3BsxW7qfdkSFiStNK7DWrTA=;
+	s=2025; t=1795442105;
+	bh=coQvEJeU4N5mwWnE1SJ1B/hjtzPBIhF+t9eiTJHL7jw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=k7hF3hJm00PkvpKuTNjqdUHgiAThVkcKK4Xb9M7VIrB7Izi/jokhgVxiWpYu2Ax06
-	 gfqxUrrohArhUqjyE0yYX/GVV2skLIJcClag63c6I96SWIaiB43E+MI9K4C25wPmzk
-	 abtHas/UiusW3fL4zHRpOx4e6kaw1RQqAVGsBt52+twCMgiSsKYsTODf5Xq2cQDK8g
-	 /gYewSW0KJJ3lP1xICzaMFP0prspGA2FZfs+ZBg15xO7dt2p00TZOf1ne4uLThv/Jp
-	 Qi6LE6ORodCskG9tm9WqVgPtwgJ2XH3bn7EjJrXEJZyH9N5PQq6qKV343QDnFRobgX
-	 yzdy8zRoa4T5g==
+	b=Lqi3sbnPdIME6MxgyznvpGkeAYb+XugbzEKdMFukgDacJwldHJOAViBiHNjy16uuG
+	 5pL/z11uqmDkefryecu1UQd8Qh8tjKe8QgoKhinGd2sJp0SemTQMdvElI97S6etjR7
+	 n05of3VkxOwxllLjWH/bCVVCgtSG796rZvgGDvXUjPMOmcmqkqYBMUCktMERhAZzgN
+	 ThK+03RU9ry64GDzG/+6H+3yM4st42q3RYESh/0Kd8MtJnoNA/XyUeVZ7JkT6Va4KM
+	 or8fhlsGqFaUFMaJfXojOGrdgP3b0jJrTG/OgnsWA2sRSCSuO5HNhdGQn7W0zqPA4i
+	 lEOT3qCxFl5rw==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5EDA6602D7;
-	Mon, 23 Nov 2026 14:55:02 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 19F4F602CF;
+	Mon, 23 Nov 2026 14:55:05 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 09/15] netfilter: nft_ct: validate hook and priority for ct zone set
-Date: Mon, 23 Nov 2026 14:54:36 +0100
-Message-ID: <20261123135442.3940372-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/15] rhashtable: Add rhashtable_flush_and_free helper
+Date: Mon, 23 Nov 2026 14:54:37 +0100
+Message-ID: <20261123135442.3940372-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261123135442.3940372-1-pablo@netfilter.org>
 References: <20261123135442.3940372-1-pablo@netfilter.org>
@@ -73,265 +73,480 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 
-Setting a conntrack zone template via "ct zone set" only makes sense
-before the real conntrack hook runs: nft_ct_set_zone_eval() attaches a
-shared per-cpu template conntrack entry to the skb so that both defrag
-engine and nf_conntrack_in() can pick up the requested zone when creating
-the real connection.
+This patch adds the helper rhashtable_flush_and_free and its
+rhltable counter-part.  The intended user is netfilter:
 
-NAT chain types are therefore nonsensical, they only run for new
-conntracks to configure the nat mapping: the eval function will
-be a no-op because of the already-attached conntrack entry.
+https://sashiko.dev/#/patchset/20260828152256.8759-1-fw%40strlen.de
 
-Add a validate callback to reject NAT type chains.
+The hash table briefly becomes NULL during the flush call in order
+to quiesce insertions on the old table so that ht->nelems can be
+reset to zero safely.
 
-Also, mirror what classic xtables CT target is doing: CT target is
-restricted to the 'raw' table and therefore automatically tied to
-the 'before conntrack' priority implied by the raw table.
+The rest of the code is updated to handle ht->tbl being NULL.
 
-This mirrors why the classic xtables CT target is restricted to the
-raw table (PREROUTING/OUTPUT, ahead of conntrack). Add a .validate
-callback restricting the expression to PREROUTING/OUTPUT, to base
-chains with priority before conntrack, to non-NAT chain types, and to
-families where that hook/priority namespace is actually meaningful
-(ip, ip6, inet, bridge).
+In order to ensure that rehashes are fully disabled during the
+flush, the self-rearming in rht_deferred_worker is moved inside
+the mutex.
 
-Bridge is further limited to prerouting only: locally originating
-traffic is tracked at the IP layer already.
+Incidentally, this allows the removal of the special hack where
+it had to bypass the IRQ work. However, as the existing
+rhashtable_free_and_destroy helper does not set the hash table
+to NULL, change it to use disable_work_sync instead.
 
-Other families are rejected.
+If concurrent insertions and removals hit the old table during
+the call, they act directly on the old table.
 
-Normally the "ct already set" check in nft_ct_set_zone_eval() makes uses
-in the wrong chain priority a no-op, but on paths where no conntrack hook
-runs for the skb afterwards, the unconfirmed per-cpu template can reach
-the conntrack confirm hook and get inserted into the global hash table as
-if it were a genuine connection.
+If they see a NULL ht->tbl, they fail immediately.
 
-Fixes: edee4f1e9245 ("netfilter: nft_ct: add zone id set support")
-Assisted-by: LLM
+Concurrent insertions and removals that see the new table act
+on it.
+
+After setting ht->tbl to NULL, the new helper waits for concurrent
+insertions and removals on the old ht->tbl to complete, and then
+cancels existing rehashes.
+
+Once rehashes are completely gone, ht->nelems is reset to zero,
+and the new table is installed.
+
+Walkers are detached from the old table, and the dying flag is
+set on the old table so that other walkers cannot reattach themselves
+to the dying table.  Replace the rcu_head_after_call_rcu check
+in rhashtable_walk_stop with the dying flag.
+
+Finally, the entries in the old table are freed.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  4 +++
- net/netfilter/nf_conntrack_core.c |  5 ++++
- net/netfilter/nf_tables_api.c     | 48 ++++++++++++++++++++++++++++---
- net/netfilter/nft_ct.c            | 42 +++++++++++++++++++++++++++
- 4 files changed, 95 insertions(+), 4 deletions(-)
+ include/linux/rhashtable.h |  40 +++++++-
+ lib/rhashtable.c           | 186 ++++++++++++++++++++++++++-----------
+ 2 files changed, 171 insertions(+), 55 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9d597482363d..a1ab2701bc4a 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1106,10 +1106,14 @@ enum nft_chain_types {
-  *
-  *	@hook_mask: the hook numbers and locations the chain is linked to
-  *	@depth: the deepest call chain level the chain is linked to
-+ *	@prio_min: lowest priority the chain was validated with
-+ *	@prio_max: highest priority the chain was validated with
-  */
- struct nft_chain_validate_state {
- 	u8			hook_mask[NFT_CHAIN_T_MAX];
- 	u8			depth;
-+	s32			prio_min;
-+	s32			prio_max;
- };
+diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
+index 70dac9214617..b98876dc6ff7 100644
+--- a/include/linux/rhashtable.h
++++ b/include/linux/rhashtable.h
+@@ -67,6 +67,7 @@ struct rhash_lock_head {};
+  * @nest: Number of bits of first-level nested table.
+  * @rehash: Current bucket being rehashed
+  * @hash_rnd: Random seed to fold into hash
++ * @dying: True if table is about to be freed
+  * @walkers: List of active walkers
+  * @rcu: RCU structure for freeing the table
+  * @future_tbl: Table under construction during rehashing
+@@ -77,6 +78,7 @@ struct bucket_table {
+ 	unsigned int		size;
+ 	unsigned int		nest;
+ 	u32			hash_rnd;
++	bool			dying;
+ 	struct list_head	walkers;
+ 	struct rcu_head		rcu;
  
- /**
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d2cd9b31507e..707a9006537d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1198,6 +1198,11 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	if (CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL)
- 		return NF_ACCEPT;
+@@ -255,6 +257,10 @@ void rhashtable_free_and_destroy(struct rhashtable *ht,
+ 				 void *arg);
+ void rhashtable_destroy(struct rhashtable *ht);
  
-+	if (unlikely(nf_ct_is_template(ct))) {
-+		DEBUG_NET_WARN_ON_ONCE(1);
-+		return NF_ACCEPT;
-+	}
++void rhashtable_flush_and_free(struct rhashtable *ht,
++			       void (*free_fn)(void *ptr, void *arg),
++			       void *arg);
 +
- 	zone = nf_ct_zone(ct);
- 	local_bh_disable();
+ struct rhash_lock_head __rcu **rht_bucket_nested(
+ 	const struct bucket_table *tbl, unsigned int hash);
+ struct rhash_lock_head __rcu **__rht_bucket_nested(
+@@ -630,6 +636,9 @@ static __always_inline struct rhash_head *__rhashtable_lookup(
  
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8b94b5e7dbdb..a13b970ee1bd 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -123,6 +123,12 @@ static void nft_validate_state_update(struct nft_table *table, u8 new_validate_s
- 	table->validate_state = new_validate_state;
+ 	BUILD_BUG_ON(!__builtin_constant_p(freq));
+ 	tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!tbl)
++		goto out;
++
+ restart:
+ 	hash = rht_key_hashfn(ht, tbl, key, params);
+ 	bkt = rht_bucket(tbl, hash);
+@@ -653,6 +662,7 @@ static __always_inline struct rhash_head *__rhashtable_lookup(
+ 	if (unlikely(tbl))
+ 		goto restart;
+ 
++out:
+ 	return NULL;
  }
  
-+static bool nft_chain_vstate_valid_prio(const struct nft_chain_validate_state *v,
-+					s32 priority)
-+{
-+	return v->prio_min <= priority && priority <= v->prio_max;
-+}
+@@ -768,16 +778,19 @@ static __always_inline void *__rhashtable_insert_fast(
+ 	};
+ 	struct rhash_lock_head __rcu **bkt;
+ 	struct rhash_head __rcu **pprev;
++	void *data = ERR_PTR(-ESTALE);
+ 	struct bucket_table *tbl;
+ 	struct rhash_head *head;
+ 	unsigned long flags;
+ 	unsigned int hash;
+ 	int elasticity;
+-	void *data;
+ 
+ 	rcu_read_lock();
+ 
+ 	tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!tbl)
++		goto out;
 +
- static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
- 				   const struct nft_chain *chain)
+ 	hash = rht_head_hashfn(ht, tbl, obj, params);
+ 	elasticity = RHT_ELASTICITY;
+ 	bkt = rht_bucket_insert(ht, tbl, hash);
+@@ -1136,11 +1149,13 @@ static __always_inline int __rhashtable_remove_fast(
+ 	const struct rhashtable_params params, bool rhlist)
  {
-@@ -137,9 +143,10 @@ static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
- 	hooknum = base_chain->ops.hooknum;
- 	type = base_chain->type->type;
+ 	struct bucket_table *tbl;
+-	int err;
++	int err = -ENOENT;
  
--	/* chain is already validated for this call depth */
-+	/* chain is already validated for this call depth and priority */
- 	if (chain->vstate.depth >= ctx->level &&
--	    chain->vstate.hook_mask[type] & BIT(hooknum))
-+	    chain->vstate.hook_mask[type] & BIT(hooknum) &&
-+	    nft_chain_vstate_valid_prio(&chain->vstate, base_chain->ops.priority))
- 		return true;
+ 	rcu_read_lock();
  
- 	return false;
-@@ -2782,6 +2789,25 @@ int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
+ 	tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!tbl)
++		goto out;
  
- static u64 chain_id;
+ 	/* Because we have already taken (and released) the bucket
+ 	 * lock in old_tbl, if we find that future_tbl is not yet
+@@ -1152,6 +1167,7 @@ static __always_inline int __rhashtable_remove_fast(
+ 	       (tbl = rht_dereference_rcu(tbl->future_tbl, ht)))
+ 		;
  
-+static void nft_chain_vstate_init(struct nft_chain_validate_state *v)
-+{
-+	memset(v, 0, sizeof(*v));
-+
-+	/* Inverted.  A chain at priority P can skip valiation
-+	 * if min <= P <= max.
-+	 *
-+	 * The inverted start fails the test for all values of P.
-+	 * nft_chain_vstate_update() will shrink prio_min to P
-+	 * and grow prio_max to P, so that after first run:
-+	 * prio_min == prio_max == P.  A subsequent validation
-+	 * request will only skip if P1 == P2 amd revalidate
-+	 * otherwise, including an update of either prio_min or
-+	 * prio_max.
-+	 */
-+	v->prio_min = INT_MAX;
-+	v->prio_max = INT_MIN;
-+}
-+
- static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
- 			      u32 flags, struct netlink_ext_ack *extack)
- {
-@@ -2850,6 +2876,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
- 	}
- 	ctx->chain = chain;
- 
-+	nft_chain_vstate_init(&chain->vstate);
- 	INIT_LIST_HEAD(&chain->rules);
- 	chain->handle = nf_tables_alloc_handle(table);
- 	chain->table = table;
-@@ -4181,15 +4208,21 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
- 	nf_tables_rule_destroy(ctx, rule);
- }
- 
-+static void nft_chain_vstate_reinit(struct nft_chain_validate_state *v)
-+{
-+	nft_chain_vstate_init(v);
-+}
-+
- static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain *chain)
- {
- 	const struct nft_base_chain *base_chain;
- 	enum nft_chain_types type;
- 	u8 hooknum;
-+	s32 prio;
- 
- 	/* ctx->chain must hold the calling base chain. */
- 	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain))) {
--		memset(&chain->vstate, 0, sizeof(chain->vstate));
-+		nft_chain_vstate_reinit(&chain->vstate);
- 		return;
- 	}
- 
-@@ -4202,6 +4235,13 @@ static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain
- 	chain->vstate.hook_mask[type] |= BIT(hooknum);
- 	if (chain->vstate.depth < ctx->level)
- 		chain->vstate.depth = ctx->level;
-+
-+	prio = base_chain->ops.priority;
-+	if (prio < chain->vstate.prio_min)
-+		chain->vstate.prio_min = prio;
-+	if (prio > chain->vstate.prio_max)
-+		chain->vstate.prio_max = prio;
-+
- }
- 
- /** nft_chain_validate - loop detection and hook validation
-@@ -4280,7 +4320,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 
- err:
- 	list_for_each_entry(chain, &table->chains, list)
--		memset(&chain->vstate, 0, sizeof(chain->vstate));
-+		nft_chain_vstate_reinit(&chain->vstate);
++out:
+ 	rcu_read_unlock();
  
  	return err;
+@@ -1271,11 +1287,13 @@ static __always_inline int rhashtable_replace_fast(
+ 	const struct rhashtable_params params)
+ {
+ 	struct bucket_table *tbl;
+-	int err;
++	int err = -ENOENT;
+ 
+ 	rcu_read_lock();
+ 
+ 	tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!tbl)
++		goto out;
+ 
+ 	/* Because we have already taken (and released) the bucket
+ 	 * lock in old_tbl, if we find that future_tbl is not yet
+@@ -1287,6 +1305,7 @@ static __always_inline int rhashtable_replace_fast(
+ 	       (tbl = rht_dereference_rcu(tbl->future_tbl, ht)))
+ 		;
+ 
++out:
+ 	rcu_read_unlock();
+ 
+ 	return err;
+@@ -1340,4 +1359,19 @@ static inline void rhltable_destroy(struct rhltable *hlt)
+ 	rhltable_free_and_destroy(hlt, NULL, NULL);
  }
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index a19a839a0fc0..9ed9cad090e4 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -11,6 +11,7 @@
- #include <linux/module.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_conntrack.h>
-@@ -755,6 +756,46 @@ static const struct nft_expr_ops nft_ct_set_ops = {
- };
  
- #ifdef CONFIG_NF_CONNTRACK_ZONES
-+static int nft_ct_set_zone_validate(const struct nft_ctx *ctx,
-+				    const struct nft_expr *expr)
++/**
++ * rhltable_flush_and_free - unlink and free all elements in the hash list table
++ * @hlt:	the hash list table to destroy
++ * @free_fn:	callback to release resources of element
++ * @arg:	pointer passed to free_fn
++ *
++ * See documentation for rhashtable_flush_and_free.
++ */
++static inline void rhltable_flush_and_free(struct rhltable *hlt,
++					   void (*free_fn)(void *ptr,
++							   void *arg),
++					   void *arg)
 +{
-+	unsigned int hooks;
-+	int err;
-+
-+	/* Setting the zone template only makes sense before conntrack has
-+	 * assigned a zone to the packet, i.e. in prerouting and output,
-+	 * and only if this rule runs before the conntrack hook itself.
-+	 * Locally originated bridge traffic is conntrack'd by the IP stack,
-+	 * not on the bridge, so only prerouting applies there.
-+	 */
-+	switch (ctx->family) {
-+	case NFPROTO_IPV4:
-+	case NFPROTO_IPV6:
-+	case NFPROTO_INET:
-+		hooks = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT);
-+		break;
-+	case NFPROTO_BRIDGE:
-+		hooks = (1 << NF_INET_PRE_ROUTING);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	err = nft_chain_validate_hooks(ctx->chain, hooks);
-+	if (err)
-+		return err;
-+
-+	if (nft_is_base_chain(ctx->chain)) {
-+		const struct nft_base_chain *basechain = nft_base_chain(ctx->chain);
-+
-+		if (basechain->type->type == NFT_CHAIN_T_NAT ||
-+		    basechain->ops.priority >= NF_IP_PRI_CONNTRACK)
-+			return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
++	rhashtable_flush_and_free(&hlt->ht, free_fn, arg);
 +}
-+
- static const struct nft_expr_ops nft_ct_set_zone_ops = {
- 	.type		= &nft_ct_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
-@@ -762,6 +803,7 @@ static const struct nft_expr_ops nft_ct_set_zone_ops = {
- 	.init		= nft_ct_set_init,
- 	.destroy	= nft_ct_set_destroy,
- 	.dump		= nft_ct_set_dump,
-+	.validate	= nft_ct_set_zone_validate,
- };
- #endif
+ #endif /* _LINUX_RHASHTABLE_H */
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index 500c45cd1304..7b33dd046f67 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -350,6 +350,8 @@ static int rhashtable_rehash_table(struct rhashtable *ht)
+ 	rcu_assign_pointer(ht->tbl, new_tbl);
  
+ 	spin_lock(&ht->lock);
++	old_tbl->dying = true;
++
+ 	list_for_each_entry(walker, &old_tbl->walkers, list)
+ 		walker->tbl = NULL;
+ 
+@@ -357,8 +359,8 @@ static int rhashtable_rehash_table(struct rhashtable *ht)
+ 	 * table, and thus no references to the old table will
+ 	 * remain.
+ 	 * We do this inside the locked region so that
+-	 * rhashtable_walk_stop() can use rcu_head_after_call_rcu()
+-	 * to check if it should not re-link the table.
++	 * rhashtable_walk_stop() can check tbl->dying before it
++	 * re-links the table.
+ 	 */
+ 	call_rcu(&old_tbl->rcu, bucket_table_free_rcu);
+ 	spin_unlock(&ht->lock);
+@@ -434,6 +436,9 @@ static void rht_deferred_worker(struct work_struct *work)
+ 	mutex_lock(&ht->mutex);
+ 
+ 	tbl = rht_dereference(ht->tbl, ht);
++	if (!tbl)
++		goto out;
++
+ 	tbl = rhashtable_last_table(ht, tbl);
+ 
+ 	if (rht_grow_above_75(ht, tbl))
+@@ -450,18 +455,11 @@ static void rht_deferred_worker(struct work_struct *work)
+ 		err = err ?: nerr;
+ 	}
+ 
+-	mutex_unlock(&ht->mutex);
+-
+-	/*
+-	 * Re-arm via @run_work, not @run_irq_work.
+-	 * rhashtable_free_and_destroy() drains async work as irq_work_sync()
+-	 * followed by cancel_work_sync(). If this site queued irq_work while
+-	 * cancel_work_sync() was waiting for us, irq_work_sync() would already
+-	 * have returned and the stale irq_work could fire post-teardown.
+-	 * cancel_work_sync() natively handles self-requeue on @run_work.
+-	 */
+ 	if (err)
+-		schedule_work(&ht->run_work);
++		irq_work_queue(&ht->run_irq_work);
++
++out:
++	mutex_unlock(&ht->mutex);
+ }
+ 
+ /*
+@@ -488,6 +486,8 @@ static int rhashtable_insert_rehash(struct rhashtable *ht,
+ 	int err;
+ 
+ 	old_tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!old_tbl)
++		return -EAGAIN;
+ 
+ 	size = tbl->size;
+ 
+@@ -635,6 +635,8 @@ static void *rhashtable_try_insert(struct rhashtable *ht, const void *key,
+ 	void *data;
+ 
+ 	new_tbl = rcu_dereference(ht->tbl);
++	if (!new_tbl)
++		return ERR_PTR(-ESTALE);
+ 
+ 	do {
+ 		tbl = new_tbl;
+@@ -779,6 +781,8 @@ void *rhashtable_next_key(struct rhashtable *ht, const void *prev_key)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	tbl = rht_dereference_rcu(ht->tbl, ht);
++	if (!tbl)
++		return NULL;
+ 	do {
+ 		he = __rhashtable_next_in_table(ht, tbl, prev_key);
+ 		if (!IS_ERR_OR_NULL(he))
+@@ -820,12 +824,13 @@ void rhashtable_walk_enter(struct rhashtable *ht, struct rhashtable_iter *iter)
+ 	iter->p = NULL;
+ 	iter->slot = 0;
+ 	iter->skip = 0;
+-	iter->end_of_table = 0;
+ 
+ 	spin_lock(&ht->lock);
+ 	iter->walker.tbl =
+ 		rcu_dereference_protected(ht->tbl, lockdep_is_held(&ht->lock));
+-	list_add(&iter->walker.list, &iter->walker.tbl->walkers);
++	if (iter->walker.tbl)
++		list_add(&iter->walker.list, &iter->walker.tbl->walkers);
++	iter->end_of_table = !iter->walker.tbl;
+ 	spin_unlock(&ht->lock);
+ }
+ EXPORT_SYMBOL_GPL(rhashtable_walk_enter);
+@@ -883,6 +888,10 @@ int rhashtable_walk_start_check(struct rhashtable_iter *iter)
+ 		iter->slot = 0;
+ 		iter->skip = 0;
+ 		iter->p = NULL;
++		if (!iter->walker.tbl) {
++			iter->end_of_table = true;
++			return 0;
++		}
+ 		return -EAGAIN;
+ 	}
+ 
+@@ -1091,7 +1100,7 @@ void rhashtable_walk_stop(struct rhashtable_iter *iter)
+ 	ht = iter->ht;
+ 
+ 	spin_lock(&ht->lock);
+-	if (rcu_head_after_call_rcu(&tbl->rcu, bucket_table_free_rcu))
++	if (tbl->dying)
+ 		/* This bucket table is being freed, don't re-link it. */
+ 		iter->walker.tbl = NULL;
+ 	else
+@@ -1223,45 +1232,12 @@ static void rhashtable_free_one(struct rhashtable *ht, struct rhash_head *obj,
+ 	} while (list);
+ }
+ 
+-/**
+- * rhashtable_free_and_destroy - free elements and destroy hash table
+- * @ht:		the hash table to destroy
+- * @free_fn:	callback to release resources of element
+- * @arg:	pointer passed to free_fn
+- *
+- * Stops an eventual async resize. If defined, invokes free_fn for each
+- * element to releasal resources. Please note that RCU protected
+- * readers may still be accessing the elements. Releasing of resources
+- * must occur in a compatible manner. Then frees the bucket array.
+- *
+- * This function will eventually sleep to wait for an async resize
+- * to complete. The caller is responsible that no further write operations
+- * occurs in parallel.
+- *
+- * After cancel_work_sync() has returned, the deferred rehash worker is
+- * quiesced and, per the contract above, no other concurrent access to the
+- * rhashtable is possible. The tables are therefore owned exclusively by
+- * this function and can be walked without ht->mutex held.
+- */
+-void rhashtable_free_and_destroy(struct rhashtable *ht,
+-				 void (*free_fn)(void *ptr, void *arg),
+-				 void *arg)
++static void rhashtable_free(struct rhashtable *ht, struct bucket_table *tbl,
++			    void (*free_fn)(void *ptr, void *arg), void *arg)
+ {
+-	struct bucket_table *tbl, *next_tbl;
++	struct bucket_table *next_tbl;
+ 	unsigned int i;
+ 
+-	irq_work_sync(&ht->run_irq_work);
+-	cancel_work_sync(&ht->run_work);
+-
+-	/*
+-	 * Do NOT take ht->mutex here. The rehash worker establishes
+-	 * ht->mutex -> fs_reclaim via GFP_KERNEL bucket allocation under
+-	 * the mutex; callers on the reclaim path (e.g. simple_xattr_ht_free()
+-	 * from evict() under the dcache shrinker for shmem/kernfs/pidfs
+-	 * inodes) would otherwise close a circular dependency
+-	 * fs_reclaim -> ht->mutex.
+-	 */
+-	tbl = rcu_dereference_raw(ht->tbl);
+ restart:
+ 	if (free_fn) {
+ 		for (i = 0; i < tbl->size; i++) {
+@@ -1286,6 +1262,36 @@ void rhashtable_free_and_destroy(struct rhashtable *ht,
+ 		goto restart;
+ 	}
+ }
++
++/**
++ * rhashtable_free_and_destroy - free elements and destroy hash table
++ * @ht:		the hash table to destroy
++ * @free_fn:	callback to release resources of element
++ * @arg:	pointer passed to free_fn
++ *
++ * Stops an eventual async resize. If defined, invokes free_fn for each
++ * element to releasal resources. Please note that RCU protected
++ * readers may still be accessing the elements. Releasing of resources
++ * must occur in a compatible manner. Then frees the bucket array.
++ *
++ * This function will eventually sleep to wait for an async resize
++ * to complete. The caller is responsible that no further write operations
++ * occurs in parallel.
++ *
++ * After disable_work_sync() has returned, the deferred rehash worker is
++ * quiesced and, per the contract above, no other concurrent access to the
++ * rhashtable is possible. The tables are therefore owned exclusively by
++ * this function and can be walked without ht->mutex held.
++ */
++void rhashtable_free_and_destroy(struct rhashtable *ht,
++				 void (*free_fn)(void *ptr, void *arg),
++				 void *arg)
++{
++	disable_work_sync(&ht->run_work);
++	irq_work_sync(&ht->run_irq_work);
++
++	rhashtable_free(ht, rcu_dereference_raw(ht->tbl), free_fn, arg);
++}
+ EXPORT_SYMBOL_GPL(rhashtable_free_and_destroy);
+ 
+ void rhashtable_destroy(struct rhashtable *ht)
+@@ -1362,3 +1368,79 @@ struct rhash_lock_head __rcu **rht_bucket_nested_insert(
+ 
+ }
+ EXPORT_SYMBOL_GPL(rht_bucket_nested_insert);
++
++/**
++ * rhashtable_flush_and_free - detach and discard all current elements
++ * @ht:		the hash table to flush
++ * @free_fn:	callback to release resources of an element, may be %NULL
++ * @arg:	pointer passed to free_fn
++ *
++ * Swaps the bucket table backing @ht for a new, empty table.
++ *
++ * The detached table is then walked and every element found is
++ * unlinked, and, if @free_fn is given, handed to it for release.
++ *
++ * Unlike rhashtable_destroy(), @ht is left fully initialized and may
++ * continue to be used for lookups, insertions, and removals.
++ *
++ * This function may sleep, it cannot be called from atomic context or
++ * RCU read-side critical sections.
++ *
++ * The caller must not make concurrent rhashtable_flush_and_free calls.
++ * That is, a subsequent call can only be made once the first call has
++ * returned.
++ */
++void rhashtable_flush_and_free(struct rhashtable *ht,
++			       void (*free_fn)(void *ptr, void *arg),
++			       void *arg)
++{
++	struct bucket_table *tbl, *old_tbl, *new_tbl;
++	struct rhashtable_walker *walker;
++
++	new_tbl = bucket_table_alloc(ht, rounded_hashtable_size(&ht->p),
++				     GFP_KERNEL);
++	if (!new_tbl)
++		new_tbl = bucket_table_alloc(ht, ht->p.min_size,
++					     GFP_KERNEL | __GFP_NOFAIL);
++
++	mutex_lock(&ht->mutex);
++	old_tbl = rht_dereference(ht->tbl, ht);
++	RCU_INIT_POINTER(ht->tbl, NULL);
++	mutex_unlock(&ht->mutex);
++
++	/* Wait for insertions/removals on the old ht->tbl to complete. */
++	synchronize_rcu();
++
++	/* Cancel resizes/rehashes. */
++	irq_work_sync(&ht->run_irq_work);
++	cancel_work_sync(&ht->run_work);
++
++	atomic_set(&ht->nelems, 0);
++
++	/* No need for mutex as rehashes have all stopped. */
++	rcu_assign_pointer(ht->tbl, new_tbl);
++
++	/* Detach walkers from the old hash table. */
++	tbl = old_tbl;
++	spin_lock(&ht->lock);
++	do {
++		tbl->dying = true;
++		list_for_each_entry(walker, &tbl->walkers, list) {
++			struct rhashtable_iter *iter = container_of(
++				walker, struct rhashtable_iter, walker);
++
++			walker->tbl = NULL;
++			iter->end_of_table = true;
++			iter->p = NULL;
++		}
++
++		tbl = rcu_dereference_raw(tbl->future_tbl);
++	} while (tbl);
++	spin_unlock(&ht->lock);
++
++	/* Wait for walkers on old table to complete. */
++	synchronize_rcu();
++
++	rhashtable_free(ht, old_tbl, free_fn, arg);
++}
++EXPORT_SYMBOL_GPL(rhashtable_flush_and_free);
 -- 
 2.47.3
 
