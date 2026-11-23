@@ -1,81 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403453;
-	b=MMgiv7aQkQY/9gxqAKnCaVGY1IWNrx1dvqlpLFf0vir+LEhykVyVKsC6dLY8G8moK+JJ
-	 iHRF+nQ1Cn9rhlmshnETYg7JPgp1VEyhKSNl4e346bW66qAv0UNzqghYQfZeaj1nekzIl
-	 qwdv51TO1Zmo2GaFyrlhLPq98Isne7YQ1xA1EjZXm4z8Jafpmivsp8gUUvlxzlvW6aW5t
-	 k2KVk1wDOT0fEN42nhWVscOHhSnFeq/YHolRMZWUXgYwLZBmmUlQm9o08f/9PGOfAMEzK
-	 /Q+JtBnhKoKOWUtfoj6TA/WXIX8Kat59htVY0+Vq2uCk64SBxv3Jmk4XxXvCjj2uUfw==
+	t=1795403457;
+	b=UD1j5dzHtmxR6jXPd6JT5jOrAckkEbL8POjFGX6gposjkErEWN406yqt9VSA24PPT2S4
+	 s0s9/7G9MvA3yjEO/Rq2nnYLYUt6bb8BqSE/tmF6/JT4wo9YncTpJX2ew5rNQzWpK6lga
+	 av/yLaT5MtrNKN2MIYW7npaZdeZkYopXnPB8U0tBPrRbwmxLuKv0uU40fGVuRJSLhfphA
+	 gs5//JpJHaJmb0COEymKWtdS0E6/QJue05BOWThnxDahXRAoLuZSQrI6l0iAvF8OQOvlI
+	 i4OWT7F036JNP7IuAs5lqC7ewNbo7mnNz8IOU3s95MzzSDO8CbvvMXiexy2yt2Td3Ig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403453;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403457;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
-	b=TDmzuqYWhjcfhwbi4uKEkFld40jk25RILcF5E1+EwRMjfj06gFVp7PODVjCUORCcwhQS
-	 BwYolWEYAcPKNDaNCLlOHVXx47CME1LZGh3AB+JaHpl1O8F1qMNDC40xFPS2qdQGlbiO+
-	 V0VHoCbvWiMeosegr0ElHv5It4xOyzyzczVprEMcnNbdBJFAf1Y2LOfhbes7GFtdUFh2B
-	 mzS/A5AhWmPdK5/6fBCm7Le89IqnE7gANddXUTJG3oMr8NtpXfpQrRg6TTmNs7ZoNuyn5
-	 ExeCgH8tyjJL7bMBrwR95VN4b43eDY/aJiVEgjn61HD/ow1BHGHW2QfmJ16OBxDXA/A==
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
+	b=lZf+kPqs8+6t2fZDGcklxnvcBEPnhmoOpJ996kBnBsxk3Y4KORhoF9CRlp5f0EXWjgT5
+	 kcor/+d4ZybeAQP4Z3tJOZ4VFUL385dX27cCAoH6RcgzRjNFXNs8waEhe8aIxQbka+Eso
+	 sSfAvdVcUS1wDHf+3Dk3qvCoiiyUOsjlGziLy6u50uImYLmOzgxPvNZMfszAzPlF8CPn8
+	 Q7bJXZT+MLuRc86Vk7AXPTTnl4J1ZK22d0veY+jxmBAw5wcO/A3TI0r2TNqpTfYbXxLaW
+	 OVkTPCksCKpuqkwsws34D77fjRHk3YlYcfu45FkcE0x07JSNYUASdQNRq/w0Q+Wx8kw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=nebusec.ai;
 	spf=pass smtp.mailfrom=nebusec.ai;
-	dkim=pass header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b="NBNoOIZ/";
-	arc=none smtp.remote-ip=209.85.215.174
-Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
+	dkim=pass header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=FOaYYFId;
+	arc=none smtp.remote-ip=209.85.210.174
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A50606A31E
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 03:10:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32A50606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F12606A31A
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 03:10:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96F12606A31A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=NBNoOIZ/
-Received: by mail-pg1-f174.google.com with SMTP id 41be03b00d2f7-cc147d86bebso1425029a12.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 19:10:52 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=FOaYYFId
+Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8b271e573adso1147928b3a.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 19:10:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1795403452; x=1796008252; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
-        b=NBNoOIZ/iZZF+/WwSPS/GVpJoY9LGewJc6CZLitzYq5p4JxuHcbHs/8ZD0xjGZM8Fp
-         Ysc4Lut7fnYencWsYQ85+LuvhXNbBegkxicOMm0U5UozTYw1Uz3L6+/fov08fX412x8v
-         x9owm88w1DIQhpKRwRPTVTb7t5+uiuzzW+W8Z/tSgRNV8UlNmq4x796v18ophiu2cP3M
-         jgCrQdOQVAZtiT0wjKBIt7b5AbASTcdXsDjl52QYyvWp1AvRBCk1OPzDIhaar34Pf6zL
-         2u8rCh6HQqySF9bQpFW8tVxYNAMDL+je9YTJPe8h0XH2WtaSCFOOnYkR/gQOMNsXQcvh
-         InjA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795403452; x=1796008252;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=nebusec.ai; s=google; t=1795403456; x=1796008256; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
-        b=PAKd6oor6X7AgdLpc/t19sNrMPRuX0KvPIjzzSHeY7NFPkveaX469g854HBktS8a9D
-         BE911lAcKlqxsdzSXU5L3jOZISKKxKxnWfqYWPrhwgo7V9by8NTBr6te/nIOtA0GILQQ
-         arLAXGGo8dlFIIqCWz2aWcbangmql63nlO7j2sK5C2anOrZrkP2FqwYSyWnPGFIk28Jn
-         AJQxBvAlW1ZLkxjsjpLjv6K9T9kCZNRu7e9s0HXfZ5Rnu13O0TF7X+bndmWbgoKIFxRZ
-         /KzXJftST4KSYfruzWLy482TedWEdWUXJrypwYMeAQ61Tc3bV7Rf3IXXvuRwOeIgpr1h
-         cMAg==
-X-Gm-Message-State: APuU4Z+p2ZkCo/8g0Xt49Lcsl5IpWooyqSNMN2JB1xjn+8N5sqPv2a/i
-	l6C0KV+m75uSMoXZRa4wSN+j0CwDF6P2wA2moMqae7hrk+Cxej2ZcCMPC6hhhFxzFmYHbtXs/+3
-	R64iyn7qh
-X-Gm-Gg: AZFdTZd4D4Wy+rz5wTgFBegkrCtalC//UvDjxbv96wMwgTvw2APkJWHdssoy7xSAVdy
-	OvYYRioqYBLRKKDBlKmzeTiR+0inxFdUo2+gZePgTGyAPTe5p9hg5eUJtr8ljqQcvwCxy5YS6No
-	Zz3el5E9pIpE4RogE379Rwx8wpWnETjlfOs+Iq2lyE3gP+LofZvHiQyu5yFgquZ/FEVkPSuFCm6
-	lJyYaPN5Ay7E73WtGEU+suZJmHRdZmGgtB6QFKokkcg2cSlO0LU1L1n6gyPan/9tHVJI5q9YzRp
-	qLXMqobggmb9dT6+fVOHU9ayMG9gjubISL6XTWdfT4Q03E67v6WjembBL1beemMeeP0ajI/WlqO
-	MPixUxiqCzITVUOE+Ilbhzso44BqWPF7oid/0uNXi+IuGOzwQ8Ag8Y+Q3uJC4ad9thna/vmpwau
-	oLeen28zBgUDxSplvgtj9rcFgEMuC/+GESY6ajAng1pu7/VGKqjA2nfmtABh7g784cy9DLiL5gE
-	HjIeYcJrREvL5CFxF5samG6e3FD4EPp/e61OfMWRcLsTXJhJDLuBNHJUnWFj7ns3dtK8T0HpzDY
-	bnAwTiznynPJyfi8t9Iezr+sEKd0+SUOWVSgBtxL
-X-Received: by 2002:a05:6a21:4c0c:b0:3e1:4e53:4e7f with SMTP id adf61e73a8af0-4014dd5d533mr6695784637.27.1795403452239;
-        Sun, 22 Nov 2026 19:10:52 -0800 (PST)
+        bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
+        b=FOaYYFIdm0rIy7QOU9irALqif7ZufGDcl6FdnaFq1riUskHWf2JHkisw86i0e+K8o9
+         HqvJobboDW5Edg0qupeRNyYTAXHfaO45TgYy4H7fjhwxAoZ1drH+iWtZGCT5bsKS0sJJ
+         n/ckpnxR7lCrSEC31dhmr1mQfTgLiySxqFgIV/51q/yFeM1sDh0B7Y5NLY6OaiCF4yoJ
+         xo0+znipSn9zqp4s0GT/NlzW6FthNPV6ygSHnylHwlWsUZT9Q9rC+HnhQ1ee43EdVLs8
+         VU0R2Sc0ipAUo/CgMYf9wn2B1dAe3H0dwSULDhoZR3rTUECQ2gZNFTboATYffZA47dK5
+         kHCQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795403456; x=1796008256;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
+        b=FdSSKgc6cZiQyj3KsMzHaQSq66sk17KAJMRQYQNqUo+agyc2CVFS53vi2N++7yu+PI
+         ZnkRlODD+g6OJTOJMpnO9/2sJI8IGS611H9FKdGsqDmY/AuyaZjtWKIp+xowUjuRbbp6
+         G4UGTUnMWEMybH4m18EaBY19UHXJypQXjK6y9l5SzLY3SvnCeh/L8wGxvnLsSjAYLBEF
+         a9f7E2guZRVntij6XX4mMWwYan5NogCaBCRohk8ug6c19wFrlZ01Dw7o08K7IzD9c7bh
+         8tXH+G3KvvGkhVZoW4Q/ReEU/t2oZfrk+1j69X18Ad1redtoAY3wGtYCMTXrUMqebrtM
+         bdPA==
+X-Gm-Message-State: APuU4Z/hUjpkNUR5Q5AY0jXTtM8+6LMdK9E25e2nMWbYOz3Fd0AKdZku
+	5g3E0itRtURuEK97Gl58U9l+A7GwPsK8/txof2J6RTto+JSt9XEO76ESbvGgBWIxi9LUjlO4wni
+	T5a+yMTQs
+X-Gm-Gg: AZFdTZf+vw9HwDt1fJe6wukbu9w0Tl9R3xDRfRO7aDqgsWhK9Ia+1fxYHYBerJDKnHl
+	4Vwo/uGgiN7RHebL8JYNIaDm7tQOQRPoFj7SiwqCS/wQot58d28egFi3/8AjXP0M6umHB/jFzV3
+	/sRlOj1FgQAKNZfN5HRGeSHAf92cTEG83fqt8zOUgNEUYsaox80pFHUS105sgwT+7PpRgF/7o4Y
+	BGAk+E+fIEZUxFLnRavYyDWiYdBqgylp9ZD5NK7soCFay808w+ENtJfZ24Q7CTEWvnCQxG1kILV
+	z/CGFjlNZ5G8IjC8rx0jU7mJGjllkFIt5wPeXRX5QDeBvB8eDxKQVzo4CsVzMubww6y5h4nzIgx
+	xxVzmtzfrovv/7Suo5bHQkwEvgfMPRpr1htydB7W9MKVUBXurtSIYou/P5mbpQvdADSRCERDAmB
+	iPiWlskCZAObKuSEuVcTUwf2fDjjb1yrKRaNx43VQrwnBXb5/AH2cwnjW1bV5W+lTBaVXYpWlcN
+	DEddiTQoo2lX4M8atRw6lUsjh8qAD4IhIUQpXYJYL5r5T/TIg4WczLPOoOG0fKR2ifV1M+IIHDw
+	gaO9D0oByY/Nba+wTwER07NTZ6Shxe2takHVaNyX
+X-Received: by 2002:a05:6a00:4c19:b0:8b5:f313:9f54 with SMTP id d2e1a72fcca58-8c87d32b35cmr8423896b3a.56.1795403455931;
+        Sun, 22 Nov 2026 19:10:55 -0800 (PST)
 Received: from enjou-Legion-Y7000P-2019 ([191.223.218.36])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87343fe6csm4826392b3a.37.2026.11.22.19.10.48
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87343fe6csm4826392b3a.37.2026.11.22.19.10.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 22 Nov 2026 19:10:51 -0800 (PST)
+        Sun, 22 Nov 2026 19:10:55 -0800 (PST)
 From: Ren Wei <weir@nebusec.ai>
 To: netfilter-devel@vger.kernel.org,
 	bridge@lists.linux.dev
@@ -89,10 +91,12 @@ Cc: pablo@netfilter.org,
 	sashiko-bot@kernel.org,
 	rakukuip@gmail.com,
 	weir@nebusec.ai
-Subject: [PATCH nf 0/1] netfilter: bridge: detach conntrack template on invalid IP frames
-Date: Mon, 23 Nov 2026 11:11:00 +0800
-Message-ID: <cover.1795348417.git.rakukuip@gmail.com>
+Subject: [PATCH nf 1/1] netfilter: bridge: detach conntrack template on invalid IP frames
+Date: Mon, 23 Nov 2026 11:11:01 +0800
+Message-ID: <b2d3ea42b2d8d4d9c97452a123dd5f6c3cded1c4.1795348417.git.rakukuip@gmail.com>
 X-Mailer: git-send-email 2.53.0
+In-Reply-To: <cover.1795348417.git.rakukuip@gmail.com>
+References: <cover.1795348417.git.rakukuip@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -106,365 +110,99 @@ Content-Transfer-Encoding: 8bit
 
 From: Luxiao Xu <rakukuip@gmail.com>
 
-Hi Linux kernel maintainers,
+A bridge rule such as nftables `ct zone set` can attach a conntrack
+template with IP_CT_NEW to an skb before nf_ct_bridge_pre() runs. When
+a frame has an ETH_P_IP or ETH_P_IPV6 protocol, nf_ct_bridge_pre()
+performs header pull, length trimming, and nf_ct_br_ip_check() /
+nf_ct_br_ipv6_check() validation before invoking defragmentation and
+nf_conntrack_in().
 
-We found and validated an issue in
-net/bridge/netfilter/nf_conntrack_bridge.c where malformed IPv4 and IPv6
-frames retain an attached conntrack template on early rejection paths in
-nf_ct_bridge_pre().
+If any of those six checks fails, nf_ct_bridge_pre() returns NF_ACCEPT
+immediately without passing the skb to nf_conntrack_in(), which would
+normally clear skb->_nfct and drop the template reference on parse
+failure. Because nft_ct_get_eval() evaluates NFT_CT_STATE from ct and
+ctinfo before rejecting template objects, the retained template causes
+malformed, truncated, or wrong-version IP frames to match `ct state new`
+instead of `ct state invalid`.
 
-This bug is tracked at: https://bugtracker.nebusec.ai/f/11085
+Jump to a shared error path that calls nf_reset_ct(skb) before returning
+NF_ACCEPT on all IPv4 and IPv6 header/length rejection paths so the
+template reference is released and the frame is treated as invalid,
+even on kernels without downstream template filtering in ct readers.
 
-Reachability & impact:
-When a bridge policy assigns a conntrack zone before connection tracking
-(for example via nftables `ct zone set` at raw priority -300), nftables
-attaches a conntrack template with IP_CT_NEW to skb->_nfct. If an
-incoming ETH_P_IP or ETH_P_IPV6 frame fails header pull, length
-trimming, or header validation in nf_ct_bridge_pre(), nf_ct_bridge_pre()
-returns NF_ACCEPT directly without passing the skb to nf_conntrack_in().
-
-Because nft_ct_get_eval() evaluates NFT_CT_STATE before checking
-nf_ct_is_template(ct), the retained IP_CT_NEW template causes malformed,
-truncated, or wrong-version IP frames to match `ct state new` instead of
-`ct state invalid`. Bridge policies that accept NEW traffic and intend to
-drop INVALID traffic can consequently forward malformed frames.
-
-Note on related nf-next work:
-Florian Westphal's nf-next proposal "netfilter: conntrack: add and use
-nf_ct_get_real()" (see link below) would prevent downstream consumers
-such as nft_ct_get_eval() from classifying a retained template as NEW,
-treating it as INVALID instead. Because nf_ct_get_real() is not in nf or
--stable kernels, and because nf_ct_bridge_pre() should not leave an
-unconsumed template attached to skb->_nfct on parse failure (matching
-nf_conntrack_in() and the default non-IP branch), releasing the template
-in nf_ct_bridge_pre() remains necessary.
-https://lore.kernel.org/netfilter-devel/20260923122741.30468-1-fw@strlen.de/
-
-The attached reproducer (poc.sh) uses a netdev ingress rule on vethA to
-rewrite the IPv4 version nibble from 0x45 to 0x65 (running as root in
-our guest environment); an external or bridge peer can also inject
-malformed frames directly over the wire without host privileges.
-
-=== details below ===
-
-Bug details:
-
-In net/bridge/netfilter/nf_conntrack_bridge.c, nf_ct_bridge_pre() has
-six early-return paths across the ETH_P_IP and ETH_P_IPV6 cases:
-1. ETH_P_IP:
-   - !pskb_may_pull(skb, sizeof(struct iphdr))
-   - pskb_trim_rcsum(skb, len)
-   - nf_ct_br_ip_check(skb)
-2. ETH_P_IPV6:
-   - !pskb_may_pull(skb, sizeof(struct ipv6hdr))
-   - pskb_trim_rcsum(skb, len)
-   - nf_ct_br_ipv6_check(skb)
-
-Unlike the default non-IP branch (which calls nf_reset_ct(skb)) and
-nf_conntrack_in() (which clears skb->_nfct = 0 and drops the template
-reference on parse failure), all six IPv4/IPv6 rejection paths return
-NF_ACCEPT with the template still attached to skb->_nfct.
-
-The fix jumps all six paths to a shared `invalid:` label that calls
-nf_reset_ct(skb) before returning NF_ACCEPT, dropping the template
-reference and restoring skb->_nfct to 0 so that subsequent ct state
-evaluation classifies the frame as INVALID.
-
-Testing & Validation:
-We validated both the baseline reproduction and the fix in an x86_64
-QEMU guest (2 vCPUs, 2GB RAM, CONFIG_KASAN=y, CONFIG_UBSAN=y,
-CONFIG_LOCKDEP=y, CONFIG_NF_CONNTRACK_BRIDGE=y) built from nf/main
-(734bef548a96).
-
-1. Pre-fix verification (unpatched nf/main):
-   Running `bash /home/test_user/poc.sh`:
-   - [control-no-template]: seen=1, invalid=1, newpkts=0, mangled=1
-   - [template-retained]:   seen=1, invalid=0, newpkts=1, mangled=1
-
-2. Post-fix verification (patched kernel):
-   Running `bash /root/poc.sh`:
-   - [control-no-template]: seen=1, invalid=1, newpkts=0, mangled=1
-   - [template-retained]:   seen=1, invalid=1, newpkts=0, mangled=1
-
-3. Extended regression testing (with `ct zone set 1` active):
-   - IPv4 short header (< 20B), inflated tot_len, tot_len < ihl*4,
-     low IHL (0x44), wrong version (0x65): all matched invalid=1, new=0.
-   - IPv6 short header (< 40B), wrong version (0x40), inflated
-     payload_len: all matched invalid=1, new=0.
-   - Non-IP ARP frame: matched untracked=1, invalid=0, new=0.
-   - Normal IPv4 ping and IPv6 ping6 across bridge (between init_net
-     and netns nsB): both succeeded with invalid=0, new=1,
-     established=1.
-   - 1000-packet malformed IPv4/IPv6 stress test: invalid=1000, new=0,
-     with zero KASAN, UBSAN, Lockdep, or refcount warnings in dmesg.
-
-4. Style & patch checks:
-   - git diff --check HEAD~1: 0 issues
-   - git apply --check on nf/main: clean
-   - scripts/checkpatch.pl --strict: 0 errors, 1 warning (consecutive
-     Reported-by lines where VEGA has no separate public report URL)
-
-Reproducer:
-
-    bash poc.sh
-
-=== BEGIN poc.sh ===
-#!/bin/bash
-set -euo pipefail
-
-PATH=/usr/sbin:/sbin:/usr/bin:/bin
-
-TABLE=brtest
-BR=br0
-PORT_A=vethA
-PORT_B=vethB
-END_A=peerA
-END_B=peerB
-TARGET_IP=10.0.0.99
-SOURCE_IP=10.0.0.1/24
-
-cleanup() {
-	nft flush ruleset >/dev/null 2>&1 || true
-	ip route del "$TARGET_IP/32" dev "$END_A" >/dev/null 2>&1 || true
-	ip neigh del "$TARGET_IP" dev "$END_A" >/dev/null 2>&1 || true
-	ip link del "$PORT_A" >/dev/null 2>&1 || true
-	ip link del "$PORT_B" >/dev/null 2>&1 || true
-	ip link del "$BR" >/dev/null 2>&1 || true
-}
-
-need_root() {
-	if [ "$(id -u)" -ne 0 ]; then
-		echo "run as root, or use --userns from an unprivileged account" >&2
-		exit 1
-	fi
-}
-
-mac_of() {
-	ip -o link show dev "$1" | awk '{for (i = 1; i <= NF; i++) if ($i == "link/ether") print $(i + 1)}'
-}
-
-setup_topology() {
-	ip link add "$BR" type bridge
-	ip link add "$PORT_A" type veth peer name "$END_A"
-	ip link add "$PORT_B" type veth peer name "$END_B"
-	ip link set "$PORT_A" master "$BR"
-	ip link set "$PORT_B" master "$BR"
-
-	for dev in "$BR" "$PORT_A" "$PORT_B" "$END_A" "$END_B"; do
-		ip link set "$dev" up
-	done
-
-	ip addr add "$SOURCE_IP" dev "$END_A"
-	ip route add "$TARGET_IP/32" dev "$END_A"
-	ip neigh add "$TARGET_IP" lladdr "$(mac_of "$END_B")" dev "$END_A" nud permanent
-}
-
-setup_mangler() {
-	nft add table netdev m
-	nft add counter netdev m mangled
-	nft 'add chain netdev m ingress_vethA { type filter hook ingress device "vethA" priority 0; policy accept; }'
-	nft add rule netdev m ingress_vethA meta protocol ip counter name mangled @nh,0,8 set 0x65
-}
-
-setup_observer() {
-	nft add table bridge "$TABLE"
-	for c in seen invalid newpkts established untracked other; do
-		nft add counter bridge "$TABLE" "$c"
-	done
-
-	nft 'add chain bridge brtest observe { type filter hook prerouting priority 0; policy accept; }'
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip counter name seen
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state invalid counter name invalid accept
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state untracked counter name untracked accept
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state new counter name newpkts accept
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state established,related counter name established accept
-	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip counter name other
-}
-
-add_zone_template_rule() {
-	nft 'add chain bridge brtest ctpre { type filter hook prerouting priority -300; policy accept; }'
-	nft add rule bridge "$TABLE" ctpre iifname "$PORT_A" meta protocol ip ct zone set 1
-}
-
-reset_phase_counters() {
-	nft reset counters table bridge "$TABLE"
-	nft reset counters table netdev m
-}
-
-print_phase_counters() {
-	echo "bridge counters:"
-	nft list counters table bridge "$TABLE"
-	echo "mangle counters:"
-	nft list counters table netdev m
-}
-
-run_phase() {
-	local label=$1
-
-	echo "[$label] sending one ping after mangling the first IPv4 header byte to 0x65"
-	ping -I "$END_A" -c 1 -W 1 "$TARGET_IP" >/dev/null || true
-	echo "[$label] results"
-	print_phase_counters
-}
-
-main_inner() {
-	need_root
-	trap cleanup EXIT
-	cleanup
-
-	setup_topology
-	setup_observer
-	setup_mangler
-
-	run_phase "control-no-template"
-
-	add_zone_template_rule
-	reset_phase_counters
-	run_phase "template-retained"
-}
-
-if [ "${1:-}" = "--userns" ]; then
-	exec unshare -Urnm -- "$0" --inner
-fi
-
-if [ "${1:-}" = "--inner" ]; then
-	shift
-fi
-
-main_inner "$@"
-=== END poc.sh ===
-
-=== BEGIN pre-fix output ===
-[control-no-template] sending one ping after mangling the first IPv4 header byte to 0x65
-[control-no-template] results
-bridge counters:
-table bridge brtest {
-	counter seen {
-		packets 1 bytes 84
-	}
-	counter invalid {
-		packets 1 bytes 84
-	}
-	counter newpkts {
-		packets 0 bytes 0
-	}
-	counter established {
-		packets 0 bytes 0
-	}
-	counter untracked {
-		packets 0 bytes 0
-	}
-	counter other {
-		packets 0 bytes 0
-	}
-}
-mangle counters:
-table netdev m {
-	counter mangled {
-		packets 1 bytes 84
-	}
-}
-[template-retained] sending one ping after mangling the first IPv4 header byte to 0x65
-[template-retained] results
-bridge counters:
-table bridge brtest {
-	counter seen {
-		packets 1 bytes 84
-	}
-	counter invalid {
-		packets 0 bytes 0
-	}
-	counter newpkts {
-		packets 1 bytes 84
-	}
-	counter established {
-		packets 0 bytes 0
-	}
-	counter untracked {
-		packets 0 bytes 0
-	}
-	counter other {
-		packets 0 bytes 0
-	}
-}
-mangle counters:
-table netdev m {
-	counter mangled {
-		packets 1 bytes 84
-	}
-}
-=== END pre-fix output ===
-
-=== BEGIN post-fix output ===
-[control-no-template] sending one ping after mangling the first IPv4 header byte to 0x65
-[control-no-template] results
-bridge counters:
-table bridge brtest {
-	counter seen {
-		packets 1 bytes 84
-	}
-	counter invalid {
-		packets 1 bytes 84
-	}
-	counter newpkts {
-		packets 0 bytes 0
-	}
-	counter established {
-		packets 0 bytes 0
-	}
-	counter untracked {
-		packets 0 bytes 0
-	}
-	counter other {
-		packets 0 bytes 0
-	}
-}
-mangle counters:
-table netdev m {
-	counter mangled {
-		packets 1 bytes 84
-	}
-}
-[template-retained] sending one ping after mangling the first IPv4 header byte to 0x65
-[template-retained] results
-bridge counters:
-table bridge brtest {
-	counter seen {
-		packets 1 bytes 84
-	}
-	counter invalid {
-		packets 1 bytes 84
-	}
-	counter newpkts {
-		packets 0 bytes 0
-	}
-	counter established {
-		packets 0 bytes 0
-	}
-	counter untracked {
-		packets 0 bytes 0
-	}
-	counter other {
-		packets 0 bytes 0
-	}
-}
-mangle counters:
-table netdev m {
-	counter mangled {
-		packets 1 bytes 84
-	}
-}
-=== END post-fix output ===
-
-Best regards,
-Luxiao Xu
-
-Luxiao Xu (1):
-  netfilter: bridge: detach conntrack template on invalid IP frames
+Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Cc: stable@vger.kernel.org
+Reported-by: VEGA <vega@nebusec.ai>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/3cf187b612fd78f8835fa9dad870326ce380f82f.1785479514.git.zhilinz@nebusec.ai
+Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
+Signed-off-by: Ren Wei <weir@nebusec.ai>
+---
+Note on related upstream work:
+Florian Westphal's series "[v2,nf-next] netfilter: conntrack: add and
+use nf_ct_get_real()" (linked below) mitigates the downstream symptom
+by making ct state readers such as nft_ct_get_eval() treat retained
+templates as NULL (INVALID rather than NEW). However, nf_ct_get_real()
+targets nf-next and is not present in nf or -stable kernels, and
+nf_ct_bridge_pre() still leaves an unconsumed template attached to
+skb->_nfct on malformed IP frames until freed. Resetting ct state at
+the rejection site in nf_ct_bridge_pre() aligns it with
+nf_conntrack_in() and the existing non-IP default branch.
+Link: https://lore.kernel.org/netfilter-devel/20260923122741.30468-1-fw@strlen.de/
 
  net/bridge/netfilter/nf_conntrack_bridge.c | 16 ++++++++++------
  1 file changed, 10 insertions(+), 6 deletions(-)
 
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index b5444335b86f..0da0f899edb8 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -257,28 +257,28 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+ 		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		len = skb_ip_totlen(skb);
+ 		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		if (nf_ct_br_ip_check(skb))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		bridge_state.pf = NFPROTO_IPV4;
+ 		ret = nf_ct_br_defrag4(skb, &bridge_state);
+ 		break;
+ 	case htons(ETH_P_IPV6):
+ 		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		len = sizeof(struct ipv6hdr) + skb_ipv6_payload_len(skb);
+ 		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		if (nf_ct_br_ipv6_check(skb))
+-			return NF_ACCEPT;
++			goto invalid;
+ 
+ 		bridge_state.pf = NFPROTO_IPV6;
+ 		ret = nf_ct_br_defrag6(skb, &bridge_state);
+@@ -293,6 +293,10 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
+ 		return ret;
+ 
+ 	return nf_conntrack_in(skb, &bridge_state);
++
++invalid:
++	nf_reset_ct(skb);
++	return NF_ACCEPT;
+ }
+ 
+ static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
 -- 
 2.43.0
 
