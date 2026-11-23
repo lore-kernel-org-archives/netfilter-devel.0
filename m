@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442097;
-	b=Z1DPI8kbPBqBM5Y85BUGl3fl+T/68sSXhApmI8JJZnuya7YQWy7HR5kSJvk3AaJ+gdmF
-	 iZz2UaqowU0b7e3gK6IoQlFMWAKdZiXdE0mgTqiS88vIxHD0NGyIxMllJJVsvW0fZp8YL
-	 gWFmXc6tPXFmyjCO9iGwRp7A12km37c1YJG/zdQhX63kiLbl85ufBi4h9fjZRQ3HF4TXe
-	 M5i8qxpIRNK3cEqVBs8qCt/xQKLBtDWg7e+WE8g/HJlv+tNTvq8t7LLPUaXdMGYIphyTM
-	 qNAEzjE2my9caiz7otjQjSVARs/+TlAxXNCPvwMkOP0JA6wO396smSL/DxT6gKZiFEQ==
+	t=1795442098;
+	b=Xmi1lwQtnvk0lY1EZ6lVL7fFWaUC7Gro8IthwRZwqzIJRCgHxmb+Eg0aREPWrc0eZB60
+	 3QcaVTAGi/JT+faGW7ONPSoUKyj+6ZxHUao89QZrtQ0jY1jhj4ao9bowVDtIx3t+Rd2jQ
+	 1HdCuigKO17tPm1tywQk5bxB8RttS6ib2U3ERW1EEghH4E43ean69RKw94Nh6b0MUI7hd
+	 MWTJeX0CpdYUjCupmc1XVm6A7YU6nRghwhVrZo8NKsmnvbgTeISU1zxSTLjLXf1tPOKk6
+	 PVc7t8yrHcpzSqdG9z+4xkO8Qb6MgTr9lvkIK9lD/SyriQvoHKLi7p/r11e3T7Z7j/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442097;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442098;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding:
-	 X-Spam-Status:X-Spam-Checker-Version;
-	bh=Ru2s9mES9ylKZgw0DoHp5PGWV2CKsSwTOut/bwZ7m20=;
-	b=rBCu7JJPagiO7+bSLymmp6XxCW4p7IL2S+qN67GRsS3Vk/ZIMwbN/b7gQj0N3o1wKwHW
-	 GIsLkaIT91/qp50gXB2EuPR64xSnGveeA+xV4bJqT0JF4SfQDSSBCP9R77cGiR3mIu37R
-	 6CMp/QbI+zIN2qeC5U9lGdEQp6tkm1OIjp56PUmPloJquuv3/bFxuUbAEPs8xw6/0l8Gz
-	 PwSLFaw3AcFjBd90yF4LY5BATyz8R/gm9Y0iOvUand3wwWPlwTxpCOED8YcCtPpft/5CP
-	 uQnNjKhi312jM/lJjoTaupkrCEiM8oitOcjw01mPoT/srLcYYSoN/X1gTShgIQCy+uQ==
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
+	bh=tUs92/3C6a+B3SOLHJJUXzN+3Ap9uUF5Js/S3EGH8Vk=;
+	b=PtfVOgEqINrB+0yogYeoduEqO0HV4P98t/MEqyCgS8GpBIhh16bcca6s4Rxn+kWcTqu4
+	 cL1yP+mxFOqCK2JO5KLutClyBKD3EL+CvDbnhKPwcni3v6RnFh8ia2VR6k/rm8MqMCQKz
+	 czLQNIlxz24DRGmktopd5UvJYXMXUxLiHQjtkBVfHcaouLFaiIpHY/3AzniRsUQG7WMiu
+	 VewxjQwI/ZppzGc+y7ZTg+oBhLMTRyETaZSzOEB/ianOMx8X7Nogodq92+G4QKOCBQV2i
+	 zQxi3J1CF2M5JJ5TyvQQU5eiX9icpq1WlbmZ7Ng92DopU85LhAbag43W7Ceu6ZQjR6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=f5HHLWGv;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=D9FIHCeB;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED306606A31E;
-	Mon, 23 Nov 2026 13:54:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ED306606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC52606A33C;
+	Mon, 23 Nov 2026 13:54:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2BC52606A33C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=f5HHLWGv
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=D9FIHCeB
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795442087;
-	bh=Ru2s9mES9ylKZgw0DoHp5PGWV2CKsSwTOut/bwZ7m20=;
-	h=From:To:Cc:Subject:Date:From;
-	b=f5HHLWGvhniEjKXVJAzS6bocXzi+yYO3PdQYPP/cKgDn5CUzeIMA3Uq0V2EGNetiX
-	 QaN/+OpcvrycTsyvyuCFGNjERpW+SYcBuCJOVkV91jPIdenxC0nzJB4czk3t8s7XDt
-	 ynPpnNlkdCDkl0hFE7US9iXwWs9XWdzlHhJqZBdGSd8rlMS/Ng3hNz58va0MVxd8+R
-	 2aowsTyzT1RacXP1+R/YsJKpjy+/8niIizxQfEgmhHoGdfKfxS2b1dikMa0A5UIso5
-	 jypr7uFfl4V3Ip8vVSdm0N9Mnp4TsSKN8XZu+T5YTGgFbVYIlef+FZUAS4EFwclGb3
-	 q5/Vj2W6xW56g==
+	s=2025; t=1795442090;
+	bh=tUs92/3C6a+B3SOLHJJUXzN+3Ap9uUF5Js/S3EGH8Vk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=D9FIHCeBhCs3GwN4Te10a1bCLeVEAItqjX6thZFFlCmYavEXfCuUWUEaSlBxVaKk1
+	 PuWrqrlOuCa3beR70lRtd6UXe5AZj4E7iJfqzGTT26r5303NcVDWFDLV+UGbO4GPqw
+	 nooVAkh1OVpK2NmtbVcoHTTpUDcnNgXK/iTin4tg/c5PbIVnYho858A37nKnRPiaqM
+	 WUe7TkEZFU+0eNG5S0ThBolm9UJtD0sSQk9nJO7agKa2VKZl8kMReQdfJw5pgATH3I
+	 wfNM03OQDKeF9KiDa/D3Aa9cUh4XVhLbfqfe8yVkL59SZjC7hBBHKSSbkojbzkxP65
+	 AUF+5le2LRYfQ==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BAE1F602B9;
-	Mon, 23 Nov 2026 14:54:46 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2B305602BB;
+	Mon, 23 Nov 2026 14:54:50 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,10 +56,12 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 00/15] Netfilter updates for net-next
-Date: Mon, 23 Nov 2026 14:54:27 +0100
-Message-ID: <20261123135442.3940372-1-pablo@netfilter.org>
+Subject: [PATCH net-next 02/15] netfilter: conntrack: validate skb->_nfct and packet headers
+Date: Mon, 23 Nov 2026 14:54:29 +0100
+Message-ID: <20261123135442.3940372-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261123135442.3940372-1-pablo@netfilter.org>
+References: <20261123135442.3940372-1-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,112 +73,169 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following batch contains Netfilter updates for net-next. This is
-composed of four groups:
+skbs coming from loopback already have skb->_nfct attached.
+act_ct may also attach a conntrack to the skb.
 
-1) Patch 1 addresses a race in the nf_conntrack_buckets sysctl handler,
-   that has been reported by LLM. From Fernando F. Mancera.
+Facilities like clsact or pedit can alter headers which may then result
+in e.g. UDP packet with TCP nf_conn.
 
-2) Patches from 2 to 7: This is a conntrack hardening series to address
-   LLM reports of the issues related to skbuff mangling while a ct is
-   already present, leading to mismatch protocol numbers, ie. ct becomes
-   stale since it does not represent this skbuff. This is unlikely to
-   happen in a real world. From Florian Westphal.
+Revalidate that this skb matches the skb l3/l4 header.  If not, drop the
+stale reference and let nf_conntrack_in perform a re-lookup.
 
-3) Patch 8 updates nft_synproxy to address SYN and ACK packets only, just
-   like ip{6}t_SYNPROXY does. From Fernando F. Mancera.
+For conntrack helpers, more checks may be required, e.g. tcph->doff
+revalidation.  This is handled in a followup patch.
 
-4) Patch 9 validate hook priority so nft_ct template is narrowed down
-   to be used where it makes sense. From Florian Westphal.
+Note that the Fixes tag is bogus, back then this was perfectly fine:
+namespaces, esp. unprivileged user namespaces, did not exist and all
+crash-configs were in the "don't do that, then" department.
 
-5) The ipset hash types conversion to rhashtable, including a new
-   rhashtable helper function to flush and destroy the hashtable.
-   This is a rework that aims at fixing the existing resize races in
-   the ipset hash type, which has triggered a myriad of LLM patches
-   addressing the symptoms but not the core issue. This large so
-   we prefer net-next for these series. Series from Florian Westphal,
-   plus one patch for rhashtable to add a flush and destroy helper
-   function by Herbert Xu.
+Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_core.c | 114 +++++++++++++++++++++++++++---
+ 1 file changed, 105 insertions(+), 9 deletions(-)
 
-You can pull these changes from:
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 931b76aacd93..d2cd9b31507e 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1998,6 +1998,99 @@ static int nf_conntrack_handle_packet(struct nf_conn *ct,
+ 	return generic_packet(ct, skb, ctinfo);
+ }
+ 
++static bool nf_ct_check_icmp_inner(const struct sk_buff *skb,
++				   const struct nf_hook_state *state,
++				   unsigned int dataoff,
++				   struct nf_conn *ct,
++				   enum ip_conntrack_dir dir)
++{
++	static const unsigned int icmp_hdrsz = 8;
++	struct nf_conntrack_tuple tuple;
++
++	if (!nf_ct_get_tuplepr(skb, dataoff + icmp_hdrsz, state->pf,
++			       state->net, &tuple))
++		return false;
++
++	return nf_ct_tuple_equal(&tuple, nf_ct_tuple(ct, !dir));
++}
++
++/**
++ * nf_ct_get_careful - Get connection tracking entry with protocol revalidation
++ *
++ * @skb: Socket buffer whose conntrack entry is to be retrieved
++ * @state: Netfilter hook state
++ * @dataoff: Offset to the layer-4 header within @skb
++ * @protonum: protocol number (e.g., IPPROTO_TCP)
++ * @ctinfo: Pointer to store ip_conntrack_info
++ *
++ * This function retrieves the connection tracking entry associated with @skb.
++ * Performs revalidation of packet header, unlike nf_ct_get().
++ *
++ * If earlier in-kernel mangling (e.g., via TC pedit or clsact) altered packet
++ * contents (e.g. changing TCP to UDP), this function will drop the conntrack
++ * reference and returns NULL.  skbs coming in via NF_INET_LOCAL_OUT are
++ * trusted and never revalidated.
++ *
++ * Returns:
++ *   %NULL - No valid conntrack entry exists or revalidation failed.
++ *   Pointer to &struct nf_conn associated with skb, may be a template.
++ */
++static struct nf_conn *
++nf_ct_get_careful(struct sk_buff *skb,
++		  const struct nf_hook_state *state,
++		  unsigned int dataoff, u8 protonum,
++		  enum ip_conntrack_info *ctinfo)
++{
++	struct nf_conn *tmpl = nf_ct_get(skb, ctinfo);
++	struct nf_conntrack_tuple inverse;
++	struct nf_conntrack_tuple tuple;
++	enum ip_conntrack_dir dir;
++
++	/* LOCAL_OUT is trusted: in case stack sends ICMP error, skb gets
++	 * the conntrack assigned via nf_ct_attach().
++	 *
++	 * Such conntrack may not even be in hashtable yet, so
++	 * nf_conntrack_handle_icmp() cannot find a connection matching
++	 * the inner header.
++	 */
++	if (state->hook == NF_INET_LOCAL_OUT)
++		return tmpl;
++
++	if (!tmpl || nf_ct_is_template(tmpl))
++		return tmpl;
++
++	if (state->pf != nf_ct_l3num(tmpl))
++		goto error;
++
++	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
++			     dataoff, state->pf, protonum, state->net,
++			     &tuple))
++		goto error;
++
++	dir = CTINFO2DIR(*ctinfo);
++	if (nf_ct_tuple_equal(&tuple, nf_ct_tuple(tmpl, dir)))
++		return tmpl;
++
++	if (*ctinfo == IP_CT_RELATED || *ctinfo == IP_CT_RELATED_REPLY) {
++		if (state->pf == NFPROTO_IPV4 && protonum == IPPROTO_ICMP &&
++		    nf_ct_check_icmp_inner(skb, state, dataoff, tmpl, dir))
++			return tmpl;
++
++		if (state->pf == NFPROTO_IPV6 && protonum == IPPROTO_ICMPV6 &&
++		    nf_ct_check_icmp_inner(skb, state, dataoff, tmpl, dir))
++			return tmpl;
++	}
++
++	if (!nf_ct_invert_tuple(&inverse, &tuple))
++		goto error;
++
++	if ((tmpl->status & IPS_NAT_MASK) && nf_ct_tuple_equal(&inverse, nf_ct_tuple(tmpl, !dir)))
++		return tmpl;
++error:
++	nf_reset_ct(skb);
++	return NULL;
++}
++
+ unsigned int
+ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ {
+@@ -2006,21 +2099,24 @@ nf_conntrack_in(struct sk_buff *skb, const struct nf_hook_state *state)
+ 	u_int8_t protonum;
+ 	int dataoff, ret;
+ 
+-	tmpl = nf_ct_get(skb, &ctinfo);
++	/* rcu_read_lock()ed by nf_hook_thresh */
++	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
++	if (dataoff <= 0) {
++		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
++		tmpl = nf_ct_get(skb, &ctinfo);
++		if (ctinfo != IP_CT_UNTRACKED)
++			nf_reset_ct(skb);
++		return NF_ACCEPT;
++	}
++
++	tmpl = nf_ct_get_careful(skb, state, dataoff, protonum, &ctinfo);
+ 	if (tmpl || ctinfo == IP_CT_UNTRACKED) {
+ 		/* Previously seen (loopback or untracked)?  Ignore. */
+ 		if ((tmpl && !nf_ct_is_template(tmpl)) ||
+ 		     ctinfo == IP_CT_UNTRACKED)
+ 			return NF_ACCEPT;
+-		skb->_nfct = 0;
+-	}
+ 
+-	/* rcu_read_lock()ed by nf_hook_thresh */
+-	dataoff = get_l4proto(skb, skb_network_offset(skb), state->pf, &protonum);
+-	if (dataoff <= 0) {
+-		NF_CT_STAT_INC_ATOMIC(state->net, invalid);
+-		ret = NF_ACCEPT;
+-		goto out;
++		skb->_nfct = 0;
+ 	}
+ 
+ 	if (protonum == IPPROTO_ICMP || protonum == IPPROTO_ICMPV6) {
+-- 
+2.47.3
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-Thanks!
-
-1) 
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-11-23
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 994089a3fa3882f27f4bed9fc5815ee7df502e88:
-
-  Merge tag 'nf-next-26-11-16' of git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next (2026-11-17 12:05:37 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-11-23
-
-for you to fetch changes up to 80b89c83c8672becbc94ff7ad92ad5ef01d48fab:
-
-  netfilter: ipset: re-add forceadd support (2026-11-23 14:03:47 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 26-11-23
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: conntrack: prevent nf_conntrack_buckets race condition
-
-Florian Westphal (12):
-      netfilter: conntrack: validate skb->_nfct and packet headers
-      netfilter: conntrack: refactor helper call logic in nf_confirm()
-      netfilter: conntrack: verify L4 protocol before calling helper
-      netfilter: conntrack: replace open-coded helper invocation
-      netfilter: conntrack: harden helper invocation with tuple revalidation
-      netfilter: nft_ct: validate timeout object protocol
-      netfilter: nft_ct: validate hook and priority for ct zone set
-      netfilter: ipset: add rhashtable boilerplate stubs
-      netfilter: ipset: replace internal hash table with rhashtable
-      netfilter: ipset: also report mem size for cidr storage to userspace
-      netfilter: ipset: re-add IP_SET_HASH_WITH_MULTI support
-      netfilter: ipset: re-add forceadd support
-
-Herbert Xu (1):
-      rhashtable: Add rhashtable_flush_and_free helper
-
-Nguyen Ngoc Thang (1):
-      netfilter: nft_synproxy: only handle pure SYN and ACK packets
-
- include/linux/rhashtable.h                   |   40 +-
- include/net/netfilter/nf_conntrack_helper.h  |    2 +
- include/net/netfilter/nf_tables.h            |    4 +
- lib/rhashtable.c                             |  186 ++-
- net/netfilter/ipset/ip_set_hash_gen.h        | 2176 ++++++++++++++------------
- net/netfilter/ipset/ip_set_hash_ip.c         |    6 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c      |    6 +-
- net/netfilter/ipset/ip_set_hash_ipmark.c     |    6 +-
- net/netfilter/ipset/ip_set_hash_ipport.c     |    6 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c   |    6 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c  |    6 +-
- net/netfilter/ipset/ip_set_hash_mac.c        |    3 +-
- net/netfilter/ipset/ip_set_hash_net.c        |    6 +-
- net/netfilter/ipset/ip_set_hash_netiface.c   |   74 +-
- net/netfilter/ipset/ip_set_hash_netnet.c     |    6 +-
- net/netfilter/ipset/ip_set_hash_netport.c    |    6 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c |    6 +-
- net/netfilter/nf_conntrack_core.c            |  119 +-
- net/netfilter/nf_conntrack_ovs.c             |   53 +-
- net/netfilter/nf_conntrack_proto.c           |  173 +-
- net/netfilter/nf_conntrack_standalone.c      |   18 +-
- net/netfilter/nf_tables_api.c                |   48 +-
- net/netfilter/nft_ct.c                       |   87 +-
- net/netfilter/nft_synproxy.c                 |    8 +-
- 24 files changed, 1850 insertions(+), 1201 deletions(-)
