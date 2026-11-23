@@ -1,102 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.210.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.177
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795403457;
-	b=UD1j5dzHtmxR6jXPd6JT5jOrAckkEbL8POjFGX6gposjkErEWN406yqt9VSA24PPT2S4
-	 s0s9/7G9MvA3yjEO/Rq2nnYLYUt6bb8BqSE/tmF6/JT4wo9YncTpJX2ew5rNQzWpK6lga
-	 av/yLaT5MtrNKN2MIYW7npaZdeZkYopXnPB8U0tBPrRbwmxLuKv0uU40fGVuRJSLhfphA
-	 gs5//JpJHaJmb0COEymKWtdS0E6/QJue05BOWThnxDahXRAoLuZSQrI6l0iAvF8OQOvlI
-	 i4OWT7F036JNP7IuAs5lqC7ewNbo7mnNz8IOU3s95MzzSDO8CbvvMXiexy2yt2Td3Ig==
+	t=1795408811;
+	b=jciFbTX9wb041RjtyLxM1bIOs8l/50TxCoO0001sPrHLChhI0PiIeFPx5pfJVrSfrh82
+	 /v5xIV7/6rx1L2g4PLRgK3O2tQgyddoQrekPANqMWWdqPgnTPUTWvGFay3M++uML9niSB
+	 wi+hHeUGCHe4JuxCckiJQOBPnva1CQSxDwfS2oD0TdSgvRhcFkoRGkhRmAUhcmJQcmDJy
+	 gh46w+IiTCzhH7j4f8lpuuM2TabJkM9bdhALTSifgnm/6/OR2yT8mUmheVKIjpNYkUWz3
+	 9hrPlEPK2JOM2lHjC0/wF6SVrsqqQWK1RdpohqSi4Tbf5hxGf2rwURF2uSQdnGs1mcg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795403457;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795408811;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
-	bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
-	b=lZf+kPqs8+6t2fZDGcklxnvcBEPnhmoOpJ996kBnBsxk3Y4KORhoF9CRlp5f0EXWjgT5
-	 kcor/+d4ZybeAQP4Z3tJOZ4VFUL385dX27cCAoH6RcgzRjNFXNs8waEhe8aIxQbka+Eso
-	 sSfAvdVcUS1wDHf+3Dk3qvCoiiyUOsjlGziLy6u50uImYLmOzgxPvNZMfszAzPlF8CPn8
-	 Q7bJXZT+MLuRc86Vk7AXPTTnl4J1ZK22d0veY+jxmBAw5wcO/A3TI0r2TNqpTfYbXxLaW
-	 OVkTPCksCKpuqkwsws34D77fjRHk3YlYcfu45FkcE0x07JSNYUASdQNRq/w0Q+Wx8kw==
+	bh=Gdrcz7ax90Dmq2ghAsgN9C5sw5lV7csK9Wkpqn6bdEE=;
+	b=1AHWPaPowfXWIr3VO1LfDQD2WemheaW0v3d31rjOmUdqoYmBhziWc3Ld2q/c40PuHgYP
+	 b01amrnrACA3HiTHpY1vpYnl/WLWKe4smjnx3JFhc3gRXGWzRJs311OXi5aEu/Xh8WPdJ
+	 0A6THMqyykD2jmkmXsP9PFWmZMhEgnSGmaSq32dJW79Hp60QYmKcI3j9z16MB1EjMAPlT
+	 m2qIFU88o2ARqlz06Nc2PmjR4nXPIOs5E91ac/tylKmoqo8gEv5AAnslvsxHOX7yENrMM
+	 GEAbp80ESUwlUNY/WL31RTG9edvQUXnwyOFKHqm/8zjm90f1w7+R7PP40XobXqOd2+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=nebusec.ai;
-	spf=pass smtp.mailfrom=nebusec.ai;
-	dkim=pass header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=FOaYYFId;
-	arc=none smtp.remote-ip=209.85.210.174
-Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	dmarc=none header.from=ikotaslabs.com;
+	spf=pass smtp.mailfrom=ikotaslabs.com;
+	dkim=pass header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b=lfO+y+7Q;
+	arc=none smtp.remote-ip=209.85.214.177
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96F12606A31A
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 03:10:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 96F12606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAAC3606A335
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 04:40:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AAAC3606A335
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=ikotaslabs.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ikotaslabs.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=FOaYYFId
-Received: by mail-pf1-f174.google.com with SMTP id d2e1a72fcca58-8b271e573adso1147928b3a.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 19:10:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ikotaslabs.com header.i=@ikotaslabs.com header.a=rsa-sha256 header.s=google header.b=lfO+y+7Q
+Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-2f02ee04378so22643415ad.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 20:40:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nebusec.ai; s=google; t=1795403456; x=1796008256; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
-        b=FOaYYFIdm0rIy7QOU9irALqif7ZufGDcl6FdnaFq1riUskHWf2JHkisw86i0e+K8o9
-         HqvJobboDW5Edg0qupeRNyYTAXHfaO45TgYy4H7fjhwxAoZ1drH+iWtZGCT5bsKS0sJJ
-         n/ckpnxR7lCrSEC31dhmr1mQfTgLiySxqFgIV/51q/yFeM1sDh0B7Y5NLY6OaiCF4yoJ
-         xo0+znipSn9zqp4s0GT/NlzW6FthNPV6ygSHnylHwlWsUZT9Q9rC+HnhQ1ee43EdVLs8
-         VU0R2Sc0ipAUo/CgMYf9wn2B1dAe3H0dwSULDhoZR3rTUECQ2gZNFTboATYffZA47dK5
-         kHCQ==
+        d=ikotaslabs.com; s=google; t=1795408810; x=1796013610; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=Gdrcz7ax90Dmq2ghAsgN9C5sw5lV7csK9Wkpqn6bdEE=;
+        b=lfO+y+7QIdN8L3Vwj2YzzhfjLGdDRLQM4IbcJCTi74MuDaeLTjf4wm5gDBDwLJaZFi
+         bJpRfqlw+6BCpliJDc+klY7xO6QokRYnRzJqi8oA2/ibEztkIfmpLfhGBfhN28ihXZOW
+         7T95r8fjFyssK1dw8wxxbmg2P/MmyY5ud+ycwdniqYHpTiNXtRMRouZ9fL5ltPin5AVS
+         wV6lr3OGNwGXiFgoAlTbOWqg+/wAjkoXQDLZOso3ZQi5lJ3cJuSPLD722eLFdcuVJxUu
+         I+xFahsTL7LJCOYdQt//+m2XkAygf6m8Qx/jXPGUg2jA9vwNQTlgCbOfyyymCvT+H7SN
+         /Ljg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795403456; x=1796008256;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=xC8uNV0eir7OkjvnqZSoZuHi/kEMl+1aERjTTAXCD8w=;
-        b=FdSSKgc6cZiQyj3KsMzHaQSq66sk17KAJMRQYQNqUo+agyc2CVFS53vi2N++7yu+PI
-         ZnkRlODD+g6OJTOJMpnO9/2sJI8IGS611H9FKdGsqDmY/AuyaZjtWKIp+xowUjuRbbp6
-         G4UGTUnMWEMybH4m18EaBY19UHXJypQXjK6y9l5SzLY3SvnCeh/L8wGxvnLsSjAYLBEF
-         a9f7E2guZRVntij6XX4mMWwYan5NogCaBCRohk8ug6c19wFrlZ01Dw7o08K7IzD9c7bh
-         8tXH+G3KvvGkhVZoW4Q/ReEU/t2oZfrk+1j69X18Ad1redtoAY3wGtYCMTXrUMqebrtM
-         bdPA==
-X-Gm-Message-State: APuU4Z/hUjpkNUR5Q5AY0jXTtM8+6LMdK9E25e2nMWbYOz3Fd0AKdZku
-	5g3E0itRtURuEK97Gl58U9l+A7GwPsK8/txof2J6RTto+JSt9XEO76ESbvGgBWIxi9LUjlO4wni
-	T5a+yMTQs
-X-Gm-Gg: AZFdTZf+vw9HwDt1fJe6wukbu9w0Tl9R3xDRfRO7aDqgsWhK9Ia+1fxYHYBerJDKnHl
-	4Vwo/uGgiN7RHebL8JYNIaDm7tQOQRPoFj7SiwqCS/wQot58d28egFi3/8AjXP0M6umHB/jFzV3
-	/sRlOj1FgQAKNZfN5HRGeSHAf92cTEG83fqt8zOUgNEUYsaox80pFHUS105sgwT+7PpRgF/7o4Y
-	BGAk+E+fIEZUxFLnRavYyDWiYdBqgylp9ZD5NK7soCFay808w+ENtJfZ24Q7CTEWvnCQxG1kILV
-	z/CGFjlNZ5G8IjC8rx0jU7mJGjllkFIt5wPeXRX5QDeBvB8eDxKQVzo4CsVzMubww6y5h4nzIgx
-	xxVzmtzfrovv/7Suo5bHQkwEvgfMPRpr1htydB7W9MKVUBXurtSIYou/P5mbpQvdADSRCERDAmB
-	iPiWlskCZAObKuSEuVcTUwf2fDjjb1yrKRaNx43VQrwnBXb5/AH2cwnjW1bV5W+lTBaVXYpWlcN
-	DEddiTQoo2lX4M8atRw6lUsjh8qAD4IhIUQpXYJYL5r5T/TIg4WczLPOoOG0fKR2ifV1M+IIHDw
-	gaO9D0oByY/Nba+wTwER07NTZ6Shxe2takHVaNyX
-X-Received: by 2002:a05:6a00:4c19:b0:8b5:f313:9f54 with SMTP id d2e1a72fcca58-8c87d32b35cmr8423896b3a.56.1795403455931;
-        Sun, 22 Nov 2026 19:10:55 -0800 (PST)
-Received: from enjou-Legion-Y7000P-2019 ([191.223.218.36])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87343fe6csm4826392b3a.37.2026.11.22.19.10.52
+        d=1e100.net; s=20260707; t=1795408810; x=1796013610;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=Gdrcz7ax90Dmq2ghAsgN9C5sw5lV7csK9Wkpqn6bdEE=;
+        b=X3MickM4/NVkXmChfAatRfXYWEB1mzQKS6MJ6nDCMwaIinleCAi2bgf13hbwVrzIie
+         foQJ0lh0+Hs4HDRhsUNIFdhQBOzEssuTOXz9wdemW0yHrxK+w6bYSuWAu+e7LfEbmSVG
+         aByBmcMoSsWiTNNm41YCFFGQyIvqe/Dsi7kKpnQKbqcKNa7plMyjegKiZ+HrD77ZvFud
+         zkQLSpsHygzmfL8Ox7lMq+cARQ2bL6rRAYM8Bt1DlkVq7IKGpPaL99oJQVPkOtvIeOVv
+         kLF54TNvZPY7HYpk1U7MQUI/Q0hURsp2dVSwj8gg44sIgYnL1PxP/umhkdsy0MKgR1SX
+         I8PQ==
+X-Forwarded-Encrypted: i=1; AL+hErHx9PsdJZCxcsUd9UBcZFzPJ4T4H61Wp/aWbRERUehi3KNOqpWzC1n2Q7j/4RmgMUS079PbYOTIOmZ7eskpulA=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9LnPw6z8dNdYhc2RLGxSNkOSOZZorDwdWpzYJpX7w5Nf8w52ir
+	f4n/h4KHa1vVeCcsmnIRy6dYkyJLlZww+PKNnmPjjAH2+lDyEwUdOkSPa8asPi3GkU3nq73dCKQ
+	HWBOPpiPk
+X-Gm-Gg: AZFdTZfoVy4cg4bpKsX8wSU7g/ZMoDZEA3aM/W81Gf071dxNJpsAiGJctjjzPDfisVz
+	gCYd0oWz+W0/2ZT+g6Up7tDm6syGCtVy/67d4K3p8lzOHYcIUgltHrt1/5VO3f2TxTG2lxMpFgi
+	i6tiVKituh4m3hfax6ojI+JLvDucI/fTiGItFl0SEltcDdrJzjnIDBgEMXr3LG4wXZP6qVmRjSe
+	aNhq4cNfTnsDn8Gr5eI5eDQnBZvrWxFTSOTHmG+y50aZvzVriWMUHS6a3mTuDqKhQzzmtKLXr2u
+	5FrkmFg3qIy1Sy2H8QJsD/oOpsLOheoJzTl3bc/GO8iHMfAvX9ojavuaGnA2xnYa/spK/thfiP6
+	Q0IVAjJr6a1B29aBHmE/FbxhFlRwTsKIJE467DyXzGvPJxHgURkNgFEXOYk6yhu/vTYvSTgvPvN
+	O3z9SqEvIrF12qQ7kHymFTor6b3Zrc+7YdQcLlvycFhX8zjQcldtdiBzi6t+cLb0m8XyRltTenf
+	JryjiwmGdi874Q+Q14PZJM1k4Zy24bsmz6p18NEGLfjvE2l9qP45KnVNgpVzZMAq5dDutrvenau
+	TVQY4zfsEoKfIMVr/afDnwgq95WLfC5lcKP8H05aGbffWJvmilQdrlCKyNttULcaVxDrk78Lgyt
+	WOOp5WAqkQiHwSLtAbqX8g+ZZy9dVMrY/KTu71yNb4go6VXkMHR6deKo+MOFh+Q==
+X-Received: by 2002:a17:90b:2f8c:b0:3b4:10c3:c1b6 with SMTP id 98e67ed59e1d1-3b41c9286acmr9856003a91.25.1795408809770;
+        Sun, 22 Nov 2026 20:40:09 -0800 (PST)
+Received: from gx81.tail3ecf1.ts.net ([240b:11:99c0:1c00:9e6b:ff:fe84:e26e])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cde6c9c7dcbsm4648673a12.0.2026.11.22.20.40.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 22 Nov 2026 19:10:55 -0800 (PST)
-From: Ren Wei <weir@nebusec.ai>
-To: netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	razor@blackwall.org,
-	idosch@nvidia.com,
-	davem@davemloft.net,
-	vega@nebusec.ai,
-	sashiko-bot@kernel.org,
-	rakukuip@gmail.com,
-	weir@nebusec.ai
-Subject: [PATCH nf 1/1] netfilter: bridge: detach conntrack template on invalid IP frames
-Date: Mon, 23 Nov 2026 11:11:01 +0800
-Message-ID: <b2d3ea42b2d8d4d9c97452a123dd5f6c3cded1c4.1795348417.git.rakukuip@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <cover.1795348417.git.rakukuip@gmail.com>
-References: <cover.1795348417.git.rakukuip@gmail.com>
+        Sun, 22 Nov 2026 20:40:09 -0800 (PST)
+From: Ryosuke Iwahashi <ryosuke@ikotaslabs.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	stable@vger.kernel.org
+Subject: [PATCH v3 nf] netfilter: nf_conntrack_reasm: fix IPv6 transport header offset
+Date: Mon, 23 Nov 2026 13:40:07 +0900
+Message-ID: <d648a02b8a1928708125e07b.nf-v3-ryosuke@ikotaslabs.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -108,101 +101,149 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Luxiao Xu <rakukuip@gmail.com>
+nf_ct_frag6_reasm() resets the transport header to the bytes following
+the Fragment header. If Destination Options precedes Fragment, the Next
+Header field at IP6CB(skb)->nhoff still selects the options handler,
+which may misread the following UDP header as options and drop a valid
+packet.
 
-A bridge rule such as nftables `ct zone set` can attach a conntrack
-template with IP_CT_NEW to an skb before nf_ct_bridge_pre() runs. When
-a frame has an ETH_P_IP or ETH_P_IPV6 protocol, nf_ct_bridge_pre()
-performs header pull, length trimming, and nf_ct_br_ip_check() /
-nf_ct_br_ipv6_check() validation before invoking defragmentation and
-nf_conntrack_in().
+On native IPv6 input, preserve the transport offset and use fhoff to
+locate the Fragment header.
 
-If any of those six checks fails, nf_ct_bridge_pre() returns NF_ACCEPT
-immediately without passing the skb to nf_conntrack_in(), which would
-normally clear skb->_nfct and drop the template reference on parse
-failure. Because nft_ct_get_eval() evaluates NFT_CT_STATE from ct and
-ctinfo before rejecting template objects, the retained template causes
-malformed, truncated, or wrong-version IP frames to match `ct state new`
-instead of `ct state invalid`.
+The UDP test datagrams dropped on the unpatched kernel are received
+after the fix, and the ipv6_fragmentation and ip_defrag selftests pass.
 
-Jump to a shared error path that calls nf_reset_ct(skb) before returning
-NF_ACCEPT on all IPv4 and IPv6 header/length rejection paths so the
-template reference is released and the frame is treated as invalid,
-even on kernels without downstream template filtering in ct readers.
-
-Fixes: 3c171f496ef5 ("netfilter: bridge: add connection tracking system")
+Fixes: 6aafeef03b9d ("netfilter: push reasm skb through instead of original frag skbs")
 Cc: stable@vger.kernel.org
-Reported-by: VEGA <vega@nebusec.ai>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/3cf187b612fd78f8835fa9dad870326ce380f82f.1785479514.git.zhilinz@nebusec.ai
-Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
-Signed-off-by: Ren Wei <weir@nebusec.ai>
+Signed-off-by: Ryosuke Iwahashi <ryosuke@ikotaslabs.com>
 ---
-Note on related upstream work:
-Florian Westphal's series "[v2,nf-next] netfilter: conntrack: add and
-use nf_ct_get_real()" (linked below) mitigates the downstream symptom
-by making ct state readers such as nft_ct_get_eval() treat retained
-templates as NULL (INVALID rather than NEW). However, nf_ct_get_real()
-targets nf-next and is not present in nf or -stable kernels, and
-nf_ct_bridge_pre() still leaves an unconsumed template attached to
-skb->_nfct on malformed IP frames until freed. Resetting ct state at
-the rejection site in nf_ct_bridge_pre() aligns it with
-nf_conntrack_in() and the existing non-IP default branch.
-Link: https://lore.kernel.org/netfilter-devel/20260923122741.30468-1-fw@strlen.de/
+v3:
+- Preserve the receive position so v3 processes options that v2 skipped
+  before Fragment.
+- Retarget Fixes to the commit that first passed the reassembled skb up
+  the stack.
+v2: https://lore.kernel.org/netfilter-devel/20261101170633.625161-1-ryosuke@ikotaslabs.com/
 
- net/bridge/netfilter/nf_conntrack_bridge.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+Codex assisted with this patch.
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index b5444335b86f..0da0f899edb8 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -257,28 +257,28 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 	switch (skb->protocol) {
- 	case htons(ETH_P_IP):
- 		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--			return NF_ACCEPT;
-+			goto invalid;
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h |  2 ++
+ net/ipv6/netfilter/nf_conntrack_reasm.c     | 30 +++++++++++++++------
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   |  6 +++--
+ 3 files changed, 28 insertions(+), 10 deletions(-)
+
+diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+index ceadf8ba25a4..99f6a5ae73ed 100644
+--- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -11,6 +11,8 @@ void nf_defrag_ipv6_disable(struct net *net);
+ int nf_ct_frag6_init(void);
+ void nf_ct_frag6_cleanup(void);
+ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
++int nf_ct_frag6_gather_hook(struct net *net, struct sk_buff *skb, u32 user,
++			    bool preserve_transport);
  
- 		len = skb_ip_totlen(skb);
- 		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+			goto invalid;
+ struct inet_frags_ctl;
  
- 		if (nf_ct_br_ip_check(skb))
--			return NF_ACCEPT;
-+			goto invalid;
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index be72c4346f8b..6fd8f7d064e0 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -320,8 +320,9 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 			     struct sk_buff *prev_tail, struct net_device *dev,
+ 			     int *refs)
+ {
++	struct frag_hdr *fhdr;
+ 	void *reasm_data;
+-	int payload_len;
++	int payload_len, unfrag_len;
+ 	u8 ecn;
  
- 		bridge_state.pf = NFPROTO_IPV4;
- 		ret = nf_ct_br_defrag4(skb, &bridge_state);
- 		break;
- 	case htons(ETH_P_IPV6):
- 		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
--			return NF_ACCEPT;
-+			goto invalid;
+ 	inet_frag_kill(&fq->q, refs);
+@@ -345,14 +346,16 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
  
- 		len = sizeof(struct ipv6hdr) + skb_ipv6_payload_len(skb);
- 		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+			goto invalid;
+ 	/* We have to remove fragment header from datagram and to relocate
+ 	 * header in order to calculate ICV correctly. */
+-	skb_network_header(skb)[fq->nhoffset] = skb_transport_header(skb)[0];
++	fhdr = (struct frag_hdr *)skb->data - 1;
++	skb_network_header(skb)[fq->nhoffset] = fhdr->nexthdr;
+ 	memmove(skb->head + sizeof(struct frag_hdr), skb->head,
+ 		(skb->data - skb->head) - sizeof(struct frag_hdr));
+ 	if (skb_mac_header_was_set(skb))
+ 		skb->mac_header += sizeof(struct frag_hdr);
+ 	skb->network_header += sizeof(struct frag_hdr);
  
- 		if (nf_ct_br_ipv6_check(skb))
--			return NF_ACCEPT;
-+			goto invalid;
+-	skb_reset_transport_header(skb);
++	skb->transport_header += sizeof(struct frag_hdr);
++	unfrag_len = -skb_network_offset(skb);
  
- 		bridge_state.pf = NFPROTO_IPV6;
- 		ret = nf_ct_br_defrag6(skb, &bridge_state);
-@@ -293,6 +293,10 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 		return ret;
+ 	inet_frag_reasm_finish(&fq->q, skb, reasm_data, false);
  
- 	return nf_conntrack_in(skb, &bridge_state);
-+
-+invalid:
-+	nf_reset_ct(skb);
-+	return NF_ACCEPT;
+@@ -365,8 +368,7 @@ static int nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *skb,
+ 
+ 	/* Yes, and fold redundant checksum back. 8) */
+ 	if (skb->ip_summed == CHECKSUM_COMPLETE)
+-		skb->csum = csum_partial(skb_network_header(skb),
+-					 skb_network_header_len(skb),
++		skb->csum = csum_partial(skb_network_header(skb), unfrag_len,
+ 					 skb->csum);
+ 
+ 	fq->q.rb_fragments = RB_ROOT;
+@@ -443,7 +445,8 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ 	return 0;
  }
  
- static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
--- 
-2.43.0
+-int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
++int nf_ct_frag6_gather_hook(struct net *net, struct sk_buff *skb, u32 user,
++			    bool preserve_transport)
+ {
+ 	u16 savethdr = skb->transport_header;
+ 	u8 nexthdr = NEXTHDR_FRAGMENT;
+@@ -474,9 +477,15 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr)))
+ 		return -ENOMEM;
+ 
+-	skb_set_transport_header(skb, fhoff);
++	/* On IPv6 input this cursor and IP6CB(skb)->nhoff describe the
++	 * next header for local delivery. It can precede the fragment.
++	 */
++	if (!preserve_transport || !skb_transport_header_was_set(skb) ||
++	    skb_transport_offset(skb) < skb_network_offset(skb) + (int)sizeof(*hdr) ||
++	    skb_transport_offset(skb) > fhoff)
++		skb_set_transport_header(skb, fhoff);
+ 	hdr = ipv6_hdr(skb);
+-	fhdr = (struct frag_hdr *)skb_transport_header(skb);
++	fhdr = (struct frag_hdr *)(skb->data + fhoff);
+ 
+ 	rcu_read_lock();
+ 	fq = fq_find(net, fhdr->identification, user, hdr,
+@@ -500,6 +509,11 @@ int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+ 	inet_frag_putn(&fq->q, refs);
+ 	return ret;
+ }
++
++int nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
++{
++	return nf_ct_frag6_gather_hook(net, skb, user, false);
++}
+ EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
+ 
+ static int nf_ct_net_init(struct net *net)
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index be7817fbc024..f84adba42175 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -64,8 +64,10 @@ static unsigned int ipv6_defrag(void *priv,
+ 		return NF_ACCEPT;
+ #endif
+ 
+-	err = nf_ct_frag6_gather(state->net, skb,
+-				 nf_ct6_defrag_user(state->hook, skb));
++	err = nf_ct_frag6_gather_hook(state->net, skb,
++				      nf_ct6_defrag_user(state->hook, skb),
++				      state->hook == NF_INET_PRE_ROUTING &&
++				      !nf_bridge_in_prerouting(skb));
+ 	/* queued */
+ 	if (err == -EINPROGRESS)
+ 		return NF_STOLEN;
 
+base-commit: 734bef548a96e8774d6eef5dfa2026c6edc4e80b
