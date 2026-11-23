@@ -1,99 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.66.9
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795400868;
-	b=FUCWtX9xmiA4xPctCQGXB1P6kqPLOVFxxAXfIh6hSK5qqQpDrefuQSMmKZaMK0DaQBBU
-	 M6FR9Srl9u3R0XAOai91LkfBSNF4QZMDy4TdjJ2n4+u6+eSF+SOPy7SkgX6YAwSniJrCj
-	 JoJ5rkU4SpoYn18Ml4uYtvWIn973O5kFVrySsaYYfq0S87Y4X/A8xxzi6yBPJTJyQDDns
-	 ulfx7r9icqBNDDBfFfTp7orfz/xjZwS3Mkvho/dPaW1HL0pcSWhF1N2H5eSBn98D5FeOH
-	 jNlJQaixGwQGoVAix+2IOmzYRcEwKoshXJtSAsTFQJVYcKZkhIUjkP6I0jsOXVmH6Bw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795400868;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:Message-ID:Date:
-	 User-Agent:Subject:To:Cc:References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-ClientProxiedBy:
-	 X-Microsoft-Original-Message-ID:MIME-Version:
-	 X-MS-Exchange-MessageSentRepresentingType:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SLBlob-MailProps:X-Microsoft-Antispam:
-	 X-Microsoft-Antispam-Message-Info:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=EBrldqAIBv3Z/hVlNah3042rzocjKOkIlVCKVSd1MmA=;
-	b=PJBd/JJXiSeajG1RGw/PPb/4g2jF4rnKSPOtpLz8lWk4C+QNW+ylUVobQ11kELxgpe0i
-	 CyEbqIS4vgHxjg3ihc6/uRF6M26EliCGwbR/UUB9bBwwJnAYS/bCmDVKEkGU7SBuNg3TI
-	 mua659TJoSuvu+7Uj3IWVF/9BgNZzWQcln1NoiZ6YKS8D17Gy44R4GeJ5bhi+6Tjk9Vcl
-	 MIsZFi1EG8ZyDRcXUEPBNLNENl+ErbkbLE+jKXilHf2eSLS+XIjBbdpGzGNosT8AG112Q
-	 7T1CQKch3waqF2tlArikgVMLMD0p9g3paAyl1vCa/Tysfa/zEr2ZQ1//0gM35hFJUag==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=outlook.com;
-	spf=pass smtp.mailfrom=outlook.com;
-	dkim=pass header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b="q/0zeAw9";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=52.103.66.9
-Received: from OS0P286CU010.outbound.protection.outlook.com (mail-japanwestazolkn19011009.outbound.protection.outlook.com [52.103.66.9])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.174
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795403453;
+	b=MMgiv7aQkQY/9gxqAKnCaVGY1IWNrx1dvqlpLFf0vir+LEhykVyVKsC6dLY8G8moK+JJ
+	 iHRF+nQ1Cn9rhlmshnETYg7JPgp1VEyhKSNl4e346bW66qAv0UNzqghYQfZeaj1nekzIl
+	 qwdv51TO1Zmo2GaFyrlhLPq98Isne7YQ1xA1EjZXm4z8Jafpmivsp8gUUvlxzlvW6aW5t
+	 k2KVk1wDOT0fEN42nhWVscOHhSnFeq/YHolRMZWUXgYwLZBmmUlQm9o08f/9PGOfAMEzK
+	 /Q+JtBnhKoKOWUtfoj6TA/WXIX8Kat59htVY0+Vq2uCk64SBxv3Jmk4XxXvCjj2uUfw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795403453;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
+	bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
+	b=TDmzuqYWhjcfhwbi4uKEkFld40jk25RILcF5E1+EwRMjfj06gFVp7PODVjCUORCcwhQS
+	 BwYolWEYAcPKNDaNCLlOHVXx47CME1LZGh3AB+JaHpl1O8F1qMNDC40xFPS2qdQGlbiO+
+	 V0VHoCbvWiMeosegr0ElHv5It4xOyzyzczVprEMcnNbdBJFAf1Y2LOfhbes7GFtdUFh2B
+	 mzS/A5AhWmPdK5/6fBCm7Le89IqnE7gANddXUTJG3oMr8NtpXfpQrRg6TTmNs7ZoNuyn5
+	 ExeCgH8tyjJL7bMBrwR95VN4b43eDY/aJiVEgjn61HD/ow1BHGHW2QfmJ16OBxDXA/A==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=nebusec.ai;
+	spf=pass smtp.mailfrom=nebusec.ai;
+	dkim=pass header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b="NBNoOIZ/";
+	arc=none smtp.remote-ip=209.85.215.174
+Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10464606A31A;
-	Mon, 23 Nov 2026 02:27:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10464606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=outlook.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=outlook.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A50606A31E
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 03:10:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32A50606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=nebusec.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nebusec.ai
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=outlook.com header.i=@outlook.com header.a=rsa-sha256 header.s=selector1 header.b=q/0zeAw9
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=eYoTdfNNOQGtVQhbMKr9X35fhnpC1q+sLW8K+16CUc7/OoNOTHBJRpys6qeZfW2zGQz9Ik60uaN83T+8KKqSaGqpBcDJdQG5ZF9rEaZN7uIgHpZYZbGO2lCoMAPu/xTNcWIt0tV9IZmaaRubWnQyT/MxFZ57TdtbbsTjsxiyhengC8+reaSmuGjnlfZZbMZJJamytPWFKAgMYWKfBP6dH8zTcyVIP0+uRU8dQJiMxF+7Nsx9q6JOaxDGtP/KKFAqq2BPno0z/WTLftUcgd8nze6wRubhpOV/E3Oe2eu3FAI7QBWNe1WHrzvlFSlnHegglZXWrftUHe6QiBP4gMhqzw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=EBrldqAIBv3Z/hVlNah3042rzocjKOkIlVCKVSd1MmA=;
- b=PCXd6+6hmgSbWPKAvHM+1o3mi+qW+0LtetJCqn5rk1D9FaBglsvSMtGfGj4Np6BVJUZ7/rEAa4Juzc0q7pfIY5/UowRpL+N5lY/jOftJ4PMeGDkvvncXkyMX/QOSnM+fvbU8wA+Adw6sTbw2xWJyebDcSDi5jXMD00eKI38pW5YIvXFH1p5IDthywEZwkZ7a5vS8X5X6hP1mrL0/rigN74LdMfiY7Pp8bRfzHrVMB2Iai5TQfuhMCfETHx1v9UD/8DPzi6OZ/pnT/q2JjnaGT0xlmOO87UvrkIzVhCX7zqjMc/03HVxzh91t+dtVN8ElYFboc8spAKAWqOl5OfwzEw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=outlook.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=EBrldqAIBv3Z/hVlNah3042rzocjKOkIlVCKVSd1MmA=;
- b=q/0zeAw97125AGbonQBsAs0KWiJXJwNuBL2MxAwJHfphpoEbzBWM45WFh7t8ANN+CdOfwsjIpSOZiZHjg9pDCyRCnhnraQCg5jtLVTYX0XSa/Yd6fL67MQQh6rLkte/qnDyMZnwA86kcMGi37okGmXjZzYDtauHkgvRHAamdFBJblCcpvR1y7SG/z41BuyXI+PVUJscwcZO87hTR+UohYaIzZPuDz+4Y7LbYpuEck1hyZWGmae1KDWmfBQsi3BCc0fu8U5WZ1YFDmLLDNJgTeNiiaQgS4EaZz1iNcrcM/l/rLWZrvIXShlY/A7wpn9oqJCDlRIMABu0RULwTiDLI1w==
-Received: from TYTPR01MB11000.jpnprd01.prod.outlook.com (2603:1096:400:39c::9)
- by TYYPR01MB16429.jpnprd01.prod.outlook.com (2603:1096:405:146::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.639.10; Mon, 23 Nov
- 2026 02:27:41 +0000
-Received: from TYTPR01MB11000.jpnprd01.prod.outlook.com
- ([fe80::fe39:4f49:5d91:808a]) by TYTPR01MB11000.jpnprd01.prod.outlook.com
- ([fe80::fe39:4f49:5d91:808a%6]) with mapi id 15.21.0639.012; Mon, 23 Nov 2026
- 02:27:41 +0000
-Message-ID:
- <TYTPR01MB11000B5AC6D9C174AC489EA62CA452@TYTPR01MB11000.jpnprd01.prod.outlook.com>
-Date: Mon, 23 Nov 2026 10:27:33 +0800
-User-Agent: =?UTF-8?B?TW96aWxsYSBUaHVuZGVyYmlyZCDmtYvor5XniYg=?=
-Subject: Re: [RFC net-next v2 00/18] net: introduce ipxlat stateless IPv4/IPv6
- translation
-To: Ralf Lici <ralf@mandelbit.com>
-Cc: antonio@mandelbit.com, bgalvani@redhat.com, coreteam@netfilter.org,
- davem@davemloft.net, dsahern@kernel.org, dxld@darkboxed.org,
- edumazet@kernel.org, fw@strlen.de, horms@kernel.org, idosch@nvidia.com,
- kuba@kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org,
- phil@nwl.cc, toke@kernel.org
-References: <TYTPR01MB11000E65B4D5C27C27D7414B4CA762@TYTPR01MB11000.jpnprd01.prod.outlook.com>
- <20261114094722.114623-1-ralf@mandelbit.com>
-From: Xavier HSINYUAN <XavierHsinyuan@outlook.com>
-In-Reply-To: <20261114094722.114623-1-ralf@mandelbit.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SL2P216CA0151.KORP216.PROD.OUTLOOK.COM
- (2603:1096:101:35::6) To TYTPR01MB11000.jpnprd01.prod.outlook.com
- (2603:1096:400:39c::9)
-X-Microsoft-Original-Message-ID:
- <06222a8b-074d-4ba1-9ee8-ec81c44bcb88@outlook.com>
+	dkim=pass (2048-bit key, unprotected) header.d=nebusec.ai header.i=@nebusec.ai header.a=rsa-sha256 header.s=google header.b=NBNoOIZ/
+Received: by mail-pg1-f174.google.com with SMTP id 41be03b00d2f7-cc147d86bebso1425029a12.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Nov 2026 19:10:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=nebusec.ai; s=google; t=1795403452; x=1796008252; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
+        b=NBNoOIZ/iZZF+/WwSPS/GVpJoY9LGewJc6CZLitzYq5p4JxuHcbHs/8ZD0xjGZM8Fp
+         Ysc4Lut7fnYencWsYQ85+LuvhXNbBegkxicOMm0U5UozTYw1Uz3L6+/fov08fX412x8v
+         x9owm88w1DIQhpKRwRPTVTb7t5+uiuzzW+W8Z/tSgRNV8UlNmq4x796v18ophiu2cP3M
+         jgCrQdOQVAZtiT0wjKBIt7b5AbASTcdXsDjl52QYyvWp1AvRBCk1OPzDIhaar34Pf6zL
+         2u8rCh6HQqySF9bQpFW8tVxYNAMDL+je9YTJPe8h0XH2WtaSCFOOnYkR/gQOMNsXQcvh
+         InjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795403452; x=1796008252;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=DL9wQ9wUjDZBY1XykMKvmcvfPUdxrtmOQvmRvrKNPSA=;
+        b=PAKd6oor6X7AgdLpc/t19sNrMPRuX0KvPIjzzSHeY7NFPkveaX469g854HBktS8a9D
+         BE911lAcKlqxsdzSXU5L3jOZISKKxKxnWfqYWPrhwgo7V9by8NTBr6te/nIOtA0GILQQ
+         arLAXGGo8dlFIIqCWz2aWcbangmql63nlO7j2sK5C2anOrZrkP2FqwYSyWnPGFIk28Jn
+         AJQxBvAlW1ZLkxjsjpLjv6K9T9kCZNRu7e9s0HXfZ5Rnu13O0TF7X+bndmWbgoKIFxRZ
+         /KzXJftST4KSYfruzWLy482TedWEdWUXJrypwYMeAQ61Tc3bV7Rf3IXXvuRwOeIgpr1h
+         cMAg==
+X-Gm-Message-State: APuU4Z+p2ZkCo/8g0Xt49Lcsl5IpWooyqSNMN2JB1xjn+8N5sqPv2a/i
+	l6C0KV+m75uSMoXZRa4wSN+j0CwDF6P2wA2moMqae7hrk+Cxej2ZcCMPC6hhhFxzFmYHbtXs/+3
+	R64iyn7qh
+X-Gm-Gg: AZFdTZd4D4Wy+rz5wTgFBegkrCtalC//UvDjxbv96wMwgTvw2APkJWHdssoy7xSAVdy
+	OvYYRioqYBLRKKDBlKmzeTiR+0inxFdUo2+gZePgTGyAPTe5p9hg5eUJtr8ljqQcvwCxy5YS6No
+	Zz3el5E9pIpE4RogE379Rwx8wpWnETjlfOs+Iq2lyE3gP+LofZvHiQyu5yFgquZ/FEVkPSuFCm6
+	lJyYaPN5Ay7E73WtGEU+suZJmHRdZmGgtB6QFKokkcg2cSlO0LU1L1n6gyPan/9tHVJI5q9YzRp
+	qLXMqobggmb9dT6+fVOHU9ayMG9gjubISL6XTWdfT4Q03E67v6WjembBL1beemMeeP0ajI/WlqO
+	MPixUxiqCzITVUOE+Ilbhzso44BqWPF7oid/0uNXi+IuGOzwQ8Ag8Y+Q3uJC4ad9thna/vmpwau
+	oLeen28zBgUDxSplvgtj9rcFgEMuC/+GESY6ajAng1pu7/VGKqjA2nfmtABh7g784cy9DLiL5gE
+	HjIeYcJrREvL5CFxF5samG6e3FD4EPp/e61OfMWRcLsTXJhJDLuBNHJUnWFj7ns3dtK8T0HpzDY
+	bnAwTiznynPJyfi8t9Iezr+sEKd0+SUOWVSgBtxL
+X-Received: by 2002:a05:6a21:4c0c:b0:3e1:4e53:4e7f with SMTP id adf61e73a8af0-4014dd5d533mr6695784637.27.1795403452239;
+        Sun, 22 Nov 2026 19:10:52 -0800 (PST)
+Received: from enjou-Legion-Y7000P-2019 ([191.223.218.36])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-8c87343fe6csm4826392b3a.37.2026.11.22.19.10.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 22 Nov 2026 19:10:51 -0800 (PST)
+From: Ren Wei <weir@nebusec.ai>
+To: netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	razor@blackwall.org,
+	idosch@nvidia.com,
+	davem@davemloft.net,
+	vega@nebusec.ai,
+	sashiko-bot@kernel.org,
+	rakukuip@gmail.com,
+	weir@nebusec.ai
+Subject: [PATCH nf 0/1] netfilter: bridge: detach conntrack template on invalid IP frames
+Date: Mon, 23 Nov 2026 11:11:00 +0800
+Message-ID: <cover.1795348417.git.rakukuip@gmail.com>
+X-Mailer: git-send-email 2.53.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -103,139 +102,369 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: TYTPR01MB11000:EE_|TYYPR01MB16429:EE_
-X-MS-Office365-Filtering-Correlation-Id: 24b379cb-c78a-465a-b2e7-08df49095941
-X-MS-Exchange-SLBlob-MailProps:
-	laRBL560oLSPhlJ95/U7v6W/AahuugGa4E0zKh4OOc3jFHgO/NH4HzQ9BvQ6mKielsUEGUsoG2LFfqpejiYWYQ6vA6AN2KCft0vEOOlZub3GBIcowfgREA5PeNo4W8OCAvtRt9GW8CB2EUHaDvew02b3B3rVaUQNxSQ/AwiunG4cJkqtJS630GNubWYiJk+mLqyL9P9mBc0IL+zNGxh+GheFex6RBllrRerjpM/Yc3170bLfvk8L1EXJyUlSwErt90C+7CgeAfKA0pXhpUjEeS00s7m6q3G3ZzX+wmJV+x+SZMfsQCJx7EWfTSiVj1/Qi2MKpsQwxZdH1pstl7dhFTNiJ+VrbdCrUlFe1ytaCw6xed9xgQN2BG+hj0olng2cKFN7a9xebbXq68aAwUsTpahSR3UtpbGEOsERv0HbrEPQOvZguyNucItpOjM9+xGvPSIkNJ0IWJkRMnz3Nf9XdsFhT9WmhIzHFBaJPMZyyxWnQaoZ0o/3607iv3GbMRf/ZvrK72DNQs2WpBMPpnVhZyn/0tAY4MKUVLf/nvhwADplpSHc4mZGuoHzqu1tsXeVXUNXGs2qbtLVuX1HfK1jVyNFOLC5z3RxT+pKC3/YBSHVwFoIa2GxY46cItKvXaeJ/H7ifrB0L8DAstNkUVR97HUV1kRtO5kiU3+EI17ApsYKlw4syp/Iz75gWSKfxtXlU7tinmfP0tm9VZWVQHAzae/KKZLah98ls8UOsylQbO/HMbj+3mmC7Z9YI9iWu/R+9Bjot8oWFxP4qFnqSsVq4qDqaWnTBul2
-X-Microsoft-Antispam:
-	BCL:0;ARA:14566002|25010399006|8060799015|19110799012|24021099003|6090799003|51005399006|23021999003|5072599009|12121999013|15080799012|25031999004|40105399003|3412199025|440099028;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?ZzRnMnp6S21YZlhVWVpxdFU4eFhTTUdJenN3RFdMejhDejI3WDB0MGt2Ry96?=
- =?utf-8?B?SHh3dWRTakpYOWJKREg3U0xLMnRkUkM4WFFEcFNtZWo3QnNwM0ZUYlRxN0FS?=
- =?utf-8?B?TkFIb05VR3JYME5kSGFsTkYxUTVrM1c5V3ZHZnJnekJCdGlTbG0rR00vSGtR?=
- =?utf-8?B?UlJVSEZSNXFMaG52SVBwY0tDSVM0OFhDRU90OENHOFZpNDhsMjJEWHJDQXl6?=
- =?utf-8?B?TnE3Z1R5dGdWcDZuSmVvY1MwamVEZlBKSWRyNU9HeDN3YXMzMG41TEh6RmpF?=
- =?utf-8?B?K0FWQ1pxUkV1RnV0QWpHdUFXdTU3aFN2aS9VNGVPcmtEcTdING1SOG4vc0Rs?=
- =?utf-8?B?R00vNWsxYi9mMTdZOVMxcndIUW5aKyt3MUM4TzYxZWxJVkRrLzNvWFppeTR1?=
- =?utf-8?B?T1NoYmd5L3FueW03T25sdGtQS2lRZjJXU0JGd3hndXAvVVdqM2pseUovMm0v?=
- =?utf-8?B?MGJIdkgycmMzVmNOOTk5QUZxSStUdVFLdktUbmNzNkgyRVhjR1lkUDAzVzBK?=
- =?utf-8?B?Q1lndExka0poSy8reS80NEpsdXFpM0h3ZG53eEZXVEl1ek5mOVF4bXptYkp3?=
- =?utf-8?B?WTU0VGVlc1FHeWJxNi9ObzM1R1h4UksyWTBEQUFxaTQyd1RGTFdzVkF6TEk2?=
- =?utf-8?B?WFF4c3Q5RTFFZ09rQ0ovZWdxMTFQQ3lEU1dzTTRNRFV4UjJWNGdLU2JjZnd1?=
- =?utf-8?B?clVGdlhyS1hiZTBjbFBHOW8xYkRBWU1YZzFIZExOYnpZMXJ0alA4S3NJUTRx?=
- =?utf-8?B?akhxQ0ZRcXBYL2VjWjE0ZGw2RWRlS2hyNUw3cmxJUmRBSXFUWVdQTU9ab0s3?=
- =?utf-8?B?U21SdmJiV1lLQ2ZqOGkvQzRhMkZCbG9SeFI4QmtjQloyM05XWlBNaHZWQ0R2?=
- =?utf-8?B?N2tTUXo2NmQ1eHJMeVdQOGU2eExCWVdEZVUwMGFQQ0x4R045N2dPc09SVGJj?=
- =?utf-8?B?eEJaWE1GZHhLcytKQlp5blR6N3g4bFBPa04ydnQzWFRTNVdkR2lMWm05d1hQ?=
- =?utf-8?B?V0pMWjNQdlkvL0VuNFBsZUZFclE1WUlEZFBSLzdFWDlTR1k3YkdzZnovc0Yr?=
- =?utf-8?B?MUFuMnJLS05hRmFlU1lpeDRFdU9KSCtGTmVMOEFRUmVJUVFPSG1yVnVTczRC?=
- =?utf-8?B?R1d1YzJCd2N2bTJXRE5EK3VjUExOakQrREtyZHU5bmZ1eUd4V3FDUmN2K3Fi?=
- =?utf-8?B?d2Uzd21Ec01GcTdhbDhyTzVsY0I5ZmtSZzRDMmlNQ2szUXl3QURGNWtTSkR4?=
- =?utf-8?B?U3ZJRHZmclp0aFdNWEdINnFrZ1duTnF3YitCdHNhVmpPRlZRcTA1emRZNDha?=
- =?utf-8?B?L2VKK3VPa25xbFJodGJZaVB2YkQrdFR0d1ozajlqS0FCcWV4Z3BwWjB2VWxz?=
- =?utf-8?B?UmxVcytuaTVOMXc9PQ==?=
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?cVBOUWdSTFV2bXR1czQ5UTE4Y0IwQ3NBUkFwU254cTczLzVoSFM2Vnpjc005?=
- =?utf-8?B?OEFYMnZWWkovK0Q1dWVMTkc4M3hGVXB4ay93NWNoMmd6dkllVm1icXd3NUtn?=
- =?utf-8?B?RUdyRGhpWVQraVQxNVV2d1pwOFU0Q2Q1akNSVUVuZ3Z0SDRXN3FDZEtNRVJF?=
- =?utf-8?B?RGNmN2pJcVkxVVlYNmE4QTRMYXBQcFJZcm1sVmZ5V0lYUmR1NC9wNzVJYVp3?=
- =?utf-8?B?VGFzVXFZYlFCUU1PNW1wcndhbjcyVmt2bkJRZ2RtUFREaGg0Ry8vanVUcm1i?=
- =?utf-8?B?YmJaRC96bkovV3U3L29qRkYxVTB0SDZ5b2pHOFhheDFXVXVQS1VvN3Z1NkRW?=
- =?utf-8?B?QVVGcG1RRUJoWENyUExYZ2h0NkdvNmFjSFpzSXBJaWNnTWVmMDBOVWRIakYz?=
- =?utf-8?B?aEZCdGdLcFlmSUpKRTJaTUQwSi9lTmVmWk9SMVhQTHA2NmlEMU1wVk5heVhx?=
- =?utf-8?B?RzBpZjY0cjJMTHRVQ1VOeDNJSzBpTHVPWENKYks0SmFjUFlFc1Noa3hhcHFX?=
- =?utf-8?B?Y0lXNU12TDFzbkM4MHcwVlNTNE5PUlEvZ0pqcklXc1I1SGNVNTJ1TjF4N0tG?=
- =?utf-8?B?NiszQlU2b2s1ZHdXVHN4Ui8yWm8yc3Z1ellaYlpEZzhmZkx3MVorWWRTSjdJ?=
- =?utf-8?B?M2QxQi9sc2xXandvTE5VZUJ3dTFTZEFqUVh0Vzd6V29ZMCs2a2FmSXp0dWFp?=
- =?utf-8?B?M25nUDFkdldUWXY2SFdoQUFDclloRkQzaHRoODE1NWRjVzlGWFBGYXhJMXNp?=
- =?utf-8?B?eTNTaXBwRkdFeUdKYWFQQlJNQmZVV0hLSmFMbCs5Wk9KRWpWckNWVFVVOVhh?=
- =?utf-8?B?Q0psdUlPdGpZSHNVUkY3bmdjUlVISTFuRGZNMlcyUDFmRko4aC9rcWVQaVlX?=
- =?utf-8?B?bjdWOVhRUXNLSGNMc3U3empCRlRvVVQyK2pHRnFrcHBmQXBlOXA5M1dkOWlC?=
- =?utf-8?B?SjFCSURNRVZXK2ZPeko5TXFyaE05V2RTSW9TVmdHVjRLQ2Q0WWtZeTZBNFAy?=
- =?utf-8?B?dGhJWnp5WjVZM2dkMXdhY24yMEZ1MTRWWjBXTjdLVWZ5UFNOWTFkWXVKWkh2?=
- =?utf-8?B?aDBUckJvZWNhSXpKbzBnNkRUdTkrWXNnNGxQQnFQM040YnVmOHh2d0ExeEJy?=
- =?utf-8?B?RWZFSHVmbytJTTgrS2RYRWdocVF1ZDZ1a2ZvaEk2K2lDU0FTUzV3SkYxa043?=
- =?utf-8?B?SnNob1A5Yy9ZK2pBcGFkVzVaMEpDdTYwa2Ftc2NrOEpsbTVodVArcFFHZ0d6?=
- =?utf-8?B?ekRSeG1heGJEMjNXSmdwWmorTUFwSXVKOEZ3UUNNdzdFeGlhVnMwRmlsWG1m?=
- =?utf-8?B?K3FYREVwUzBUNGpYaUlZSDVENXIzazAvcVhHUTFkMEx0TjVWczJoaGR6Y25n?=
- =?utf-8?B?VGs5U056V2FyYnlwNnV1aGcrbHBYeGNybDJkMUgvdzVBV1dnNHJHd2F0NHV3?=
- =?utf-8?B?WVFpL3BvRTdzVzJ3bUViQU4xN3M4SG5Zc0tLdXJ3QldvUWFkVHVqT2ZoSmZP?=
- =?utf-8?B?YXN1bUdaOU9lM1Rpa3NrSXFYUWJMY2hkVTBUdFhKRTd4TDdmekZNY0FoLzdY?=
- =?utf-8?B?RkVJVlNEUXdnU01aVExxWlY4V3hMOGFlOXhnUElyK212Q1NyR21EbUs5d2w5?=
- =?utf-8?B?QWEvaEFVQkd6MUZwNjB5RFo4VXAyV3gzS1V5akVWZmlrUlNFdUVwblVFbUNa?=
- =?utf-8?B?RkRNYlpsWHMrTnhXeHBSZmNsbDdWeEU4Vk5iTkhnM1Q1SWNUc3VKS3dTVzhq?=
- =?utf-8?B?ZlJ1TjUxQnZDNldjT202bUlaUmhXM2FOSWtrUkRzemJ1bTFVNUNqbkpBbzhN?=
- =?utf-8?B?TkRPYUxLWjBYUm82Z0pWOVVWOHZvTVVxVGcwQzhyZFAzUGlZbmpPT2Y5TXFR?=
- =?utf-8?B?VGduQWdYbWowTVJZcmI0SnMzOUFWTFNrUkJnaW5USHVGNlZpalI4TTRLeE1O?=
- =?utf-8?B?bUFWYmJWMDYybzdOWVIrcjRmMGNQdUE1N1BiZjRMeU1scmpTQ3VyMVIzbDl6?=
- =?utf-8?B?WE1sRmJqODdnPT0=?=
-X-OriginatorOrg: outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 24b379cb-c78a-465a-b2e7-08df49095941
-X-MS-Exchange-CrossTenant-AuthSource: TYTPR01MB11000.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Nov 2026 02:27:41.4040
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg:
-	00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYYPR01MB16429
+Content-Transfer-Encoding: 8bit
 
-Hi Ralf,
+From: Luxiao Xu <rakukuip@gmail.com>
 
-Thanks for looking into this!
+Hi Linux kernel maintainers,
 
-> Actually v2 has no netdevice attachment any more, the LWT is the only
-> harness in this series.
->
+We found and validated an issue in
+net/bridge/netfilter/nf_conntrack_bridge.c where malformed IPv4 and IPv6
+frames retain an attached conntrack template on early rejection paths in
+nf_ct_bridge_pre().
 
-Ah, I was thinking of a possible future netdev attachment at the time.
-Thanks again for pointing that out.
+This bug is tracked at: https://bugtracker.nebusec.ai/f/11085
 
-> Aside from that, yes, the difference you describe follows from the v2
-> contract. The selecting route terminates original-family processing, so
-> that family only sees PRE_ROUTING (received) or LOCAL_OUT (local), and
-> FORWARD/POST_ROUTING/LOCAL_IN run in the translated family only. That is
-> indeed the first open question in the cover letter.
->
-> Looking into it again, there seems to be two concrete problems with that
-> contract:
-> 
-> - original-family conntrack entries are created at the entry hook and
->   never confirmed, so stateful rules in that family see replies as new
->   or invalid and a conventional ct state established firewall drops
->   them;
-> - SNAT in the original family before translation is not possible, which
->   rules out NAT44 in front of a CLAT and the NAPT66-based NAT64 recipe
->   from the v1 documentation.
-> 
-> So I do not consider the current behaviour settled.
-> 
-> nf_hooks_lwtunnel is one way to add an original-family exit hook, and
-> seg6 is a good precedent for the hook placement. I am less sure about
-> the gate itself because it is global, cannot be switched off again, and
-> is off by default, so the default configuration would keep the problem.
-> 
-> Two alternatives I am evaluating are calling the exit hook
-> unconditionally, and moving the translation point to the LWT xmit stage
-> so the original family completes its normal path. I will come back with
-> a concrete proposal and a per-hook table.
-> 
-> Which setup do you have in mind: SNAT before translation, filtering, or
-> accounting?
+Reachability & impact:
+When a bridge policy assigns a conntrack zone before connection tracking
+(for example via nftables `ct zone set` at raw priority -300), nftables
+attaches a conntrack template with IP_CT_NEW to skb->_nfct. If an
+incoming ETH_P_IP or ETH_P_IPV6 frame fails header pull, length
+trimming, or header validation in nf_ct_bridge_pre(), nf_ct_bridge_pre()
+returns NF_ACCEPT directly without passing the skb to nf_conntrack_in().
 
-My interest is mainly SNAT and counting before translation. Well,
-stateful SNAT seems a bit odd for IPv6, but with multiple upstreams we
-may need to adjust the source prefix based on the selected output
-interface for load balancing or failover.
+Because nft_ct_get_eval() evaluates NFT_CT_STATE before checking
+nf_ct_is_template(ct), the retained IP_CT_NEW template causes malformed,
+truncated, or wrong-version IP frames to match `ct state new` instead of
+`ct state invalid`. Bridge policies that accept NEW traffic and intend to
+drop INVALID traffic can consequently forward malformed frames.
 
-That said, separating NAT and translation by utilizing netns and veth
-pairs could already provide this, but letting packets pass through
-original-family POST_ROUTING before translation would make setup (looks)
-simpler.
+Note on related nf-next work:
+Florian Westphal's nf-next proposal "netfilter: conntrack: add and use
+nf_ct_get_real()" (see link below) would prevent downstream consumers
+such as nft_ct_get_eval() from classifying a retained template as NEW,
+treating it as INVALID instead. Because nf_ct_get_real() is not in nf or
+-stable kernels, and because nf_ct_bridge_pre() should not leave an
+unconsumed template attached to skb->_nfct on parse failure (matching
+nf_conntrack_in() and the default non-IP branch), releasing the template
+in nf_ct_bridge_pre() remains necessary.
+https://lore.kernel.org/netfilter-devel/20260923122741.30468-1-fw@strlen.de/
+
+The attached reproducer (poc.sh) uses a netdev ingress rule on vethA to
+rewrite the IPv4 version nibble from 0x45 to 0x65 (running as root in
+our guest environment); an external or bridge peer can also inject
+malformed frames directly over the wire without host privileges.
+
+=== details below ===
+
+Bug details:
+
+In net/bridge/netfilter/nf_conntrack_bridge.c, nf_ct_bridge_pre() has
+six early-return paths across the ETH_P_IP and ETH_P_IPV6 cases:
+1. ETH_P_IP:
+   - !pskb_may_pull(skb, sizeof(struct iphdr))
+   - pskb_trim_rcsum(skb, len)
+   - nf_ct_br_ip_check(skb)
+2. ETH_P_IPV6:
+   - !pskb_may_pull(skb, sizeof(struct ipv6hdr))
+   - pskb_trim_rcsum(skb, len)
+   - nf_ct_br_ipv6_check(skb)
+
+Unlike the default non-IP branch (which calls nf_reset_ct(skb)) and
+nf_conntrack_in() (which clears skb->_nfct = 0 and drops the template
+reference on parse failure), all six IPv4/IPv6 rejection paths return
+NF_ACCEPT with the template still attached to skb->_nfct.
+
+The fix jumps all six paths to a shared `invalid:` label that calls
+nf_reset_ct(skb) before returning NF_ACCEPT, dropping the template
+reference and restoring skb->_nfct to 0 so that subsequent ct state
+evaluation classifies the frame as INVALID.
+
+Testing & Validation:
+We validated both the baseline reproduction and the fix in an x86_64
+QEMU guest (2 vCPUs, 2GB RAM, CONFIG_KASAN=y, CONFIG_UBSAN=y,
+CONFIG_LOCKDEP=y, CONFIG_NF_CONNTRACK_BRIDGE=y) built from nf/main
+(734bef548a96).
+
+1. Pre-fix verification (unpatched nf/main):
+   Running `bash /home/test_user/poc.sh`:
+   - [control-no-template]: seen=1, invalid=1, newpkts=0, mangled=1
+   - [template-retained]:   seen=1, invalid=0, newpkts=1, mangled=1
+
+2. Post-fix verification (patched kernel):
+   Running `bash /root/poc.sh`:
+   - [control-no-template]: seen=1, invalid=1, newpkts=0, mangled=1
+   - [template-retained]:   seen=1, invalid=1, newpkts=0, mangled=1
+
+3. Extended regression testing (with `ct zone set 1` active):
+   - IPv4 short header (< 20B), inflated tot_len, tot_len < ihl*4,
+     low IHL (0x44), wrong version (0x65): all matched invalid=1, new=0.
+   - IPv6 short header (< 40B), wrong version (0x40), inflated
+     payload_len: all matched invalid=1, new=0.
+   - Non-IP ARP frame: matched untracked=1, invalid=0, new=0.
+   - Normal IPv4 ping and IPv6 ping6 across bridge (between init_net
+     and netns nsB): both succeeded with invalid=0, new=1,
+     established=1.
+   - 1000-packet malformed IPv4/IPv6 stress test: invalid=1000, new=0,
+     with zero KASAN, UBSAN, Lockdep, or refcount warnings in dmesg.
+
+4. Style & patch checks:
+   - git diff --check HEAD~1: 0 issues
+   - git apply --check on nf/main: clean
+   - scripts/checkpatch.pl --strict: 0 errors, 1 warning (consecutive
+     Reported-by lines where VEGA has no separate public report URL)
+
+Reproducer:
+
+    bash poc.sh
+
+=== BEGIN poc.sh ===
+#!/bin/bash
+set -euo pipefail
+
+PATH=/usr/sbin:/sbin:/usr/bin:/bin
+
+TABLE=brtest
+BR=br0
+PORT_A=vethA
+PORT_B=vethB
+END_A=peerA
+END_B=peerB
+TARGET_IP=10.0.0.99
+SOURCE_IP=10.0.0.1/24
+
+cleanup() {
+	nft flush ruleset >/dev/null 2>&1 || true
+	ip route del "$TARGET_IP/32" dev "$END_A" >/dev/null 2>&1 || true
+	ip neigh del "$TARGET_IP" dev "$END_A" >/dev/null 2>&1 || true
+	ip link del "$PORT_A" >/dev/null 2>&1 || true
+	ip link del "$PORT_B" >/dev/null 2>&1 || true
+	ip link del "$BR" >/dev/null 2>&1 || true
+}
+
+need_root() {
+	if [ "$(id -u)" -ne 0 ]; then
+		echo "run as root, or use --userns from an unprivileged account" >&2
+		exit 1
+	fi
+}
+
+mac_of() {
+	ip -o link show dev "$1" | awk '{for (i = 1; i <= NF; i++) if ($i == "link/ether") print $(i + 1)}'
+}
+
+setup_topology() {
+	ip link add "$BR" type bridge
+	ip link add "$PORT_A" type veth peer name "$END_A"
+	ip link add "$PORT_B" type veth peer name "$END_B"
+	ip link set "$PORT_A" master "$BR"
+	ip link set "$PORT_B" master "$BR"
+
+	for dev in "$BR" "$PORT_A" "$PORT_B" "$END_A" "$END_B"; do
+		ip link set "$dev" up
+	done
+
+	ip addr add "$SOURCE_IP" dev "$END_A"
+	ip route add "$TARGET_IP/32" dev "$END_A"
+	ip neigh add "$TARGET_IP" lladdr "$(mac_of "$END_B")" dev "$END_A" nud permanent
+}
+
+setup_mangler() {
+	nft add table netdev m
+	nft add counter netdev m mangled
+	nft 'add chain netdev m ingress_vethA { type filter hook ingress device "vethA" priority 0; policy accept; }'
+	nft add rule netdev m ingress_vethA meta protocol ip counter name mangled @nh,0,8 set 0x65
+}
+
+setup_observer() {
+	nft add table bridge "$TABLE"
+	for c in seen invalid newpkts established untracked other; do
+		nft add counter bridge "$TABLE" "$c"
+	done
+
+	nft 'add chain bridge brtest observe { type filter hook prerouting priority 0; policy accept; }'
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip counter name seen
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state invalid counter name invalid accept
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state untracked counter name untracked accept
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state new counter name newpkts accept
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip ct state established,related counter name established accept
+	nft add rule bridge "$TABLE" observe iifname "$PORT_A" meta protocol ip counter name other
+}
+
+add_zone_template_rule() {
+	nft 'add chain bridge brtest ctpre { type filter hook prerouting priority -300; policy accept; }'
+	nft add rule bridge "$TABLE" ctpre iifname "$PORT_A" meta protocol ip ct zone set 1
+}
+
+reset_phase_counters() {
+	nft reset counters table bridge "$TABLE"
+	nft reset counters table netdev m
+}
+
+print_phase_counters() {
+	echo "bridge counters:"
+	nft list counters table bridge "$TABLE"
+	echo "mangle counters:"
+	nft list counters table netdev m
+}
+
+run_phase() {
+	local label=$1
+
+	echo "[$label] sending one ping after mangling the first IPv4 header byte to 0x65"
+	ping -I "$END_A" -c 1 -W 1 "$TARGET_IP" >/dev/null || true
+	echo "[$label] results"
+	print_phase_counters
+}
+
+main_inner() {
+	need_root
+	trap cleanup EXIT
+	cleanup
+
+	setup_topology
+	setup_observer
+	setup_mangler
+
+	run_phase "control-no-template"
+
+	add_zone_template_rule
+	reset_phase_counters
+	run_phase "template-retained"
+}
+
+if [ "${1:-}" = "--userns" ]; then
+	exec unshare -Urnm -- "$0" --inner
+fi
+
+if [ "${1:-}" = "--inner" ]; then
+	shift
+fi
+
+main_inner "$@"
+=== END poc.sh ===
+
+=== BEGIN pre-fix output ===
+[control-no-template] sending one ping after mangling the first IPv4 header byte to 0x65
+[control-no-template] results
+bridge counters:
+table bridge brtest {
+	counter seen {
+		packets 1 bytes 84
+	}
+	counter invalid {
+		packets 1 bytes 84
+	}
+	counter newpkts {
+		packets 0 bytes 0
+	}
+	counter established {
+		packets 0 bytes 0
+	}
+	counter untracked {
+		packets 0 bytes 0
+	}
+	counter other {
+		packets 0 bytes 0
+	}
+}
+mangle counters:
+table netdev m {
+	counter mangled {
+		packets 1 bytes 84
+	}
+}
+[template-retained] sending one ping after mangling the first IPv4 header byte to 0x65
+[template-retained] results
+bridge counters:
+table bridge brtest {
+	counter seen {
+		packets 1 bytes 84
+	}
+	counter invalid {
+		packets 0 bytes 0
+	}
+	counter newpkts {
+		packets 1 bytes 84
+	}
+	counter established {
+		packets 0 bytes 0
+	}
+	counter untracked {
+		packets 0 bytes 0
+	}
+	counter other {
+		packets 0 bytes 0
+	}
+}
+mangle counters:
+table netdev m {
+	counter mangled {
+		packets 1 bytes 84
+	}
+}
+=== END pre-fix output ===
+
+=== BEGIN post-fix output ===
+[control-no-template] sending one ping after mangling the first IPv4 header byte to 0x65
+[control-no-template] results
+bridge counters:
+table bridge brtest {
+	counter seen {
+		packets 1 bytes 84
+	}
+	counter invalid {
+		packets 1 bytes 84
+	}
+	counter newpkts {
+		packets 0 bytes 0
+	}
+	counter established {
+		packets 0 bytes 0
+	}
+	counter untracked {
+		packets 0 bytes 0
+	}
+	counter other {
+		packets 0 bytes 0
+	}
+}
+mangle counters:
+table netdev m {
+	counter mangled {
+		packets 1 bytes 84
+	}
+}
+[template-retained] sending one ping after mangling the first IPv4 header byte to 0x65
+[template-retained] results
+bridge counters:
+table bridge brtest {
+	counter seen {
+		packets 1 bytes 84
+	}
+	counter invalid {
+		packets 1 bytes 84
+	}
+	counter newpkts {
+		packets 0 bytes 0
+	}
+	counter established {
+		packets 0 bytes 0
+	}
+	counter untracked {
+		packets 0 bytes 0
+	}
+	counter other {
+		packets 0 bytes 0
+	}
+}
+mangle counters:
+table netdev m {
+	counter mangled {
+		packets 1 bytes 84
+	}
+}
+=== END post-fix output ===
 
 Best regards,
-Xavier
+Luxiao Xu
+
+Luxiao Xu (1):
+  netfilter: bridge: detach conntrack template on invalid IP frames
+
+ net/bridge/netfilter/nf_conntrack_bridge.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+-- 
+2.43.0
+
