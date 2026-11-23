@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795442099;
-	b=2aaeF6AASGBB5nXhyjH793q5xygTFvmChauwd+tW9DxAeD+HcRAYKJD6B2x2fvkeDR2e
-	 fCyYYppQwUcl4aZfjVdCvfgGEtxZtMctcLLdMbktWXESRWBb7VicDFb8fFzya0xSVhS/z
-	 lD2Nm8uaQ0lYKR5NQ/92ouJGRq1nXrtpYLPf4/uMSbwtpEdBOUZyql+2+5hbjpI9R7hMg
-	 7NZ4NyhVcpGrdmHkdZn6+tCdT8sc6NhfHyaL104bYpN+Smd/8+Ou3gYarxCuqwsXBjaEx
-	 0qTWWsNvPzAS2acEujFUrlxsW91BUU34z36d+GRa0QyQGYZTHav0NSW5OCtCikns+Ew==
+	t=1795442104;
+	b=xEGcPu/PAHkI56FUGBk4a0gfAmKBsS/eka02c+PnpnHYem6UwAgUCMe/Ep5pHrkarnaY
+	 itxwQJFyYwwiaLTfLxPX2b7F1JHy5E5bQeutT5Bw1xvd6CnJu8WsGvAWCA455LaqdEffc
+	 fqM+jBhWnIlV7IETMEoGP+bDUmafrcjZIfbHv0ODCuuGAlq6HMNJ5PIolvUFX74u7GWDq
+	 5/oQCdC419EoOD2MfHB2vTvC/YHQ9YC2WR4sj9cpm6Qn27kzlkG8gt9mo4zFCgLgi1fB9
+	 8U+zK9SvxisijTNzKU72Dw/UCfhu0YZtYoNF2OczTvgLwizCHMMrwKLpbZcpItHIMQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795442099;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795442104;
 	h=DMARC-Filter:DKIM-Signature:Received:From:To:Cc:Subject:Date:
 	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
 	 Content-Transfer-Encoding:X-Spam-Status:X-Spam-Checker-Version;
-	bh=yOW9YNJL9sjA3bJFgWWxixTU2xU4gwJYXG8cgx+Z8Hw=;
-	b=2EAczMB1Tz6TJrPXZPYxD0OIIV5YKJyZJ6b/EH7YIsJjPpo4i2a0FodaYHM8Jb8f2x35
-	 jQlK/fjRC1vM0WB2+Fup7wZeUzjFbe4ZkUqToZmJpL/mLezhZ2o/dO/gSLzAdJS1/yP8b
-	 8xaFtqamI6xCSfj8awNrGlsb2nvuGgxIjFObDT67EoW/OmbkAGPwNBwNVrNaAiX7sqh2q
-	 Gybzbdd7OOA0fcqNEAumTG/4p3s+cMp58EeYCMdUEyhWpm0nfwG3xR96q9Mnyc7y+ZGOm
-	 CXf4YmN/fuqfx6bW2l7EQnilsDsEq4/PHBpEG/tY/RgOnJ3y911TQ8sE2g5PfQiyWGA==
+	bh=S7xkWiqqFqg9jXR+/p6MoARXsQBC0WdioQvUUUYQego=;
+	b=ySWIzbNwrLfbPD7a1Fio3Edaz2Xw+HFIW3XcpZhqb4tUVWB7U2z9VRzBU4DgOVLoiDXq
+	 Nekwng5Cd3DxTy7SGZlTf1DQnyU+f6EJ4HAkqiBdUElo0RKB3SUw3oc7JAvAG7S6Ps0xv
+	 aOw7Lst9q8jXGg0GqZVMIYOAVsLNp/5G/iFjN3GQWDGW1lPZFPNT84Dm+mQCxCZwuwIKf
+	 igRNlLB7prleFHT9Yofzbo3bpczbgUKdU8cbn2cIL4m/Iw+63vQcq7F0JufJMuBH0oz3y
+	 J+CCEBY3qxWwuaLOuJtjo8s4/Rw/OEL8TgZ7jzRF8Bww9uBvjIzc1V4Q6n1JXb2KWDw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=FzRmfzqh;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=wCrXgCSX;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90907606A31A;
-	Mon, 23 Nov 2026 13:54:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 90907606A31A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABD5B606A337;
+	Mon, 23 Nov 2026 13:55:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org ABD5B606A337
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=FzRmfzqh
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=wCrXgCSX
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795442095;
-	bh=yOW9YNJL9sjA3bJFgWWxixTU2xU4gwJYXG8cgx+Z8Hw=;
+	s=2025; t=1795442100;
+	bh=S7xkWiqqFqg9jXR+/p6MoARXsQBC0WdioQvUUUYQego=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FzRmfzqh5R3+ED64nC+Vppd23kRGVavR4SEhLbw/oZckQqfQpnrGAbejB1D9VzAV5
-	 Rc49wXbvHQAyAoV8Nh/La6ugC8Mosy01ecPGj85n8fW+h/lbbtcz08J+bNwCa7Ga9i
-	 fIlvjoS2jSBHRbvvJb3pdjiSWtktbm2vJ+Weh06Uz1zVkjho3u5Ggn8ANqqsUwhy6L
-	 fq1RHIpdEPgAXUNultDi3+OQX9PeJS6bJPY5M3hw39dOPD7pKNYo6ki9/c4bzjFG5F
-	 uaZFnypeLb+RYeh83tIGy/8Ho2+EI6F5scbuPT7XhEKXJUHX+suo2GrZgq0ftXHwsV
-	 czo8vQF/J1VQw==
+	b=wCrXgCSXgJrfqkpVn0zilMZMORieaxMmoqO38wq8yfIgPSzxIlqEN5B4qe4LUHAH3
+	 dUxlOups7CO+oXbGLtd4bwfhal2qUp0YcoZirUdi7+5In9cS1ddmlgpsMy+x+JrhZu
+	 jTEiqTiZoyIf6IEk0zgTnxjWPib2j7CFYp2uJlVM17y+V9r699XCbFtI6PNiQ7sBjy
+	 8xAVrj4z88QVU2WJqxtwAlQmvp055Qm7H8yvjGnUiLLfu6cBDS4ReN8GJcPupSL3TS
+	 ObrHRvg2Tx+TT8f7B7vIwY0FYXshdh8B1OcwDnTvZZ1KiEUZJWwPYA9IE9z1wnVXfQ
+	 eH2Nexnm+1jJg==
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1B052602D1;
-	Mon, 23 Nov 2026 14:54:55 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A19B6602D6;
+	Mon, 23 Nov 2026 14:54:59 +0100 (CET)
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -56,9 +56,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	fw@strlen.de,
 	ja@ssi.bg
-Subject: [PATCH net-next 05/15] netfilter: conntrack: replace open-coded helper invocation
-Date: Mon, 23 Nov 2026 14:54:32 +0100
-Message-ID: <20261123135442.3940372-6-pablo@netfilter.org>
+Subject: [PATCH net-next 08/15] netfilter: nft_synproxy: only handle pure SYN and ACK packets
+Date: Mon, 23 Nov 2026 14:54:35 +0100
+Message-ID: <20261123135442.3940372-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261123135442.3940372-1-pablo@netfilter.org>
 References: <20261123135442.3940372-1-pablo@netfilter.org>
@@ -73,95 +73,71 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 
-Replace duplicated logic with the new nf_ct_call_helper() helper.
-No functional changes intended, except the additional checks to
-ensure the helper can process the given packet.
+nft_synproxy treats any segment with SYN set as a client's initial SYN
+and any segment with ACK set as the client's final ACK. A SYN-ACK thus
+gets answered with a fresh SYN-ACK cookie.
 
-LLM complains about the existing early !helper-return in
-nf_ct_helper(), but I prefer to keep this as-is.
+If that reply is routed back to the same host, e.g. to a peer address
+covered by an address on lo, it re-enters the input hook, is answered
+again, and never stops. Every such SYN starts its own endless loop over
+the loopback backlog, so NET_RX softirq keeps the CPU busy and memory
+fills with skbs and rtable entries until workqueues stall and the
+machine OOMs.
 
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Use the same flag checks as ip(6)t_SYNPROXY: SYN without ACK, FIN or
+RST is an initial SYN; ACK without SYN, FIN or RST is the client ACK.
+Anything else falls through to the next expression.
+
+Fixes: ad49d86e07a4 ("netfilter: nf_tables: Add synproxy support")
+Reported-by: syzbot+d7795c8487ca4e20ed88@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d7795c8487ca4e20ed88
+Reported-by: syzbot+d0d2f1a65f45b319d25d@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=d0d2f1a65f45b319d25d
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_ovs.c | 53 +-------------------------------
- 1 file changed, 1 insertion(+), 52 deletions(-)
+ net/netfilter/nft_synproxy.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
-index fe525b324af4..2a80eaf05186 100644
---- a/net/netfilter/nf_conntrack_ovs.c
-+++ b/net/netfilter/nf_conntrack_ovs.c
-@@ -12,16 +12,8 @@
- int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 		 enum ip_conntrack_info ctinfo, u16 proto)
- {
--	int (*helper_cb)(struct sk_buff *skb, unsigned int protoff,
--			 struct nf_conn *ct,
--			 enum ip_conntrack_info conntrackinfo);
- 	const struct nf_conntrack_helper *helper;
- 	const struct nf_conn_help *help;
--	unsigned int protoff;
--	int err;
--
--	if (ctinfo == IP_CT_RELATED_REPLY)
--		return NF_ACCEPT;
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 554a96a000f4..ad43faf1dd1b 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -53,13 +53,13 @@ static void nft_synproxy_eval_v4(const struct nft_synproxy *priv,
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct sk_buff *skb = pkt->skb;
  
- 	help = nfct_help(ct);
- 	if (!help)
-@@ -35,50 +27,7 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
- 	    helper->nfproto != proto)
- 		return NF_ACCEPT;
+-	if (tcp->syn) {
++	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
+ 		/* Initial SYN from client */
+ 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
+ 		synproxy_send_client_synack(net, skb, tcp, opts);
+ 		consume_skb(skb);
+ 		regs->verdict.code = NF_STOLEN;
+-	} else if (tcp->ack) {
++	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
+ 		/* ACK from client */
+ 		if (synproxy_recv_client_ack(net, skb, tcp, opts,
+ 					     ntohl(tcp->seq))) {
+@@ -84,13 +84,13 @@ static void nft_synproxy_eval_v6(const struct nft_synproxy *priv,
+ 	struct synproxy_net *snet = synproxy_pernet(net);
+ 	struct sk_buff *skb = pkt->skb;
  
--	switch (proto) {
--	case NFPROTO_IPV4:
--		protoff = ip_hdrlen(skb);
--		proto = ip_hdr(skb)->protocol;
--		break;
--	case NFPROTO_IPV6: {
--		u8 nexthdr = ipv6_hdr(skb)->nexthdr;
--		__be16 frag_off;
--		int ofs;
--
--		ofs = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
--				       &frag_off);
--		if (ofs < 0 || (frag_off & htons(~0x7)) != 0) {
--			pr_debug("proto header not found\n");
--			return NF_ACCEPT;
--		}
--		protoff = ofs;
--		proto = nexthdr;
--		break;
--	}
--	default:
--		WARN_ONCE(1, "helper invoked on non-IP family!");
--		return NF_DROP;
--	}
--
--	if (helper->l4proto != proto)
--		return NF_ACCEPT;
--
--	helper_cb = rcu_dereference(helper->help);
--	if (!helper_cb)
--		return NF_ACCEPT;
--
--	err = helper_cb(skb, protoff, ct, ctinfo);
--	if (err != NF_ACCEPT)
--		return err;
--
--	/* Adjust seqs after helper.  This is needed due to some helpers (e.g.,
--	 * FTP with NAT) adusting the TCP payload size when mangling IP
--	 * addresses and/or port numbers in the text-based control connection.
--	 */
--	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
--	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff))
--		return NF_DROP;
--	return NF_ACCEPT;
-+	return nf_ct_call_helper(skb, ct, ctinfo);
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper);
- 
+-	if (tcp->syn) {
++	if (tcp->syn && !(tcp->ack || tcp->fin || tcp->rst)) {
+ 		/* Initial SYN from client */
+ 		nft_synproxy_tcp_options(opts, tcp, snet, &info);
+ 		synproxy_send_client_synack_ipv6(net, skb, tcp, opts);
+ 		consume_skb(skb);
+ 		regs->verdict.code = NF_STOLEN;
+-	} else if (tcp->ack) {
++	} else if (tcp->ack && !(tcp->fin || tcp->rst || tcp->syn)) {
+ 		/* ACK from client */
+ 		if (synproxy_recv_client_ack_ipv6(net, skb, tcp, opts,
+ 						  ntohl(tcp->seq))) {
 -- 
 2.47.3
 
