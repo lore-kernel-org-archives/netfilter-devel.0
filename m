@@ -1,94 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.218.175.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525737;
-	b=Ab/XjeW86CRkFlUkAHDTGN1Rloi29kHgxoIUhVhk1eHc0YNskj1mDyqE2Qv7Uln2iiU6
-	 bfUQZC+nmcuZ442Cd440I2LPZvEjqyZeTuC1Cv+MvI0jBmavwABH03eOyNn8RT1K/uCtK
-	 xLvjOjKSR6mLfHfyBbwW83UXaLzdp1zFY/QMsZvoMqJCfTEDU+wVEbsXuLVeqtA85q591
-	 nAGM+IoaxogDg6T1KJTHfPaRzGecI08fyHSRKLzHFurveVBP0OR4/Ea+HNSzA331/ztdM
-	 Ms+NYy20rg6ZuZfUhOjDn1Z5fAuyW9RohKEw18DLiuigJSw/07KDscbu+uZcCrB+sJQ==
+	t=1795525752;
+	b=MVvEw03hwaM2TedOlA+nsGPQE4QX7wkqTJ7kjUO7Je6lh2jrdAFe5fa+PPOEIZRamMyN
+	 e0HAW6FAI/1+39XEm5NxwKAjwy0yt1wjaoVImX4KdiJsJVxfSf9M90JF2VADr+eDO23Jr
+	 /Q+EkhwXB6GNoIqLkYc7OYkMfvWOC5BKWWCN+R+IdL3ujG/iMu8+ZM0jpHTQgi0Vc5bLo
+	 Y1ZoA6fLfELAvKXTJlth7ABlphVXO8Xkr6iPIUBq3bq4tDQ7InQ0zsLilMW3rYyeErp4l
+	 F2UruhhrwXbhOanfbwHMQEm7TAHLwCpagCwjxmndVygCwL41t8cQ1/BJGYA2lzPME7Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525737;
-	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
-	 X-Mizu-Trace-ID:X-Migadu-Flow:From:To:Cc:Subject:Date:Message-ID:
-	 X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=ZAJFkeBY0BZ1OPlmDSlGAxEEUMWDR+RmAqL5xjV6gRU=;
-	b=GStBzGlBdhYKTt98QQs4yg9g2+SqMYP4Zm0yyKvpWip9XbWw08JlpfrHWwYNPl4Q1L4U
-	 G1h14nKEIzxb8684cbt5rdbr4qgEi6ZhZXl3G+vU5hqNuiWvLjkS+ZO7IWNmF1XHqVwtb
-	 3YXgiye+I4p15mMmJVDuldIQMvM9iRBxZNTG0GX4+9dXKc/ofPSQSCdmiR7/q7dH53Ox7
-	 bADSULDUZcGVHo7Qh6Ztf/sY2vrMofwOxXRy0nP8DIKwUGA2jWGX6OmzhjBbrDZizhFeK
-	 UCJoOlBWdpclXLQ/p2iY8dzg41Y0jLx4iFweqR3PBjq2M4NEzMJ41gKLOb9pyPRxNtA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795525752;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=2YIGNvCIU2YvRgOXmYyTaRrrJOu/XInDM3EdnXF/wIE=;
+	b=mTcmnyQ+kUysyrn7opquPnD6wGI6WRbhkOWVqqv3d6cF++/vNnpJsBdiF+fpDm9SBfqZ
+	 Y/aMv2i0EFqkdRfw257PuNd6XhjitU5ulRnuZ06KoSByW/57ViBG3SSvxNGdVxbCRUcCY
+	 +ORDvowz6gRAa3GIOL25vG20u/XkwHakk/9yL4ZR0SDIGOXfPHCuTlL1Wg6Zg7IFlh0tI
+	 JfxvqKrBu5OwsVrrScF/0kKMtcrGusLTpkvrYw6IuguoRdCCMZsuv1euFJirYQaq+1Uiv
+	 QMfYluIHlpFAlOGZidgGaaoxG9m0CVDyx+1L13K+3sX0EefKSlvi31FbL1CndEWccdw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.dev;
-	spf=pass smtp.mailfrom=linux.dev;
-	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SpadUEwm;
-	arc=none smtp.remote-ip=91.218.175.169
-Received: from mta0.migadu.com (out-169.mta0.migadu.com [91.218.175.169])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osws0djj;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57367606A322
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 13:08:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 57367606A322
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 28FBB606A326;
+	Tue, 24 Nov 2026 13:09:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28FBB606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=SpadUEwm
-X-Envelope-To: netfilter-devel@vger.kernel.org
-DKIM-Signature: a=rsa-sha256; bh=fuZhFuYOPr0oewf5ZwksCl2L3uxSF9dVzjuhFkRLtXE=;
- c=simple/simple; d=linux.dev;
- h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
- t=1795525734; v=1; x=1796130534;
- b=SpadUEwmyDkvAYAqWTSsZ1ceMQuk7K736e1kJy1PX5kon8+rApg8y6Ob4/PyThZ6Mju8oWOG
- 8eevL9j8QwBDFVel88hNg9vRragCQMY2s42vkRTkx3FefIS7iN5Fp+yXom+AcR17DZfuHjIWUrB
- HDZRfmws4Ed+enLHd9ufQXWg=
-X-Envelope-To: netfilter-devel@vger.kernel.org
-Received: by smtp.migadu.com with ESMTPS id 5aa0fa67673d0461;
-	Tue, 24 Nov 2026 13:08:54 +0000
-X-Mizu-Trace-ID: 5aa0fa67673d0461
-X-Migadu-Flow: FLOW_OUT
-From: Xuanqiang Luo <xuanqiang.luo@linux.dev>
-To: netdev@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Kumar Kartikeya Dwivedi <memxor@gmail.com>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Emil Tsalapatis <emil@etsalapatis.com>,
-	Ihor Solodrai <ihor.solodrai@linux.dev>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	David Ahern <dsahern@kernel.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	Stanislav Fomichev <sdf@fomichev.me>,
-	Neal Cardwell <ncardwell@google.com>,
-	Kuniyuki Iwashima <kuniyu@google.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	bpf@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	mptcp@lists.linux.dev,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Xuanqiang Luo <luoxuanqiang@kylinos.cn>
-Subject: [PATCH net-next v1 6/6] tcp: do not call bpf_skops_write_hdr_opt() unless needed
-Date: Tue, 24 Nov 2026 22:06:31 +0900
-Message-ID: <20261124130631.1886963-7-xuanqiang.luo@linux.dev>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261124130631.1886963-1-xuanqiang.luo@linux.dev>
-References: <20261124130631.1886963-1-xuanqiang.luo@linux.dev>
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osws0djj
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1795525748;
+	bh=2YIGNvCIU2YvRgOXmYyTaRrrJOu/XInDM3EdnXF/wIE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=osws0djjc8gx2b4fTjQfSbzwX0VhYwzW5zq+GqMq9O91ZoNlTQCiOf3yh4vMbvlQ6
+	 P6D7QMiSUg1QoU1FlOpj8pBZXyqpZwtgYFA2upKyDEhe54Swc85xzDrm6lk9Egbs7W
+	 qTxwJ+0PDTdtgikGPOeAGOWA8ikYR5DEl1qUCNyGaygTBweIpWwlWWEtQwYpm/IIq2
+	 czMOYeUHD0WKMMmldanQKqkNfuuKLSXjFmWEEnaCEPtvbYqkSK7T71u9bKJVfLj6Wi
+	 4zEDZ8uWCR1itdi+bj1gfS1QsPwAFAMaVmXpAHxnbAjRQovjzTGvHxg3sIGOFYgxl0
+	 ROivDFtqx8f8g==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 45399601B3;
+	Tue, 24 Nov 2026 14:09:08 +0100 (CET)
+Date: Tue, 24 Nov 2026 14:09:05 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Qican Ma <goonsomeway@gmail.com>
+Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@kernel.org,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH nf v2] netfilter: flowtable: interlock NF_FLOW_TEARDOWN
+ with NF_FLOW_PENDING
+Message-ID: <awWMcRVhzciy1gIw@chamomile>
+References: <179550685613.38700.16148920957970479663@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -98,70 +66,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <179550685613.38700.16148920957970479663@gmail.com>
 
-From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+On Tue, Nov 24, 2026 at 03:54:16PM +0800, Qican Ma wrote:
+> nf_flow_offload_gc_step() checks NF_FLOW_PENDING once at entry before
+> setting NF_FLOW_TEARDOWN and potentially freeing the flow via
+> flow_offload_del(). Concurrently, flow_offload_add() or a datapath caller
+> that looked up the flow prior to teardown can call
+> nf_flow_offload_work_alloc(), set NF_FLOW_PENDING, and queue a
+> FLOW_CLS_REPLACE work item holding a raw pointer to the flow without
+> rechecking NF_FLOW_TEARDOWN. If the pending bit is set after the GC check,
+> flow_offload_del() frees the flow via RCU while the queued work item can
+> still dereference and clear NF_FLOW_PENDING on offload->flow.
+>
+> Interlock the two flags: in nf_flow_offload_gc_step(), check
+> NF_FLOW_PENDING after NF_FLOW_TEARDOWN has been observed or set, paired
+> with a full memory barrier; in nf_flow_offload_work_alloc(), recheck
+> NF_FLOW_TEARDOWN after test_and_set_bit(NF_FLOW_PENDING) for
+> FLOW_CLS_REPLACE and bail out if set. Restrict the teardown check to
+> FLOW_CLS_REPLACE because GC itself queues FLOW_CLS_DESTROY and
+> FLOW_CLS_STATS work on flows already marked for teardown.
+> 
+> Found with an LLM-assisted code review tool and verified by inspection on
+> v7.4-rc4 (b6a9fa34ce4). Build-tested only; reproducing the race at runtime
+> requires a hardware-offloaded flowtable device.
 
-__tcp_transmit_skb() calls bpf_skops_write_hdr_opt() for every skb. The
-function returns at once if no BPF program reserved room for TCP options
-(opts->bpf_opt_len == 0), which is the common case.
+This is the refresh race.
 
-It has a struct bpf_sock_ops_kern on its stack. With
-CONFIG_STACKPROTECTOR_STRONG=y, its stack canary is set up and checked
-even when it has nothing to do.
+> Fixes: 7c549fb7eecd ("netfilter: flowtable: generalize pending status bit")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Qican Ma <goonsomeway@gmail.com>
+> ---
+> v2: resend via direct SMTP without line-wrapping corruption in the diff.
+> 
+>  net/netfilter/nf_flow_table_core.c    | 8 +++++---
+>  net/netfilter/nf_flow_table_offload.c | 7 +++++++
+>  2 files changed, 12 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+> index 2aa2647ed9d..fcd37f7a37f 100644
+> --- a/net/netfilter/nf_flow_table_core.c
+> +++ b/net/netfilter/nf_flow_table_core.c
+> @@ -578,9 +578,6 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+>  {
+>  	bool teardown;
+>  
+> -	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+> -		return;
+> -
+>  	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+>  
+>  	if (nf_flow_has_expired(flow) ||
+> @@ -594,6 +591,11 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+>  		nf_flow_table_extend_ct_timeout(flow->ct);
+>  	}
+>  
+> +	/* Pairs with test_and_set_bit(NF_FLOW_PENDING) in work_alloc(). */
+> +	smp_mb();
+> +	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+> +		return;
+> +
+>  	if (teardown) {
+>  		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+>  			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 4365859220e..402a46e1645 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -1088,6 +1088,13 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+>  	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+>  		return NULL;
+>  
+> +	/* Pairs with smp_mb() in nf_flow_offload_gc_step(). */
+> +	if (cmd == FLOW_CLS_REPLACE &&
+> +	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
+> +		clear_bit(NF_FLOW_PENDING, &flow->flags);
+> +		return NULL;
+> +	}
 
-Test opts.bpf_opt_len in its callers instead.
+Do you have this patch in your tree?
 
-$ scripts/bloat-o-meter -t vmlinux.old vmlinux.new
-add/remove: 0/0 grow/shrink: 2/2 up/down: 28/-196 (-168)
-Function                                     old     new   delta
-tcp_make_synack                             2006    2020     +14
-__tcp_transmit_skb                          4114    4128     +14
-tcp_options_write.isra                      1699    1651     -48
-bpf_skops_write_hdr_opt.isra                1206    1058    -148
-Total: Before=24067405, After=24067237, chg -0.00%
-
-Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
----
- net/ipv4/tcp_output.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index c2022fc9ad52..3c0be5a675ea 100644
---- a/net/ipv4/tcp_output.c
-+++ b/net/ipv4/tcp_output.c
-@@ -538,9 +538,6 @@ static void bpf_skops_write_hdr_opt(struct sock *sk, struct sk_buff *skb,
- {
- 	u8 first_opt_off, nr_written = 0, max_opt_len = opts->bpf_opt_len;
+commit 0abb543639741a3d1124e7a1a33fd9d3649d6079
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Fri Oct 16 11:16:37 2026 +0200
  
--	if (likely(!max_opt_len))
--		return;
--
- 	first_opt_off = tcp_hdrlen(skb) - max_opt_len;
- 
- 	if (cgroup_bpf_enabled(CGROUP_SOCK_OPS) &&
-@@ -1731,7 +1728,8 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
- 	}
- 
- 	/* BPF prog is the last one writing header option */
--	bpf_skops_write_hdr_opt(sk, skb, NULL, NULL, 0, &opts);
-+	if (unlikely(opts.bpf_opt_len))
-+		bpf_skops_write_hdr_opt(sk, skb, NULL, NULL, 0, &opts);
- 
- #if IS_ENABLED(CONFIG_IPV6)
- 	if (likely(icsk->icsk_af_ops->net_header_len == sizeof(struct ipv6hdr)))
-@@ -4146,8 +4144,9 @@ struct sk_buff *tcp_make_synack(const struct sock *sk, struct dst_entry *dst,
- 	rcu_read_unlock();
- #endif
- 
--	bpf_skops_write_hdr_opt((struct sock *)sk, skb, req, syn_skb,
--				synack_type, &opts);
-+	if (unlikely(opts.bpf_opt_len))
-+		bpf_skops_write_hdr_opt((struct sock *)sk, skb, req, syn_skb,
-+					synack_type, &opts);
- 
- 	skb_set_delivery_time(skb, now, SKB_CLOCK_MONOTONIC);
- 	tcp_add_tx_delay(skb, tp);
--- 
-2.43.0
+    netfilter: flowtable: do not hw offload flows in teardown state
 
+This patch is in net-next.
+
+> +
+>  	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+>  	if (!offload) {
+>  		clear_bit(NF_FLOW_PENDING, &flow->flags);
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
+> 
