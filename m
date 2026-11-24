@@ -1,56 +1,56 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795531180;
-	b=EYWEuNy8hPSgaPHuuOOTdSH41qsHv7fhvOm9xBkOCubD3XjtTnOxnRggRQYKhQS3vvGX
-	 CgDfJJuEzRBAwm+SpdPt/8gQUhvhrt1IZ7+fXGMzD8BKZTRTE3bWdmaqzjSpBQ96lJWEh
-	 UUUiv/uh5IiVWCWENRiX0EdJh31Il8I0rBbIhAO2nj7Tr39D+VWA68Spzf4XFsp+F2KI9
-	 sblDKNIIQU5076aC+HubH1cXONOazSK1G5M+EAmpVxb9/QTE8gxXy1llUj6F+ZvlGTQMk
-	 tljhj/whyLuYKh9pB/CgTXTEQNQpeZbcjN9aqD/hcxf7kalhtV8GXItJbX1wpSLvZnA==
+	t=1795531175;
+	b=vQEsIIQynAqdfck0dlgbPt2MdI7LTWCWS6yZbEJe+WAZfr0UNO1jiqTpFwfv1aIvchMz
+	 3FNJsuyxJ5bZRtwQl6Y2yFUveHz/TVw+H9sKmV+MZ38aBh+TPQGyFSuxAs5a/wTbDxcp2
+	 J6egvM+NgXxvreq2NsHwkf97S0paoOLmuq9/r4O5zJkOqXj8I67rbnxplqQAFYO49gt56
+	 8G677JsktLeTTOB9eyGb8kEBPBLvlb5UUDcvciod6CbQGglsqrwdsFK9cn0jjiJoEGfXO
+	 qdxyPbT13H5ZOVbpSvec/fyht6/aySzcG/G1H+1sl1eAnMyEgrpxOUS/ZiCJtD44TCw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795531180;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795531175;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=ssdteKdpnLw+8yfvKCIYIIv1Lym9PUjNxVQxWZ5Vlrk=;
-	b=pZupSmlFTj4CrPz/oH6s2M5ID6uEF6EOpp7kd7S929YMXx+eaTe/Xxrt0HRL254zGhmN
-	 2q8Gl/FYjUhjss63mZ1J3NrlgK2PV1kCO/oW2qTsWiu9wP2aoxeb1ZOiZgsyRpttiCQUe
-	 xdp00Yhuli5BBa8cljCPUUK2DYHBvZLFDdVEOFeF+pqkrWuMXkMb2GYdMoaaIIlcO/9nv
-	 aeDruVJh2yqIN9YeOg42kX8o42+Koyl8Ls4vE+nxA2e6Z6/jj6biVjhfxBZDuu6ambb7P
-	 U8h89VwxDzuI4FXw7CHgfPip9qxM1BGymSHprqh/iziASIn74cAGodHN0PjNe7XWuCw==
+	bh=TXNbTZIFkURe4DDU63HqIMXwC3wYeijQ0bXyCiJSP3g=;
+	b=gC2a9IySgihd6HYftdH5onrufhXFBg7GDKk3o+PbhsVCWIga1eojN5odIUad/amOWyZx
+	 9yP5BCPmnxwAhGKAgTCwZl20XqVFn4Gt4McWAXYmNbTCvP1WTY4QWG3rBSgWR6L3vePfH
+	 fappUHGMWKEBqxFmSEWuiVhc6QIRG86VN8Ect61qRX1oYupzUu87y7QoSqkZi4SkFU8oc
+	 K4HtCWH5RhXya9i8Ci81dVL0T+DkyeehNE589esRlArdK+i/+edmVzKKUtQh3fJxisCEM
+	 KA6X4vsjKgcrFGYZQM+Gpfeyy6dDmPkElUu61IkOZ0KcY/k18KQSYN+jTCUYwVOwL8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ITWGgMtr;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hc794+bL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF325606A336;
-	Tue, 24 Nov 2026 14:39:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5151F606A326;
+	Tue, 24 Nov 2026 14:39:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ITWGgMtr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 052BA1F000C4;
-	Tue, 24 Nov 2026 14:39:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Hc794+bL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 168FC1F000D0;
+	Tue, 24 Nov 2026 14:39:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795531179;
-	bh=ssdteKdpnLw+8yfvKCIYIIv1Lym9PUjNxVQxWZ5Vlrk=;
+	s=k20260515; t=1795531174;
+	bh=TXNbTZIFkURe4DDU63HqIMXwC3wYeijQ0bXyCiJSP3g=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=ITWGgMtro0OLaKIxeZTB34NMngFuxkah/3xUlbIVCsU7rAZgbeB24FtZRB2nyMtQd
-	 EEAXsLEk+TpPjqmKJf3jrwo+Im53D01EsWAInulr2EEIw+vJQ4D2/IyA654fzt8uiL
-	 BLtQhcgRD3dJtZXO1h0wX0XIOzuSGBPzL7QwNnC0m8jU598DuxZEUKBIlVO6WN0irl
-	 ni2SiZkQSRd4Dmn6QIhfYwXgFfw+Io89u6HTMAiH76bQqJaLfuSP2YFQQVTeDFGE2y
-	 KHVQYZjbCexzlP9g6ageR6IB7P/zAc8zEpbzy7GDXLMiWuMVfkZ+a/ndiFo8iIE5q2
-	 h0JRaYyMWRUOw==
-Subject: Re: [PATCH net-next 09/15] netfilter: nft_ct: validate hook and
- priority for ct zone set
+	b=Hc794+bLZOgu+BAxlGtyBHVphgzUijDgUWfkPcw7XXH0E4Xq1X82tUgPb2+Bcs454
+	 Dm95h5Z2R3y56qYId0qguFpxjGeKd25ydmXyrsMkI6D+JsLsbFvif09ihyZAhvJgog
+	 s4XElXLPoSkjjrDs3irMx6OU2z0bfY06Bz2+PNSu1sSzf7ltwpjbGGy3RydRK/SBMF
+	 HnNnT5hqsTM7NmP3OCp6IasLxe00Lpj9+0hid1GB4PRpkxeTr5nxkRRKd/rmIIkPVz
+	 qWvEZ3S2oHuZK+UET7mzUK3LIvoOmOCYBzIuirOT6zHJveZep2vROTid+5oAQ8jdj3
+	 IeQMxaiMyU0nQ==
+Subject: Re: [PATCH net-next 05/15] netfilter: conntrack: replace open-coded
+ helper invocation
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 24 Nov 2026 14:39:38 +0000
-Message-ID: <179553117857.3135.6445016477100747044@kernel.org>
-In-Reply-To: <20261123135726.3940688-10-pablo@netfilter.org>
-References: <20261123135726.3940688-10-pablo@netfilter.org>
+Date: Tue, 24 Nov 2026 14:39:33 +0000
+Message-ID: <179553117362.3135.14148690589375438131@kernel.org>
+In-Reply-To: <20261123135726.3940688-6-pablo@netfilter.org>
+References: <20261123135726.3940688-6-pablo@netfilter.org>
 X-sashiko-severity: Medium
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -75,226 +75,209 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [Medium] The commit message describes a failure that cannot happen, and
-  the core hunk it adds can never run.
-- [Medium] nft_ct_set_zone_validate() now rejects 'ct zone set' in inet-
-  family chains on the ingress hook (NF_INET_INGRESS).
-- [Low] The commit message does not mention the required change to the
-  generic nf_tables chain-validation cache.
+- [Medium] This patch changes the OVS/tc helper path in nf_ct_helper()
+  (net/netfilter/nf_conntrack_ovs.c:30) so that it calls…
+- [Medium] netfilter: conntrack: nf_ct_helper() does not verify
+  nf_ct_l3num(ct) == proto
+- [Low] The comment `/* rcu_read_lock()ed by nf_hook */` at
+  net/netfilter/nf_conntrack_proto.c:211 in nf_ct_call_helper() is now…
 
 --
 
-netfilter: nft_ct: validate hook and priority for ct zone set
+netfilter: conntrack: replace open-coded helper invocation
 
-This patch adds a .validate callback to the ct zone set expression. The
-callback limits the expression to prerouting/output base chains that are
-not NAT chains and run before conntrack, in the ip, ip6, inet and bridge
-families. The patch also makes the nf_tables chain validation cache take
-the chain priority into account, and adds a template check to
-__nf_conntrack_confirm().
+The commit replaces the open-coded helper invocation in nf_ct_helper(),
+which the OVS datapath and tc act_ct use. It now calls
+nf_ct_call_helper(), which nf_confirm() also uses. The commit message
+says there are no functional changes, apart from extra checks that make
+sure the helper can process the packet.
 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index d2cd9b31507e6..707a9006537de 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -1198,6 +1198,11 @@ __nf_conntrack_confirm(struct sk_buff *skb)
->  	if (CTINFO2DIR(ctinfo) != IP_CT_DIR_ORIGINAL)
+> diff --git a/net/netfilter/nf_conntrack_ovs.c b/net/netfilter/nf_conntrack_ovs.c
+> index fe525b324af41..2a80eaf05186b 100644
+> --- a/net/netfilter/nf_conntrack_ovs.c
+> +++ b/net/netfilter/nf_conntrack_ovs.c
+
+[ ... ]
+
+> @@ -35,50 +27,7 @@ int nf_ct_helper(struct sk_buff *skb, struct nf_conn *ct,
+>  	    helper->nfproto != proto)
 >  		return NF_ACCEPT;
 >  
-> +	if (unlikely(nf_ct_is_template(ct))) {
-> +		DEBUG_NET_WARN_ON_ONCE(1);
-> +		return NF_ACCEPT;
-> +	}
-> +
-
-[Severity: Medium]
-
-Can an nft_ct template ever reach this check? The commit message says:
-
-  "on paths where no conntrack hook runs for the skb afterwards, the
-  unconfirmed per-cpu template can reach the conntrack confirm hook and
-  get inserted into the global hash table as if it were a genuine
-  connection."
-
-Both templates that nft_ct attaches are created with the confirmed bit
-already set. In nft_ct_tmpl_alloc_pcpu():
-
-		__set_bit(IPS_CONFIRMED_BIT, &tmp->status);
-		per_cpu(nft_ct_pcpu_template, cpu) = tmp;
-
-And in the GFP_ATOMIC fallback of nft_ct_set_zone_eval():
-
-		__set_bit(IPS_CONFIRMED_BIT, &ct->status);
-
-The two in-tree callers of __nf_conntrack_confirm() both skip confirmed
-entries. In nf_conntrack_confirm():
-
-	if (ct) {
-		if (!nf_ct_is_confirmed(ct)) {
-			ret = __nf_conntrack_confirm(skb);
-
-And in br_nf_local_in():
-
-	if (likely(nf_ct_is_confirmed(ct)))
-		return NF_ACCEPT;
-
-nf_confirm() calls nf_ct_call_helper() before the confirm step. For a
-zone template that call returns NF_ACCEPT right away, because the
-template has no helper extension and IPS_SEQ_ADJUST is not set.
-
-The act_ct and openvswitch templates can be unconfirmed. However,
-nf_conntrack_in() clears skb->_nfct before any confirm hook sees them.
-
-If so, the new nf_ct_is_template() check in __nf_conntrack_confirm()
-can't be reached, and the commit message doesn't mention it as a
-separate change.
-
-Could the commit message describe the user-visible problem behind the
-Fixes: tag? Or is there another path where an unconfirmed template
-reaches the confirm hook?
-
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 8b94b5e7dbdbd..a13b970ee1bd8 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
 
 [ ... ]
 
-> @@ -137,9 +143,10 @@ static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
->  	hooknum = base_chain->ops.hooknum;
->  	type = base_chain->type->type;
->  
-> -	/* chain is already validated for this call depth */
-> +	/* chain is already validated for this call depth and priority */
->  	if (chain->vstate.depth >= ctx->level &&
-> -	    chain->vstate.hook_mask[type] & BIT(hooknum))
-> +	    chain->vstate.hook_mask[type] & BIT(hooknum) &&
-> +	    nft_chain_vstate_valid_prio(&chain->vstate, base_chain->ops.priority))
->  		return true;
->  
->  	return false;
-> @@ -2782,6 +2789,25 @@ int nft_chain_add(struct nft_table *table, struct nft_chain *chain)
->  
->  static u64 chain_id;
->  
-> +static void nft_chain_vstate_init(struct nft_chain_validate_state *v)
-> +{
-> +	memset(v, 0, sizeof(*v));
-> +
-> +	/* Inverted.  A chain at priority P can skip valiation
-> +	 * if min <= P <= max.
-> +	 *
-> +	 * The inverted start fails the test for all values of P.
-> +	 * nft_chain_vstate_update() will shrink prio_min to P
-> +	 * and grow prio_max to P, so that after first run:
-> +	 * prio_min == prio_max == P.  A subsequent validation
-> +	 * request will only skip if P1 == P2 amd revalidate
-> +	 * otherwise, including an update of either prio_min or
-> +	 * prio_max.
-> +	 */
-> +	v->prio_min = INT_MAX;
-> +	v->prio_max = INT_MIN;
-> +}
+> -	default:
+> -		WARN_ONCE(1, "helper invoked on non-IP family!");
+> -		return NF_DROP;
+> -	}
+> -
+> -	if (helper->l4proto != proto)
+> -		return NF_ACCEPT;
+> -
+> -	helper_cb = rcu_dereference(helper->help);
+> -	if (!helper_cb)
+> -		return NF_ACCEPT;
+> -
+> -	err = helper_cb(skb, protoff, ct, ctinfo);
+> -	if (err != NF_ACCEPT)
+> -		return err;
+> -
+> -	/* Adjust seqs after helper.  This is needed due to some helpers (e.g.,
+> -	 * FTP with NAT) adusting the TCP payload size when mangling IP
+> -	 * addresses and/or port numbers in the text-based control connection.
+> -	 */
+> -	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) &&
+> -	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff))
+> -		return NF_DROP;
+> -	return NF_ACCEPT;
+> +	return nf_ct_call_helper(skb, ct, ctinfo);
+
+[Severity: Medium]
+Can nf_ct_helper() now pick the helper by one family and parse the
+packet by another?
+
+The check left in nf_ct_helper() compares helper->nfproto against the
+proto passed in by the caller. nf_ct_call_helper() then calls
+nf_confirm_get_protoff(), and that function switches on
+nf_ct_l3num(ct) instead:
+
+	switch (nf_ct_l3num(ct)) {
+	case NFPROTO_IPV4:
+		...
+		protoff = skb_network_offset(skb) + ip_hdrlen(skb);
+		*pnum = ip_hdr(skb)->protocol;
+		break;
+	case NFPROTO_IPV6:
+		*pnum = ipv6_hdr(skb)->nexthdr;
+		...
+
+The removed code also switched on proto when it parsed the headers. So
+the helper family check and the protoff and l4proto lookup always used
+the same family.
+
+Nothing in nf_ct_helper() checks that nf_ct_l3num(ct) == proto, and
+the callers do not seem to guarantee it. In tcf_ct_act(),
+tcf_ct_skb_nfct_cached() treats an existing skb->_nfct as cached when
+only the net and the zone match:
+
+	if (!net_eq(net, read_pnet(&ct->ct_net)))
+		goto drop_ct;
+	if (nf_ct_zone(ct)->id != p->zone)
+		goto drop_ct;
+
+For an unconfirmed ct with commit set, tcf_ct_act() then calls
+nf_ct_helper(skb, ct, ctinfo, family) and skips nf_conntrack_in().
+skb_nfct_cached() in net/openvswitch/conntrack.c looks similar.
+
+Consider a tc chain with these steps, all in the same zone:
+
+1. A ct action without commit tracks an IPv6 packet.
+2. skbedit, pedit or bpf changes skb->protocol to ETH_P_IP.
+3. A ct action with commit and an IPv4-only helper runs.
+
+nf_ct_helper() accepts the helper, because helper->nfproto is
+NFPROTO_IPV4. nf_confirm_get_protoff() parses the packet as IPv6. An
+IPv4 helper such as snmp_trap_helper() finds the UDP header from
+ip_hdr(skb)->ihl, not from protoff, so it would run on an IPv6 header.
+The reverse case is also possible: act_ct trimmed and classified the
+packet as IPv6, but nf_confirm_get_protoff() parses it as IPv4.
+
+Setting this up needs CAP_NET_ADMIN. Still, it changes which bytes the
+helper is pointed at, and the commit message only says it adds checks.
+The old code also ran the helper against a ct of the other family in
+this case, but its header parsing at least matched the family that was
+used to pick the helper.
+
+The later patch "harden helper invocation with tuple revalidation"
+adds nf_ct_get_tuplepr() to nf_confirm_get_protoff(). It also keys off
+nf_ct_l3num(ct), so it does not seem to close this gap.
+
+Should nf_ct_helper() return early when nf_ct_l3num(ct) != proto? Or
+should the helper->nfproto check compare against nf_ct_l3num(ct)?
+Another option is for the cached checks in act_ct and OVS to reject a
+ct whose l3num does not match the current family.
+
+[Severity: Medium]
+Does this change when sequence adjustment runs for tc act_ct on
+loopback?
+
+In net/netfilter/nf_conntrack_proto.c, nf_ct_call_helper() does this:
+
+	seqadj_needed = test_bit(IPS_SEQ_ADJUST_BIT, &ct->status) && !nf_is_loopback_packet(skb);
+	...
+	if (seqadj_needed &&
+	    !nf_ct_seq_adjust(skb, ct, ctinfo, protoff))
+		return NF_DROP;
+
+The removed code called nf_ct_seq_adjust() whenever IPS_SEQ_ADJUST_BIT
+was set after a successful helper call. It never checked the device.
+
+nf_is_loopback_packet() is:
+
+	return skb->dev && skb->skb_iif && skb->dev->flags & IFF_LOOPBACK;
+
+When tcf_ct_act() runs from a tc ingress filter on lo, this is always
+true. __netif_receive_skb_core() sets skb->skb_iif before
+sch_handle_ingress() runs:
+
+	skb->skb_iif = skb->dev->ifindex;
+
+Consider a pure act_ct setup on lo ingress with commit, nat and a helper
+that rewrites the payload, such as ftp. act_ct registers no netfilter
+hooks, so nf_confirm() never adjusts these packets. Before this patch,
+nf_ct_helper() was the only place that did.
+
+After nf_nat_mangle_tcp_packet() changes the payload length and sets
+IPS_SEQ_ADJUST_BIT, will seq/ack go uncorrected on later packets? That
+would leave the TCP control connection out of sync.
+
+OVS does not seem able to reach this, because ovs_netdev_link() rejects
+IFF_LOOPBACK vports. In a mixed setup where netfilter conntrack already
+adjusted the packet in POSTROUTING, skipping the adjustment on lo
+ingress does avoid adjusting twice.
+
+The commit message says:
+
+    No functional changes intended, except the additional checks to
+    ensure the helper can process the given packet.
+
+The loopback exemption does not seem to fit that description.
+
+Two smaller behaviour changes also seem to be undisclosed. First, a
+NULL helper->help, which happens briefly while a helper is being
+unregistered, used to return NF_ACCEPT without any seq adjustment. It
+now falls through to nf_ct_seq_adjust().
+
+Second, a non-IP family used to hit WARN_ONCE() and return NF_DROP. It
+now returns NF_ACCEPT after DEBUG_NET_WARN_ONCE(). That path is
+probably unreachable, because the switch is now on nf_ct_l3num(ct).
+
+Should nf_ct_helper() keep the unconditional seq adjustment for the
+act_ct path? Or should the commit message describe these changes? The
+behaviour looks the same at the end of the series.
 
 [Severity: Low]
+This isn't a bug, but the comment in nf_ct_call_helper() looks stale
+now that nf_ct_helper() calls it:
 
-This isn't a bug, but the commit message doesn't mention the change to
-the generic chain validation cache. The patch:
+		/* rcu_read_lock()ed by nf_hook */
+		helper = rcu_dereference(help->helper);
 
-- adds prio_min and prio_max to struct nft_chain_validate_state
-- adds nft_chain_vstate_init() and nft_chain_vstate_reinit()
-- makes the skip test in nft_chain_vstate_valid() depend on the calling
-  base chain's priority
+Before this patch, nf_confirm() was the only caller, and it runs inside
+nf_hook_slow(). Through nf_ct_helper(), this code is now also reached
+from the OVS datapath in net/openvswitch/conntrack.c and from
+tcf_ct_act() in net/sched/act_ct.c.
 
-The fix seems to need this. Without it, a regular chain first validated
-from a prerouting chain at priority -300 would be skipped when reached
-from a prerouting chain at priority 0, which bypasses the priority check
-in nft_ct_set_zone_validate().
+Those paths get their RCU read-side section from somewhere else: the
+netdev rx handler, ovs_packet_cmd_execute(), or tc classify. The
+rcu_dereference() calls are still protected in practice, so only the
+comment is wrong.
 
-The change also affects the skip logic for every expression's .validate
-callback, but the message only says "Add a validate callback".
+Could the comment be updated to cover the new callers? It is unchanged
+at the end of the series.
 
-The range tracking in nft_chain_vstate_update() only works for
-validators whose accepted priorities form one contiguous range that
-doesn't depend on hook or chain type. That holds for ct zone set and for
-the nft_compat NF_IP_PRI_RAW check. Could this assumption be documented?
-
-The Fixes: tag points at a 2017 commit, so trees without the vstate
-cache would need a different backport. The message could note that too.
-
-The new comment has two typos: "valiation" and "amd".
-
-The commit message also says nearly the same thing twice:
-
-  "Also, mirror what classic xtables CT target is doing: CT target is
-  restricted to the 'raw' table ..."
-
-  "This mirrors why the classic xtables CT target is restricted to the
-  raw table (PREROUTING/OUTPUT, ahead of conntrack)."
-
-[ ... ]
-
-> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-> index a19a839a0fc0b..9ed9cad090e4c 100644
-> --- a/net/netfilter/nft_ct.c
-> +++ b/net/netfilter/nft_ct.c
-
-[ ... ]
-
-> @@ -755,6 +756,46 @@ static const struct nft_expr_ops nft_ct_set_ops = {
->  };
->  
->  #ifdef CONFIG_NF_CONNTRACK_ZONES
-> +static int nft_ct_set_zone_validate(const struct nft_ctx *ctx,
-> +				    const struct nft_expr *expr)
-> +{
-> +	unsigned int hooks;
-> +	int err;
-> +
-
-[ ... ]
-
-> +	switch (ctx->family) {
-> +	case NFPROTO_IPV4:
-> +	case NFPROTO_IPV6:
-> +	case NFPROTO_INET:
-> +		hooks = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT);
-> +		break;
-
-[Severity: Medium]
-
-Is ct zone set now rejected in inet family chains on the ingress hook?
-For NFPROTO_INET this mask doesn't include NF_INET_INGRESS, so
-nft_chain_validate_hooks() returns -EOPNOTSUPP for a ruleset like this:
-
-  table inet t {
-    chain c {
-      type filter hook ingress device eth0 priority 0;
-      ct zone set 1
-    }
-  }
-
-The ingress hook runs from __netif_receive_skb_core(), before IP
-prerouting defrag and nf_conntrack_in(). That meets the commit's own
-"before conntrack" condition.
-
-Before this patch, such a rule loaded and worked:
-
-- nft_ct_set_init() succeeds with nf_ct_netns_get(net, NFPROTO_INET).
-- nft_ct_set_zone_eval() attaches the template.
-- At prerouting, nf_ct_defrag_user() and nf_conntrack_in() pick up the
-  zone from skb_nfct().
-
-With this patch the whole nft transaction is aborted, so a ruleset that
-used to load no longer does. Because of the Fixes: tag, this would
-probably reach stable kernels.
-
-Should NF_INET_INGRESS be allowed for inet? If so, the
-NF_IP_PRI_CONNTRACK priority check would need to be skipped for ingress,
-since ingress priorities are not ordered against the conntrack hook.
-
-The netdev family isn't affected: nf_ct_netns_do_get() already returns
--EPROTO for NFPROTO_NETDEV.
+>  }
+>  EXPORT_SYMBOL_GPL(nf_ct_helper);
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261123135726.3940688-2-pablo%40netfilter.org
