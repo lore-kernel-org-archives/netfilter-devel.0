@@ -1,57 +1,57 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795531173;
-	b=LPMtVl1zovNzohFlOmLuEhj2MA2FAgEa/pmQMOn3AwjusvC+FAR6DpIZlQoLMezarFnf
-	 ozqAwyTvGxrSX5IG3cIOKQnY50mivvVpxU0TZ7Vco4UqrpXOwzD65WkS2vvLGQPGGQvRH
-	 rvoqvSfj5X2cR5GJ/NRJMNixl3evmNYT7ODU+jx+HsV7eSseTZHLa2oVFhzf+vHZH2kMA
-	 vKh/3c+g+sd6eAQN8bRY3ou+dPMUzOZlbzrwFUhxsqiJUC07P+xKqra5m92DqZto8ELKj
-	 r0GT++9sYjqCEs/+6SnMbk0Xo1hB40xeycDl1UztH83Qn3Gqr/SqhKh1oPVLpmkyxNA==
+	t=1795531177;
+	b=Fqt8/xFL8DSaKLIXbbhBjavGgHKjOH9IZ2phitDW3KJ/KKHjv27nmP3liUawLv95Xs5S
+	 Z5l8/rakxy8iahpEMRWNW6079zWxsWTKacg05A9r8QYqkBGh8iXz83pIvhGdol6pVqifp
+	 9SZOT4jiJvgWkVF9+aebU69DMzVOYalF9NfaKe9XPYSZbsK98lZ6zKivl7DLkZqOqDH1o
+	 wjdW+i94w9+CVHPFQHuikZYqL5psxMzHPzvN8Ffg8+dAofuptNuLTYkzz5A3KxWkWhclx
+	 8fx1wZsHk8XAnJSCQwan1OwVapHLojh97zlhemhLT/RaDwXMemMski65jyzqX7Is8DQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795531173;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795531177;
 	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
 	 In-Reply-To:References:X-sashiko-severity:Content-Type:
 	 Content-Transfer-Encoding:MIME-Version;
-	bh=z8v4NCeWFM6qc5ofwBJn2Izk3HxJydkFDGFRVXGG0p8=;
-	b=Wb7BTQJQoIpvd471MGNfsULoDixlkddiA94/4ChGBlZbXePqt7gL0LhST6kgRuYT2MSF
-	 PTaPGmnaZbP9O2rqRzFHeNEe22uY2bTOCEpzJ+mHh0ZJNxbgmPsoqW+u4FFBey5yVtZ0D
-	 sEr6KGK6ujKUzXaSdeP65ry1SPHce2dw1lpZY0hqKWxoCGhHQTrwRc4Qrnhugy9RzAIic
-	 me1OPYckEABD8+RLzUH9u092kRUBKPd7vM8ka/izouskMxSNPi58Atw2I0IaGIqyVoSMJ
-	 gSHp25xmDkWWT9F3EUO+NEP85hxjkpIjbNsJOMlOvtDlZyGseuTCI0mC3PYTaHkQkiw==
+	bh=VlECLQyycXDLKhXmEjfVRoGtIagJQTFXqDYssZCUVjo=;
+	b=AIb5gz+BlANnP6CZa7n9f/e2yZDDAuUYKCc3tkfIBIM97zG2XF6i68HCKlk4SGJq8Gvs
+	 ujtJwGe0ixo+GfCf3eT3pk/m11V8UkPwS4MV4L4wYSJiXJpxBsKLOUFAEoZbH/piRtT/G
+	 x9o7ibiWXjCIhNjEoweg7mJtA9Yeg7Z68iXLt4OXI2ic3LrKSVfMuV62/b6xmgP4Bjj3X
+	 jUuJu2Moz+6z+jJgstMGVF3PBiJ/szqYjaySxfH2fHMVVszGnyi8i65Jiy18W5mhAGfma
+	 vgtzJvBnikscxyYTyIkkW2qz+LtZsR+wVb3zuYLpcShVeVVbf1L5LJRohGdqlGlNAOw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bt94r4dJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IleNeSVx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F992606A329;
-	Tue, 24 Nov 2026 14:39:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA4D606A339;
+	Tue, 24 Nov 2026 14:39:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bt94r4dJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D3061F000D2;
-	Tue, 24 Nov 2026 14:39:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IleNeSVx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6EC91F000C4;
+	Tue, 24 Nov 2026 14:39:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795531172;
-	bh=z8v4NCeWFM6qc5ofwBJn2Izk3HxJydkFDGFRVXGG0p8=;
+	s=k20260515; t=1795531176;
+	bh=VlECLQyycXDLKhXmEjfVRoGtIagJQTFXqDYssZCUVjo=;
 	h=Subject:From:To:Cc:Date:In-Reply-To:References;
-	b=bt94r4dJe9Wuy1mJTKUxz+6anRZR0AS/CjF3d4YhvOc47Y3nuq0PV1kMOUUROb+hp
-	 jaoweIZP/6T6ewQzBMehUU2Iy6VwzPoKoHVMmL6++H8f19vHR3ZVRzdMCX9f+/2sjz
-	 jM03k2XcIYXAYd8KHdcxmUoJbDxbOeXK9PCFvleP28yHSaV1IcrayvtiXziXGAusXf
-	 4lJAuxV1BLwDLI2HjFZOIMhWOiLgjqFXwLhhmiYnfhapb4ySntFWmMQ5YlLeswhX9e
-	 MMM5h8Y17T0EIBaElyxJBU6lnip64o/Z0mJ7Z15kvlFP5nshGFsngD/HqXH2/LkM8k
-	 UV+oQCre94Rfw==
-Subject: Re: [PATCH net-next 04/15] netfilter: conntrack: verify L4 protocol
- before calling helper
+	b=IleNeSVxBgUsHifP3WvtxicmHrm2dpvlaXnii5sBrRv/8+rIs1PrJdxwajHwljcD/
+	 c8qSpsFfYO3zrR0SwIMe5SdTK6i3y2tWYX/NRe911nxgJbALv38XSziBIZnpzshE4Y
+	 z4/BPcHj2SvLD5cIRCtlR3pJUxahoiwn2oUHZUQ3rr12MUdYqcaO6mW711gztDc3s0
+	 tpBOssYjzbxJCfwzHmrGGtGay//bcK2Q5tfpWj7a68CXUyGX3GrRz16IR0TyCk+tJX
+	 C6YKgJATGxlQCiYAuJ9k1Re0C8jvNjjVSXoxEQrK6EPULiiuXKPHiOR5dFjIoA6Y//
+	 D3lLdgcvBiqMw==
+Subject: Re: [PATCH net-next 06/15] netfilter: conntrack: harden helper
+ invocation with tuple revalidation
 From: netdev-bot+sashiko@kernel.org
 To: pablo@netfilter.org
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
  netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
  edumazet@kernel.org, horms@kernel.org, fw@strlen.de, ja@ssi.bg
-Date: Tue, 24 Nov 2026 14:39:32 +0000
-Message-ID: <179553117201.3135.14194838592566427007@kernel.org>
-In-Reply-To: <20261123135726.3940688-5-pablo@netfilter.org>
-References: <20261123135726.3940688-5-pablo@netfilter.org>
-X-sashiko-severity: High
+Date: Tue, 24 Nov 2026 14:39:35 +0000
+Message-ID: <179553117549.3135.4393332546290332600@kernel.org>
+In-Reply-To: <20261123135726.3940688-7-pablo@netfilter.org>
+References: <20261123135726.3940688-7-pablo@netfilter.org>
+X-sashiko-severity: Critical
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -67,7 +67,7 @@ MIME-Version: 1.0
 Thank you for your contribution! Sashiko AI review found 3 potential
 issue(s) to consider.
 
-Critical: 0 · High: 2 · Medium: 0 · Low: 1
+Critical: 1 · High: 2 · Medium: 0 · Low: 0
 
 If you believe none of the issues are legitimate, please reply to each
 issue of Medium severity or higher and explain why the AI is wrong.
@@ -75,174 +75,233 @@ If any of them are legitimate and you plan to respin, please let patchwork
 know by including "pw-bot: cr" as a separate line at the end of your reply
 (one such reply per series is enough).
 
-- [High] This patch breaks the H.245 helper on the normal netfilter path,
-  which breaks H.323 media tracking and NAT.
-- [High] nft_ct_expect_helper_alloc() now sets the internal helper's
-  l4proto to `priv->l4proto` (NFTA_CT_EXPECT_L4PROTO).
-- [Low] The commit message does not fully describe the behaviour change.
+- [Critical] netfilter: conntrack: H.245 l4proto mismatch bypasses TCP
+  check in helper call
+- [High] The new tuple check in nf_confirm_get_protoff()
+  (net/netfilter/nf_conntrack_proto.c) only passes packets whose headers…
+- [High] netfilter: conntrack: missing UDP header size check in
+  nf_confirm_get_protoff()
 
 --
 
-netfilter: conntrack: verify L4 protocol before calling helper
+netfilter: conntrack: harden helper invocation with tuple revalidation
 
-This commit makes nf_ct_call_helper() skip the assigned conntrack helper
-when the packet's L4 protocol does not match helper->l4proto. It also
-skips IPv4 fragments and packets with no L4 payload. It sets l4proto on
-the internal helper that nft_ct expectation objects allocate.
+This commit makes nf_confirm_get_protoff() pull the current tuple from
+the packet and check it against the conntrack entry. Packets that were
+modified after the conntrack lookup (for example by act_ct -> pedit) no
+longer reach helpers. It also adds a TCP header sanity check and passes
+nhoff to ipv6_skip_exthdr().
 
 > diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-> index 32f900c155de8..18125aa29e0d0 100644
+> index 18125aa29e0d0..43bf3a71dbbfc 100644
 > --- a/net/netfilter/nf_conntrack_proto.c
 > +++ b/net/netfilter/nf_conntrack_proto.c
-> @@ -134,21 +134,23 @@ static bool in_vrf_postrouting(const struct nf_hook_state *state)
 
 [ ... ]
 
->  	case NFPROTO_IPV6:
-> -		pnum = ipv6_hdr(skb)->nexthdr;
-> -		start = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &pnum, &frag_off);
-> -		if (start < 0 || (frag_off & htons(~0x7)) != 0)
-> +		*pnum = ipv6_hdr(skb)->nexthdr;
-> +		start = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), pnum, &frag_off);
-> +		if (start < 0 || frag_off)
->  			return false;
-
-[Severity: Low]
-This isn't a bug, but the commit message only mentions IPv4:
-
-  Also change ipv4 to explicitly skip frasgments, this shouldn't happen
-  for normal netfilter-only code path, ...
-
-The IPv6 check in nf_confirm_get_protoff() changes too. ipv6_skip_exthdr()
-returns the raw frag_off field, including the M bit and the reserved
-bits. So the new check also rejects first fragments (offset 0, M=1) and
-atomic fragments with reserved bits set. Before, both of those still
-went through the helper and seqadj.
-
-The new check also no longer matches the unchanged IPv6 check in
-nf_ct_helper() in nf_conntrack_ovs.c.
-
-Could the commit message mention the IPv6 change as well?
-
-The commit message also says:
-
-  or when conntrack got attached via TC/act_ct, then was later munged via
-  act_pipe to alter the ip protocol.
-
-There doesn't seem to be an act_pipe tc action. Should this say
-pedit/bpf, like the new comment above nf_ct_call_helper()? Also, there's
-a typo (frasgments).
-
-[ ... ]
-
-> @@ -204,6 +210,9 @@ int nf_ct_call_helper(struct sk_buff *skb, struct nf_conn *ct,
->  		/* rcu_read_lock()ed by nf_hook */
->  		helper = rcu_dereference(help->helper);
->  		if (helper) {
-> +			if (helper->l4proto != pnum)
-> +				return NF_ACCEPT;
+> @@ -160,6 +164,41 @@ static bool nf_confirm_get_protoff(struct sk_buff *skb, struct net *net,
+>  		return false;
+>  	}
+>  
+> +	if (protoff > skb->len)
+> +		return false;
 > +
+> +	if (!nf_ct_get_tuplepr(skb, nhoff, nf_ct_l3num(ct), net, &tuple))
+> +		return false;
+> +
+> +	dir = CTINFO2DIR(ctinfo);
+> +	if (!nf_ct_invert_tuple(&invert, &tuple))
+> +		return false;
+> +
+> +	/* This is called after L3/L4 headers have been mangled by NAT:
+> +	 * Packet in original direction has been subject to SNAT, i.e.
+> +	 * inverted reply dir.
+> +	 * Packet in reply direction has been subject to DNAT, i.e.
+> +	 * inverted original direction.
+> +	 */
+> +	if (!nf_ct_tuple_equal(&invert, nf_ct_tuple(ct, !dir)))
+> +		return false;
 
 [Severity: High]
-Does this guard break the H.245 helper on the normal netfilter path?
+On the nf_confirm() hook path NAT has always run before this check. Is
+that also true when we get here through nf_ct_helper() from openvswitch
+or act_ct?
 
-h323_helper_init() in nf_conntrack_h323_main.c registers H.245 as a UDP
-helper:
+Both callers only NAT the packet when the ct action has the nat flag,
+but they call the helper for any confirmed, non-cached packet. In
+net/openvswitch/conntrack.c:__ovs_ct_lookup():
 
-	nf_ct_helper_init(&nf_conntrack_helper_h245, AF_UNSPEC, IPPROTO_UDP,
-			  "H.245",
-			  &h245_exp_policy, 0, h245_help, NULL, THIS_MODULE);
+		 * this by delaying both NAT and helper calls for unconfirmed
+		 * connections until the committing CT action.  For later
+		 * packets NAT and Helper may be called in either order.
+    ...
+		if (info->nat && !(key->ct_state & OVS_CS_F_NAT_MASK) &&
+		    (nf_ct_is_confirmed(ct) || info->commit)) {
+			int err = ovs_ct_nat(net, key, info, skb, ct, ctinfo);
+    ...
+		if (nf_ct_is_confirmed(ct) && !cached) {
+			int err = nf_ct_helper(skb, ct, ctinfo, info->family);
 
-However, expect_h245() creates a TCP expectation and assigns that helper
-to the TCP child conntrack:
+net/sched/act_ct.c behaves the same way. tcf_ct_act_nat() returns early:
 
-	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
-			  &ct->tuplehash[!dir].tuple.src.u3,
-			  &ct->tuplehash[!dir].tuple.dst.u3,
-			  IPPROTO_TCP, NULL, &port);
-	rcu_assign_pointer(exp->assign_helper, nf_conntrack_helper_h245_ptr);
+	if (!(ct_action & TCA_CT_ACT_NAT))
+		return NF_ACCEPT;
 
-h245_help() also parses TCP: get_tpkt_data() reads a struct tcphdr at
-protoff.
+and tcf_ct_act() still calls the helper:
 
-With this patch, every H.245 packet takes this path:
+	if (nf_ct_is_confirmed(ct) ? (!cached && !skip_add) : commit) {
+		err = nf_ct_helper(skb, ct, ctinfo, family);
 
-q931_help()->expect_h245()   (TCP expectation, H.245 helper)
-nf_confirm()->nf_ct_call_helper()
-    nf_confirm_get_protoff() sets pnum = IPPROTO_TCP
-    helper->l4proto (IPPROTO_UDP) != pnum -> return NF_ACCEPT
+Take a confirmed connection with SNAT/DNAT bindings and a helper such as
+FTP, possibly with IPS_SEQ_ADJUST set. Suppose it is first looked up by a
+ct action without nat, such as OVS ct(table=N) before a later
+ct(commit,nat), or tc ct zone X before ct commit nat.
 
-As a result h245_help() never runs. No RTP/RTCP/T.120 expectations are
-created and the H.245 NAT payload rewrite is skipped. Wouldn't H.323
-calls through an iptables/nftables conntrack/NAT box lose their media?
+The packet is still untranslated, so its tuple matches
+ct->tuplehash[dir]. Inverting it does not give ct->tuplehash[!dir],
+because NAT changed that tuple. nf_ct_tuple_equal() then fails here, and
+nf_ct_call_helper() returns early:
 
-Before this patch nf_confirm() didn't check the protocol. Only the
-nf_ct_helper() path used by OVS/act_ct had this check. This still seems
-to be the case at the end of the series.
+	if (!nf_confirm_get_protoff(skb, net, ct, ctinfo, &protoff, &pnum))
+		return NF_ACCEPT;
 
-Should the H.245 helper be registered with IPPROTO_TCP as part of this
-change? This matters more because the Fixes: tag makes the patch a
-stable candidate on its own.
+That skips both helper_cb() and nf_ct_seq_adjust().
 
->  			helper_cb = rcu_dereference(helper->help);
->  			if (helper_cb) {
->  				ret = helper_cb(skb, protoff,
-> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-> index 5a8db55920364..58846bc405b7e 100644
-> --- a/net/netfilter/nft_ct.c
-> +++ b/net/netfilter/nft_ct.c
-> @@ -1307,6 +1307,7 @@ static int nft_ct_expect_helper_alloc(struct nft_ct_expect_obj *priv)
->  		 "nft_ct_expect");
->  	ct_expect_helper->me = THIS_MODULE;
->  	ct_expect_helper->expect_policy[NF_CT_EXPECT_CLASS_DEFAULT].max_expected = priv->size;
-> +	ct_expect_helper->l4proto = priv->l4proto;
+The later ct(nat) action in the same zone treats the skb as cached:
+skb_nfct_cached() and tcf_ct_skb_nfct_cached() return true when zone and
+helper match. Neither caller calls nf_ct_helper() again for that packet.
+
+So the packet never gets helper processing or sequence adjustment. FTP
+PORT/PASV commands on the established control connection would create no
+expectations. Once seqadj offsets exist, seq/ack numbers would stop being
+corrected. Before this patch the helper and seqadj ran on these packets.
+
+The earlier patch in this series, "netfilter: conntrack: validate
+skb->_nfct and packet headers", accepts both forms in
+nf_ct_get_careful(): tuple equal to tuplehash[dir], or inverted tuple
+equal to tuplehash[!dir] with IPS_NAT_MASK set.
+
+Could this check accept either form as well? Packets changed by pedit
+would still be rejected.
+
+> +
+> +	/* Validate that a full, sane TCP header (including options) is
+> +	 * present at protoff before helpers/seqadj are allowed to touch it.
+> +	 */
+
+[ ... ]
+
+> @@ -160,6 +164,41 @@ static bool nf_confirm_get_protoff(struct sk_buff *skb, struct net *net,
+>  		return false;
+>  	}
+>  
+> +	if (protoff > skb->len)
+> +		return false;
+> +
+> +	if (!nf_ct_get_tuplepr(skb, nhoff, nf_ct_l3num(ct), net, &tuple))
+> +		return false;
+> +
+> +	dir = CTINFO2DIR(ctinfo);
+> +	if (!nf_ct_invert_tuple(&invert, &tuple))
+> +		return false;
+> +
+> +	/* This is called after L3/L4 headers have been mangled by NAT:
+> +	 * Packet in original direction has been subject to SNAT, i.e.
+> +	 * inverted reply dir.
+> +	 * Packet in reply direction has been subject to DNAT, i.e.
+> +	 * inverted original direction.
+> +	 */
+> +	if (!nf_ct_tuple_equal(&invert, nf_ct_tuple(ct, !dir)))
+> +		return false;
+> +
+> +	/* Validate that a full, sane TCP header (including options) is
+> +	 * present at protoff before helpers/seqadj are allowed to touch it.
+> +	 */
+> +	if (tuple.dst.protonum == IPPROTO_TCP) {
+> +		unsigned int tcplen = skb->len - protoff;
+> +		const struct tcphdr *th;
+> +		struct tcphdr _tcph;
+> +
+> +		th = skb_header_pointer(skb, protoff, sizeof(_tcph), &_tcph);
+> +		if (!th)
+> +			return false;
+> +
+> +		if (th->doff * 4 < sizeof(*th) || tcplen < th->doff * 4)
+> +			return false;
+> +	}
+> +
+>  	*protoffp = protoff;
+>  	return true;
+>  }
 
 [Severity: High]
-Is priv->l4proto the right value to store here?
+TCP gets a full header check here, but for UDP the only length
+validation left is what nf_ct_get_tuplepr() does. That ends up in
+nf_ct_get_tuple_ports(), which only pulls the 4 bytes holding the
+ports, not sizeof(struct udphdr).
 
-In the expectation object, l4proto is the protocol of the expected child
-connection. ct_expect_help() passes it as the protocol of the
-expectation tuple:
+The commit message names act_ct -> pedit as the case being hardened
+against. Suppose pedit increases iph->ihl on a UDP packet after act_ct
+has attached the conntrack. protoff moves forward, and as long as the
+4 bytes at the new protoff carry the original ports, the tuple still
+matches. With only 6 bytes left we return true for a truncated UDP
+header. nf_ct_get_careful() from earlier in the series does the same
+4 byte tuple lookup and returns before udp_error() would run, so
+nothing else catches it.
 
-	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, l3num,
-			  &ct->tuplehash[!dir].tuple.src.u3,
-			  &ct->tuplehash[!dir].tuple.dst.u3,
-			  expect_data->obj.l4proto, NULL, &expect_data->obj.dport);
+UDP helpers assume the caller already guaranteed a full UDP header.
+help() in nf_nat_snmp_basic_main.c only checks that
+udp_get_len_short(udph) equals skb->len - (iph->ihl << 2). With
+udph->len set to 6 and 6 bytes remaining, that passes, and
+snmp_translate() then computes:
 
-The new guard in nf_ct_call_helper() compares helper->l4proto with the
-L4 protocol of the master connection that the helper is attached to.
+	u16 datalen = udp_get_len_short(udph) - sizeof(struct udphdr);
 
-nft_ct_expect_obj_eval() attaches the helper to any unconfirmed
-conntrack. Unlike nft_ct_helper_obj_eval(), it doesn't check
-nf_ct_protonum(ct) against priv->l4proto:
+which wraps to 65534. asn1_ber_decoder() is handed that length. It
+reads up to 64K past skb->tail, and through the mangling callbacks it
+also writes there.
 
-	if (help && refcount_inc_not_zero(&priv->helper->ct_refcnt))
-		rcu_assign_pointer(help->helper, priv->helper);
+Could this add a sizeof(struct udphdr) check for IPPROTO_UDP next to
+the TCP one? Should it also reject a uh->len smaller than the header,
+or is that left to the individual helpers?
 
-The nft documentation shows a TCP control connection with a UDP
-expectation:
+[Severity: Critical]
+The TCP header check here is keyed on tuple.dst.protonum, so it
+follows the protocol of the packet rather than what the attached
+helper is going to parse. Does that hold for nf_conntrack_helper_h245?
 
-  ct state new tcp dport 8888 ct expectation set "expect"
+h323_helper_init() registers the H.245 helper with IPPROTO_UDP, but
+h245_help() treats the payload as TCP. get_tpkt_data() reads a struct
+tcphdr at protoff and computes tcpdataoff = protoff + th->doff * 4
+without checking that doff is at least 5.
 
-Here the expectation object uses "protocol udp". So pnum is IPPROTO_TCP
-and helper->l4proto is IPPROTO_UDP. ct_expect_help() never runs and no
-expectation is created. Nothing reports an error, either at rule load
-or at runtime.
+Because the helper's l4proto is UDP, it can be attached to a NATted UDP
+conntrack entry, e.g. with a ct helper object or the CT target, which
+only needs CAP_NET_ADMIN in a user namespace. For such a flow the doff
+validation below is skipped because tuple.dst.protonum is IPPROTO_UDP.
+The helper->l4proto != pnum test in nf_ct_call_helper() also passes,
+so h245_help() runs on a UDP packet.
 
-Before this patch, helper->l4proto was 0 from kzalloc and nf_confirm()
-didn't check it, so expectations with a different protocol than the
-master worked. The code is still unchanged at the end of the series.
+th->doff then comes from byte 4 of the UDP payload. With doff == 0,
+tcpdataoff equals protoff and the TPKT header is taken from the UDP
+ports. If the decoder finds an H245_TransportAddress, set_addr() sees a
+UDP packet and calls nf_nat_mangle_udp_packet() with an addroff that
+was computed relative to protoff. mangle_contents() then adds
+protoff + sizeof(struct udphdr) to it, so the match ends 8 bytes past
+skb->tail. The memmove() length underflows and the copy writes beyond
+the packet data into skb_shared_info.
 
-Could the check use the master connection's protocol for this helper
-instead? Another option is to reject the mismatch in
-nft_ct_expect_obj_eval().
+The mismatch also breaks the legitimate case. expect_h245() creates TCP
+expectations bound to nf_conntrack_helper_h245. For real H.245 traffic
+pnum is IPPROTO_TCP while helper->l4proto is IPPROTO_UDP, so
+nf_ct_call_helper() returns NF_ACCEPT without calling h245_help().
+H.245 address translation would silently stop working.
 
-A smaller point: the l4proto field comment in struct
-nf_conntrack_helper says IPPROTO_UDP/TCP, but this assignment can now
-store DCCP or SCTP.
-
->  	rcu_assign_pointer(ct_expect_helper->help, ct_expect_help);
->  	refcount_set(&ct_expect_helper->ct_refcnt, 1);
+Should nf_conntrack_helper_h245 be switched to IPPROTO_TCP as part of
+this series, now that nf_ct_call_helper() compares helper->l4proto
+against pnum? Or should the header validation here be driven by the
+helper's l4proto instead of the packet's protocol? Either way,
+get_tpkt_data() probably wants its own doff sanity check.
 
 -- 
 Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261123135726.3940688-2-pablo%40netfilter.org
