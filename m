@@ -1,62 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795525752;
-	b=MVvEw03hwaM2TedOlA+nsGPQE4QX7wkqTJ7kjUO7Je6lh2jrdAFe5fa+PPOEIZRamMyN
-	 e0HAW6FAI/1+39XEm5NxwKAjwy0yt1wjaoVImX4KdiJsJVxfSf9M90JF2VADr+eDO23Jr
-	 /Q+EkhwXB6GNoIqLkYc7OYkMfvWOC5BKWWCN+R+IdL3ujG/iMu8+ZM0jpHTQgi0Vc5bLo
-	 Y1ZoA6fLfELAvKXTJlth7ABlphVXO8Xkr6iPIUBq3bq4tDQ7InQ0zsLilMW3rYyeErp4l
-	 F2UruhhrwXbhOanfbwHMQEm7TAHLwCpagCwjxmndVygCwL41t8cQ1/BJGYA2lzPME7Q==
+	t=1795527205;
+	b=YiDEafNVGQQ8PiZzdT7L8jH35qnPs0Uu7bfl4b008QAvZZg94/ev/XDa33iFB69Yvhxf
+	 Rcatz1jrcP05xKfZPeCJ4OJy7MM3r+sPF/hchaRWLA4TUAHq7TSFJqpFbcqyapt0gqVlE
+	 x6ic4GjUFKf02+HpfqfrViWgWIBKmhE9zopbbqIjIB8BRVaNt1L2i1q1HGSHjN5oh8R9W
+	 bnooW90O16MK0upfDDI9Bhkkkhs605vp1eV+aZU/dOxQ2n+5nIG8xq8MPl5cu4HO8s7jo
+	 H/xNoKxVK/coMXefu6r8LnQ6xc9+O52rK+GJ575dWFFFEaioipCLsPCqy8w+lXyBswg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795525752;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795527205;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=2YIGNvCIU2YvRgOXmYyTaRrrJOu/XInDM3EdnXF/wIE=;
-	b=mTcmnyQ+kUysyrn7opquPnD6wGI6WRbhkOWVqqv3d6cF++/vNnpJsBdiF+fpDm9SBfqZ
-	 Y/aMv2i0EFqkdRfw257PuNd6XhjitU5ulRnuZ06KoSByW/57ViBG3SSvxNGdVxbCRUcCY
-	 +ORDvowz6gRAa3GIOL25vG20u/XkwHakk/9yL4ZR0SDIGOXfPHCuTlL1Wg6Zg7IFlh0tI
-	 JfxvqKrBu5OwsVrrScF/0kKMtcrGusLTpkvrYw6IuguoRdCCMZsuv1euFJirYQaq+1Uiv
-	 QMfYluIHlpFAlOGZidgGaaoxG9m0CVDyx+1L13K+3sX0EefKSlvi31FbL1CndEWccdw==
+	bh=rg/HyRYdpVDhfRvUrLQnnNwbOFrftaSmDyOUI5bdo48=;
+	b=eh5FFjNytFC0Kj5Xaw+t1GCQq6J22Dx/hJdyV208IuhiIoO/dKBdCNGxDgCcN8aGIr0y
+	 9JdzVfndnlBx2XrtIkFexzfzsuyYdSGMH4BnEjTUW/MK4prC0hVdHeZsjU9lVVUcz44SE
+	 bnyYyyqlyh4UiSfDB8eSy6brupeooJNGOKuE8Qq6px0EZkdaom7I4ajwA1u9pqYxo9DaO
+	 T7bjLwsVIxqyPWYkmX+lCltiwfcbjP73R0S9K1slwSyFU3J9Tc3/vDx5X10P4jgPCY3me
+	 6unARthNRQTs20GHtqoFty6b/ZgHtf7QXAFv1doTPT2Qe6p+j5boV7Ki3Br+8P26AuQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osws0djj;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SF9JRUZg;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 28FBB606A326;
-	Tue, 24 Nov 2026 13:09:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 28FBB606A326
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 540DE606A69F;
+	Tue, 24 Nov 2026 13:33:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 540DE606A69F
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=osws0djj
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=SF9JRUZg
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795525748;
-	bh=2YIGNvCIU2YvRgOXmYyTaRrrJOu/XInDM3EdnXF/wIE=;
+	s=2025; t=1795527200;
+	bh=rg/HyRYdpVDhfRvUrLQnnNwbOFrftaSmDyOUI5bdo48=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=osws0djjc8gx2b4fTjQfSbzwX0VhYwzW5zq+GqMq9O91ZoNlTQCiOf3yh4vMbvlQ6
-	 P6D7QMiSUg1QoU1FlOpj8pBZXyqpZwtgYFA2upKyDEhe54Swc85xzDrm6lk9Egbs7W
-	 qTxwJ+0PDTdtgikGPOeAGOWA8ikYR5DEl1qUCNyGaygTBweIpWwlWWEtQwYpm/IIq2
-	 czMOYeUHD0WKMMmldanQKqkNfuuKLSXjFmWEEnaCEPtvbYqkSK7T71u9bKJVfLj6Wi
-	 4zEDZ8uWCR1itdi+bj1gfS1QsPwAFAMaVmXpAHxnbAjRQovjzTGvHxg3sIGOFYgxl0
-	 ROivDFtqx8f8g==
+	b=SF9JRUZgdwjlfv01fFiQiBdcjOzgYZWmCBGMyDg64PNAUTmM8a4AlTm6hyJosNPwA
+	 uo46LlqPjivmGoBIw9cEgB4/AYXxse8e585BMTAET1wfZEHHBRfAekjryJvOZoMv7z
+	 wATBpVSaCc61Pd3WFnHhenDTO6s483OrKb7xkdMAR23piWAy8DvPEv1EpRVO6RadYb
+	 PFJ1oLvMQGqcSc7qJOs3a7K1HD2lDxtlYDhNoTBfX0UseZBPXIxKODYwVSqrUSIvgk
+	 nwFME1fzrO4WAXHNUv2gHn6BXOWy/+DQZaUxk+MOAo4jtD2d81UtNaehar+XLPvxri
+	 ghbyUtbIGP+Zg==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 45399601B3;
-	Tue, 24 Nov 2026 14:09:08 +0100 (CET)
-Date: Tue, 24 Nov 2026 14:09:05 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 9059960057;
+	Tue, 24 Nov 2026 14:33:20 +0100 (CET)
+Date: Tue, 24 Nov 2026 14:33:18 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Qican Ma <goonsomeway@gmail.com>
-Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@kernel.org,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-Subject: Re: [PATCH nf v2] netfilter: flowtable: interlock NF_FLOW_TEARDOWN
- with NF_FLOW_PENDING
-Message-ID: <awWMcRVhzciy1gIw@chamomile>
-References: <179550685613.38700.16148920957970479663@gmail.com>
+To: Paolo Abeni <pabeni@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, edumazet@kernel.org,
+	horms@kernel.org, fw@strlen.de, ja@ssi.bg
+Subject: Re: [PATCH net-next,v2 00/15] Netfilter updates for net-next
+Message-ID: <awWSHujeBmMMOonS@chamomile>
+References: <20261123135726.3940688-1-pablo@netfilter.org>
+ <8e69f35e-73fb-4558-910b-45f5e723c64a@redhat.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -68,99 +67,61 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <179550685613.38700.16148920957970479663@gmail.com>
+In-Reply-To: <8e69f35e-73fb-4558-910b-45f5e723c64a@redhat.com>
 
-On Tue, Nov 24, 2026 at 03:54:16PM +0800, Qican Ma wrote:
-> nf_flow_offload_gc_step() checks NF_FLOW_PENDING once at entry before
-> setting NF_FLOW_TEARDOWN and potentially freeing the flow via
-> flow_offload_del(). Concurrently, flow_offload_add() or a datapath caller
-> that looked up the flow prior to teardown can call
-> nf_flow_offload_work_alloc(), set NF_FLOW_PENDING, and queue a
-> FLOW_CLS_REPLACE work item holding a raw pointer to the flow without
-> rechecking NF_FLOW_TEARDOWN. If the pending bit is set after the GC check,
-> flow_offload_del() frees the flow via RCU while the queued work item can
-> still dereference and clear NF_FLOW_PENDING on offload->flow.
->
-> Interlock the two flags: in nf_flow_offload_gc_step(), check
-> NF_FLOW_PENDING after NF_FLOW_TEARDOWN has been observed or set, paired
-> with a full memory barrier; in nf_flow_offload_work_alloc(), recheck
-> NF_FLOW_TEARDOWN after test_and_set_bit(NF_FLOW_PENDING) for
-> FLOW_CLS_REPLACE and bail out if set. Restrict the teardown check to
-> FLOW_CLS_REPLACE because GC itself queues FLOW_CLS_DESTROY and
-> FLOW_CLS_STATS work on flows already marked for teardown.
+Hi Paolo,
+
+On Tue, Nov 24, 2026 at 01:27:35PM +0100, Paolo Abeni wrote:
+> On 11/23/26 14:57, Pablo Neira Ayuso wrote:
+> > v2: address cover letter errata.
+> > 
+> > -o-
+> > 
+> > Hi,
+> > 
+> > The following batch contains Netfilter updates for net-next. This is
+> > composed of four groups:
+> > 
+> > 1) Patch 1 addresses a race in the nf_conntrack_buckets sysctl handler,
+> >     that has been reported by LLM. From Fernando F. Mancera.
+> > 
+> > 2) Patches from 2 to 7: This is a conntrack hardening series to address
+> >     LLM reports of the issues related to skbuff mangling while a ct is
+> >     already present, leading to mismatch protocol numbers, ie. ct becomes
+> >     stale since it does not represent this skbuff. This is unlikely to
+> >     happen in a real world. From Florian Westphal.
+> > 
+> > 3) Patch 8 updates nft_synproxy to address SYN and ACK packets only, just
+> >     like ip{6}t_SYNPROXY does. From Fernando F. Mancera.
+> > 
+> > 4) Patch 9 validate hook priority so nft_ct template is narrowed down
+> >     to be used where it makes sense. From Florian Westphal.
+> > 
+> > 5) The ipset hash types conversion to rhashtable, including a new
+> >     rhashtable helper function to flush and destroy the hashtable.
+> >     This is a rework that aims at fixing the existing resize races in
+> >     the ipset hash type, which has triggered a myriad of LLM patches
+> >     addressing the symptoms but not the core issue. This large so
+> >     we prefer net-next for these series. Series from Florian Westphal,
+> >     plus one patch for rhashtable to add a flush and destroy helper
+> >     function by Herbert Xu.
+> > 
+> > Please, pull these changes from:
+> > 
+> >    git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-26-11-23
+> > 
+> Unfortunately a couple of in-flight nf patches prevent the CI from
+> picking this series:
 > 
-> Found with an LLM-assisted code review tool and verified by inspection on
-> v7.4-rc4 (b6a9fa34ce4). Build-tested only; reproducing the race at runtime
-> requires a hardware-offloaded flowtable device.
-
-This is the refresh race.
-
-> Fixes: 7c549fb7eecd ("netfilter: flowtable: generalize pending status bit")
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Qican Ma <goonsomeway@gmail.com>
-> ---
-> v2: resend via direct SMTP without line-wrapping corruption in the diff.
+> https://lore.kernel.org/all/20261120111910.67379-1-juny24602@gmail.com/
+> https://lore.kernel.org/all/20261121212037.149722-1-omermetekaya0@gmail.com/
 > 
->  net/netfilter/nf_flow_table_core.c    | 8 +++++---
->  net/netfilter/nf_flow_table_offload.c | 7 +++++++
->  2 files changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-> index 2aa2647ed9d..fcd37f7a37f 100644
-> --- a/net/netfilter/nf_flow_table_core.c
-> +++ b/net/netfilter/nf_flow_table_core.c
-> @@ -578,9 +578,6 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
->  {
->  	bool teardown;
->  
-> -	if (test_bit(NF_FLOW_PENDING, &flow->flags))
-> -		return;
-> -
->  	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
->  
->  	if (nf_flow_has_expired(flow) ||
-> @@ -594,6 +591,11 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
->  		nf_flow_table_extend_ct_timeout(flow->ct);
->  	}
->  
-> +	/* Pairs with test_and_set_bit(NF_FLOW_PENDING) in work_alloc(). */
-> +	smp_mb();
-> +	if (test_bit(NF_FLOW_PENDING, &flow->flags))
-> +		return;
-> +
->  	if (teardown) {
->  		if (test_bit(NF_FLOW_HW, &flow->flags)) {
->  			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 4365859220e..402a46e1645 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -1088,6 +1088,13 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
->  	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
->  		return NULL;
->  
-> +	/* Pairs with smp_mb() in nf_flow_offload_gc_step(). */
-> +	if (cmd == FLOW_CLS_REPLACE &&
-> +	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
-> +		clear_bit(NF_FLOW_PENDING, &flow->flags);
-> +		return NULL;
-> +	}
+> Could you please re-post it? thanks!
 
-Do you have this patch in your tree?
+Just a verbatim repost?
 
-commit 0abb543639741a3d1124e7a1a33fd9d3649d6079
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:   Fri Oct 16 11:16:37 2026 +0200
- 
-    netfilter: flowtable: do not hw offload flows in teardown state
+> (Do I recall correctly that guidance for nf patches is to not CC netdev?)
 
-This patch is in net-next.
+So CI is picking in-flight patches that were Cc'ed to netdev@?
 
-> +
->  	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
->  	if (!offload) {
->  		clear_bit(NF_FLOW_PENDING, &flow->flags);
-> -- 
-> 2.50.1 (Apple Git-155)
-> 
-> 
+I just want to understand if I did anything wrong.
