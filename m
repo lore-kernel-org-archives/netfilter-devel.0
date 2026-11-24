@@ -1,74 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=162.62.57.210
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795505708;
-	b=bhWYxkEHxpaSSdgT+eKrt/h6LBLSJ/ZeFWyFutT/EqfUSxE66cC4NEvTL7gOJex6C02g
-	 zcmPnxQdBj1wv19UN/yOSGzquDzRlR2jLOkuqRTonBvpIWRZG2dg+giBMq3q2YQOrG0Gc
-	 /CVsbSHRYFMHPgczkRWWZeMbmQrXknDgNmIppyz2HmBVDQnXJkczhhTL4LsoBGfEA9jcm
-	 rgoTQHxT/bmsttxYQaG4DyMg1U4U9bN20OXjgAqIpUMWRnT2ieL7J2ejls1z9pL7bhFvb
-	 fsO2WLw/mj+514MdUkR4uz0tSUffpFQ+esDXof42PJKyZlUWiZ6MzL+bSzIsmykH6JA==
+	t=1795506863;
+	b=GjcNM155MMl+DXbAFZ7tZySVA6El2hbIQ2qkwiEfk/0UUYw1I+Etr0vj77evFNxkEuSQ
+	 fwHtOG/KQiA1NFXrmcUsyIQ84ZMgHH9tRXHTHiKoUkDgneZ3stCMLjA+LMWr7Z/p1qCv3
+	 dsNVXH+qjJcC9RJV+8jdMn3hTJZMEtwy6826xD5+NBnWVTWp5KeQetcAbnSxeiU/tTj5m
+	 59aYuDPjxFV3dhKxmobj7g+4j/fwthJhbw6m1wkvYiTPuzQ5DYepJJtrTK4hEpoE/mBU0
+	 kCnru+983fP8Sx4oHmwSKuLai/ZgsSRqPAGkeD6bnlER6mhIx+e0lHD6pwdenergYSQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795505708;
-	h=DMARC-Filter:DKIM-Signature:Received:X-QQ-mid:Message-ID:
-	 X-QQ-XMAILINFO:X-QQ-XMRINFO:From:To:Cc:Subject:Date:X-OQ-MSGID:
-	 X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=Zg3OYvyYgIIQt0yqgvnkicFlZsIbXlhS6WotBdiihcc=;
-	b=ep1/DcPUHApFqR26vWfWFpeRVp/qlTYA+VpUBrN3Y1+yJR/xH3or7gAWU26BDlIcxSI9
-	 IBOOiCB3f7t5Gd+tHAl/27hq88rFAYhvnewKi10oapF1B+U7v3daXwe4C3jZyalAjtxRA
-	 XQiQyHNg5YdZLOPh8wCwmvmnTHkjs9CYkrC8I2ugyGJwOkwHcWBWCbRvxpQBdrdsu/qMJ
-	 TA9q6ha79fzp0xLwKkhgnqBYlxvPHuwF8fbNBHOWZ5bYbfbn7oVw3V5288B0cfDX/aJc7
-	 iaReVMHnHWKXukcMdc5svMXUFxIjjG0TLk32yKGJFkR0v+QwME9tNIzMTTZfh8GhDDQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795506863;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=JCB9Arf3kgO8khRLtzH4NIGi9cnIQlT5R56mUfugRho=;
+	b=RMIFDX/EGn+TqZ6zKbf3BqZ6hnXV9s3TsKvhnM+JBosThTQYXsuQWFiMd1aVb6/EqkDc
+	 svD5EdSC8A75/+6RtZ64B7DOwh0LZRSlV1/phbmQqxNossRuaJ968mKrRcALFIUIEIn/7
+	 5RAgB21Jd3+3eD1swxn+E/uFjkoj8hHbYs5DU0wSGv/5PLM+FbKU2sMzQSR5B2fDbMYX/
+	 XOAHMYcXJ7riI1WwXo+U4F65tckJRWISgNOY6oWLU5eTW06Eel3TDVahO3SWHziFfU/MK
+	 bKFzkrlvQDsMlbjNlU2FXJIaQ6ojWisIXY/k46jXYkorlHQ1QXsESvC3ozeXLcFGUmA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=qq.com;
-	spf=pass smtp.mailfrom=qq.com;
-	dkim=pass header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b="Abq5Tj/g";
-	arc=none smtp.remote-ip=162.62.57.210
-Received: from out162-62-57-210.mail.qq.com (out162-62-57-210.mail.qq.com [162.62.57.210])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=n7Wg1sYr;
+	arc=none smtp.remote-ip=209.85.216.43
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2E4D606A339
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 07:35:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F2E4D606A339
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80ECA606A321
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 07:54:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 80ECA606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.a=rsa-sha256 header.s=s201512 header.b=Abq5Tj/g
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1795505697; bh=Zg3OYvyYgIIQt0yqgvnkicFlZsIbXlhS6WotBdiihcc=;
-	h=From:To:Cc:Subject:Date;
-	b=Abq5Tj/gHhGrQP9rW1g3wVFG8iy+wncNficy5EBoHfORWV/flzfoyepC6g6R+WRMC
-	 JHiwcWmec8/rmSGUaCnuMRNv6lsSVewlgmew0PyM5G2hJ4/G4r47+ICYaXFuwRKjwt
-	 WVWiqG4/uzFC26pljEQAk6q7w6jm9gpv8LHqJDBI=
-Received: from localhost.localdomain ([182.239.88.62])
-	by newxmesmtplogicsvrszb51-0.qq.com (NewEsmtp) with SMTP
-	id 8B681640; Tue, 24 Nov 2026 15:34:54 +0800
-X-QQ-mid: xmsmtpt1795505694t8uifanfa
-Message-ID: <tencent_3705C873E3E6E120BF70664ED16960967905@qq.com>
-X-QQ-XMAILINFO: M/M2SMd6THQP8lYbjORLt4kWwubd5WeO2Q9nGUSEZh9Vjqay01LMTCfujUMxI0
-	 loLF2/kanA8p+q50ej2clp9p34Qi//ezc05ug3MkUt4LjKJhKSdx/IuxvQu8adsXtSzA8Gt07ibJ
-	 Mjim6NLyXXRf8rCwLU3QHZDpKgl0vYOrLcNOya4nGsSq3N31rBvrTLO+wY1LaCs7RWSzQcgswjtZ
-	 dMFK0NSNjaaIvhmLoQkBc8nTUMlqRmK/M91HwjL9tUEY1flG6UkRuDBQZAhSIyfmY0NEXsE5MMYv
-	 5KEl2/WcJph48GwB+jQGBWy8nQP+7B0Afk49ot5bqt1PLyyU0sKD11yBIMhsXHSPmoWIs7HNY5xn
-	 4BF8ZzBQSIjl2rt7OZVRNA7vyCF0iLKNlZOA3AiqSpKc082e2FhYVLOwFHhtjTtjDZ5RwSnuHIUM
-	 5K/9lZaGWaNz5EP3Plm+u3cCOCWRmeq7bExfiZH/p5iLxGralsFlhTJ3eLfthjawxcrC2noiMJ40
-	 x1xEGzXJkggMg9HNp+SonDwnw5EF/ptMJ7EjR1xYIgMC8gIPz2z86TrtU2Wr8DJwRhB6py4cqq0h
-	 4EKdJ5jp0pxFpEex/51U9N99oy/3nX9vKD8pR4hqu6uruDYL3wDFD0aL3uX2JD7TJxsb4cxAaKQv
-	 +lndMrOyvS5G6A3scPiNrVHPbs32z0Bx8uH4iO/KM9fqAVSAthvCp3ua7j/UvM++tPb7eD9xSSbK
-	 nN7X43RCp4svu+3qea2lbTgB2Y4nq/JZL6GgnYEFqPQbYQ+ljAJ1K4TaGU2Yuaf5ONCt8bl01nX4
-	 P2MCDWM9+t2MN59GmQhcLsS6Jx0Udx1KGNmm94ATacMq2hpCdYg/pMuCN8ZrEuBlYg2BugEv0xtz
-	 GoxRi0hbDd6wbAw3SMNm+8tvLcRjQvgABsdmSy1cDXJQWDTAW74na1CcEhQ1YQblTyVO0KMDBB9D
-	 R7C0t62/ZY4rGFMwTckx9B5vTZqpW1vcwYfodAfi2s3f30ddPGNevENUj0LOQhpYJyWY4LBkSW4H
-	 FjfriAS8WXlda7+4NBWe8n4YwhBry8oMgNx6wK3P4wpdrnlbt9HP+jDcs2nbChOGrLtSn1gy22sz
-	 ZQ74pmaq978v57arIOkQQKcw7DtQ==
-X-QQ-XMRINFO: OD9hHCdaPRBwH5bRRRw8tsiH4UAatJqXfg==
-From: Ma Xinmeng <1564938642@qq.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org,
-	Phil Sutter <phil@nwl.cc>
-Subject: [PATCH nft] tests: shell: add dormant table adoption regression test
-Date: Tue, 24 Nov 2026 15:34:29 +0800
-X-OQ-MSGID: <20261124073437.1906-1-1564938642@qq.com>
-X-Mailer: git-send-email 2.49.0.windows.1
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=n7Wg1sYr
+Received: by mail-pj1-f43.google.com with SMTP id 98e67ed59e1d1-3b0d0b80fb9so2364980a91.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 23:54:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795506862; x=1796111662; darn=vger.kernel.org;
+        h=mime-version:content-transfer-encoding:content-type:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=JCB9Arf3kgO8khRLtzH4NIGi9cnIQlT5R56mUfugRho=;
+        b=n7Wg1sYrAk0a+473VNn49vRqoJ4yJnv9wgIVrWuQMgzK6niyYbZdxW+QLp5pKQR1Fj
+         XOlZX3oBot2wBqFvEb7po8LKq8tNshgHXt6viLdhOs9f6qmBRAdUmc8c5nIxb+mrss1r
+         Q5NBVlOrMMJ7LJ6KTTy6x61avuRmi5q07WFLZbEmpCGOzo8ZT2aza6NQDTytLHtGXBgc
+         cPNBhiCOAOsPXUL0jK5933CqJ+mRa+FJbKBIHZ+aN+Qlndo8RIkuUKFEMED55A46P3dy
+         2W2IG+Jkqb6e6DHTrWrSvf9VPptDFlu6wjRTuLF3/M0FgXY6cYV8SVSJrLBQjZ4wDQKd
+         SPSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795506862; x=1796111662;
+        h=mime-version:content-transfer-encoding:content-type:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=JCB9Arf3kgO8khRLtzH4NIGi9cnIQlT5R56mUfugRho=;
+        b=ChNRY0UykK5IDTEM88Gkm6XFoMSgiZrvc0fKCVL0t0DhFISSk5DIIWi69VI45h6HPX
+         niwruQjqFQtnX4CYkWThuaJAIEy8E3EcEzYrt7NUAXScAVT5RkZ/52UjF2TDUGeqgQpF
+         JMcpyTZNjatF9gWOKIyjTUeAF96BuM7uHnz8MT1EdRfVzkeWyf7SFkTYUitzZWp4OteD
+         H4sl6zW6Fn13Onjvj36whNeD5do4ZnZsWsH6o7Z+H3eBpHXhG59czcZ0spfwj0XImplE
+         73F7+uWWv8U34pPhVvunDUpSS9Wtj0lqgCcigKZCw9cWPx0H6OLHkpI4/dp4TB/wa1Nw
+         bB4g==
+X-Forwarded-Encrypted: i=1; AL+hErEui8+4b3i9Z09/XxITcZEG5bWkmzp0CiYlu/+8FXq14dEzc4AH6ynbTXsvrW/1/ST1Pd2ACBGYs+uE3IXDRAs=@vger.kernel.org
+X-Gm-Message-State: APuU4Z+GqoNoloWcImry9XJJNAwl1Kse/b9pD0MAmw4ElQl4yt5biY4C
+	zq46YvZpKBKw1IfhcryLmvjuD1v0zT82mJD5M6CH2bMgEgWornqKWlmXY7/kHeh5IT6nVkQQ
+X-Gm-Gg: AZFdTZd5/YVK7ZSX1VysL65lXiE0Hkic0ZXld16zDzJhqR0pby1unQWfK2i4ctN/tIj
+	yC4SDsLNG6iKoaHgQfUWM07PFyRRfNpptpGnTr9wAdjmEFSFoQFKIW46AJoUfv6FAnaU0/x1FY2
+	lU52Wpt29Mg1l4UylI7LgwP3LkzAUmvZUZ/M8eVVCCNqt1rOHWELn31hlZoTSH/d1Y+c2m5ODFM
+	OmXvz3eZcg8+u0ghUpduAliZrmF9i8ARIwTNHLMSKVLJb3IemY+8RS7VT95r3TZtwfd/6LR8aSt
+	LWzl4ovpUwp2YRqEkXA/QinRVyhC3AdSE4aJi40zfONjqovxBSh/vcec/vwsS14MmBtg6oUayqX
+	ItZ/JqXgi+J5nX7q7nGP4UN2kCzIOKuDCvpkdO9AULtmKzEgTEOq1wI/Nk6lHRPG34J3KmxBNGs
+	lrFFbukSwycst/lqm5mlmg/weqxygZy0fpOFXqYg8hJ9rpAtGw47B7qVa5TXTFEogYOr2uwbHTD
+	gk8yVpAsY0eMRN69phFXAur4v3ZhrWdctPh7n5N+43vmR+T3OoMdytwr1IDtnbO8yZjluRhQi2x
+	BpViNJ7t/yfT3iwohFNrO39lFilg4dZvaCxybFtT9xnlJC8Rerse/si9xLlrpihjmxhgY5th/TF
+	KlK/GQkm8OgPalg6PhxW6Nd3qXN6/1rAwMNRA
+X-Received: by 2002:a17:90b:4ec5:b0:3ac:b2e6:3181 with SMTP id 98e67ed59e1d1-3b41c9476d3mr13476909a91.37.1795506861691;
+        Mon, 23 Nov 2026 23:54:21 -0800 (PST)
+Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([43.224.245.233])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b44b828ab9sm7681673a91.2.2026.11.23.23.54.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Nov 2026 23:54:21 -0800 (PST)
+From: Qican Ma <goonsomeway@gmail.com>
+To: pablo@netfilter.org, fw@strlen.de
+Cc: phil@nwl.cc, davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: [PATCH nf v2] netfilter: flowtable: interlock NF_FLOW_TEARDOWN with NF_FLOW_PENDING
+Date: Tue, 24 Nov 2026 15:54:16 +0800
+Message-ID: <179550685613.38700.16148920957970479663@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -78,36 +96,83 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-Add a regression test for re-owning an already dormant PERSIST table.
-The test creates a dormant PERSIST OWNER table, lets the owning nft
-process exit so the table becomes an orphan, adds a basechain while the
-table is still dormant, and re-owns the orphan.
+nf_flow_offload_gc_step() checks NF_FLOW_PENDING once at entry before
+setting NF_FLOW_TEARDOWN and potentially freeing the flow via
+flow_offload_del(). Concurrently, flow_offload_add() or a datapath caller
+that looked up the flow prior to teardown can call
+nf_flow_offload_work_alloc(), set NF_FLOW_PENDING, and queue a
+FLOW_CLS_REPLACE work item holding a raw pointer to the flow without
+rechecking NF_FLOW_TEARDOWN. If the pending bit is set after the GC check,
+flow_offload_del() frees the flow via RCU while the queued work item can
+still dereference and clear NF_FLOW_PENDING on offload->flow.
 
-This exercises the kernel path fixed by "netfilter: nf_tables: only
-disable tables on a dormant transition". The test only issues the three
-nft commands; run-tests.sh already checks whether the kernel was tainted.
+Interlock the two flags: in nf_flow_offload_gc_step(), check
+NF_FLOW_PENDING after NF_FLOW_TEARDOWN has been observed or set, paired
+with a full memory barrier; in nf_flow_offload_work_alloc(), recheck
+NF_FLOW_TEARDOWN after test_and_set_bit(NF_FLOW_PENDING) for
+FLOW_CLS_REPLACE and bail out if set. Restrict the teardown check to
+FLOW_CLS_REPLACE because GC itself queues FLOW_CLS_DESTROY and
+FLOW_CLS_STATS work on flows already marked for teardown.
 
-Signed-off-by: Ma Xinmeng <1564938642@qq.com>
+Found with an LLM-assisted code review tool and verified by inspection on
+v7.4-rc4 (b6a9fa34ce4). Build-tested only; reproducing the race at runtime
+requires a hardware-offloaded flowtable device.
+
+Fixes: 7c549fb7eecd ("netfilter: flowtable: generalize pending status bit")
+Cc: stable@vger.kernel.org
+Signed-off-by: Qican Ma <goonsomeway@gmail.com>
 ---
- .../shell/testcases/transactions/0052dormant_table_adopt_0 | 7 +++++++
- 1 file changed, 7 insertions(+)
- create mode 100755 tests/shell/testcases/transactions/0052dormant_table_adopt_0
+v2: resend via direct SMTP without line-wrapping corruption in the diff.
 
-diff --git a/tests/shell/testcases/transactions/0052dormant_table_adopt_0 b/tests/shell/testcases/transactions/0052dormant_table_adopt_0
-new file mode 100755
-index 0000000..73ae4f2
---- /dev/null
-+++ b/tests/shell/testcases/transactions/0052dormant_table_adopt_0
-@@ -0,0 +1,7 @@
-+#!/bin/bash
+ net/netfilter/nf_flow_table_core.c    | 8 +++++---
+ net/netfilter/nf_flow_table_offload.c | 7 +++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 2aa2647ed9d..fcd37f7a37f 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -578,9 +578,6 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ {
+ 	bool teardown;
+ 
+-	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+-		return;
+-
+ 	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+ 
+ 	if (nf_flow_has_expired(flow) ||
+@@ -594,6 +591,11 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+ 		nf_flow_table_extend_ct_timeout(flow->ct);
+ 	}
+ 
++	/* Pairs with test_and_set_bit(NF_FLOW_PENDING) in work_alloc(). */
++	smp_mb();
++	if (test_bit(NF_FLOW_PENDING, &flow->flags))
++		return;
 +
-+set -e
+ 	if (teardown) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+ 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e..402a46e1645 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1088,6 +1088,13 @@ nf_flow_offload_work_alloc(struct nf_flowtable *flowtable,
+ 	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+ 		return NULL;
+ 
++	/* Pairs with smp_mb() in nf_flow_offload_gc_step(). */
++	if (cmd == FLOW_CLS_REPLACE &&
++	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
++		clear_bit(NF_FLOW_PENDING, &flow->flags);
++		return NULL;
++	}
 +
-+$NFT add table ip t '{ flags dormant,persist,owner; }'
-+$NFT add chain ip t c '{ type filter hook output priority 0; }'
-+$NFT add table ip t '{ flags dormant,persist,owner; }'
+ 	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+ 	if (!offload) {
+ 		clear_bit(NF_FLOW_PENDING, &flow->flags);
 -- 
-2.56.0.windows.4.niugit
+2.50.1 (Apple Git-155)
 
