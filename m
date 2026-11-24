@@ -1,102 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795538061;
-	b=YHQgKTKMNYQmUXGnKtVxdqC8bLA7OfRXsZwxwuNhjrfoKvYmwXB8B+C7wBTSuceFtvEv
-	 A5FNKAOFxo/h1V0KpbJ+mT8sQVcAWTnq8kBLrjSnIFCcYB5Dj23w+DhxN9kkfYALEGoIR
-	 qNV1Faejif5irmPy582ygqPY0XfSEVrhhQJ8QbcTsR0OHl1T8BO4eOPwY3m8XNHR8Lj/7
-	 3AIFKUhCFdPnPZRaRPhpP9KX8+yvNNCbmMzu4tZnRgbI71cbVr+DJWPgjL1KccZn4GjNf
-	 24OMtu4JdqpGA8GIlNEL8FsGUwXDOMk7vakj2zYbZTtCkHZiXousF06hbk1F5OLZEcQ==
+	t=1795543511;
+	b=3bkQIgLKlPX/Z/7BpdiVw1Rb1PDV4o2dVtM4Rw1ECgNOWVQmxtDecSTh2B+Rg+rWXhmJ
+	 PQaWILJkr8v8tqo+c0P1+Wmn8ZoVelvhm1SpPN+CoaAkDG1H5hS1flLc4KlPlPeqazgnX
+	 +wIvHXZib98+yvi4wc0THFgcMyqKAX7p586JMEACrZDpyk/Zq0/7ihHrA4xMXUuoOFQ+m
+	 FmN5Evz8IhpCn5wbJBrzJHjiIAPuTMNSyhFiVRm16N8ARYXH7MrpsglU1hwroQkzeE0k1
+	 ozCsXZX5PB7iRM/FIAHmSh0PSmKPhJk21p/3Xi3GcqSUWgrpAyswedLfog/UXqx4VFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795538061;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=qBpX9eD/Y1u/lvzmHcfOgzl+QJm/PvOjVer0pSOyAQ4=;
-	b=s0BSj2aFDOAOFCHernmdCpBjPfoqTapeSYxWEKLRTXT9eJzdt3CtUv9AhK1Y/MQHKxnM
-	 7qtSKP424PL0q07eey0UyNUJcCAP47nfV4QrDBb4LmAMzMS5m64MgZy6rznW1fzpD0/tT
-	 KKh/0iWbxTazRgL14ISisBBoLyp2ztkVY0QWZemmeZkvKu5Rs0Abg2DKXjJpdfqNMMfPs
-	 cXHLkiMGEiimG1V5RNz6Qy0Get6Cbz5uP79gyQrN9dX+M2kVjJ9gQ4XdmSZMvMIxNXIlG
-	 0HSxAVJ0gTMJbjJ8JNxFGxAtvMWec8wR3otntsuptDhDxf/hwC+nj9HfClBMkHN1CKA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795543511;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To;
+	bh=woH9dl7xfphwEkUC8KvCH6Ur56cRMavsHB1AytXt8+s=;
+	b=gme8YzJXNYc9cp+16HSpr+l94ykxNxaiaSf0HBOjuAnF4Ki3VxXxnMMjnccprLZo4/S5
+	 CqHVsZiw8rV97XJNBKs5N5hFVc2Obf5pjPqshAFg2FdVuiOVeA96iYfYWTaqSbHK94sfY
+	 xuJYes0XxpT978yIELbIXrTqrkrCMWU9eX6Y5XdcrLpJ240eqalGsCwYryJTlbRcEG+u0
+	 co7QDgnq5qhRcidx32DTux1Ky1vefJSfB9HLMHsEe4V5H/Adf3NpUbv9y9ba7nbKe2EJt
+	 DQ8JCrT2XQwUkOhQb8OpQcRSdnVbcLddvEsEMRdjQyXGy6m/yNWeFAxdwU3+q5Fsc+A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tWrCri4C;
-	arc=none smtp.remote-ip=209.85.218.50
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=nwl.cc;
+	spf=pass smtp.mailfrom=nwl.cc;
+	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b="XJW/xeNT";
+	arc=none smtp.remote-ip=151.80.46.58
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 082D1606A332
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 16:34:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 082D1606A332
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DAC7606A323
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 18:05:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1DAC7606A323
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=tWrCri4C
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-c516a192844so391847966b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 08:34:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795538059; x=1796142859; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=qBpX9eD/Y1u/lvzmHcfOgzl+QJm/PvOjVer0pSOyAQ4=;
-        b=tWrCri4CWnTG22uOM9C+jp/befCVypiSR14ss4Hhuw4nQttam+vHWjhBIEnqPCrADa
-         C2HDs9OgrZ8A+wz8/LswPqpENVfLvEEj0/oiOOEXqx1cxSvUS/4S0h/rL3nNJNNBJS3D
-         Sl56mCRN+MPh+Zn8aGmIT1KZn8UvzbDcxXBgYKE6Gkysp3v0RpXILpd6khsmXaUtiP7K
-         Yi9cjmvBEHJJrBPiA1eBfTVO+82+19L3Fb1dECfEpUAdjvDHhBsX8BE/DyJGpcWosNw5
-         wp2pQXVv2LFi4pqSkz1xoLVMxRw2ur7RzNe8WfvBZMLZh3gVTNaJSJuEOL5yGS8b216x
-         HXGw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795538059; x=1796142859;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=qBpX9eD/Y1u/lvzmHcfOgzl+QJm/PvOjVer0pSOyAQ4=;
-        b=nyNy/udP2Nzg7IrT4Bd6GkyJKyCmG7f7dJIaRHN9TTZnP6vIlDnzGjs0rKz+uEbgDB
-         RXN8gSee+c5YEnnVIJsJ9C7tUseF+NNrdbEU1lV88kvjgQlmKFDdbSYfT3HhGAyqA1TD
-         BJdDW2lzHE9iQuRXW6SCa9zU4RyqGpAu3fU+/v3CS8TkjuSNAFc1EEYyuFyuRPIaL/0E
-         FcThG6eVUmNCwFZZN5NNlAAPzN348e1lDOswS6pMpzmXpKs7WjNdkRCjMiHB6VN/VE8b
-         9dG7d6pNw91t5MO5RjsdV6Kxq+kxZjGCwwsynic7hFROXCn1F2wKHYs9WHZOaSIJb/Eo
-         s37Q==
-X-Forwarded-Encrypted: i=1; AL+hErFglbcudj5wyzPbPwSWdYroXRdh2yrVrtdcMQjwYbmr2iaMwUv1kuxVCrTb8OT3L4bC/vdh8OW7RR7m4M72CFE=@vger.kernel.org
-X-Gm-Message-State: APuU4Z+XK+gU5nzjbvJ5+hj/GB4tJHgINqzqcyYIEXo4iZojgOzcF9v0
-	oqBdTelHOcvmD4HLeQCpeS+WW0YFzp1V7bp+x7Cf68lM0LCQDMUcqiaO
-X-Gm-Gg: AZFdTZduSvAKBBHYdPedwzhAllrNkJI6p4/NgkMajo1ojWdKLOewGCigAytQnmHC1D/
-	pDeIO/N/ZGMBbr+s/0ii7l8smDPPmpFEQm+bUxuC5u9Wy8on5NJAZb/gWGpJn5jCGm0arlC3aQd
-	/mxYfPyfQ3TKJp6MUUgEGcrWiot45Ehd6qG4bZKYvRCivCVRU47cBmOgg1jgM2wY1tmMVgD1X55
-	GB5ehvv9BHqj6QDEUQvdmGzYq7CZb481ZIS+NBXAnUbXPq1Ne3RRxrg1grAd8jGSSN5pJ3zLKiS
-	piyd1Y3lKbLQEJ/7r9F9g/kVFlAiCTPyjt7IPLpjs5d5lZd4WhRtNT7Bjx9YA086ftvwsqSdNYX
-	HXqXgXmrZqvAyiMyOXa5HcGWRRQ9yxm4u4Z7hQbEK7MG7/mr5856u1XwuCzR6UaIrSYBy/VBDin
-	+DXpuqPX5s/sHLo8drXAzeuqEZS+C3OAoHbXEkKx+xalQ8yoodjQdDOx5lJe6ZYDlnsHvX4O1bx
-	r5N5ISaomRII+v/3U0RZmXolYVz9H+94lKpviuZ63Mx0iNF4ASwjHLvhrmZTOFfLfsdtGSYhlJ6
-	T3r/pw4fztpOYkv6kev8rfJlN5C/6SNC+2+n3k4oLmHbiLOIoIaT044=
-X-Received: by 2002:a17:906:7944:b0:c50:564b:c63 with SMTP id a640c23a62f3a-c513a43559cmr1313486866b.6.1795538059334;
-        Tue, 24 Nov 2026 08:34:19 -0800 (PST)
-Received: from theodors-laptop.dotcomltd.ru ([5.255.118.7])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afeca8dsm542032866b.75.2026.11.24.08.34.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 08:34:19 -0800 (PST)
-From: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-To: "David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
-Subject: [PATCH net v3 2/2] net: unset the mac header of a pskb copy that points into headroom
-Date: Tue, 24 Nov 2026 19:33:58 +0300
-Message-Id: <20261124163358.755345-3-theodorlarionov@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261124163358.755345-1-theodorlarionov@gmail.com>
-References: <20261124163358.755345-1-theodorlarionov@gmail.com>
+	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=XJW/xeNT
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=woH9dl7xfphwEkUC8KvCH6Ur56cRMavsHB1AytXt8+s=; b=XJW/xeNTkc0QFjB74RNZsd6tUc
+	ib+7sQhmASlDgiNPKUkChItA46o7N30IjgAdnYzO3372CSnzPHYZCZcnM/9HA+w9PMcoElZaeSewP
+	h/RfrEI+HwFYEuMB0BkBJgBRk02qwFleLerHg3Dq8MRc69RELPKAfljf69c4WHwqP5WMG3x2VTlHl
+	357M4aMcb0CMAI/oeOLmHq185JNtl1DzJoJoZ7G1OBCYHXnOoTEnVmqNXDaRdU7stGyAJp5k7zI96
+	al2ID3Ooi5ejM7tVkmsK2dDVbnkBXuMkuyWaJY5Mp4VlXeY0zyKZ37S6qJnxWAuGeYHON3wmJ+bjm
+	rU+iRhAg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1xVut2-0000000084B-3ivn;
+	Tue, 24 Nov 2026 19:05:00 +0100
+Date: Tue, 24 Nov 2026 19:05:00 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 1/7] src: normalize set element with EXPR_MAPPING
+Message-ID: <awXRzNwL7JIR8InP@orbyte.nwl.cc>
+References: <20250905153627.1315405-1-pablo@netfilter.org>
+ <20250905153627.1315405-2-pablo@netfilter.org>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -106,46 +66,78 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250905153627.1315405-2-pablo@netfilter.org>
 
-__pskb_copy_fclone() copies the data from skb->data onwards but keeps
-the mac_header offset, so if the link-layer header was pulled, the
-copy's mac header points into uninitialised headroom. With nft dup, a
-link-layer payload load on the copy at LOCAL_OUT or POST_ROUTING reads
-those bytes, and a set element hands them to userspace:
+Hi Pablo,
 
-  BUG: KMSAN: kernel-infoleak in _copy_to_iter
+On Fri, Sep 05, 2025 at 05:36:21PM +0200, Pablo Neira Ayuso wrote:
+> EXPR_SET_ELEM provides the timeout, expiration, comment and list of
+> statements, this is a shim expression.
+> 
+> Currently, expr_set(x)->expressions can have either:
+> 
+> - EXPR_SET_ELEM
+> 
+>         EXPR_SET_ELEM -> EXPR_VALUE
+> 
+> - EXPR_MAPPING, which contains EXPR_SET_ELEM in the lhs.
+> 
+>                       EXPR_SET_ELEM -> EXPR_VALUE
+>                      /
+> 	EXPR_MAPPING |
+>                      \
+>                       EXPR_VALUE
+> 
+> This patch normalizes the expression for mappings:
+> 
+>                                        EXPR_SET_ELEM -> EXPR_VALUE
+>                                       /
+> 	EXPR_SET_ELEM -> EXPR_MAPPING |
+>                                       \
+>                                        EXPR_VALUE
+> 
+> The previous representation makes it natural for expr_print() to print the
+> timeout, expiration, statements and comments.
+> 
+> 	1.1.1.1 counter packets 1 bytes 564 : 0x00000001,
+> 
+> This patch adds an exception for expr_mapping_print() to stick to the
+> existing representation.
+> 
+> The JSON representation provides this set element information too in the
+> lhs, which is does not really belong there because it is exposing
+> transparently the syntax tree for set elements. A workaround to retain
+> compatibility is included in this patch.
+> 
+> The end goal is to replace EXPR_SET_ELEM by a smaller shim object, to
+> further reduce memory consumption in set elements in userspace.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Unset the mac header in that case. Callers that use the copy's mac
-header push the link-layer header before copying, as
-maybe_deliver_addr() in the bridge does, so the header is copied and
-stays valid.
+Git bisect identified this commit as the culprit of a regression I
+noticed: Restoring the following ruleset exposes it:
 
-Depends on "netfilter: nf_dup: do not duplicate packets from
-br_netfilter"; without it, a tcp reset reject of a bridged dup copy
-reads out of bounds.
+| table inet t {
+| 	map m6 {
+| 		typeof numgen inc mod 2000 : ct zone
+| 		elements = { 1 : 1 }
+| 	}
+| }
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Suggested-by: Florian Westphal <fw@strlen.de>
-Cc: stable@vger.kernel.org
-Signed-off-by: Theodor Arsenij Larionov Trichkine <theodorlarionov@gmail.com>
----
- net/core/skbuff.c | 2 ++
- 1 file changed, 2 insertions(+)
+When listing, the element shows as '16777216 : 1', whereas:
 
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 85d5caa08887..e38d0de59e06 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2278,6 +2278,8 @@ struct sk_buff *__pskb_copy_fclone(struct sk_buff *skb, int headroom,
- 	}
- 
- 	skb_copy_header(n, skb);
-+	if (skb_mac_header_was_set(n) && skb_mac_offset(n) < 0)
-+		skb_unset_mac_header(n);
- out:
- 	return n;
- }
--- 
-2.34.1
+| % bc <<< "obase = 16; 16777216"
+| 1000000
 
+The key seems to be in wrong byte order. It is not just a display issue:
+nft_zones_many.sh kselftest is failing due to it which performs lookups
+in such a set.
+
+Can you quickly point at where we lost some byteorder conversion (or got
+an extra one?) by your patch? I guess it missed to adjust a check. I'll
+start digging through the code meanwhile, but tracing expression
+manipulation in eval phase is tedious. :(
+
+Thanks, Phil
