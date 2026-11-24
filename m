@@ -1,91 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=67.231.153.30
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795476489;
-	b=IIElkNBYKYl3iOlpCgJL+V3fYV+YFbwjCuwi5jcR41vO1K4+q9flSN+JIah2EFHA1SG9
-	 0ECvgI5YVTgS5zgvZu89Jhhipb9oxXQD1Kyt70rHfo09DKP9XcYzIhZlru9VibRdyxLS1
-	 htr/bO0UaM8UTXTmTm4enIajOvpEHjuLQV/Hu5tXvfBR0rF5ah1YL/yRX6m9OBNupWIBz
-	 lkApsGLju0/ZcjAjXExBUCYL+qJGVTcjIRlNgkrERf6Inwvwhu4dAZG4J50cmxzm6e5Oc
-	 5VkCMrrkDmeUrMZ+FgOaEHVIx7Ef9gmf7Q6UA0ozfBp2d1+ofn9l+Sqcp3gUzV80k+A==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795476489;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:From:To:CC:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:Content-Type:X-Originating-IP:
-	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:X-Authority-Analysis:
-	 X-Proofpoint-GUID:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version;
-	bh=OmzTRubTnAu2LE3ZA88luIqbHMLI1ENdVnQ5aQlfvrg=;
-	b=ctfxybW8nMPYaw0B+LulpG0SIscvMdp+Y/Hk2BMIEz5r2bRyboBLfxQka/W7Bj3gX6lZ
-	 zNh6P6xEgAHBWVrQjax6xdsiwtURDMY8gYWQadvBPE9OhL2OKdIDIvZ28pbF+BudtgyxU
-	 FJrP7JGafFIHXmo5p+CYyyf/bgvsVcQPXHImYLr3oCGtHcG2uU9snB2gZI7Y4GQBFo8OJ
-	 t7irrBsfshSbewCStlIdrEtJe396QrNAGACT2I8FyR8lKV09jfuGc8nvHn8DExCSnO34p
-	 uuS7BtuLJwrJf+W0A8fxDnOMtEd25EpHIFDI/Nb6vi/HfJgkNbFSwkLnc/Z4vlTuwlA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=meta.com;
-	spf=pass smtp.mailfrom=meta.com;
-	dkim=pass header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b="W9sr/JvA";
-	arc=none smtp.remote-ip=67.231.153.30
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.49
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795490490;
+	b=YaqPb+f2ekoXGwtRw0afPe1hJ97iOIKJG+9NFohAImS50Z6btqDQ2c27jB2BMIpZHcBk
+	 821TBF/hdMdjNXrE1VZHGAH33vFIbJWnJHwJfYb8gGszb9TB3XwQBTJ/xI/jNmG+ZjWjR
+	 waAhD0nM4rDGHgGOXWT1a3Ayh8bYPRIuEl8Z0GbdUg8mNxo64DWCEOEJl/+fZlB7puxVk
+	 kmZrzD44yS1qm9RBEGC0vQ3P9APu2XsTARE8Lb5kIJqBnu12B7kjumD7JMjAInieGosWg
+	 iY4qlH6rekwFuP+44gFfoml/2vFbSuSE/AcnvwqzxYGnOJaztVBdUgBwW1aXEkwQzeA==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795490490;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:MIME-Version:Date:X-Gm-Features:Message-ID:Subject:To:Cc:
+	 Content-Type;
+	bh=oaCz9FAobFX+cqXKdeVDaXGsBDT/dh6s+LEZD6XoqC0=;
+	b=hRnHOPG8p3R0ZB96QwtQn4cmdpHtM9qn4BRQlsfdQrrZsVMfO7Ds19QsYeIBvRiSq7pq
+	 Z8NRerk5/VMPpsmG3T8ULFP7YexDjuZPTfXs6//nUaLXqKrzLPuJ30cY1pHtvx5kpxPEi
+	 8oMDogkLHszA3YVFN+DJiUdL5SZhE7CQeBva9cvLbk/enfW0mWZLHCkvAkx+94eqeIN8c
+	 LCr0ZoWmY8aNbVjx99VeF60hDRNC/qbui9KfzLTrXMWAhyc9kUPMbLWBSj8zVBY0i0o6J
+	 BIc9bv6BY1ZwiwChoira3CF5GU7k0QCreEeVkProhMaeFm6vVKU01yJ0ymrOW033mcA==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ygdhWyXJ;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=74.125.224.49
+Received: from mail-yx1-f49.google.com (mail-yx1-f49.google.com [74.125.224.49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10D5D606A31E;
-	Mon, 23 Nov 2026 23:28:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10D5D606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 064C1606A322
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 03:21:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 064C1606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.a=rsa-sha256 header.s=pps82601-s2048-2026-q3 header.b=W9sr/JvA
-Received: from pps.filterd (m0528004.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6ANJw3au2537414;
-	Mon, 23 Nov 2026 15:27:27 -0800
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	pps82601-s2048-2026-q3; bh=OmzTRubTnAu2LE3ZA88luIqbHMLI1ENdVnQ5a
-	Qlfvrg=; b=W9sr/JvAIs8cJ34Gr3QUpPpcZguNxMAmXtmgD+57sgPNDHaM4gqpc
-	vo2llu8v4j3c0kWOnkLSqnvP7OIyI0KFft3pTM2VdhccZIzwFkFVws8y02mx4sqa
-	p1KU7d8A5ww5AkvypNHNFxij7Y0ggbb/aBGeoq77hzeP0uI12YBIbwkXkSB5yuJ6
-	1oMwBWJu0V/fGjK/qRId4En9QfbFp48qewkCcw1178akVLqEjNc19y2S1EjsL3Lj
-	aweXwnEz/7hNCRl+YuhDEZJ0fOILvOrhJj5QoAa75kOAssPWeGRh8Ql1of05tabe
-	SHwXLNLhGdtpXau8+tzIkrkwvKptkoNeQ==
-Received: from maileast.thefacebook.com ([163.114.135.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 4j3wth9xrv-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Mon, 23 Nov 2026 15:27:27 -0800 (PST)
-Received: from localhost (2620:10d:c0a8:fe::f072) by mail.thefacebook.com
- (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.2.2562.56; Mon, 23 Nov
- 2026 23:27:26 +0000
-From: Todd Freed <toddfreed@meta.com>
-To: <netfilter-devel@vger.kernel.org>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        Phil Sutter <phil@nwl.cc>, Nikolay Aleksandrov <razor@blackwall.org>,
-        Ido
- Schimmel <idosch@nvidia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric
- Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni
-	<pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
-        Boris Pismenny
-	<borisp@nvidia.com>,
-        Sabrina Dubroca <sd@queasysnail.net>,
-        John Fastabend
-	<john.fastabend@gmail.com>,
-        Daniel Zahka <daniel.zahka@gmail.com>,
-        Willem de
- Bruijn <willemdebruijn.kernel@gmail.com>,
-        =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?=
-	<bjorn@kernel.org>,
-        <coreteam@netfilter.org>, <bridge@lists.linux.dev>,
-        <netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH nf-next 0/2] netfilter: don't send decrypted skbs in clear text
-Date: Mon, 23 Nov 2026 15:27:25 -0800
-Message-ID: <20261123232725.2459168-1-toddfreed@meta.com>
-X-Mailer: git-send-email 2.53.1
-In-Reply-To: <20261111003111.3826942-1-toddfreed@meta.com>
-References: <20261111003111.3826942-1-toddfreed@meta.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=ygdhWyXJ
+Received: by mail-yx1-f49.google.com with SMTP id 956f58d0204a3-67db763cec7so4164536d50.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2026 19:21:29 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1795490489; cv=none;
+        d=google.com; s=arc-20260327;
+        b=Om1he8NSFVroymHma800YXqUdzVXNJA4iip/TJpjFWP8jKG+AyW0MQafyMfziOFNpp
+         +WXLzegPkiQMi9MZ3R5U9JcvKrAnF68glH0AYF9zXbICHtGqjd0lccPooMf0QgaIf/09
+         4guhp5ksPKJ+oxcnf1gEcLyT5vJUyP+d+IenVdD2F7tjVCJQrttwXJoCMHhbv1jxxgBk
+         swC6w0KNs9DtY3mwQzoooaQfeSK7HNg1DzK4HD74KVMW4EF4L2NDE57hegRkUN2GZTLo
+         llD1WonpBVnxf5UWeHBdVyFc3Rus6RObteLovQg45QKdLZKNOYhhfJO2Q7Y5XLD365Mm
+         Sthg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=cc:to:subject:message-id:date:mime-version:from:dkim-signature;
+        bh=oaCz9FAobFX+cqXKdeVDaXGsBDT/dh6s+LEZD6XoqC0=;
+        fh=0tSCR0C33wk3GNR8y8CzW22c7w1Q4uigJ2tdUvy2d58=;
+        b=klTeoP75A8Hi+44zTUUo5QgawskKURqY11ByZ7x83pvV+56kxF87vtDAV08yL9X0xk
+         vBmxvLfwYmED1ICm+6iMRwWj9zFpcuixYeO0d5GXCtKxCyPFw0qGOuWkUXAu2XmFiibU
+         7qmgwkNJBwo8ev3t0v6jBz2Cyt9sV4z/iB2aF+BmZjjgXAv0aUyjO2t1qPBTE95lLYZM
+         Qve2ObyBc24Z9HCGJzA4qCFQmdbvhSaRrf4o/CvO5MLUpClQC/y6haASKQOxhtxnwhv4
+         I/8PS+NS70/QIbXE0Cbqmi2rs0w10dy7sbaWCu3MrVw6A2hzcmdhmxRR8W70NcMxwLaI
+         4nJw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795490489; x=1796095289; darn=vger.kernel.org;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=oaCz9FAobFX+cqXKdeVDaXGsBDT/dh6s+LEZD6XoqC0=;
+        b=ygdhWyXJ2CwF7ZVtnVsPGbwTCnWx5ht+tzkPURyfSIv2fLnVMEViXq2doQdwo9o6Lq
+         eH7t66NiHQZYgp+dYLRHslcGfwdcPzaR3DkWd/okPXArmZZvfzXTLAzcnqyUhRiUZvr9
+         mvqR/gG03w8CR8H502UE9jqgMs/5Gx/XvHvyPbpg3m3BuGqtZ/myYh1M9kDLmBHeUho6
+         lgUSCL2/TVdEUYz39dpaWLIOomLcQs6btSQ5ZMpqXqvOBzN+L0WwnFinvD3pW5uEq+aD
+         4I5IjpVfqkY/GqZkVsLmaIlm5CEmy7W8TXSAkBfQ30IUGez845V/cl1x5HcA1X4jg96Z
+         wGjQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795490489; x=1796095289;
+        h=content-type:cc:to:subject:message-id:date:mime-version:from
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=oaCz9FAobFX+cqXKdeVDaXGsBDT/dh6s+LEZD6XoqC0=;
+        b=0HhSVygUVPNGQXlTiXvg3MWJLKVIOBPdiqauiwnj+e7PhrQDJF6g+MLztHkU85tmBJ
+         6ZVr04Mbx+2AT9wb+pblCDscQazxOaBsatfAbdxEfT0lPrUPLe9IRdQz0I2C3cERMLQl
+         f5Dj9AM/tM6Ynh8vGGTffTxfJbl7bzDiA/ILneL+A+MZauDKYx43fbmAkiuB3IG53pAD
+         1ZUsuc/yZycG6GKGxfRMAw+FvBeSLxQcLQeEONDY9z5pMwb8B9k/uFIKdwOceR5WRNiZ
+         8Row7kA0VXP3ajH1JYHOD5ds/mOfYGdMY/7xnTQDb7ts/3MtbKuElpUfrV0wwR815UTw
+         KeQw==
+X-Forwarded-Encrypted: i=1; AL+hErEIG1QZRU/frJtjENQJkfl3koj2SLP3fHxpg5npBsz148wYgXggJS2qeX3cqp6Tn5weQgc/wcAngWgAJ+Zg4Bk=@vger.kernel.org
+X-Gm-Message-State: APuU4Z+/3/lUqWW5qUoCp5Y3eaGXjqvreniAM4Z7eqpmWmajMMI2ewm+
+	HM82DbcSjn8yZQfgp0r43kOxATlxx+28LI14rkL28OhLOLQtck8IRvSlRTurQ+9r6GYk2HDgoVR
+	UrD2Aifs8/je/1xQ73C5bWFT800LnG5c=
+X-Gm-Gg: AZFdTZdbstJJP6WwLJn2cNPUQNSomkICIHxPBAXbpLbPh21iNJJ+Q+qf1Bdg6pzi5ER
+	Tj1ExYDd1gQumuPt66BU6FNAPQXxY1QEL7YGwdXzNJrbgtFIWqMjz15WHZfpG+YvL1bW1qjqVMq
+	FHPSNdJcCd/g8PyCHTMXYP+XxoLY8tkIYsjKJXz0d2CIQjhiiz/+pcBZZ05ISWAX5hozQX3N6he
+	NoIM0nhnohmzlgj6rc5tJVKUZrkZcWiB6qav76zPdkEQW3i2JMIas2aqoK5ePNJYhAwTkRMillZ
+	Y9sciV6fe/zazsTGpRwYQI3XJis5ioyqxx8mqqVmtI2W/2+Q2Z/e6qnUEIMmcim3MwhHBq4OQgH
+	sim2WPF1ZJFyCn9SEKGTfMIsiJUA3cb476hz/
+X-Received: by 2002:a53:ac90:0:b0:67b:f57b:e83f with SMTP id
+ 956f58d0204a3-67df447f272mr4806179d50.84.1795490488933; Mon, 23 Nov 2026
+ 19:21:28 -0800 (PST)
+Received: from 723974502065 named unknown by gmailapi.google.com with
+ HTTPREST; Mon, 23 Nov 2026 19:21:28 -0800
+From: Qican Ma <goonsomeway@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -95,39 +104,94 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTIzMDA5MyBTYWx0ZWRfXzlCzCYpFAcqS
- VuKhpy7ngEj61iY6BteWZ3SJFTzOBG9htSFTUuIXZUE+Az290e+1qWLz1ZQkczOXlmEGZKGLj+K
- xNwYZNYSJW5HViri/Gsfie5LxIZQH9s=
-X-Proofpoint-ORIG-GUID: 62SX9WHEWbHBKIvWWcJ2JNkX6d19_jle
-X-Authority-Analysis: v=2.4 cv=U9sHnuru c=1 sm=1 tr=0 ts=6b04cbdf cx=c_pps
- a=MfjaFnPeirRr97d5FC5oHw==:117 a=MfjaFnPeirRr97d5FC5oHw==:17
- a=zJRp6_cAMcgA:10 a=VkNPw1HP01LnGYTKEx00:22 a=7x6HtfJdh03M6CCDgxCd:22
- a=GbPsI2Ihf5RTnMjR_gZv:22 a=VwQbUJbxAAAA:8 a=VabnemYjAAAA:8
- a=Jh7froBkOg0y2yNVTH0A:9 a=gKebqoRLp9LExxC7YDUY:22
-X-Proofpoint-GUID: 62SX9WHEWbHBKIvWWcJ2JNkX6d19_jle
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTIzMDA5MyBTYWx0ZWRfX8uyonCn6MmGI
- 4t/NxPr2CHgFpbSFcqG6zarIqEUr78WzGpuhj4/wkvoN2OkK17SXKSMNAnyyWAkc6x6wfvOaoMd
- ixGg8CqA/rtcM8hFcnCYrBlNkaMLlnbTBZ3GgcIahaWVUPhJW2nSwDLELfDfo/8cfjf7KjgTnSr
- DHUqOv+ksxD8UCm2tdpNGOBPUgjyLy9tgQqqLM+4k8QjIq6IyxXRgd1hNQ02wa/FMH5a+39Gt99
- 4x1TvUV/iFXaTLCdTFjtrdh890pUMUJtAm7mzxPAiYxARX16FSMy3zkfiMmT8jrym1AJASm8UHP
- IbYyjJ0dbbZxx6H31pgBClcFDQFqRkP/lChaUXWaQg3jY0mNreyYPWPan8OSBp1oZ9XZWgKZ0D1
- jKI4MHbXjzaHAqrglO5c6Z4KowagmavC82c2HLFr4ytCrGRXkEiXCc8Cl5HciZlB1CvvfG/jVr0
- d/I/4puQFReZu03BYwA==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-23_05,2026-11-23_01,2025-10-01_01
+Date: Mon, 23 Nov 2026 19:21:28 -0800
+X-Gm-Features: Aa3M54rNlXAI5CQumPMU76HNcv4d3a5IJ4JIzap1D3akCM2UEOumxiswycw6PKQ
+Message-ID: <CA+OT+OPg-vtPQxO-5dqLo=DGe9yH_k3m3sM8oyE3yKHHmTskVQ@mail.gmail.com>
+Subject: [PATCH nf] netfilter: flowtable: interlock NF_FLOW_TEARDOWN with NF_FLOW_PENDING
+To: pablo@netfilter.org, fw@strlen.de
+Cc: phil@nwl.cc, davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, 
+	pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-This series is superseded, please drop it.
+nf_flow_offload_gc_step() checks NF_FLOW_PENDING once at entry before
+setting NF_FLOW_TEARDOWN and potentially freeing the flow via
+flow_offload_del(). Concurrently, flow_offload_add() or a datapath caller
+that looked up the flow prior to teardown can call
+nf_flow_offload_work_alloc(), set NF_FLOW_PENDING, and queue a
+FLOW_CLS_REPLACE work item holding a raw pointer to the flow without
+rechecking NF_FLOW_TEARDOWN. If the pending bit is set after the GC check,
+flow_offload_del() frees the flow via RCU while the queued work item can
+still dereference and clear NF_FLOW_PENDING on offload->flow.
 
-1/2 netfilter: bridge: don't refragment decrypted skbs - dropped.
-It can no longer be reproduced on net/main or with socket-less psp
-series, so is no longer relevant.
+Interlock the two flags: in nf_flow_offload_gc_step(), check
+NF_FLOW_PENDING after NF_FLOW_TEARDOWN has been observed or set, paired
+with a full memory barrier; in nf_flow_offload_work_alloc(), recheck
+NF_FLOW_TEARDOWN after test_and_set_bit(NF_FLOW_PENDING) for
+FLOW_CLS_REPLACE and bail out if set. Restrict the teardown check to
+FLOW_CLS_REPLACE because GC itself queues FLOW_CLS_DESTROY and
+FLOW_CLS_STATS work on flows already marked for teardown.
 
-2/2 netfilter: reject: don't reply to decrypted skbs - reproduces on net/main,
-so resent to nf as Fixes (also reduced to the ICMP errors),
+Found with an LLM-assisted code review tool and verified by inspection on
+v7.4-rc4 (b6a9fa34ce4). Build-tested only; reproducing the race at runtime
+requires a hardware-offloaded flowtable device.
 
-https://lore.kernel.org/netfilter-devel/20261123231835.2356740-1-toddfreed@meta.com/
+Fixes: 7c549fb7eecd ("netfilter: flowtable: generalize pending status bit")
+Cc: stable@vger.kernel.org
+Signed-off-by: Qican Ma <goonsomeway@gmail.com>
+---
+ net/netfilter/nf_flow_table_core.c    | 8 +++++---
+ net/netfilter/nf_flow_table_offload.c | 7 +++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
--Todd
+diff --git a/net/netfilter/nf_flow_table_core.c
+b/net/netfilter/nf_flow_table_core.c
+index 2aa2647ed9d..fcd37f7a37f 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -578,9 +578,6 @@ static void nf_flow_offload_gc_step(struct
+nf_flowtable *flow_table,
+ {
+ 	bool teardown;
+
+-	if (test_bit(NF_FLOW_PENDING, &flow->flags))
+-		return;
+-
+ 	teardown = test_bit(NF_FLOW_TEARDOWN, &flow->flags);
+
+ 	if (nf_flow_has_expired(flow) ||
+@@ -594,6 +591,11 @@ static void nf_flow_offload_gc_step(struct
+nf_flowtable *flow_table,
+ 		nf_flow_table_extend_ct_timeout(flow->ct);
+ 	}
+
++	/* Pairs with test_and_set_bit(NF_FLOW_PENDING) in work_alloc(). */
++	smp_mb();
++	if (test_bit(NF_FLOW_PENDING, &flow->flags))
++		return;
++
+ 	if (teardown) {
+ 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
+ 			if (!test_bit(NF_FLOW_HW_DYING, &flow->flags))
+diff --git a/net/netfilter/nf_flow_table_offload.c
+b/net/netfilter/nf_flow_table_offload.c
+index 4365859220e..402a46e1645 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -1088,6 +1088,13 @@ nf_flow_offload_work_alloc(struct nf_flowtable
+*flowtable,
+ 	if (test_and_set_bit(NF_FLOW_PENDING, &flow->flags))
+ 		return NULL;
+
++	/* Pairs with smp_mb() in nf_flow_offload_gc_step(). */
++	if (cmd == FLOW_CLS_REPLACE &&
++	    test_bit(NF_FLOW_TEARDOWN, &flow->flags)) {
++		clear_bit(NF_FLOW_PENDING, &flow->flags);
++		return NULL;
++	}
++
+ 	offload = kmalloc_obj(struct flow_offload_work, GFP_ATOMIC);
+ 	if (!offload) {
+ 		clear_bit(NF_FLOW_PENDING, &flow->flags);
+-- 
+2.50.1 (Apple Git-155)
