@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=156.67.10.101
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795641198;
-	b=vfLDURH1rtZvXdQGQ+NCFs0emcdCRsemnzTBYwUyvvGZaE4yadqNQFNUi/y9r4nUYP1q
-	 0/O8guKxoFJRarD7PK82QfqpVbcj1kwMWWzypFAaadtg0uc3ggnK34imDMGJpxMaqpapp
-	 YytNx8YYMeunBKgSJfyLck/Eqh8u3PalO0HgGHPmmMa/fhDB5BhHpY45gHF8ixymcm+hh
-	 5mX9DrcCk5iSJ5wfNC6hLKansu5hvk7/zYrNRHRCeyVE0pYIshrpUHKWXyQuSl0f28+K6
-	 cX42RqdxCD5ajiGFLkPthqDh8X/oohcpQUOTazPdqcuFHDWC2BuiIZ97gjE7p5M750w==
+	t=1795641363;
+	b=0bph/5rQmC8yOpRXBIALeZMkoEkQYv/UR6d380b02G3eprarO8HVqR+jx7t5mWXMeHNK
+	 S6Y4AG3ZcHp5GyrcKlUqQnQANcmSM7u/gkL8yTWADWpu+7vkKcA5z3cA0+82gEuUS3wqC
+	 vP6kQeQcuB/3KWeh7gw3n9Ra9VHSzs4RyGQp/BX4ZhzSlsT1xLvskn0EVw1Zxc1wOJhB3
+	 8Gvb3rrchCWUf/UkC8UmRoUicoeCkotnqobYUBOInHEZBD88JzH9gG3JnkTcWSlzs7k2L
+	 AQxjhkmS/kHZ2/YKFR505WmZc/9HxZj32Co6FepWP8/4XwvgZoQlM36pXNIk6Cybupw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795641198;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795641363;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To;
-	bh=iGd5SoNcIdPRf+X5W5xhsxkWslmG4vdZNOWfyt5Bu4A=;
-	b=1rPvYk76AZgwSUmIYf4AFAIn1g7YOvs3TT5+QUeuandUUp5gnCFsXqm5zKZIQ8c/Lz58
-	 ZKi6src9RuPy5+CYzcbGzhnOmR4AohX6RhKAk/Ad63FUJ9YSQfJ3kWnQ2gNQA00Xu2Fer
-	 TQ+Ix8znDtKmcK8W3jopJ3FioFIZovsmASRMXkY6kLPTNa5Hgq5vd9S6QzjLqM8KzfyT+
-	 mwql+T3lwQukiCQaCHYMf0h2t0cDnFN9B5OGQwuTsIxxABcUoXISN9U5fpNwTCAFg4QnU
-	 TBoUwUBSqRmOpHQwrRwObvcFC6CpmoU2KGBpD23gfgoxS7ZzPAPxDgBTcnuFlIXY2xg==
+	bh=2BEKaTve0j9tQYjMUbUV4dUCu3Ld1ARa8Kk+N3aaIok=;
+	b=x5lqHcXavPuiHZsqgs6nuQdt5bEj+uQrqtLjpuCVdqFe3dVqj39qVQyI764rORikWkaB
+	 cO4FiJT5XxZGGbODX8fMrx0xuXxNnLYz+AqTTid4LIcdxeVQ6zKsxEdcwj8QLEV6U9QNk
+	 Jh78Gvbi5OG1EvBhDWBBp92P3mmiAcSQNr2qzX8f6F/VUpkY+fkqsYCYzjdwrO+Fl6G8c
+	 T5tsGFbIgbacnhtbFZF2h07Y1rxWex5QO/31ZQWhsZbnoZ2OWU/w5YWR/J8NC6V0riUE0
+	 4v/Zcn898Cxn4Uj0rW4SZs2bEnhZMC0tzxZEOCyWVUb/mAkJSVFBH3Ijkhv6UdbhM0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=lunn.ch;
 	spf=pass smtp.mailfrom=lunn.ch;
-	dkim=pass header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=zAKRTYQ6;
+	dkim=pass header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b="xlOX/SZg";
 	arc=none smtp.remote-ip=156.67.10.101
 Received: from vps0.lunn.ch (vps0.lunn.ch [156.67.10.101])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5AC9606A31E;
-	Wed, 25 Nov 2026 21:13:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C5AC9606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41F53606A321;
+	Wed, 25 Nov 2026 21:16:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41F53606A321
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lunn.ch
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=zAKRTYQ6
+	dkim=pass (1024-bit key) header.d=lunn.ch header.i=@lunn.ch header.a=rsa-sha256 header.s=20171124 header.b=xlOX/SZg
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=lunn.ch;
 	s=20171124; h=In-Reply-To:Content-Disposition:Content-Type:MIME-Version:
 	References:Message-ID:Subject:Cc:To:From:Date:From:Sender:Reply-To:Subject:
 	Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	Content-ID:Content-Description:Content-Disposition:In-Reply-To:References;
-	bh=iGd5SoNcIdPRf+X5W5xhsxkWslmG4vdZNOWfyt5Bu4A=; b=zAKRTYQ6dAHp1kq+pIly9jqUl+
-	mEfRqkks+O56nq3eMEHQc4ydoYu24dc1XcS/SZPd/jR8qtTbDI6QbV3uZG5uOLwn/s6jT1+L7wL+6
-	vp0TrImF9NpiAGtTpQggHoMn0A+hGncgB3/nn/bIcLDyIHQSX4Bkger/UkLN9+zvnAsQ=;
+	bh=2BEKaTve0j9tQYjMUbUV4dUCu3Ld1ARa8Kk+N3aaIok=; b=xlOX/SZgDWek5IKkVtKOCVCqfP
+	tZ+D943IqZYWTMtiUO04zSMB4/rp2vZZbpQx8eGpDdWilQmUJfF6xGAOdD6cZ4dikHRhNkUA1nazK
+	BJp3w08UjmyPyRrUdugzfHcGEqutw6Cc5BERYyFaARElq4LeUPP2oH/2DIOjhwdRiGRw=;
 Received: from andrew by vps0.lunn.ch with local (Exim 4.94.2)
 	(envelope-from <andrew@lunn.ch>)
-	id 1xWKIZ-001RBD-5P; Wed, 25 Nov 2026 22:13:03 +0100
-Date: Wed, 25 Nov 2026 22:13:03 +0100
+	id 1xWKLA-001RD5-O1; Wed, 25 Nov 2026 22:15:44 +0100
+Date: Wed, 25 Nov 2026 22:15:44 +0100
 From: Andrew Lunn <andrew@lunn.ch>
 To: filipp.dunsky@gmail.com
 Cc: Vladimir Oltean <olteanv@gmail.com>,
@@ -69,11 +69,10 @@ Cc: Vladimir Oltean <olteanv@gmail.com>,
 	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH RFC net-next 5/7] net: dsa: qca8k: select the four-byte
- format before port activation
-Message-ID: <7feee622-0c4f-4c7c-a473-02e0bb5cbf10@lunn.ch>
+Subject: Re: [PATCH RFC net-next 2/7] net: dsa: add a QCA four-byte CPU tagger
+Message-ID: <71917772-9db5-4ed7-8c23-c0ca6574a64d@lunn.ch>
 References: <20261125-almondplus-offload-rfc-v1-0-703175c6340c@gmail.com>
- <20261125-almondplus-offload-rfc-v1-5-703175c6340c@gmail.com>
+ <20261125-almondplus-offload-rfc-v1-2-703175c6340c@gmail.com>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -85,18 +84,23 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261125-almondplus-offload-rfc-v1-5-703175c6340c@gmail.com>
+In-Reply-To: <20261125-almondplus-offload-rfc-v1-2-703175c6340c@gmail.com>
 
-On Wed, Nov 25, 2026 at 11:50:33PM +0300, Fil Dunsky via B4 Relay wrote:
-> From: Fil Dunsky <filipp.dunsky@gmail.com>
-> 
-> Select the requested format from the CPU ports before DSA chooses its
-> tagger. Stop packet actors and verify the switch header state before
-> opening user ports. Use MDIO for management and preserve both conduit
-> MTUs.
+>  #define dsa_lags_foreach_id(_id, _dst)				\
+>  	for ((_id) = 1; (_id) <= (_dst)->lags_len; (_id)++)	\
+>  		if ((_dst)->lags[(_id) - 1])
+> -
+>  #define dsa_lag_foreach_port(_dp, _dst, _lag)			\
+>  	list_for_each_entry((_dp), &(_dst)->ports, list)	\
+>  		if (dsa_port_offloads_lag((_dp), (_lag)))
+> -
+>  #define dsa_hsr_foreach_port(_dp, _ds, _hsr)			\
+>  	list_for_each_entry((_dp), &(_ds)->dst->ports, list)	\
+>  		if ((_dp)->ds == (_ds) && (_dp)->hsr_dev == (_hsr))
+> -
+>  static inline struct dsa_lag *dsa_lag_by_id(struct dsa_switch_tree *dst,
+>  					    unsigned int id)
 
-Confused. What has the QCA driver got to do with this?
+Did you review your own patches?
 
-I think it is time for a big picture architecture email.
-
-  Andrew
+	Andrew
