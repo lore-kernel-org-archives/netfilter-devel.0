@@ -1,64 +1,61 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795603771;
-	b=UMj5dZr/AjPON3tZIJLjmyDtqhmdkB4qZ/KRH2Xma0ndStjY+khfKWicBQE/79Sr3bkR
-	 I0WESZU9gal5snHMsdetWS0MRPObLwu9YMTW2GFBuniHIGJX1eQ8NR2eYynny8sN3rvyp
-	 /a1UstqLx96BNp2Rj4PwVfwqNdQW4/3ZWz7Bg4CTS4z528w/wwfc+2Os2/OMAJBji0mO5
-	 tPmbpHSl0uBY2JbNHZNTfIS+DqgIrHfjqLj/+18odLz/eRNd80XQej3Oi6JqLPNuPqbr3
-	 YvUlKQ7Rvg8vLktc8xQJbqkBaI52lpRhdrIWxpV7R1p2eax6H1T3dUu6Y5/8ncC7W/w==
+	t=1795604439;
+	b=SaLxA1y/2AgC/638tVQdpRccWASzypsza8Aye3IbzSLPDbY+8Psi52Sz517Z1/p9Kjh0
+	 7eaArvjnDJUaIx79xZphKOuVkU2+ZbHpqH3aCnx1EbNVeWSh0FCgIRIvk5SHHdrNcHpS+
+	 Z6QSDnmjGKzadfuS/v6iUwp+z+ryK1PX+B26arlVtDs7VfxgLb79umthHagPoKYLn6hyW
+	 pX9If7GCoOEqlSISQUkism9iD3uxARmuPTve4WoysMNK+AgdeM8R+nIDuYO/O7qLyqocK
+	 ugM7JvBdN+MaH3AkIueNfQrctATH2kB7WiTe75cjcn9sO2lgJKkVJf0df4jce0GOnNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795603771;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795604439;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To;
-	bh=9KW+/2sWGL89uMYwvSRgygbk3q80jPWRoGibEmxDZkY=;
-	b=jKMgkMZRx/Gbk2ONXL3ZdM5SHk0WM8le2NA6eSVstU1Yjt3o0YJij5E9x10Hi6N9fPNd
-	 Zt0ONQsGUcXOV2accAtU/rwySAruaeffdRmq2aQudnHzayCy3ijIAY1Fu5t88BJBbfuLn
-	 SWZjokd6kWnsxgymcqK4/v9Or3hTSKBjfxkMu7lwZVDMqfulw2CxHt4FUufjJuCQJQZpO
-	 MdSw398qi9zYDpTzVlnFPbLLTYzfKKNLzODhM2wPuBUS74GKiGjinFfRX0KP1Jh/Ty2HM
-	 p6WJ/KUi92rwI3dFsC2Elrb1xhQHMGukuVAms2NvZq4R50xhd8p2KJVerT/9OonrnxQ==
+	bh=/WmuactaER3V1iVrEVHBQFNPcsZ52x3YBuXhpdVr9JM=;
+	b=rkYDa1kqt5cHNCDW7sm7xH2H75jWIQ+8v1ZXvzKdh3Q+QvOZC1QNc7gcV33vg/j4ZISY
+	 xL4HnK46TrzlkjaAoPErcyUQj+MNuxzRj35DVbSgk/6/PPHa8+82JaMPzHCwGMsc1Vqus
+	 KrtyHtQ3uQe7RaR3yT0AmcFU3E3rICUp9FS1e2PcE98a+msla4ArLDbtmJX0gXz9fymlv
+	 oK3lmxBkQW18E9J0MRfAverrytqjXKLvYSU3XmSczsEr1szbAmuCQsSyt2Wm5eQMtSMf5
+	 3lw/JwklZQ5qhChJ3WfHkWapP26XJxZdTMjxRv6MJRC8QqD65NcQGVWM4bf/zFs9VHQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=nwl.cc;
 	spf=pass smtp.mailfrom=nwl.cc;
-	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=b+YiCEfH;
+	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=WGWbzlsJ;
 	arc=none smtp.remote-ip=151.80.46.58
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA979606A31E
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 10:49:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org AA979606A31E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46B71606A323
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 11:00:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 46B71606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=b+YiCEfH
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=WGWbzlsJ
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=9KW+/2sWGL89uMYwvSRgygbk3q80jPWRoGibEmxDZkY=; b=b+YiCEfHTgIt+V4E7wgfL0OeDu
-	FVdt3n5y8D8bzlkUZyeYnZ59iSkMgzmMZsHE5JWJqUnsznnHSRl3b1ZidKSPaxgR+i6bahcbu85Pv
-	Pfw0/KdR0GXwFWGK9y6aRQavIy3WfjdgOZgUC5sWgh7FveKnzQCfKiWSsDvXrrnqyFPqgqkc7eq6i
-	CLAj4gBpszTgEsPvPULW0AANBL+TX3YIuCya9MUn4l0nGsJKwmzQVF9QpBjDxklAQFhTjSdYxP15/
-	Joxg5KSqj9t1GxcYhS2SU4jOUQcfLFfPZ1MvXOPCDeZJqL2qVIh/3rDZC+8BbhyRqWcJaFno1DeTi
-	ZGDOsBkQ==;
+	bh=/WmuactaER3V1iVrEVHBQFNPcsZ52x3YBuXhpdVr9JM=; b=WGWbzlsJUd3P4eConLxHM07tHt
+	+OA4Za3TT6ugmhIz3S2ky8Iu3Y+q4UGYX1fWZAu5yVi+dRGAXJHNQnp76AskXXhrs8b8DR9BZj6JZ
+	CivoNI/hQK9qhgLvRZGIu4EvVZ/P9XZHBHTTTmhZz+ingN6rn4lEH/9uTF4oi5pl7L3CKBi4o4gtP
+	AB0Ocki9eFp1rM9MfixPzvVs0abVr9l4QhHRC1OR9+jVH9xdSFXHk/d9HgpZLpya738Ti0b3XW2XC
+	IpGQgb/opQ5wSBePicrARigu+N1kPyvjuFvmu5AdbtfizM2juy0QoKSu12oEHuKB7j+AfV8ZDgTeR
+	K3dR1iOA==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1xWAZ6-000000004WB-2fxw;
-	Wed, 25 Nov 2026 11:49:28 +0100
-Date: Wed, 25 Nov 2026 11:49:28 +0100
+	id 1xWAjn-000000004gg-487s;
+	Wed, 25 Nov 2026 12:00:32 +0100
+Date: Wed, 25 Nov 2026 12:00:31 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/7] src: normalize set element with EXPR_MAPPING
-Message-ID: <awa9OPt8pbWg6fol@orbyte.nwl.cc>
-References: <20250905153627.1315405-1-pablo@netfilter.org>
- <20250905153627.1315405-2-pablo@netfilter.org>
- <awXRzNwL7JIR8InP@orbyte.nwl.cc>
- <awYpSv50FCy3yFhV@chamomile>
+To: YuPeng <yupeng@kylinos.cn>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, debianyu@163.com
+Subject: Re: [PATCH] ebtablesd: Fix missing arguments for %s in error messages
+Message-ID: <awa_z-IRhiv2BS5P@orbyte.nwl.cc>
+References: <1795597475442100152.16763@kylinos.cn>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -70,64 +67,32 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <awYpSv50FCy3yFhV@chamomile>
+In-Reply-To: <1795597475442100152.16763@kylinos.cn>
 
-Hi Pablo,
-
-On Wed, Nov 25, 2026 at 01:18:18AM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Nov 24, 2026 at 07:05:00PM +0100, Phil Sutter wrote:
-[...]
-> > The key seems to be in wrong byte order. It is not just a display issue:
-> > nft_zones_many.sh kselftest is failing due to it which performs lookups
-> > in such a set.
+On Wed, Nov 25, 2026 at 05:04:35PM +0800, YuPeng wrote:
+> Five ebt_print_error() calls in ebtablesd.c use a "%s" format
+> specifier without passing the corresponding argument.  As
+> __ebt_print_error() is variadic, this is undefined behaviour and what
+> gets printed depends on leftover register contents.  With current gcc
+> output on x86-64 the preceding strcmp() happens to leave argv[2] in
+> the variadic argument register, so the message usually still names the
+> table; different code generation or a different call site can print
+> garbage, print "(null)", or crash instead of reporting the error.
 > 
-> Yes, wrong byteorder. TYPE_INTEGER (integer_type) uses
-> BYTEORDER_INVALID in this case, which is handled as
-> BYTEORDER_BIG_ENDIAN for historical reasons.
+> Pass argv[2], which holds the table name for the free, open, fopen,
+> commit and fcommit commands, as the calls just around these already do.
 
-Ah yes, I reached that spot yesterday evening already but wasn't sure
-how things were supposed to be.
+Correct, in other spots argv[2] is passed for that matter as well.
 
-> > Can you quickly point at where we lost some byteorder conversion (or got
-> > an extra one?) by your patch? I guess it missed to adjust a check. I'll
-> > start digging through the code meanwhile, but tracing expression
-> > manipulation in eval phase is tedious. :(
+> This fix was originally carried in the Kylin Linux SRPM since 2022;
+> the commit message has been rewritten to describe the behaviour
+> observed on current master.
 > 
-> Patch:
-> https://lore.kernel.org/netfilter-devel/20261124235306.1777-1-pablo@netfilter.org/
-> 
-> This rework uncovered this underlying bug.
-> 
-> BTW, nft --debug=netlink does not help to find endianness bugs anymore.
+> Signed-off-by: YuPeng <yupeng@kylinos.cn>
 
-You know we disagree on that. ;P
+One could also fix the inconsistency wrt. ticks around table name or not
+and also join the format strings broken into pieces. OTOH ebtablesd is
+so dead, we may risk reincarnating it by accident. So I applied this
+patch as-is (aside from adding a Fixes: tag).
 
-The endianness-aware netlink debug output actually uncovered Big
-Endian-specific bugs (due to py test suite becoming useful on Big Endian
-systems).
-
-It's just that we don't notice if a value is in wrong byteorder but also
-marked as such (and therefore "corrected" when printing). To make up for
-that, I tried the following in libnftnl:
-
-| --- a/src/expr/data_reg.c
-| +++ b/src/expr/data_reg.c
-| @@ -70,6 +70,12 @@ nftnl_data_reg_value_snprintf_default(char *buf, size_t remain,
-|                         SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-|                 }
-|  
-| +               if (flags & DATA_F_HNPFX) {
-| +                       ret = snprintf(buf + offset, remain, "%c:",
-| +                                      reg->byteorder & (1 << i) ? 'n' : 'h');
-| +                       SNPRINTF_BUFFER_SIZE(ret, remain, offset);
-| +               }
-| +
-|                 ret = __reg_value_snprintf(buf + offset, remain,
-|                                            (void *)&reg->val[pos],
-|                                            curlen, reverse, pfx);
-
-Then we could add --debug=byteorder option in nft tool to set the flag.
-We could also permanently add the prefix, but that would need a bulk
-update of payload files. What do you think?
-
-Cheers, Phil
+Thanks, Phil
