@@ -1,58 +1,60 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795564436;
-	b=FyrQIKRK0ZP2Pohcaatz1inuDhiFBERwrfxCdTFI8aE6XXjEc4eFRewtgmRzQXZrH2/v
-	 mi7BMjZvajQQybVzP1F3cQrbrT6aCvCxgkYwBhIygWFfMGCi9hIRakJdn5iIyYpxa10c9
-	 1uvcSXMnpa0oDRnyhY1lfpPMyUS0i8VPZqblfIWZOY+ptsoK3bJktC0nh5AENFPhaarAL
-	 WgOjh+aM4sK4nfxNZu06Y/M/oc5N6Jqx0xpdKUe6yinNx9ptyxRq1ALLsvPO2ogd472s0
-	 XK4d1x+silchm2tNeX2kaskvNEoThudgt2Uaj/Q2biyvD4U2FRKLvhnmsEaMCXnh0yw==
+	t=1795565904;
+	b=5Q82lQBwSLtDDIu7MhMALwacUYIEfYy6e9QkO88+e/0t8N/mIO60JFz2lXIRCcN1rzuC
+	 l4CBpzb0qFxOsrgbcxpL0IkoGRJA8vJCGJoCFy2H0mX8ocQ7yz5dRRNQ3mawvzKVHCgkn
+	 zXFrXHFDefCvCYEbXw5xAK/iC7uAHA6KCUzTWNLRhIaQgQAhCU9q0URo615Z1lw5si4ds
+	 IN1o3SvDooyIVrIoF1ZJz/NrnM7u5vQZKFGCr17fHzr2aaF7HJcUFeNv8oa5M/q7y6CHI
+	 nOJ4ydJNJdhJCTY0PX1kCZ1yKQ8Eg2X3SJaPEM867gPyMUJ199duBNESbnyPvzbBp+w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795564436;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795565904;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=KICHrHoVBC5ChiNKe6AnJDa0EDKDsz+p/ePjDWX3ai8=;
-	b=HLZvX3RCNMyHheX9KHxjmRugmGB2SaHjPrHgIAqIHW/go9lQrDbeFSaa4YuLODExcoKm
-	 vkpFpTzX9EhCqLZV02yeUtvEVDIayV5mr6D4zymP0hkoyOhkJaj1JMMv4bOiy/gMCBz0z
-	 Xs9MYcB8Xh5hyQPI+aLXs0LABxyQmKxIZBBBHfQUktWhiL00dpM9Wo8OEKeqpC0pRgczV
-	 lUUZRMacIIXeutWbR1SCV3prEE7yVytBLTZSyx0rOUGXIWDdmEJ238+gnlxW3LT465E3E
-	 y4TI/XDe2/jV145N5E8UTzztVy0tkvKb4vYBvkdgP21LYL3M/IGgw2UnkhhL+fAbQiA==
+	bh=Gfqqz9GJQ8t7shdBItIKdBI7RBZz6HgIIAhioWBr/GY=;
+	b=PlMYkq/cC4w3WL+MXoyjF7oarWyU9Bi2mB4BuviVhMhW+79Nx5sxu7HLQ8WODlhRTCps
+	 w5EfuHnYdlr3EuUmQaS3lj6FMskY2je4tTXFb3xjSPYJvUVRYwhOVh6HT6MCUt5d/jBU6
+	 IgLQRE/dy2iW6aRoQong7RHAhi/bRyWccKUtF3GwNt9o3l9gfbWui7dVFA8vQ7Ouzt5Wb
+	 nYAKwglvPwuSHNaIxlaoQZY6/52ZZOWxclx2ixnzfK887OhJUaXkwCpx4+A9m7QGe6n1u
+	 0ZG5GFW8xtUOuiqttNQl4hUwBi/o/lI6gYSH65ZtIKimG8MWcvc9t2ra5W81Z6PVl9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=adV8GWA9;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=pFizVyxR;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id EAAC9606A31E;
-	Tue, 24 Nov 2026 23:53:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EAAC9606A31E
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id DA2C1606A31E
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 00:18:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DA2C1606A31E
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=adV8GWA9
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=pFizVyxR
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795564434;
-	bh=KICHrHoVBC5ChiNKe6AnJDa0EDKDsz+p/ePjDWX3ai8=;
+	s=2025; t=1795565901;
+	bh=Gfqqz9GJQ8t7shdBItIKdBI7RBZz6HgIIAhioWBr/GY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=adV8GWA9VXyZwVHUT3pbNlDYzzjahyq6rNb8VhINLP9oR2/L2yuUVi0Pbup1TLmOJ
-	 xcpIwgCxvObkCvAyHU4zYsPgPLzI/gek5I/EpXf+vMCxfIeiPb12qYIT5EAAiiSUmD
-	 Hr303zLHM1d5BqWg07cn+UDXsPWyAXwU92Yza0xqzhRWvQNlFiprz1DAy1PflZqZmQ
-	 R8B+fYkZlZe1urVhwcErPumMSCvCDtf5R4XK2Tgn3CEFZdzGID7+a+s+mFYoo/oJJ1
-	 RWK6PYmVOtTT+sL3ubXdf5c+9fxuiEBCIqDb71O/N5deP0fGqnUPjW5AkbuMPpA+hd
-	 5T7r4N3X3t9Fg==
+	b=pFizVyxRPpqyTNrhPb+KieoAF3iPSUxgWPcjM7I1A+RfX7Z/tzYTG0IijYz83PYSd
+	 5uV3nBvZRmc0w9WYT4CJAdcgNfGUsDD2WOVTjRFpuCuqXZrz8mknxtVnm/VJVzwb29
+	 NZaYrkoUVt5Xr0agWlK4k3SI99hA1gTP3/Vukmxl9goJaAoIUVmXo2SuFNOOAOTACt
+	 L/7yTzQJCLVj4Fi8CnGiUwsxJa4KcN1j5UTSirEtG1v3A6HCupTu0F57fcc6LjgoO2
+	 U+Y+YKOxYE55Ud1Agq1xarPXiSMy5aEL8XL05ukAivyVv5aQdz92IVRpNVZf5YFZOO
+	 ryy9G/bkPtp2Q==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 30D6E60074;
-	Wed, 25 Nov 2026 00:53:54 +0100 (CET)
-Date: Wed, 25 Nov 2026 00:53:51 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 6AE0960074;
+	Wed, 25 Nov 2026 01:18:21 +0100 (CET)
+Date: Wed, 25 Nov 2026 01:18:18 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] MAINTAINERS: don't CC netdev on netfilter patches
-Message-ID: <awYjjwhty6TeH_Mr@chamomile>
-References: <20261124152635.26769-1-fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 1/7] src: normalize set element with EXPR_MAPPING
+Message-ID: <awYpSv50FCy3yFhV@chamomile>
+References: <20250905153627.1315405-1-pablo@netfilter.org>
+ <20250905153627.1315405-2-pablo@netfilter.org>
+ <awXRzNwL7JIR8InP@orbyte.nwl.cc>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -64,66 +66,107 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261124152635.26769-1-fw@strlen.de>
+In-Reply-To: <awXRzNwL7JIR8InP@orbyte.nwl.cc>
 
-On Tue, Nov 24, 2026 at 04:26:35PM +0100, Florian Westphal wrote:
-> Netfilter patches are handled by the netfilter maintainers and the
-> netfilter-devel list, yet scripts/get_maintainer.pl also suggests the
-> netdev maintainers and netdev@vger.kernel.org for them, because the
-> NETWORKING [GENERAL] entry matches net/ and include/net/ as a whole.
-> 
-> Add exclusion entries for every path already listed in the NETFILTER
-> entry.  This is done to reduce the mailing list load on netdev@,
-> which does not need to be Cc'd on netfilter changes. Patches merged
-> into either nf or nf-next tree will still be passed on to the net
-> maintainers.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Hi Phil,
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue, Nov 24, 2026 at 07:05:00PM +0100, Phil Sutter wrote:
+> Hi Pablo,
+> 
+> On Fri, Sep 05, 2025 at 05:36:21PM +0200, Pablo Neira Ayuso wrote:
+> > EXPR_SET_ELEM provides the timeout, expiration, comment and list of
+> > statements, this is a shim expression.
+> > 
+> > Currently, expr_set(x)->expressions can have either:
+> > 
+> > - EXPR_SET_ELEM
+> > 
+> >         EXPR_SET_ELEM -> EXPR_VALUE
+> > 
+> > - EXPR_MAPPING, which contains EXPR_SET_ELEM in the lhs.
+> > 
+> >                       EXPR_SET_ELEM -> EXPR_VALUE
+> >                      /
+> > 	EXPR_MAPPING |
+> >                      \
+> >                       EXPR_VALUE
+> > 
+> > This patch normalizes the expression for mappings:
+> > 
+> >                                        EXPR_SET_ELEM -> EXPR_VALUE
+> >                                       /
+> > 	EXPR_SET_ELEM -> EXPR_MAPPING |
+> >                                       \
+> >                                        EXPR_VALUE
+> > 
+> > The previous representation makes it natural for expr_print() to print the
+> > timeout, expiration, statements and comments.
+> > 
+> > 	1.1.1.1 counter packets 1 bytes 564 : 0x00000001,
+> > 
+> > This patch adds an exception for expr_mapping_print() to stick to the
+> > existing representation.
+> > 
+> > The JSON representation provides this set element information too in the
+> > lhs, which is does not really belong there because it is exposing
+> > transparently the syntax tree for set elements. A workaround to retain
+> > compatibility is included in this patch.
+> > 
+> > The end goal is to replace EXPR_SET_ELEM by a smaller shim object, to
+> > further reduce memory consumption in set elements in userspace.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> Git bisect identified this commit as the culprit of a regression I
+> noticed: Restoring the following ruleset exposes it:
+> 
+> | table inet t {
+> | 	map m6 {
+> | 		typeof numgen inc mod 2000 : ct zone
+> | 		elements = { 1 : 1 }
+> | 	}
+> | }
+> 
+> When listing, the element shows as '16777216 : 1', whereas:
+> 
+> | % bc <<< "obase = 16; 16777216"
+> | 1000000
+> 
+> The key seems to be in wrong byte order. It is not just a display issue:
+> nft_zones_many.sh kselftest is failing due to it which performs lookups
+> in such a set.
 
-> ---
-> 
->  MAINTAINERS | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 7336600952c8..8348b298e40d 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -19170,21 +19170,31 @@ X:	Documentation/networking/batman-adv.rst
->  X:	Documentation/networking/mac80211-injection.rst
->  X:	Documentation/networking/mac80211_hwsim/
->  X:	Documentation/networking/regulatory.rst
-> +X:	include/linux/netfilter*
-> +X:	include/linux/netfilter/
->  X:	include/net/bluetooth/
->  X:	include/net/cfg80211.h
->  X:	include/net/ieee80211_radiotap.h
->  X:	include/net/iw_handler.h
->  X:	include/net/mac80211.h
-> +X:	include/net/netfilter/
->  X:	include/net/wext.h
-> +X:	include/uapi/linux/netfilter*
-> +X:	include/uapi/linux/netfilter/
-> +X:	net/*/netfilter.c
-> +X:	net/*/netfilter/
->  X:	net/9p/
->  X:	net/batman-adv/
->  X:	net/bluetooth/
-> +X:	net/bridge/br_netfilter*.c
->  X:	net/can/
->  X:	net/ceph/
->  X:	net/mac80211/
-> +X:	net/netfilter/
->  X:	net/rfkill/
->  X:	net/wireless/
->  X:	tools/testing/selftests/net/can/
-> +X:	tools/testing/selftests/net/netfilter/
->  
->  NETWORKING [IOAM]
->  M:	Justin Iurman <justin.iurman@gmail.com>
-> -- 
-> 2.56.1
-> 
-> 
+Yes, wrong byteorder. TYPE_INTEGER (integer_type) uses
+BYTEORDER_INVALID in this case, which is handled as
+BYTEORDER_BIG_ENDIAN for historical reasons.
+
+> Can you quickly point at where we lost some byteorder conversion (or got
+> an extra one?) by your patch? I guess it missed to adjust a check. I'll
+> start digging through the code meanwhile, but tracing expression
+> manipulation in eval phase is tedious. :(
+
+Patch:
+https://lore.kernel.org/netfilter-devel/20261124235306.1777-1-pablo@netfilter.org/
+
+This rework uncovered this underlying bug.
+
+BTW, nft --debug=netlink does not help to find endianness bugs anymore.
+
+nft --debug=netlink -f /tmp/o 
+family 1 m6 t 8
+family 1 m6 t 0
+        element 00000001 : 0001
+
+This looks right...
+
+... but --debug=mnl uncovers the bug:
+
+|00032|N-|00003|        |len |flags| type|
+|00028|N-|00001|        |len |flags| type|
+|00012|N-|00001|        |len |flags| type|
+|00008|--|00001|        |len |flags| type|
+| 00 00 00 01  |        |      data      | <--- 01 00 00 00 !
+|00012|N-|00002|        |len |flags| type|
+|00006|--|00001|        |len |flags| type|
+| 01 00 00 00  |        |      data      |
+
