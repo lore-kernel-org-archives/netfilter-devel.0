@@ -1,97 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.215.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795591504;
-	b=VfKM2SVuzWsWKGbXr2+AKs5Xdt3o1qowkbNxhCZaFtCLS2cNZSAEJrHkICPqE/Gw5p68
-	 WpOPz2Sdk5DCedVEgI6hJjbqxMtVDHsRKUdnVIGQ2li4mvCzxBA3x0CgnKo2+uysqZ6pG
-	 Z7LRoQjB9HgCCC/yfwIgSMlsrNEawFOW8TXuiKcB/lt9lVvp3+BfFl1CF8BBLofr18Map
-	 gz1ABx/Ih6SQKeHxfVHGtr81+p1y/KawsLuhb/XKHr7zTjk8MsqwwNuInd6VJVLwKFRfp
-	 CtT3OTRskdHL4qWH4Ud6jMaOQYs/EwFQXvA/YHgpbOZkwMb663xMYpRUSyIk9mzukew==
+	t=1795592652;
+	b=EfkvIO9T9Fk2ZJE2OV/8JG/p7JFtV5Xyf8cxSX3Ae5NT/2zYiGnoA2VZyPlAaJZCa1Yi
+	 tavOp3qSkZ0L2HXbiNp47zKjv+BYWR8rBqvLvuoCHZPYjIXA21+n+PsCh1wyRpBgmno7V
+	 ILXsDePiGRtQ6MWMsUIf7fMfZ6qkm0z3/zgnGViXt8HRAw0jvN810KN2JIE80/AQzl1qw
+	 554mv/mZWOf+RxgU1Y0zqMmSZs5Ja7/DzbedIeh6+zWoIESqs+WWzW8oeH5seHy60Dz4B
+	 UCEdcR2iQyfXezYFjEG4wf2brHEGZ2MxvfridYoYZVxdMcv3cMOK1Z5IRyBrp1Im6QA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795591504;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 Content-Type:Content-Transfer-Encoding:MIME-Version;
-	bh=CxsO8Vnw7MbVvOATOmRGTJzeFPR5zSAsrwoaP2ymuPQ=;
-	b=q3FlJG0pIumAbAgWKskeh31LKAWOhvkOZgUUo7xY7GrntWqCWBa4K5kf3E83l//ZiC0w
-	 L+owUkIr0f/3T1kmeVFxnCs4SzTSPCZ4/sBDSKMFOxwdClj6HYE90aSsI4f3qO6SlGrzE
-	 Ff6ggKuylo7zAEzXRxvrAr7B1lfdJFeAHpRgU8dU825YlFk5n3REIAPD+DyX/m9KylAhO
-	 TZbn+jBKWT+pNepXgA05ta+c2wl/4NKzCS1fK+Af2hG/FYYbTI+XTz0GEcdVb/UApZo5i
-	 bzFHPMnDckV3stNBU2jLQIrXUsra+Ib15Gux5EcOhngVD2fx1CGnBDEQF7uf7IBWfQg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795592652;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=KGPByt1l/w2w5NVSgCv2fP9X+uQOLitOIGrz+voENZ4=;
+	b=aUVEq9Xinln5/52dkm9Fd6U4rgeaP1HUKnukcXunMP8rnn1cpXuMOngFLjRU4fSHkHll
+	 aG4NCqlAmLhz/5tdgY5c747d4gHuRHFue4NlQt3RfxR3sLUNNIKtCe9cM4IMvO8zO4sUh
+	 l1XXcB+GG8NpEZJjpMljjT+zWZUulxVdQszY6UFwmeo6r1VOiFY8VcRko+DJT8zxoI7gF
+	 C5I+Ne4Qe16R2ytRI9AuKdISosu/JQeH6Go8rpbq+llpniqCN489dxaeCg+6CfQtz8v0R
+	 Dak1yc+5rIGBLHsSbo94zABkjjhZvQkkVsEbaVsSgQj4iCElRB3lSFe1qpoRquOdNZw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kc31SwVy;
-	arc=none smtp.remote-ip=209.85.215.176
-Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mOTYLjeo;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C001606A32D
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 07:25:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2C001606A32D
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41EA6606A321;
+	Wed, 25 Nov 2026 07:44:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=kc31SwVy
-Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-cdab8873d9dso2547537a12.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2026 23:25:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795591503; x=1796196303; darn=vger.kernel.org;
-        h=mime-version:content-transfer-encoding:content-type:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=CxsO8Vnw7MbVvOATOmRGTJzeFPR5zSAsrwoaP2ymuPQ=;
-        b=kc31SwVyyrjV0wz1/DKKvcAC9CwfpnzKqOwk2BUaW8eTf/L6/AkhrsiHJWWBLOviNG
-         1B7NuY895vVoKIgslQzzhE51s9hbFybKSBcstVdygpmFf/45pFKLssyrp1zFPV0GBzm+
-         j0XE45zJVTar2Bu7YuduR1QFXDTP9qEagRxAcbfZWUmzv7UN18yOpoM6HvV1wlfL8Psr
-         SBviejK8VmF+diLXvqtPffwAn4bk1sI9Q7UGt76VIJTAbatMdthWJtVweBhC+PUxzEuY
-         U8vD6WvJ6A0qkeLBhO/1Nwy5JO4UCNSF2SOT+WP8zWgqYqb9SIJplNgZm4XZpSGhsw9D
-         +MdQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795591503; x=1796196303;
-        h=mime-version:content-transfer-encoding:content-type:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=CxsO8Vnw7MbVvOATOmRGTJzeFPR5zSAsrwoaP2ymuPQ=;
-        b=OGFGgbOqIcv7fWqKqkwto73NT9Z98Xx2yNfIKc+TZ78fPCKM4cAmmHARRDrRuReKRE
-         7E4tDSCzPMuyQoydzE1gvGlynExozvqZGzvxFYSwI7q9XkVqrf2k5zeJ9xgxpFqf1HV3
-         nUG2eYiBVOk7JV+HgjhjK/meqPqlLmXiaYaHREEfWiPRvPyhfrmhf9ntovlT5losJbYz
-         Hg6+HY4gu7r19VaKpypP1Wrk9jRHhgHZ9nsk2DB3NuG1uGhhKgdaxs/HC2dUFR0RI6e8
-         VnyIuEK4lJ/6E7+GfaN8+uNP2e0z4IJ7kVE3sjtbAzuQiz+ZNETxYSbQiiJ6ckq/2WU9
-         +VgQ==
-X-Forwarded-Encrypted: i=1; AL+hErEp4LRVsgz/rXC/VJe5GvXDDeWXwZ3Gykx49GhGaLRWBEOKEemlhRclQsV2u9hBe60L+Jc9PDPaJQYQAFpq60Y=@vger.kernel.org
-X-Gm-Message-State: APuU4Z+4gf/KaVxVy3a2rFnF3/v/FRdmK0zK5wtkbdIvVPtN3xqmvQKY
-	ziXljRYS2EcjrLzd799ipSvSP+J7ioS2OHeQsv9T9RpskZ65DuucaCBY
-X-Gm-Gg: AZFdTZcVy8javFF3r3g0E20sLH32u6naUoYugLr1xNVbll1fHjWJ61R8K6W7aKe2zGC
-	j9FjPBy4sLMrlLCLZCNLjbUAZwSuO6XKlBtdboskK6haWpw8WHUTOd8inZXNUKxG9HtJBMc7PXA
-	ZOLTZh3/O+Jwu1B08FybVp9Q+nRYL3MQ8RHN+wWttU6OVneOeKsZUtxMR74Jd/7zK74QMKNfx08
-	fIG4nWEusme5hesVu7Xp53UGsl1Zf0oE50dDP0kEXJZBaH16O/f5rOyE9w5zoBEWoEmVv3G3E7H
-	Mso2N61fYe4Nw5k+BpvsMRDia3/aD37SVMJc3kUmYhjbt6M5CgfzLvzMDCpZ0BmV8BNoeHW2hIj
-	2iFtBxsqloTdE/UVnqiQUY8bkLh4qeugzdtoZqG+SvCen3lbMPdwTW+h9rZLAaFc7JtRshu+RA0
-	y4AscSX9RFmGR0ZRmahK+5e9sykYQgcaiNdQ2rQizdysFS6GbxRx74YlhD5th9U59q2CMgFG7nu
-	DJ39w+JV6zxMv3n79Pj08fuhLcjgo/r7R+Wl4VnSZawvTJzF/xUkb08jtyXCEgr09RLkGNuX4cW
-	5rfCBPbJUojq6CxI9+yCEqLowjvGEmPHSjVPRxT6qhI80A6aU0mjYygtx6XIQgtTQwiCaahXkgH
-	mIU56sb2PDntja5nnoeViAC9s82mdigSAkp46
-X-Received: by 2002:a17:902:eccf:b0:2e9:64b9:a333 with SMTP id d9443c01a7336-2f03f17c766mr168041385ad.19.1795591503233;
-        Tue, 24 Nov 2026 23:25:03 -0800 (PST)
-Received: from 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa ([43.224.245.233])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f03f0c1f42sm80683645ad.25.2026.11.24.23.25.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 24 Nov 2026 23:25:02 -0800 (PST)
-From: Qican Ma <goonsomeway@gmail.com>
-To: pablo@netfilter.org
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf v2] netfilter: flowtable: interlock NF_FLOW_TEARDOWN
- with NF_FLOW_PENDING
-Date: Wed, 25 Nov 2026 15:24:59 +0800
-Message-ID: <179559149994.38455.1443492273901928910@gmail.com>
-In-Reply-To: <awWMcRVhzciy1gIw@chamomile>
-References: <179550685613.38700.16148920957970479663@gmail.com>
- <awWMcRVhzciy1gIw@chamomile>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mOTYLjeo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A1BC1F000C4;
+	Wed, 25 Nov 2026 07:44:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795592651;
+	bh=KGPByt1l/w2w5NVSgCv2fP9X+uQOLitOIGrz+voENZ4=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=mOTYLjeoSuWpYR+AWHxkzZH/8kuw+oTfJZrBa+eZH/RZg7dC8oyxWEZEOlh/1dmFr
+	 DEoR5cBmihCIzEQGG/tuNQMzU6n5c6FItNMz3+jfpKUXOI3EaONmV9aoL1+38Ewzip
+	 7ZTBg5Oq7Js+Pkt94LaeGDNslRp+C8QGRMd42PScLGVEJvMjl5wM7FzkvjaCSpiCMe
+	 WPiljurDQMF3MSqAkwcZXaxKpkCk1Bbo80MrABk8VgLJKaDZQG9k774d4n1UO/yaR5
+	 hUiNGCq8gDJdpx0sN+PoR4XP0ptEXjuGAIsuYNCVl8USZMXeQxQopUNyfAjjH6iF6C
+	 CktNrPUkcEpRA==
+Subject:
+ Re: [PATCH] selftests: netfilter: fix missing echo in nft_nat_zones.sh
+From: netdev-bot+sashiko@kernel.org
+To: zhiqizhangg@gmail.com
+Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
+ edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+ shuah@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ netdev@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Date: Wed, 25 Nov 2026 07:44:10 +0000
+Message-ID: <179559265058.3135.11860282333221465868@kernel.org>
+In-Reply-To: <20261124071926.8818-1-zhiqizhangg@gmail.com>
+References: <20261124071926.8818-1-zhiqizhangg@gmail.com>
+X-sashiko-severity: High
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -102,7 +66,116 @@ List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 
-v3 sent, rebased onto net-next with 0abb54363974 included:
+Thank you for your contribution! Sashiko AI review found 2 potential
+issue(s) to consider.
 
-https://lore.kernel.org/netfilter-devel/179559147736.38007.142555858962428346=
-00@gmail.com/
+Critical: 0 · High: 1 · Medium: 1 · Low: 0 (1)
+
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The patch fixes a statement that can never run, so it does not
+  do what the commit message says.
+- [Medium] The diagnostic this patch turns into a real message, `echo
+  "FAIL: Ping failure from $cl"` on line 174 of…
+
+Pre-existing issues:
+- [Low] On the veth0 icmp counter-mismatch path in
+  tools/testing/selftests/net/netfilter/nft_nat_zones.sh, the check on…
+
+--
+
+selftests: netfilter: fix missing echo in nft_nat_zones.sh
+
+The patch adds a missing echo to the ping failure diagnostic in
+nft_nat_zones.sh. Without it, the shell tries to run the message string
+as a command. The commit message says this makes ping failures get
+reported the same way as the script's other failure paths.
+
+> diff --git a/tools/testing/selftests/net/netfilter/nft_nat_zones.sh b/tools/testing/selftests/net/netfilter/nft_nat_zones.sh
+> index d935c967dd13b..f15bfd33739f1 100755
+> --- a/tools/testing/selftests/net/netfilter/nft_nat_zones.sh
+> +++ b/tools/testing/selftests/net/netfilter/nft_nat_zones.sh
+> @@ -171,7 +171,7 @@ done
+>  
+>  wait || ret=1
+>  
+> -[ "$ret" -ne 0 ] && "FAIL: Ping failure from $cl" 1>&2
+> +[ "$ret" -ne 0 ] && echo "FAIL: Ping failure from $cl" 1>&2
+
+[Severity: High]
+
+Can this echo ever run? The script is #!/bin/bash, and the loop above
+starts the pings in the background without saving their PIDs:
+
+  ip netns exec "$cl" ping -i 0.5 -q -c 3 10.3.0.99 > /dev/null 2>&1 &
+
+In bash, a bare wait with no arguments returns zero once all background
+jobs finish, whatever their exit status. The only trap in the script is
+on EXIT, so no trapped signal can make wait fail either. That means
+"wait || ret=1" never sets ret.
+
+ret is set to 0 near the top of nft_nat_zones.sh, and nothing else
+assigns it before this check. All the other ret=1 assignments come
+later. So [ "$ret" -ne 0 ] looks to be always false, both before and
+after this patch.
+
+If that's right, the "command not found" and 127 symptom described in
+the commit message can't happen on an unmodified run. A failed client
+ping would also still go unreported here.
+
+Would it make more sense to replace "wait || ret=1" with a per-PID wait?
+For example, save pids[$i]=$! in the ping loop, then call
+wait "${pids[$i]}" for each client and set ret and print the failure on
+error. nft_flowtable.sh in the same directory uses wait $lpid this way.
+
+Also, before d6905f088d2b the loop checked $? right after "ping ... &".
+That is also always 0, so it looks like ping failure detection never
+worked at this point. Backporting with the current Fixes: tag would not
+bring back any ping failure detection.
+
+[Severity: Medium]
+
+Which client will this message name? cl is the loop variable from the
+background ping loop:
+
+  for i in $(seq 1 "$maxclients"); do
+    cl=$(eval echo \$cl"$i")
+    ip netns exec "$cl" ping ... &
+  done
+
+After the loop, cl always holds the namespace for i == maxclients (100,
+or 40 with KSFT_MACHINE_SLOW=yes). A failure from client 5, for example,
+would be reported as coming from the last client.
+
+The socat failure path later in the script prints $cl inside its loop,
+so it names the correct client:
+
+  echo "FAIL: Failure to connect for $cl" 1>&2
+
+The wrong name came in with d6905f088d2b, when the message moved out of
+the loop. Since this patch presents the line as the fix for ping failure
+reporting, could the respin also report from inside a per-client wait
+loop?
+
+[ ... ]
+
+[Severity: Low]
+
+This is a pre-existing issue, and this patch did not introduce it. It is
+in the same script, outside the quoted hunk. On the veth0 icmp counter
+mismatch path, the check looks up one key and the debug dump looks up a
+different one:
+
+  if ! ip netns exec "$gw" nft get element inet raw inicmp "{ 10.3.0.99 . \"veth0\" . 10.3.0.1 }" | grep -q ...
+      ...
+      ip netns exec "$gw" nft get element inet raw inicmp "{ 10.3.99 . \"veth0\" . 10.3.0.1 }" 1>&2
+
+Should 10.3.99 in the debug dump be 10.3.0.99, to match the key that was
+checked?
+
+-- 
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261124071926.8818-1-zhiqizhangg%40gmail.com
