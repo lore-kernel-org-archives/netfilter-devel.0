@@ -1,89 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.53
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795636490;
-	b=k9SyUnG5iLlg74yPihqy2h4GdtcV75yQ36TWp/3lYV4QOyPryWW7yOQApEgJQ0eZnDB6
-	 9BmzIoYwRuJppb4EGw5Khq1C/373esr67rNx212lw+DJ5l0kvn9B2u80ZOy9RPza6bV/y
-	 fxyoCbl3QTXkPyHK/4SO6bsN3P0Iem/Zq8B/vvkeNtvfySLexTf6rk83qSaBkk2wl82Jv
-	 hfkzrZ/8+VSX5Wu2xk6SUZhiRqm/iVKQeXefAnFSZ+hvFPhxS707yvQFiVK5f3bEmv+kq
-	 0OFnxZ5lzgzjrJ56dVNDAT2tR0Pdtdu6xxAR8f1U8Rm/VDXcnJ9RAuNuhkbOiff2ZFw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795636490;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:
-	 X-Google-Original-From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=yk4sQdTGHDvnf6uulMmqAhaaahLBnsUv08fqjU1ilO8=;
-	b=38OUHUN8J9kSlIygGJ3Xtjh16SBT5c2ttOk9bXOgmlSQ0tmCNC4uW4KJ0q3VuE8rnvUc
-	 W2vC8ItlSJmhV79eLMBTuue5DZ/3vST/Xk4T7+TUT7DXtDoPpiCJVJbkIcHH0nquIxHqo
-	 7L4gmIpIj7dCyNFB4fD8jqgb4wvXv6CYVdW8iq53dvl7AIJK8882csRvSahq9LV/BPl+a
-	 TONnN1eT7h+yejMQ9doyb9bN8LgJjPoEtJmwqyfQP5Jw/P57ibu1ZbI3nfT+9gIWj46Or
-	 VHdZ4tJuc16hdoK7avLDB8xew6VW9TVJvvyBk3oaiEHLZLAcrprPwjknoioyUa0qfNg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lWcl9LfA;
-	arc=none smtp.remote-ip=209.85.221.53
-Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795639835;
+	b=VoJIjP56LtwVgFlTE+xgHUUGojQvzbnAy4y7KDyVjXikTTrzGYgsb1baGtydMss/r8UM
+	 6Fa97z+SAkzS05ZGvrGDx+IejccwHsh53MuFedE+9bdfjxAsQbJ/Kyo4nJc0wsN+/tO5r
+	 eGbe7SSyIY2j5ztxcUuzTW8d6q3/B/MarbfiIxxLiZACpcYyIH/odpzNTPPcFK5shjs2q
+	 FOlCL3g0YmmH+E8xGlIwF/j+TPVzL0/RyzBK0fbSqvIXdPOrpQgw6prKgAF9oLoFfYutw
+	 Atof0RICHm0K2t8HZDEqNAM1GlVZk8gxL3vORRybK2HxBJ12QStp+552NJtN/KccP4A==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795639835;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=jtR2BCwBiiOXE/nYUDE0bn3/rGtsWTBfFTX/QPsmJxQ=;
+	b=D0e7kM+Z7J8bQNS92iH8uJJdehnL+labBhKqO0iZky2WbKcmaRJOy2f+PTczmZVT9ksL
+	 k5cC0K7jH9Ex0vm9TehZm7uoelE42uhhPai7LZCVpWrgOEObhs3Zz1EZJPv29QTsLp3VL
+	 dL2Te6yPVSd4/k4xoGv9et+o+jvNUP0pGdnRBmMZchhB8uQHNUOSFcbDS/lgsZTcbOUaV
+	 Npk3fhv0E9qxXHC9fzcMU7ocLOjYp6UC94UkMRqPBVPP2sS85yn9n11rB4RiqX5ygVmbm
+	 5um6jiZH7nzSzhzNXhtIy9+WDisttBhRVePkz0+hqSOYgFOIVPTj7I3RP7Wlcdu2pBw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="oOlGNqW/";
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84D1D606A321;
+	Wed, 25 Nov 2026 20:50:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oOlGNqW/
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1795639835;
+	b=DWXa2kU026xFwUE/9vAnx6RGsV98Jr+ehrLO30WViEQuzfEep44gb4qEw8U3e1MOU5ut
+	 l7vp0pGSDrsmH3+oJ3EzK4AP6Xp0UlqGkXZngg152x2kXsiBhRoAyHLZ4forzRC5pRA+F
+	 Gidvo9nOXJ2cY/JRMf+BRy01cOf2VmKqFyE5ZIR0H0LNaH1Wz97JVCrTOcWTMXeWPm5Sg
+	 zkyrhTVluD/iLyepbRLPDbjd3znOWh2wihI9+L+fDDnZzI9IV0O+qrRIghT98Ou6PA4tL
+	 8+zODFwQ2vs+hmWNefTBD6lmb3Ogf/3a2u2SW4ercLqq0RASg+zP/2mrj82edEOwqyg==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1795639835;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=jtR2BCwBiiOXE/nYUDE0bn3/rGtsWTBfFTX/QPsmJxQ=;
+	b=igwR/j4o001Yz+WM7W6bp2iuGzIel7U4Nl6TfqK9jXuiH27Z81zcvz1OUr4UhN35gnmg
+	 Yfsm1fUOR85Illeveoc0jWGk4MhRxy9fcXuJZRchZxRAdfzPQ6vksc5NOyw/w0XtY6KNz
+	 U2DsTW2PtDp3SZM/tTJ8Hjy6usSCjaEwYFiv27P9Vj5wu906gpzdv0FWi8P/HTXEPKghw
+	 MnuPYSZLPz7VianWFInwJ+uxE9CLcUL10NEXvyOB5SwsoOZe77uF55DZF3Kof5ufrkiR5
+	 9qnfxLgQ7tBG7LJCudXYt8G7yDPWKCZU6gm9lArS0FEIh8aQdd8HIroY4gP52gR6Zvg==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE9C8606A31E
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 19:54:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EE9C8606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lWcl9LfA
-Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-498f5fa5103so3704344f8f.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 11:54:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795636488; x=1796241288; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=yk4sQdTGHDvnf6uulMmqAhaaahLBnsUv08fqjU1ilO8=;
-        b=lWcl9LfAVZiJ+QJNEsNYCLHoHPFueniRl9m/9+rjxJwI63YZMOCKbIU4r5iZVbQZuT
-         31LbrgqYALF4qfZyyhqZcpwTTK+jU9qQLVRMm07srAW44MCI7j41E9bBn1x2BKjZDQMU
-         I2zglX+PYcj9lb69GlJ0x4A4lECv6bM6AOX34WLH0QluEDZHCzIqp2KqoaMB3/Tvl7+E
-         Z/HNTxbSkqtyJG+D5fKelv+WQ0Tuv9FiHtilkCZeXrr3P7HTrb+GvtMtE/W/UOsMJBYM
-         N1lYrkbZdg1wz98kBG6gfIE6U74yaepX3T8bjsmKjB6oD2ohnlNQBd2Rw0SLkqb/V4Vg
-         Gcuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795636488; x=1796241288;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=yk4sQdTGHDvnf6uulMmqAhaaahLBnsUv08fqjU1ilO8=;
-        b=JHNuUaX57/dgp4G7Ba25hNUOyglTXB4XyJhHhB9R9tuM47u8LiNRRrrUkx1WZqjj43
-         68FzheNFXkBhvFetXCOnAGnDKhIC2YAmIcA/apI3OHk1wYfvoV3ehdDNm9LyfW0vEpsC
-         Qg2/4XNVZ9I3ST91FdiBZRmgUMT35rU5E8X1RY4ulktvFwHFi6mZjEdVZJQFzisPbNi+
-         CJrMdusLHsj7fMiq2aEwXq3uxf43gtOTaoczf1zGJKq4BFBgj6j97jJAKgrgr9qMFPTZ
-         yts0VwyIkXU+bi/9l8I/tOciEfqQbi1AWb2kjaXfo9qjY36b6BQc6mBOY9qPQcIIFrYK
-         DmqQ==
-X-Gm-Message-State: APuU4Z+bmjnHai9UpPJ3dyOVhL/Mdst6YgLzpox1xeEPalMTZPoooMHC
-	yXG67yXR4/Q3wCkWLFZ8EgMZIdJog2OFrY5Cv08mDS82MPs2dxRO5yas5ks/+NPo
-X-Gm-Gg: AZFdTZc4hBeTp8KBAQUd4hSDXdaZiud6ZDTVyVz8a3pUFRK89z0O3XWYZPhloCfej6w
-	DiWcnYD9GNjXAbWCSH6eG1GgeNpV30TBmRg0W12xd3fYYJ4jlgMtvpzIOMo5LK5E0D/QyQOX2U3
-	HQ7WmIItOwcaLZnSmumUE2Rl7NNcK+sFaxKqwj2wkmbOmG1bWYx76FqlCzTKkxxvShnxaNDJDf9
-	IKFklorK0NvCp/DrueUrdTuq7a1z6B9kCOtBwo0yHyJcfdcMSWpzM1WRROz5E+V8bNYChDIrSgL
-	D1mihAJw/sgFd+2B2L/vYVGfIkJAeNnhMijBj8PfgAZ5v50ePoFTEs/P5Jp+K6WYPnt/mvjIBks
-	I7ceRFA4oj8qowwLK5br3aeAO3dsCLubAJ70ZEv8wC8U9fqT3oDp0avHNjZgbp6j5axDA/BZ+yM
-	SnEyjWm/36Lt8DJBgWhBSSyg7SF9Frj424tXRZL1P95gwlZN6NKUEmYlYjLJfswooZJ20cL4/cY
-	znZOAEHFoNmQTKwkcv6LeLE7sCXsztebT8QUTLL6x0TjUe/Xd6fT0VDcC+lw0YqHBVNnOJzMwW7
-	Kq6VZHkVHMOST1RTmSgigwfy8GW6GhwywZ1qJnCMlquciQQmCQ==
-X-Received: by 2002:adf:e197:0:b0:4a4:14db:233b with SMTP id ffacd0b85a97d-4abb3678774mr32452452f8f.12.1795636487949;
-        Wed, 25 Nov 2026 11:54:47 -0800 (PST)
-Received: from serv08250.test.local ([2a00:801:4aa:f0d2:a00:27ff:fed3:de1f])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4ab6b10b2c9sm37464001f8f.31.2026.11.25.11.54.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 11:54:47 -0800 (PST)
-From: Rohit Geetha Bal <rohitgbal@gmail.com>
-X-Google-Original-From: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
-To: netfilter-devel@vger.kernel.org
-Cc: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
-Subject: [PATCH] trace: Fix incorrect ICMP code representation
-Date: Wed, 25 Nov 2026 19:54:05 +0000
-Message-ID: <20261125195405.2279-1-rohit.geetha-bal@telenor.se>
-X-Mailer: git-send-email 2.43.0
+	by smtp.kernel.org (Postfix) with ESMTPS id D60FB1F000CA;
+	Wed, 25 Nov 2026 20:50:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795639835;
+	bh=jtR2BCwBiiOXE/nYUDE0bn3/rGtsWTBfFTX/QPsmJxQ=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:Reply-To;
+	b=oOlGNqW/wuKrPdxb8Ew1Lkl6eUy1HyTQ2+tc8RDGsN2YOeb/+0/Xle7IRQmsq3bxo
+	 C7VylX0dYkyAMWrIqplK1/IYUsIJ1qZm4/yfKrGAbSrSJhmreIuBut0HqEVriJyEzt
+	 eKOx0d+pGjWPc04WDXCT1ctLCdBMkx06Y0AQYNlwak6JWwZmQRx5aYqtPu4IY3e2v5
+	 VpT8w0L4qCJHZUayMCjopoJAEMBwz2NOdZwUEdHIvKFP2+M7N64FwR1VlhloKeyNVn
+	 43HnbfpSkOw8t1MiDletp0PAiGWFTiaxHclvThB0aqZjft7jIkQeWnvRL+hUTpCwvk
+	 cbzoon8h0xBjw==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 594504D03C;
+	Wed, 25 Nov 2026 20:50:31 +0000 (UTC)
+From: Fil Dunsky via B4 Relay <devnull+filipp.dunsky.gmail.com@kernel.org>
+Date: Wed, 25 Nov 2026 23:50:29 +0300
+Subject: [PATCH RFC net-next 1/7] dt-bindings: net: dsa: allow the QCA
+ four-byte tag protocol
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -93,40 +83,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261125-almondplus-offload-rfc-v1-1-703175c6340c@gmail.com>
+References: <20261125-almondplus-offload-rfc-v1-0-703175c6340c@gmail.com>
+In-Reply-To: <20261125-almondplus-offload-rfc-v1-0-703175c6340c@gmail.com>
+To: Andrew Lunn <andrew@lunn.ch>, Vladimir Oltean <olteanv@gmail.com>, 
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@kernel.org>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>, Florian Fainelli <f.fainelli@gmail.com>, 
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+ Hans Ulli Kroll <ulli.kroll@googlemail.com>, 
+ Linus Walleij <linusw@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+ Russell King <linux@armlinux.org.uk>, 
+ Christian Marangi <ansuelsmth@gmail.com>, Jonathan Corbet <corbet@lwn.net>, 
+ Shuah Khan <skhan@linuxfoundation.org>, 
+ Randy Dunlap <rdunlap@infradead.org>
+Cc: netdev@vger.kernel.org, devicetree@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-arm-kernel@lists.infradead.org, 
+ linux-doc@vger.kernel.org, Fil Dunsky <filipp.dunsky@gmail.com>
+X-Mailer: b4 0.16.0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1795639829; l=758;
+ i=filipp.dunsky@gmail.com; s=20260930; h=from:subject:message-id;
+ bh=wkWk664vl65KKLXoTZskWR/R2hKT7/ZFZXG8a8vLUkk=;
+ b=/eO4EXD1n36cNyH3ASrEAiKexWlKJjTPGD8kpZhI/7Ia3+/vWyKH6iBhrle27HletfgHHNBVX
+ gpEUi5XwYYBDCMK0lIDc8Hybti2nuEAwSXdBZnU7RwLpRbJDx8PeB1N
+X-Developer-Key: i=filipp.dunsky@gmail.com; a=ed25519;
+ pk=JAYP8e2rJ54DHOmhNtXud8rl1igAaAXoOHxtJmVXI1g=
+X-Endpoint-Received: by B4 Relay for filipp.dunsky@gmail.com/20260930 with
+ auth_id=1085
+X-Original-From: Fil Dunsky <filipp.dunsky@gmail.com>
+Reply-To: filipp.dunsky@gmail.com
+Content-Transfer-Encoding: 7bit
 
-Fix incorrect ICMP code representation in packet trace output.
+From: Fil Dunsky <filipp.dunsky@gmail.com>
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=222272
-Signed-off-by: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
-Tested-by: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
+The CS7542 parser needs an EtherType identifier ahead of the QCA
+metadata. Allow CPU ports to select that format through the existing DSA
+property.
+
+Signed-off-by: Fil Dunsky <filipp.dunsky@gmail.com>
 ---
- src/trace.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/devicetree/bindings/net/dsa/dsa-port.yaml | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/trace.c b/src/trace.c
-index 051cc12d..ec7f9e5b 100644
---- a/src/trace.c
-+++ b/src/trace.c
-@@ -12,6 +12,7 @@
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter.h>
- 
-+#include <netinet/ip_icmp.h>
- #include <nftables.h>
- #include <mnl.h>
- #include <parser.h>
-@@ -232,6 +233,10 @@ next:
- 			payload_dependency_kill(pctx, lhs, ctx->family);
- 		if (lhs->flags & EXPR_F_PROTOCOL)
- 			payload_dependency_store(pctx, stmt, b);
-+		if (desc == &proto_icmp &&
-+		    payload_hdr_field(lhs) == ICMPHDR_CODE &&
-+		    pctx->icmp_type == ICMP_ECHO)
-+			expr_set_type(rel->right, &integer_type, lhs->byteorder);
- 
- 		goto next;
- 	}
+diff --git a/Documentation/devicetree/bindings/net/dsa/dsa-port.yaml b/Documentation/devicetree/bindings/net/dsa/dsa-port.yaml
+index 480120469..30c6f70c9 100644
+--- a/Documentation/devicetree/bindings/net/dsa/dsa-port.yaml
++++ b/Documentation/devicetree/bindings/net/dsa/dsa-port.yaml
+@@ -53,6 +53,7 @@ properties:
+     enum:
+       - dsa
+       - edsa
++      - qca4
+       - ocelot
+       - ocelot-8021q
+       - rtl8_4
+
 -- 
-2.43.0
+2.53.0
+
 
