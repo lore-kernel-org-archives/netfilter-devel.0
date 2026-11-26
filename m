@@ -1,107 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=151.80.46.58
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795700205;
-	b=5L6miU3Ke0RBJEQIaLQfL28qVG6DSz2I5EoB5eRvqh4Rbol0+2nYAoXvfiHHejxXsRvg
-	 eMAxrRKVfHv68VUcEAQr7fL/2brwhgqJb/fNvEz81hKyaAWawpG/dAgP+1PLAzoXbn7Y+
-	 RM2d0lXwfs7iQtM+2jEbrWX51vPPxmvrtTh22ivbc9uGfr5iCu+2bxf6oaCBa8l/AL7Yh
-	 ZTiB0PMfgjrrHSdylcny0eYK2uuFBwjLXJ1Q0KfPrLXaDFIynZqCwPMfEtO2UGHptYtwV
-	 rTx90k/d/KtNAQ5DkGvIW/T6au+ShX4IRhHwJdvVPxcW1eB0HQWF1wawfopUNdhaZBA==
+	t=1795726185;
+	b=elMzDoon7yZG7bPEQi46INb8/w03EdCHGRlyAVuPTTSZJRoXwK6zj7z2x+MDjGawJbkP
+	 Xlj2HBtPBctwCC3k9RULtA8vC0ho6CABhOtfxtEge7jMw4RIdbVgc9nJRP2STr64bzQzz
+	 KBecnd1xCg5Cnwdbtix2Q/J7MIea5Q9yDjr1nS5s/28FiLogwGoPK709GNnbuTS4lWuHv
+	 q2BHGJZXCsdaJgIW1yrd+/huRcibtxwRX46a1/TbOi1DKCBoifHLo9OGvldl4/BziLgkp
+	 WrFfG6VzdqxqP6KBhV4sJm/cNU+Fz+zn4NNsu1HXIfmM4NvwQj+c7OOk8jUpd65OYYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795700205;
-	h=DMARC-Filter:DKIM-Signature:Received:X-MC-Unique:
-	 X-Mimecast-MFC-AGG-ID:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:
-	 Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=fshQ5H++9xpVgnK9VrrbU9Ju4zsh5/KFJATHWaeaVKI=;
-	b=UiHX5FY15nL1lTgTLWbU9Q9c3xbs5G9IYM0sZluvfD5a5FVwJsE7Bt0EZj+5w69tIrWc
-	 32lw9nrPy26JBv4gEK0mEbtwYfNZvGzHtVqiMStxoRElu2D3ZGIzJhSqS4cmJYzh+Trc4
-	 Lm76czHzve8NVfYbJYim4HWdmruN8Tv92uEZGHMxb4AlXkaonX+jeBb+EEGYS95j6imB3
-	 5MhmuwXjLdD4urj6FxDHioI2usO28eznCj2cv9CfsTtmJ2EGEHD9hc03MvUUOyOr1Ke0q
-	 IuoHGAV6Wg+HOHV2nsf2SWqVfbd/YvuBegMKZvE9T1fqkvEL1nCw+aSb4M8edfSt/xA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795726185;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To;
+	bh=vqcBL0lmJyGZPFS/MAsKFzh9EFxYcPwwb2r8+NXkIgE=;
+	b=EA4WwtpVYrOgAWMYlXPAqLjAbGegf5q1G4W0WoWpTOxnpE4yS3zwKBHUKyTz7aK1dXPP
+	 isegSo+09Gs/Uoc/XGBM8pbtweLzt6t3qhsvkBLf35CX4M78JBCU8UV1SGzzzDh/3jyDX
+	 lsk6+l8DYXiFWnCDoAbubqwk1R/fmn5ox4HpQDHxaOqciHOMuucjb4r/+gFHTPOuM+OmE
+	 X+3cMM/tgsfdawR80evUtSVexQzJEhj760fxp8+ZVHLGT7RyMii9ILWonunDDUYu2DIfL
+	 uXI4xo8YJchVLnV+3Z3S0/iPc/ji+ga5MQvS6+wA3M+Et6la8QbpEQYRD+4dqgyto3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=redhat.com;
-	spf=pass smtp.mailfrom=redhat.com;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=OJWAL3DZ;
-	dkim=pass header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=eqxBjXrm;
-	arc=none smtp.remote-ip=170.10.133.124
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	dmarc=none header.from=nwl.cc;
+	spf=pass smtp.mailfrom=nwl.cc;
+	dkim=pass header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=RuextKx9;
+	arc=none smtp.remote-ip=151.80.46.58
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B04E1606A323
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 13:36:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B04E1606A323
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 263C3606A31C
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 20:49:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 263C3606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=mimecast20190719 header.b=OJWAL3DZ;
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.a=rsa-sha256 header.s=google header.b=eqxBjXrm
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1795700203;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=fshQ5H++9xpVgnK9VrrbU9Ju4zsh5/KFJATHWaeaVKI=;
-	b=OJWAL3DZAZObLAJ+iVmhDeVYyo8Dt+lG438rhRKUpzc05KxTIpZQHCbS1DxaVUEtv6pZ9F
-	NXkLO5FJUUu21J/edUc0z6PffJt1Z7T7TBdPF0eX38Q8Y4VmIar9PH+UdKlYYHPe+NGn1t
-	WUWoBErKXa4lqc2iS+KTDd5hVX4K8IY=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-88-rpih7gnTNsmWFwEY2CtWdg-1; Thu, 26 Nov 2026 13:36:41 +0000
-X-MC-Unique: rpih7gnTNsmWFwEY2CtWdg-1
-X-Mimecast-MFC-AGG-ID: rpih7gnTNsmWFwEY2CtWdg_1795700200
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-4a1f03f2e8aso61322965e9.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 05:36:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1795700200; x=1796305000; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=fshQ5H++9xpVgnK9VrrbU9Ju4zsh5/KFJATHWaeaVKI=;
-        b=eqxBjXrmrEDjFh+3RvPCBs/6oLZDfX8C2FWHpIkQ4iX2sCic9o413WCzt8lzbc2aih
-         kEGT6DBhpXl+UrmoRs0DxC1cZ0MASm95OxyANzPuU154cVGOUD1ZqHXQO2CG2dk+1PkV
-         1FJf44VqHqxy1BEa5/v7MfAwaGhkO24O7YgMXbPUaoasuL0gFkw+FWuMrQhpjqtaKyGg
-         U/+L2QXuvtT3vNvY/YdYvp8EZiinoIol7ufAmjRq8q+yzjuTSdaP8ebch8vh+7olYuS+
-         e8pmgwhZ7HPhJW8R/fifS/5/GyBQiK6exPbZNXgqX+/oyLlS0uCip1+rysDyt0JHJS66
-         mJgg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795700200; x=1796305000;
-        h=content-transfer-encoding:content-type:in-reply-to:from
-         :content-language:references:cc:to:subject:user-agent:mime-version
-         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=fshQ5H++9xpVgnK9VrrbU9Ju4zsh5/KFJATHWaeaVKI=;
-        b=UMnAg/t3iutQuB9wu1pKQRCwVGLoYvzyWV376UpOSpoICxylwNDGKeIaQu8DhBO0x6
-         i9SXserWhscl2GPGd7FS1dMJ67unmYxVKx7roAShG0v34Q3KDJXfq9jO6vFUzQmXz727
-         01T4jY/DfxwcyzBWh3eNVQ2/vRwFBsn2iLkpGSbJ7e5xWQWVxf0Kr0wytjrU4NImdTER
-         /e+P4zk9NHkovyGkSLwxzHtpD2NUVNkuTRME5VQhcPWmCPKKSX1cRR8w7c7hnNtgiMsV
-         xEvQbu88/0AqUyC0l8kJQvRoC9gBD+XB5aEeSYfTo6KJ1dt4WMmN3q7962ZG/OlJcjfD
-         pvGw==
-X-Gm-Message-State: APuU4Z8GO2Y7G3ASBK8HyV3rq6VdkgjOTrPn2vUZxIL3U7M8BNrGG+Nu
-	g/HOXwq3AQFlkLZ9xJaWwFjUSZTJ9TXjAUPrVP5H8TGUQMKFPwKSBgUakYmrXgnqtBAzOw2TDPZ
-	9A4r00yDmAh4OmjOBRqxyYbP1cJFuvg2mss7I8JUyqIfUkh455l13ELQnQ0lKPXBOI6hCIA==
-X-Gm-Gg: AZFdTZdVAEmnfXUbdCkgW9dg5eW1jdSLbfX6KY8v6Us9fl4ubRa2CtNYmw8RGPqFhO9
-	WsjiK/D3hZ5SE6vbVvk5Xa71uP/1TxaEtPJNnI1qHuimiIfta27faNEezd9mZ4KqF9ODCIPamk/
-	hVKzMYQdDldD0k622jOxC5dJdqZ10VVknYO/dotbsu0DkX450nsw3U/wJWoH8kaqGSYl+Vtla2Y
-	mFrJL0pfpM4ulBD8c0W0fYVLaY4r+xy4NK4YpkyR+bU4RcJwWDwxSIMSra0EUwq8CNfDKE6nkjF
-	9ABDd8UkVdGCWbndAsYhMtVwHOlSa3SrklQ4xsgnJdvZrRg+sGhnB4ZOYR1cbedgkHPp2twDPv+
-	MejLzhJfUpnhroaDSaCk1bVdPUOYIenROHvjLxFiFFeLMe0D+ti8EIZuKID9BvPh6QghvbbUq9R
-	x3qLJJoUKllbZJ0zsBOK2w/FvyS1RA/UcFuQF11l9RWrIS
-X-Received: by 2002:a05:600c:8210:b0:4bb:6a2d:b438 with SMTP id 5b1f17b1804b1-4bb88786c81mr424078265e9.0.1795700200396;
-        Thu, 26 Nov 2026 05:36:40 -0800 (PST)
-X-Received: by 2002:a05:600c:8210:b0:4bb:6a2d:b438 with SMTP id 5b1f17b1804b1-4bb88786c81mr424077645e9.0.1795700199939;
-        Thu, 26 Nov 2026 05:36:39 -0800 (PST)
-Received: from [192.168.88.30] (ip231-128-192-82.pool-bba.aruba.it. [82.192.128.231])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb884a3a3dsm590393965e9.10.2026.11.26.05.36.38
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 26 Nov 2026 05:36:39 -0800 (PST)
-Message-ID: <87c0af53-95f1-485e-bb5f-00db3a9d3d43@redhat.com>
-Date: Thu, 26 Nov 2026 14:36:38 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=nwl.cc header.i=@nwl.cc header.a=rsa-sha256 header.s=mail2022 header.b=RuextKx9
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=vqcBL0lmJyGZPFS/MAsKFzh9EFxYcPwwb2r8+NXkIgE=; b=RuextKx9Vkj3R5TX6FDDWuDCSu
+	FY5PFEUd7qgQc6bZtDGEKogvUqMzm3quh1yMFny86FlTqm/ycX+1Rz/IdRriZTLwWHhxLUu/7EjET
+	2l58prpbYBP2y/k7/R9NePA/HGAJsjb6oFdJRc2ZcPe///6GKdoEYMLe28mPLHK3chzV6BYUpFDBV
+	PTCFia6+b7cMK3BHmxDfLqgSSruyXb/bKdfh/RNM0ttn7iRzjtwIRFkjhPMossJ2Hk87lM6hLK25r
+	VeXaB1mA4ZvNGb3p04pK9lpNiHr8w6aVOeeoR+01k1O9HW7EgKfwlmkAIq2qju4y2bxLAl2Mhcpgu
+	jEwwBl2w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1xWgPP-000000003E8-326L;
+	Thu, 26 Nov 2026 21:49:35 +0100
+Date: Thu, 26 Nov 2026 21:49:35 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Rohit Geetha Bal <rohitgbal@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
+Subject: Re: [PATCH] trace: Fix incorrect ICMP code representation
+Message-ID: <awibX916hTQGJi81@orbyte.nwl.cc>
+References: <20261125195405.2279-1-rohit.geetha-bal@telenor.se>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -111,37 +66,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next,v2 00/15] Netfilter updates for net-next
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, edumazet@kernel.org,
- horms@kernel.org, fw@strlen.de, ja@ssi.bg
-References: <20261123135726.3940688-1-pablo@netfilter.org>
- <8e69f35e-73fb-4558-910b-45f5e723c64a@redhat.com>
- <awWSHujeBmMMOonS@chamomile>
- <f0a3c071-0142-4c62-b74b-ffff8121c8d9@redhat.com>
- <awgOALX8V2RXY-uH@chamomile>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <awgOALX8V2RXY-uH@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261125195405.2279-1-rohit.geetha-bal@telenor.se>
 
-On 11/26/26 11:46, Pablo Neira Ayuso wrote:
-> I am preparing a v3.
-> 
-> I will make a few changes to address some of the comments that
-> clashiko.
-> 
-> My plan is to keep the ipset rhashtable in place, I think some of the
-> relevant comments in the reports can be addressed by follow up
-> patches.
-> 
-> Let me know if that approach works for you.
-FWM, please go ahead.
+Hi Rohit,
 
-Thanks,
+On Wed, Nov 25, 2026 at 07:54:05PM +0000, Rohit Geetha Bal wrote:
+> Fix incorrect ICMP code representation in packet trace output.
 
-Paolo
+The description is a bit meager given the elaborate bug report you're
+linking to.
 
+> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=222272
+
+This is the wrong bugzilla. Correct link is:
+
+https://bugzilla.kernel.org/show_bug.cgi?id=222272
+
+Please keep in mind that links to external web sites should not replace
+commit descriptions since they are prone to go 404 sooner or later.
+
+> Signed-off-by: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
+> Tested-by: Rohit Geetha Bal <rohit.geetha-bal@telenor.se>
+
+A bit redundant, one may expect that an author did test their code. :)
+
+BTW: How did you test it? I'm failing to do so, using a simple rule 'oif
+"test0" meta nftrace set 1'. Pinging from both sides gives me:
+
+| # nft monitor trace
+| trace id 058e9d40 ip t c packet: oif "test0" ip saddr 10.0.0.1 ip daddr 10.0.0.2 ip dscp cs0 ip ecn not-ect ip ttl 64 ip id 14699 ip length 84 icmp type echo-request icmp code 0 icmp id 52743 icmp sequence 1 
+| trace id 058e9d40 ip t c rule oif "test0" meta nftrace set 1 (verdict continue)
+| trace id 058e9d40 ip t c policy accept 
+| trace id 81be10a5 ip t c packet: oif "test0" ip saddr 10.0.0.1 ip daddr 10.0.0.2 ip dscp cs0 ip ecn not-ect ip ttl 64 ip id 23411 ip length 84 icmp type echo-reply icmp code 0 icmp id 17703 icmp sequence 1 
+| trace id 81be10a5 ip t c rule oif "test0" meta nftrace set 1 (verdict continue)
+| trace id 81be10a5 ip t c policy accept
+
+Having 'icmp code 0' in there is fine, I guess.
+
+Cheers, Phil
