@@ -1,101 +1,92 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.169
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795651925;
-	b=0Qs0+9uny9C8ArTEjlYEXG4LxvY2IEcaGewb0jjw7E0ABo11jXRU3kvw+JcPFGmJiFEh
-	 ssWH93IGbtvINA6eNV2hccJe0CLI67xEhF1xDpGV9tSYMGF69A35fRMSXfxKlxCUFXLWz
-	 krF5WMe7Pe0aucivPkhtUG8w0gZ8nGwJtSfsZi86+/URC1MbAsYOelcx11n7e/m8obc23
-	 lUVTu2IqlKj69TFesHuV/XX0aiPpgjVY6xbYAS7yhMrieyn615Bn1qCw1h9ao0zu/hfZI
-	 fAGxVRge7czkI1rrUeEJc5LthSwRMpZuFDPJT+BJpTpNHlRyKWABWEaIIbZ34yt1+3w==
+	t=1795652162;
+	b=OKHQJTd0HOLu4wTrxpLHAgDFNN9aRaEGnGc5UWdFaRqd2K5sGDBVNNykP9M90vzTizHV
+	 xUL7NcdDrdDa4mKwGz8biTNTpPkHWxv/ZBRo6+KQP/A5vdSCPcz3Uu1KFHBQM6rpF1Lh1
+	 GGSCnh9VzNw1RLVKbvDcigj4cZlt0RwWX5k293GJAam5Jqyb8Do7aw0OEevDrSPNXuL86
+	 ExctRvLWdb0v50w5SAMcuJ/UhZkamNs+clE/bLiFKr3+DTXCOgJ/J4w1TX4DHU4w2d/jx
+	 R0S3QvGHq8y2uZokKTf5EurO4ltWnHl5Qjw13cdqgmBpN+y6r9UmJ8zYpbdyScgtYSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795651925;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795652162;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=eh53HWlWeYqc22pkcThqRd+K0CvliST0uP4BTE7Y98w=;
-	b=dmuuDTlfUyU7FUfu2RF81Dm4jD52tMgXN3o34cQkIcmP8M3LaXvr+MkWj061SWR40JLK
-	 RkQuLFxw47Ha+K7vXi3JpyxG2uRrhy2M/fyt08TcmU3SnhrWcfJ5/8vnrlJm0GCrf1MWD
-	 61aZ3qaFsdPbJO1WP/PSgznWiC6vjQzd49Hh+YCM2xHaVvlidnqTW7lxl/TX9zbN5qnai
-	 wMp1vD7ccOSeL06P8J5EhVx8n10mViSQgJdvnSxvzRk4CBnKg/yw9h6vJcVx7dimkdRzF
-	 xz8OpLiaB+TKrnq5fdpoomdf/1jBJWxdiX2UsacoVQZ/vAzZrA9BfkmEssSVh/Yjbqg==
+	bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
+	b=PhV7UEt61HkUz5HCkUuxNfiCBP8pJikVQ9JB4y3G3fM9XSnjXlO5ucRBGcB+wKAdyLz2
+	 yR/8oae4cYNUCEPVHkQVBGY/3/2g1P5ClmoFltbl1dAfOzVs3SfQnCccxQYS/bREczb4b
+	 6o7gh59yQgLG4HEFGXU/IIWwmv8ufdjxwDzvaNMh7tQ4ztOz6wqycvib/P7my0AvfHkhU
+	 YRwE2ejLVl9ANUPENvbs2WavsnIe64POIWInGvvEuAbgl+3S2IpwmY4MJnncIM8BIM+Xb
+	 zCtQOlRQMkYA9tLeKi6ahAY5upmyC+M8sfrn6MHwyAknxra2kpXGFHGOKTVyxZTC/gw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=asu.edu;
-	spf=pass smtp.mailfrom=asu.edu;
-	dkim=pass header.d=asu.edu header.i=@asu.edu header.a=rsa-sha256 header.s=google header.b=iTExogPz;
-	arc=none smtp.remote-ip=74.125.82.169
-Received: from mail-dy1-f169.google.com (mail-dy1-f169.google.com [74.125.82.169])
+	dmarc=pass header.from=zml.net;
+	spf=pass smtp.mailfrom=zml.net;
+	dkim=pass header.d=zml.net header.i=@zml.net header.a=rsa-sha256 header.s=google header.b=L9ELt9Mz;
+	arc=none smtp.remote-ip=209.85.216.48
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89D24606A32A
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 00:12:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 89D24606A32A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2F7F606A321
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 00:16:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A2F7F606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zml.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zml.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.a=rsa-sha256 header.s=google header.b=iTExogPz
-Received: by mail-dy1-f169.google.com with SMTP id 5a478bee46e88-386bd881d39so5768942eec.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 16:12:04 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=zml.net header.i=@zml.net header.a=rsa-sha256 header.s=google header.b=L9ELt9Mz
+Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-3b487f44ee0so2477108a91.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 16:16:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1795651924; x=1796256724; darn=vger.kernel.org;
+        d=zml.net; s=google; t=1795652161; x=1796256961; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=eh53HWlWeYqc22pkcThqRd+K0CvliST0uP4BTE7Y98w=;
-        b=iTExogPzYoZ7KsoxJgwtQ2u6BEwE1zh7gf2BklH+Y6vYmJ6Cv3tVt8olnC9ccSXNv+
-         IWLK/+A6tNWMmQJYnu+pg7evH+jWsBjzqJDx3lCRd2/3d9vrNRi7rFu/iMpvkqVmPwqi
-         4a8cRe7XlCIxVkruoMUoSoy0SznIgvLBfphNLBYxj5yEATfp2D+zLsUe3QWD1IUtT/65
-         5Q8kyLGEDcMZPcYh3mm6GgWgVb+/E2m0ZTv6833pqMrEN0RFzUIoOAuafEbfiV1jswDA
-         FoJ4AF01ye2h8hQNqAb2xfL9Pk0zVhW2AMEDKV3iD3f2kyQMPLxGykMB9hGyqlnr5zob
-         A+aQ==
+        bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
+        b=L9ELt9MzP9RV8EyZKEdGuPdeIH+ICd3o7qbmaQNsHtm5g0hqAerf9yEJi208gnLS+n
+         HJuWFTdPQZy9PE34Rc9Q3NZLlbHhhxH1TC3EokVkOfr4BX6aAMwd3uKeT7SfnBskdK2A
+         hJovNitTYQhExMGo6puScHNPwGKXIVGjWqXzmHB9bZMdtS5t2lN367MGj2f5QtgkRFMn
+         5sKlLzoxfrSmg3AQaCFAmgTn6zPm9CyQP0YkxQvQEqHV4rRfcIczOzjmw8Fe5YFkHDtI
+         LQH0/dXzZy8gWc7gCtnV3o46lSrEiZtizMRgT1NDLOrATWFqvlqhloXm4PedfALtmY2v
+         Fm+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795651924; x=1796256724;
+        d=1e100.net; s=20260707; t=1795652161; x=1796256961;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=eh53HWlWeYqc22pkcThqRd+K0CvliST0uP4BTE7Y98w=;
-        b=V7TpaxxFImpvUsMMIAJ5cTaAZ3x2YzFiv2d0WdxkCGwggUK5Vqubh9z6UxR7IIkdZa
-         0cZrlsVgN1v1d5RxSHtPts4BBse4YUBI3iBy0u2Jqku63zhFcIde281UKJ7kSKWI5HaG
-         4WhO7lJHpD2lZ/rRWt+HmWb0lrb/YpgOHLxpQOK9hHyS7BB96yehrNhs0GGbbAPgOXID
-         +wJnaq0mz+iTQWq3J8JvwPC6T9dqjdYt1HME2REyLUgBfcyze4xEZmvW5eM+rxe+kHWG
-         bh4ioPozJ4UWtKCXY9r0HCJhVuMcDpAmsfkLc15MY27V61L9PY93KdqOeWpS6ENR0gXM
-         Px/A==
-X-Gm-Message-State: APuU4Z9pxYNYHuVbSNHzU9svEZO6y7Lnv3X+ayBd8GUPlHqpf6lJaEz9
-	Jeaqkc4qefawCZWjyQ6OLUpHZ+APXH/yocFL3WcDko6DVPSslxmY/wi5pFMOlZlGJA==
-X-Gm-Gg: AZFdTZcwb3aQGntC/5kszLnwb691R/Ba8tBDGOuOegbTVlxM+3iHGWkXcFI2nr7kI2t
-	MPkcblIu9/YOGC15vHvlfIihnj3Or5b97cg2HMUCAG9U9YaJH9rY5NKXhahL/mlTFgx44P6v0Ig
-	+brSlw5Z2b1kDG89S6RoWgEE3/MtDZXlR7a92jnxod5bYhgiIFUNqRZ37z71lwbMRZSbNiqdXie
-	1ULeHSdUvO7lIXkWtyCkYlgoF/r4aLxyL4SzyTzAEEyx6+uOA6VUiCK7lhmmD1cYzsXslFowgYA
-	ycSJjMmPCK5YTOJGGOINMZn2rJaLbioCUJIJDzeW0Hn9W5NmIbuHmqNl52/PqvRpeV99KXHvjje
-	GJRo0Btu8KJbJLlrb83VQJYz9Vc6nWfzONHJRSthv2CCZUpig+KGPKB5YKv4h96IY0ZF9Bac8BJ
-	UYs9fTjexfzjTXfzopI+6XWsbsXCFeOF+JnQ4ThSoYVlCKtJiujcRLl8B5N+GsU/x4F/rk5Xhmj
-	QVoRMSNlCF4KSJA3Mc5utVpO8zX0FneGNJYFxQQZNP3VQvOKmHtaOlvhXQ+sw6zquxoeyQiQIIS
-	x4t9yYcdWwORKcTzSU1eIJZ1q4qJu0qeciuA9/hIygAkQSRLIAYvByLwt5EyI492KlJP
-X-Received: by 2002:a05:7300:f789:b0:386:abe8:32b0 with SMTP id 5a478bee46e88-386abe835b7mr12918966eec.8.1795651923427;
-        Wed, 25 Nov 2026 16:12:03 -0800 (PST)
-Received: from p1.. (209-147-138-4.nat.asu.edu. [209.147.138.4])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-386b1965c02sm26216299eec.27.2026.11.25.16.12.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 16:12:02 -0800 (PST)
-From: Xiang Mei <xmei5@asu.edu>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@kernel.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Willem de Bruijn <willemb@google.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org,
-	co+85229ab197510ca7@bugs.sh,
-	Xiang Mei <xmei5@asu.edu>
-Subject: [PATCH nf] netfilter: nft_exthdr: pull the IPv6 header before ipv6_find_hdr()
-Date: Wed, 25 Nov 2026 17:11:51 -0700
-Message-ID: <20261126001151.13793-1-xmei5@asu.edu>
-X-Mailer: git-send-email 2.43.0
+        bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
+        b=WfDCl/Cy5NTtOwiHVOiS9KC3J770mm0HT5ATgII9gYdUB1+h0mPjT9Zbv7b3ee38v4
+         O/7m6SGzMUy2TJ1XKsRxZ1PXdtB50G9sOjGKEwCAAKDbnBF/RYPvuxU9mtoS1+jNu+3t
+         pk3J27dj5yAkxrofi8sDeVFbWh9YYWPdrkwwiJCbGFHe4AalqFFPQd8YQTtB2uoW2P0Z
+         LrPnB4UpiBfhieFUPil5FhTOGNr7van46jzOpVWdxIodsyXg0MK9sqjvPnHGB3g5vxrT
+         JpuOh7nvjZqQP9LHhbokNae9KaB/vcJPoPepcruCUmYtnP+wal7FrOff/pH2ykJ0urOX
+         gvTw==
+X-Gm-Message-State: APuU4Z95lLtZ10ErvMlxDL9mN2QE7OC7t59n+EKC/S2f/IWlt+FwsuHJ
+	FAl+66W4V/ZjHIAQ10IsxqBMKt6elIgLAM+hMR02KrTDtZ8kw9BfpJLgVt4Mu0S38ho0Lf6xQ6p
+	9TWXA2ao=
+X-Gm-Gg: AZFdTZcgGT9+lDQyj0SRfDLhzXfJN5kQ974cwL4jDG9K9b3xqbedG/mkQYWkffMfGQ/
+	esYXpOuSbdkY7Abu6SW9qKJ5wCzUobbf5gv5HPqyGd3s303soSHksKDQsrboQZFQCPZwhC1tGVE
+	LGrWa6wgs2cbxQW3z4wdGM7COPZmtzfr7xiNKurEJKBitHlsZLxdIPIook1omxypSLPWnniEJ6Z
+	nuIZwrQ+UQRvr5hDqyjlX7buPZkiWeMtTJuBXeTI9DX28NZqXEwTNDWYxJG3ugCnavX6BOYbHJk
+	j0CpWQlXFTelS7oGP99VY72hA5qe9GO6FCWWNUGFTAxyZg8mGSxME7M5ZUW9CuSJG8EY7H98tdE
+	e7aUdcq18/DYdoU74+O4V+PUw8HZOXerenn7rZtZzkl/MRz5mDRsyadBoRzyE+xbaV23aXcyE3i
+	LG+a1yIq11O0HTK6Y3T5gKt9eDGxcVPLLrx1VYcmwMYcXAWsPCid77MMk5uwm4uDcQZuIU7mGF7
+	VY6EQ6utmao5Ta4puvZ71JUs4bDN78hd6+eAJjCP34/DhhSoffU+YZlMQ0NhJKcw8bkK5YBwmEn
+	+9n1QendlfHhjNMDYHf2IzVwpFZyKb8gilu6ThX/oBq07+Z3Gobqr0CQBk1NTuvbBDq95ZI0IWd
+	cffPDjfjYhFNktupqM9dmsMnrSyJe6QHS
+X-Received: by 2002:a17:90b:2c86:b0:3ac:9c37:9430 with SMTP id 98e67ed59e1d1-3b41c9b2bbfmr18831032a91.21.1795652160935;
+        Wed, 25 Nov 2026 16:16:00 -0800 (PST)
+Received: from localhost.localdomain (174-21-130-235.tukw.qwest.net. [174.21.130.235])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b40a878d50sm32157818a91.11.2026.11.25.16.15.59
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Wed, 25 Nov 2026 16:16:00 -0800 (PST)
+From: Zach Loafman <zml@zml.net>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	Zach Loafman <zml@zml.net>
+Subject: [PATCH] netfilter: nft_dynset: check extension template errors
+Date: Wed, 25 Nov 2026 16:15:56 -0800
+Message-ID: <20261126001556.69645-1-zml@zml.net>
+X-Mailer: git-send-email 2.56.1
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -107,62 +98,99 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nft_exthdr_ipv6_eval() checks only skb->protocol before calling
-ipv6_find_hdr(), whose prologue reads ipv6_hdr(skb)->nexthdr from the
-linear area without a pull. The expression is usable from every family,
-and the netdev ingress hook does not normalise the skb: an 18-byte
-802.1Q frame with an ETH_P_IPV6 inner type has no IPv6 header, so the
-read lands past skb_tail_pointer(), and an AF_PACKET frame larger than a
-page leaves the header in frags, so it lands past skb_headlen(). With
-NFT_EXTHDR_F_PRESENT, it decides the result, and 256 "exthdr ipv6 type=T
-exists counter" rules hand it to an unprivileged user running in its own
-user and network namespace.
+nft_dynset_init() currently adds expressions before timeout metadata and
+ignores all nft_set_ext_add_length() errors.
 
-Raising the device headroom puts the skb head in kmalloc-1k. With freed
-struct net_bridge_port objects sprayed under it, a uid 1000 run on
-current mainline read back kernel-written data, byte 2 of
-WORK_STRUCT_NO_POOL in query_queue_work.data, and bits 16..23 of the
-query_queue.prev self-pointer, i.e. of direct-map heap addresses:
+For a map with 64-byte keys, 64-byte values and two packet-limit
+expressions, the template is 264 bytes long before timeout is added.  The
+timeout start therefore cannot be represented in the extension's u8
+offset and nft_set_ext_add_length() returns -EINVAL.  Ignoring this error
+leaves the timeout offset unset, so packet-created elements do not expire
+automatically.
 
-  read offset 570 = byte 2 of the 8-byte slot at 568
-    freed net_bridge_port (32 probes):
-      byte 0xe0 (224): 15/32
-  read offset 554 = byte 2 of the 8-byte slot at 552
-    freed net_bridge_port (32 probes):
-      byte 0x15 ( 21): 2/32
-      byte 0x21 ( 33): 2/32
-      byte 0x59 ( 89): 1/32
-      byte 0xb2 (178): 2/32
-      byte 0xc3 (195): 1/32
-      byte 0xd8 (216): 2/32
-      ...
+Add timeout before expressions, as the control-plane element constructor
+does.  This places timeout at offset 144 and expressions at offset 160; the
+resulting 280-byte total remains valid because only individual extension
+starts and lengths are u8.  Propagate errors from every template builder so
+layouts rejected by those builders fail construction and use the existing
+expression unwind.
 
-Pull the header before the call, as act_ct, virtio_net_hdr_to_skb() and
-nft_set_pktinfo_ipv6_ingress() already do. For the ipv6 and inet
-families ipv6_rcv() has already pulled it, so this is a length check.
+With a 30-second default set timeout, a raw nfnetlink reproducer creates
+the rule and inserts elements on both the unpatched and patched kernels.
+The unpatched element dump lacks EXPIRATION; the patched dump includes it.
+The missing extension also prevents the element from expiring during
+normal set expiration and garbage collection.
 
-Cc: stable@vger.kernel.org
-Fixes: 96518518cc41 ("netfilter: add nftables")
-Reported-by: co+85229ab197510ca7@bugs.sh
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
+This fixes incorrect element lifetime and resource retention.  No
+memory-safety primitive has been identified.
+
+Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
+Signed-off-by: Zach Loafman <zml@zml.net>
+
 ---
- net/netfilter/nft_exthdr.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nft_dynset.c | 33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index 861bab93f435..a7c2f7553af8 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -52,7 +52,8 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
- 	unsigned int offset = 0;
- 	int err;
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index fa4da694e92d..8fc2ec2212f4 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -120,7 +120,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
+ }
  
--	if (pkt->skb->protocol != htons(ETH_P_IPV6))
-+	if (pkt->skb->protocol != htons(ETH_P_IPV6) ||
-+	    !pskb_network_may_pull(pkt->skb, sizeof(struct ipv6hdr)))
- 		goto err;
+-static void nft_dynset_ext_add_expr(struct nft_dynset *priv)
++static int nft_dynset_ext_add_expr(struct nft_dynset *priv)
+ {
+ 	u8 size = 0;
+ 	int i;
+@@ -128,8 +128,8 @@ static void nft_dynset_ext_add_expr(struct nft_dynset *priv)
+ 	for (i = 0; i < priv->num_exprs; i++)
+ 		size += priv->expr_array[i]->ops->size;
  
- 	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
+-	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPRESSIONS,
+-			       sizeof(struct nft_set_elem_expr) + size);
++	return nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPRESSIONS,
++				      sizeof(struct nft_set_elem_expr) + size);
+ }
+ 
+ static struct nft_expr *
+@@ -317,16 +317,29 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ 	}
+ 
+ 	nft_set_ext_prepare(&priv->tmpl);
+-	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
+-	if (set->flags & NFT_SET_MAP)
+-		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA, set->dlen);
++	err = nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
++	if (err < 0)
++		goto err_expr_free;
+ 
+-	if (priv->num_exprs)
+-		nft_dynset_ext_add_expr(priv);
++	if (set->flags & NFT_SET_MAP) {
++		err = nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA,
++					     set->dlen);
++		if (err < 0)
++			goto err_expr_free;
++	}
+ 
+ 	if (set->flags & NFT_SET_TIMEOUT &&
+-	    (timeout || READ_ONCE(set->timeout)))
+-		nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
++	    (timeout || READ_ONCE(set->timeout))) {
++		err = nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
++		if (err < 0)
++			goto err_expr_free;
++	}
++
++	if (priv->num_exprs) {
++		err = nft_dynset_ext_add_expr(priv);
++		if (err < 0)
++			goto err_expr_free;
++	}
+ 
+ 	priv->timeout = timeout;
+ 
 -- 
-2.43.0
-
+2.52.0
