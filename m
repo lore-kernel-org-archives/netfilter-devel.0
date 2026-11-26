@@ -1,48 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=95.215.58.112
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795679268;
-	b=kgU6lean7+N+K9MiLklQ5XX/Z6iXzt5GDyxmZbNtyyizZvhydn4GKy2S061myM6nZ4uQ
-	 6rsGyNHvkmS8h/qRKOZRIDo4ZRz3sSzg+uCukp/PpY1Y6TL9DIH226U8/dfbu+d03T9Es
-	 0wBXH/oqYww9FSpFYecUK7xans+U/cY2HtHfACsqClbJxzr2XiHZ10Yx5nS5AQXhbVx3l
-	 0gPGhEy1SDkuu96mjgS3KmJOz7MAlZo5asgeYX69NxvxRDt4Kr9JfFF5ujwd7/vPWdMBb
-	 gicGhgE21sYqycrFX31I1oQ0ljIA9OQcJjz3AhqX/p/C/kqUlQTTy0kocDA17kPwqGg==
+	t=1795682890;
+	b=U5ak7zSwmiI9pWsNgUTCfAFT4qErv5om1ZuMWJR1UNb+Kf0D6fLnVFhqxg6uoRMQNAH7
+	 b6N8+Ab5/Fw4AO/kMdypKvyQ9rqacpRmJevNkUWB/VNPXZOILFUaIK7k+4kUr0DVuWAfg
+	 b3eD1AvjJEndbsnb1Rztd6YPPTVtHsoovtCMcWIHfQuB3q8O6kSdLhhgJfM1SKs1USsab
+	 iComYfTQcXY+qC4s/x1Xjv89k3WmL5Vl42JGLA+754ZDLugGm6Hgj2cxTylgRdKJInddO
+	 VFFqcg4bUUYs+1FVURqWbNFYrplnRlL60BPJ+Sarm2ynACvlHLKkvVNLtrg510qNXZw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795679268;
-	h=DMARC-Filter:Received:Date:From:To:Cc:Subject:Message-ID:References:
-	 MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=svC97d9nXvrKFk98bFnGJPyLh/4BeFzvRG8enrXb2Bs=;
-	b=4mAmEfEkV/JHr9JPiyyISiOvQDPymbBP+MFKDZDPRiTrO1YEbaSfjRusVfGcbftwwF6l
-	 88eznieJ7g838mz+vjInkVfO3tKgCzF0v3w6yhkjhkMPtcNGHq/ZjABfFAjk/jwidTHHO
-	 DBcTY3hTtYvTV22WN+OP2fFXC+sH98sbpYLI/sH+vFIYk6EvPPna5eI5D5JrwSfP1F/zv
-	 9bYxAvTjj0lJt9ZIv3zF6sP70nF+AB/9RlNM92/YR7vGEW+3VePVHrRWAKBWxzTyUSxy5
-	 B8cVgv6xQkzh5zCJA4YTvp1VEQs0do6woPbPKn8RiM+jcahmBa9KrsDuGspYhXJA1fQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795682890;
+	h=DMARC-Filter:X-Envelope-To:DKIM-Signature:X-Envelope-To:Received:
+	 X-Mizu-Trace-ID:X-Migadu-Flow:MIME-Version:Date:Content-Type:
+	 Content-Transfer-Encoding:From:Message-ID:TLS-Required:Subject:To:Cc:
+	 In-Reply-To:References;
+	bh=eEqrglkqWiQv9ByDl8q6YHM+PPnMMtPyGy7NziGSOCE=;
+	b=Z6d739rrtjERHZhRrWUkV4xW4vIqpulbwvRalMT2F8fiNtcjcnSdperPTvDyUWrPhk9F
+	 6eca80kpNAMTvVKKUyf+0hJ0BWsTKynra/BqV+fDYYvl/oGv32Eq4nss7qhSxFdmIZ0GJ
+	 vFWwt9nDoMZJ+r4tbyCpN8Wm3BfKz1mu080FmebU6/NB4kKuRe2nbBrFbM7dkyqUysMcQ
+	 xHd+04ZtGc4PJk3Ihaeg2bN549MpyQ/yDdn65liQs+wiPiOWvbyVBrS6QVKq1l5GX5ORI
+	 Hx/9c7C1ArokmV77uVeXG/CUbKIcnXHKtGmwXHPsndwdIVQ4ttnC13DBhtWzJOuOXQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=strlen.de;
-	spf=pass smtp.mailfrom=strlen.de;
-	arc=none smtp.remote-ip=91.216.245.30
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=linux.dev;
+	spf=pass smtp.mailfrom=linux.dev;
+	dkim=pass header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=NoJtdc7e;
+	arc=none smtp.remote-ip=95.215.58.112
+Received: from mta1.migadu.com (out-112.mta1.migadu.com [95.215.58.112])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13018606A31C;
-	Thu, 26 Nov 2026 07:47:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 13018606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 97B7860218; Thu, 26 Nov 2026 08:47:44 +0100 (CET)
-Date: Thu, 26 Nov 2026 08:47:43 +0100
-From: Florian Westphal <fw@strlen.de>
-To: netdev-bot+sashiko@kernel.org
-Cc: theodorlarionov@gmail.com, davem@davemloft.net, edumazet@kernel.org,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	pablo@netfilter.org, phil@nwl.cc, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH net v3 1/2] netfilter: nf_dup: do not duplicate packets
- from br_netfilter
-Message-ID: <awfkH91UCnwcR2xO@strlen.de>
-References: <20261124163358.755345-2-theodorlarionov@gmail.com>
- <179567851468.3135.1445286719198754408@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9EE0606A336
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 08:48:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D9EE0606A336
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux.dev header.i=@linux.dev header.a=rsa-sha256 header.s=key1 header.b=NoJtdc7e
+X-Envelope-To: netfilter-devel@vger.kernel.org
+DKIM-Signature: a=rsa-sha256; bh=WzPAXzKv5qNfueG+8GIA/dCl0/+muC6HE/6UOijGqYY=;
+ c=simple/simple; d=linux.dev;
+ h=from:to:subject:date:message-id:mime-version:content-type; s=key1;
+ t=1795682888; v=1; x=1796287688;
+ b=NoJtdc7eHcyjs0Gk2e+oksFBOH6DdHwmMxLokBqwbEPNc6bCNY6l4Hi8Z/XBHHbpCSwakxn5
+ Rl5EVvNk/AKV9yLLBGN0gtsePes7OiB/95gsXHQCJ1O5KM+9/kVx1AnWaCL8y1gfXw0lG7NG2do
+ qMUHkLES9nTAO0Zd5Dn7Q9U8=
+X-Envelope-To: netfilter-devel@vger.kernel.org
+Received: by smtp.migadu.com with ESMTPS id 5446df3b68f9b5ae;
+	Thu, 26 Nov 2026 08:48:07 +0000
+X-Mizu-Trace-ID: 5446df3b68f9b5ae
+X-Migadu-Flow: FLOW_OUT
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -52,24 +56,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <179567851468.3135.1445286719198754408@kernel.org>
+Date: Thu, 26 Nov 2026 08:48:07 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+From: gang.yan@linux.dev
+Message-ID: <133c1ca98af6beb48c0db1e6bb539a2a76ccda49@linux.dev>
+TLS-Required: No
+Subject: Re: [PATCH net-next v1 0/6] net: avoid stack canaries in TCP/IPv4
+ fast paths
+To: "Xuanqiang Luo" <xuanqiang.luo@linux.dev>, netdev@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, "Eric Dumazet"
+ <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>, "Paolo Abeni"
+ <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>, "Alexei
+ Starovoitov" <ast@kernel.org>, "Daniel Borkmann" <daniel@iogearbox.net>,
+ "John Fastabend" <john.fastabend@gmail.com>, "Andrii Nakryiko"
+ <andrii@kernel.org>, "Eduard Zingerman" <eddyz87@gmail.com>, "Kumar
+ Kartikeya Dwivedi" <memxor@gmail.com>, "Martin KaFai Lau"
+ <martin.lau@linux.dev>, "Song Liu" <song@kernel.org>, "Yonghong Song"
+ <yonghong.song@linux.dev>, "Jiri Olsa" <jolsa@kernel.org>, "Emil
+ Tsalapatis" <emil@etsalapatis.com>, "Ihor Solodrai"
+ <ihor.solodrai@linux.dev>, "Matthieu Baerts" <matttbe@kernel.org>, "Mat
+ Martineau" <martineau@kernel.org>, "Geliang Tang" <geliang@kernel.org>,
+ "David Ahern" <dsahern@kernel.org>, "Ido Schimmel" <idosch@nvidia.com>,
+ "Stanislav Fomichev" <sdf@fomichev.me>, "Neal Cardwell"
+ <ncardwell@google.com>, "Kuniyuki Iwashima" <kuniyu@google.com>, "Pablo
+ Neira Ayuso" <pablo@netfilter.org>, "Florian Westphal" <fw@strlen.de>,
+ "Phil Sutter" <phil@nwl.cc>, bpf@vger.kernel.org,
+ linux-kernel@vger.kernel.org, mptcp@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, "Xuanqiang Luo"
+ <luoxuanqiang@kylinos.cn>
+In-Reply-To: <20261124130631.1886963-1-xuanqiang.luo@linux.dev>
+References: <20261124130631.1886963-1-xuanqiang.luo@linux.dev>
 
-netdev-bot+sashiko@kernel.org <netdev-bot+sashiko@kernel.org> wrote:
-> [Severity: Medium]
-> Does this turn off TEE and nft dup completely for any packet that has
-> passed through br_netfilter?
-> 
-> The check runs on the original skb before pskb_copy(). With
-> bridge-nf-call-iptables or bridge-nf-call-ip6tables enabled, a rule like
-> this one no longer sends any copy:
-> 
->   iptables -t mangle -A PREROUTING -m physdev --physdev-in X \
->            -j TEE --gateway G
+November 24, 2026 at 9:06 PM, "Xuanqiang Luo" <xuanqiang.luo@linux.dev ma=
+ilto:xuanqiang.luo@linux.dev?to=3D%22Xuanqiang%20Luo%22%20%3Cxuanqiang.lu=
+o%40linux.dev%3E > wrote:
 
-AI is right BUT I think this 'breakage' is good.
-We should absolutely start to break these use cases, little by little.
 
-I intend to remove nfqueue support for br_netfilter, for instance.
-I hope we can remove the entire br_netfilter module by summer 2027.
+>=20
+>=20From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+>=20
+>=20With CONFIG_STACKPROTECTOR_STRONG=3Dy, a function that has a local ar=
+ray or
+> passes the address of one of its locals to another function needs a sta=
+ck
+> canary. The canary is set up and checked on every call, also when the
+> local is only used on a path that almost never runs.
+>=20
+>=20This series removes the canary from functions of the TCP/IPv4 fast pa=
+ths,
+> by returning results by value, by using storage that is not on the stac=
+k,
+> or by not calling a function that has nothing to do.
+>=20
+>=20Patch 1 returns the two mptcp_space() values in a structure, so that
+> __tcp_select_window() no longer needs a canary.
+>=20
+>=20Patch 2 changes ip_neigh_gw4() to take a pointer to the address, like
+> ip_neigh_gw6(), so that ip_finish_output2() no longer needs a canary.
+>=20
+>=20Patch 3 uses pskb_may_pull() in icmp_filter(), so that
+> raw_local_deliver() no longer needs a canary.
+>=20
+>=20Patch 4 turns skb_try_coalesce() into an inline wrapper over a functi=
+on
+> returning its results by value, so that its callers no longer need a
+> canary because of it.
+>=20
+>=20Patch 5 returns the result of the TCP receive coalescing by value, so
+> that tcp_rcv_established() and tcp_data_queue() no longer need a canary=
+.
+>=20
+>=20Patch 6 calls bpf_skops_write_hdr_opt(), which needs a canary, only i=
+f a
+> BPF program reserved room for TCP options.
+>=20
+>=20The bloat-o-meter numbers are from gcc 16.2 on x86_64. The functions
+> named in patches 1 to 5 also lose their canary with clang 23.1.6 on
+> x86_64, with and without ThinLTO, and on arm64.
+>=20
+
+Hi=20Xuanqiang,
+
+Thanks for this series. Besides the code size, do you have any runtime pe=
+rf
+numbers (TCP_RR, cycles per packet...)? I think it may help the maintaine=
+rs
+judge the real gain.
+
+Thanks
+Gang
+
+> Xuanqiang Luo (6):
+>  tcp: avoid a stack canary in __tcp_select_window()
+>  ipv4: avoid a stack canary in ip_finish_output2()
+>  ipv4: raw: do not use skb_header_pointer() in icmp_filter()
+>  net: avoid stack canaries in skb_try_coalesce() callers
+>  tcp: avoid a stack canary in tcp_rcv_established()
+>  tcp: do not call bpf_skops_write_hdr_opt() unless needed
+>=20
+>=20 include/linux/filter.h | 2 +-
+>  include/linux/skbuff.h | 35 ++++++++++-
+>  include/net/mptcp.h | 13 ++++-
+>  include/net/route.h | 16 +++---
+>  net/core/filter.c | 2 +-
+>  net/core/skbuff.c | 50 ++++++++--------
+>  net/ipv4/raw.c | 25 ++++----
+>  net/ipv4/route.c | 15 +++--
+>  net/ipv4/tcp_input.c | 99 +++++++++++++++++---------------
+>  net/ipv4/tcp_output.c | 25 ++++----
+>  net/mptcp/subflow.c | 9 ++-
+>  net/netfilter/nf_flow_table_ip.c | 4 +-
+>  12 files changed, 178 insertions(+), 117 deletions(-)
+>=20
+>=20base-commit: a4c450594f5d1dc0fc4daacfb95d40554d99dead
+> --=20
+>=202.43.0
+>
