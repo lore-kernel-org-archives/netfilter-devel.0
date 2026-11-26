@@ -1,92 +1,67 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.48
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795652162;
-	b=OKHQJTd0HOLu4wTrxpLHAgDFNN9aRaEGnGc5UWdFaRqd2K5sGDBVNNykP9M90vzTizHV
-	 xUL7NcdDrdDa4mKwGz8biTNTpPkHWxv/ZBRo6+KQP/A5vdSCPcz3Uu1KFHBQM6rpF1Lh1
-	 GGSCnh9VzNw1RLVKbvDcigj4cZlt0RwWX5k293GJAam5Jqyb8Do7aw0OEevDrSPNXuL86
-	 ExctRvLWdb0v50w5SAMcuJ/UhZkamNs+clE/bLiFKr3+DTXCOgJ/J4w1TX4DHU4w2d/jx
-	 R0S3QvGHq8y2uZokKTf5EurO4ltWnHl5Qjw13cdqgmBpN+y6r9UmJ8zYpbdyScgtYSw==
+	t=1795653004;
+	b=O73G0k9T57kVhQaRno/FAsBRljfwch5ljPBi+iHY7ZgBH9f0T9D1SoPj+yYTPVxmbN4J
+	 VBJtK+LUUUysDvH4quY4De3TxVA/ADzOWkTIMzZH61OtfoM1FATXjdWTBCoko0b/yeNpO
+	 SFl0WOZnuVFitfbboCZ/j41SQIp3N+3Jb6sscFM380cazlYw+YnZl+/ybQA3+WijA1NC2
+	 D1PSaDQ/BjyLV3M7SumZrAcZZqzcZxZ5g4ntkc/wPgl5MOBdF6KUlqQNTE7k38Kn97+p+
+	 ynXF741rOK+PfsXHWU9U4pB9Gk6//hCFLTL3nmRoC9YD3vT9A4+UydhdV4ej0RZKNXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795652162;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
-	b=PhV7UEt61HkUz5HCkUuxNfiCBP8pJikVQ9JB4y3G3fM9XSnjXlO5ucRBGcB+wKAdyLz2
-	 yR/8oae4cYNUCEPVHkQVBGY/3/2g1P5ClmoFltbl1dAfOzVs3SfQnCccxQYS/bREczb4b
-	 6o7gh59yQgLG4HEFGXU/IIWwmv8ufdjxwDzvaNMh7tQ4ztOz6wqycvib/P7my0AvfHkhU
-	 YRwE2ejLVl9ANUPENvbs2WavsnIe64POIWInGvvEuAbgl+3S2IpwmY4MJnncIM8BIM+Xb
-	 zCtQOlRQMkYA9tLeKi6ahAY5upmyC+M8sfrn6MHwyAknxra2kpXGFHGOKTVyxZTC/gw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795653004;
+	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
+	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
+	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
+	bh=EUm/LkC3y6aNyJgPXiAzr8Ej6L+SfXrNHTH4HEx0xMs=;
+	b=glXsb5RogvStNgbTN2qV3LGEVwuDYO4l6ZMhPP/QiMqM3thM/iGQ+XhkBsNNAQzyfHei
+	 VF2b7YgAX6OoQxEyXT7qGGj31dIRs0A/qJeQBG0K3aaCqFCmB9+RcPTvQU6vJzFbDpHDi
+	 Ihuo/OkAfoeZuk0GD5TcOpWWQaMw6CgJ0gN3P5i+9xmKwXRod0K1bFukSEUMF1VRl/kSH
+	 yXjtts+zNFPQ1mjObf1KmcVnHkKmc7RoxXv2s/67OuS2WHfuKPoQYxKUgc2fVhbkAlopW
+	 1N9ah2/KJs2x/dErZ4BzZ2tMLd3ZpdLvONZBFf+I9Kh6M9soVLsrj9dxDGzxPeghJzA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=zml.net;
-	spf=pass smtp.mailfrom=zml.net;
-	dkim=pass header.d=zml.net header.i=@zml.net header.a=rsa-sha256 header.s=google header.b=L9ELt9Mz;
-	arc=none smtp.remote-ip=209.85.216.48
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=netfilter.org;
+	spf=pass smtp.mailfrom=netfilter.org;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Izd6fL2m;
+	arc=none smtp.remote-ip=217.70.190.124
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2F7F606A321
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 00:16:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A2F7F606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zml.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zml.net
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 9C0DD606A31E;
+	Thu, 26 Nov 2026 00:30:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C0DD606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=zml.net header.i=@zml.net header.a=rsa-sha256 header.s=google header.b=L9ELt9Mz
-Received: by mail-pj1-f48.google.com with SMTP id 98e67ed59e1d1-3b487f44ee0so2477108a91.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2026 16:16:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=zml.net; s=google; t=1795652161; x=1796256961; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
-        b=L9ELt9MzP9RV8EyZKEdGuPdeIH+ICd3o7qbmaQNsHtm5g0hqAerf9yEJi208gnLS+n
-         HJuWFTdPQZy9PE34Rc9Q3NZLlbHhhxH1TC3EokVkOfr4BX6aAMwd3uKeT7SfnBskdK2A
-         hJovNitTYQhExMGo6puScHNPwGKXIVGjWqXzmHB9bZMdtS5t2lN367MGj2f5QtgkRFMn
-         5sKlLzoxfrSmg3AQaCFAmgTn6zPm9CyQP0YkxQvQEqHV4rRfcIczOzjmw8Fe5YFkHDtI
-         LQH0/dXzZy8gWc7gCtnV3o46lSrEiZtizMRgT1NDLOrATWFqvlqhloXm4PedfALtmY2v
-         Fm+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795652161; x=1796256961;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=bnDcNGUSqKodEMXSYy83GbqNhBxNVu8NV3IpVzubDGU=;
-        b=WfDCl/Cy5NTtOwiHVOiS9KC3J770mm0HT5ATgII9gYdUB1+h0mPjT9Zbv7b3ee38v4
-         O/7m6SGzMUy2TJ1XKsRxZ1PXdtB50G9sOjGKEwCAAKDbnBF/RYPvuxU9mtoS1+jNu+3t
-         pk3J27dj5yAkxrofi8sDeVFbWh9YYWPdrkwwiJCbGFHe4AalqFFPQd8YQTtB2uoW2P0Z
-         LrPnB4UpiBfhieFUPil5FhTOGNr7van46jzOpVWdxIodsyXg0MK9sqjvPnHGB3g5vxrT
-         JpuOh7nvjZqQP9LHhbokNae9KaB/vcJPoPepcruCUmYtnP+wal7FrOff/pH2ykJ0urOX
-         gvTw==
-X-Gm-Message-State: APuU4Z95lLtZ10ErvMlxDL9mN2QE7OC7t59n+EKC/S2f/IWlt+FwsuHJ
-	FAl+66W4V/ZjHIAQ10IsxqBMKt6elIgLAM+hMR02KrTDtZ8kw9BfpJLgVt4Mu0S38ho0Lf6xQ6p
-	9TWXA2ao=
-X-Gm-Gg: AZFdTZcgGT9+lDQyj0SRfDLhzXfJN5kQ974cwL4jDG9K9b3xqbedG/mkQYWkffMfGQ/
-	esYXpOuSbdkY7Abu6SW9qKJ5wCzUobbf5gv5HPqyGd3s303soSHksKDQsrboQZFQCPZwhC1tGVE
-	LGrWa6wgs2cbxQW3z4wdGM7COPZmtzfr7xiNKurEJKBitHlsZLxdIPIook1omxypSLPWnniEJ6Z
-	nuIZwrQ+UQRvr5hDqyjlX7buPZkiWeMtTJuBXeTI9DX28NZqXEwTNDWYxJG3ugCnavX6BOYbHJk
-	j0CpWQlXFTelS7oGP99VY72hA5qe9GO6FCWWNUGFTAxyZg8mGSxME7M5ZUW9CuSJG8EY7H98tdE
-	e7aUdcq18/DYdoU74+O4V+PUw8HZOXerenn7rZtZzkl/MRz5mDRsyadBoRzyE+xbaV23aXcyE3i
-	LG+a1yIq11O0HTK6Y3T5gKt9eDGxcVPLLrx1VYcmwMYcXAWsPCid77MMk5uwm4uDcQZuIU7mGF7
-	VY6EQ6utmao5Ta4puvZ71JUs4bDN78hd6+eAJjCP34/DhhSoffU+YZlMQ0NhJKcw8bkK5YBwmEn
-	+9n1QendlfHhjNMDYHf2IzVwpFZyKb8gilu6ThX/oBq07+Z3Gobqr0CQBk1NTuvbBDq95ZI0IWd
-	cffPDjfjYhFNktupqM9dmsMnrSyJe6QHS
-X-Received: by 2002:a17:90b:2c86:b0:3ac:9c37:9430 with SMTP id 98e67ed59e1d1-3b41c9b2bbfmr18831032a91.21.1795652160935;
-        Wed, 25 Nov 2026 16:16:00 -0800 (PST)
-Received: from localhost.localdomain (174-21-130-235.tukw.qwest.net. [174.21.130.235])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b40a878d50sm32157818a91.11.2026.11.25.16.15.59
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 25 Nov 2026 16:16:00 -0800 (PST)
-From: Zach Loafman <zml@zml.net>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	Zach Loafman <zml@zml.net>
-Subject: [PATCH] netfilter: nft_dynset: check extension template errors
-Date: Wed, 25 Nov 2026 16:15:56 -0800
-Message-ID: <20261126001556.69645-1-zml@zml.net>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Izd6fL2m
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1795652995;
+	bh=EUm/LkC3y6aNyJgPXiAzr8Ej6L+SfXrNHTH4HEx0xMs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Izd6fL2mBUmuctoei67NbT31zbp+xSnNkNcm/T3qw9QCdyme7/d33jOV6LXzZJLTi
+	 1Juf4i3FRgpu9VJon9Jmun5osfe9T/O/0FAgxXmOMm//up9mgu8+yjYTUl7BYmtOLi
+	 W1WSjOj5c0Un8tkAkA/yYGlb6KpGwmTgsmb3BGQYAVNxNehKtZWS64/kg2JiBy4ry+
+	 XCDRhLhAw1MXAUafrlkcLFQx9nMy6SWNiObqTueuV3bx6kpuhVUIbW9b93GWqUb0WS
+	 I0sdVIPv+6AtokYUvQkdMZ27gUo+T8YmcgAwK5qUA8cYbHR3uJLxZOHLud8OYlqcoj
+	 R7iR5P+hYxVig==
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D7E2660056;
+	Thu, 26 Nov 2026 01:29:54 +0100 (CET)
+Date: Thu, 26 Nov 2026 01:29:51 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Xiang Mei <xmei5@asu.edu>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Willem de Bruijn <willemb@google.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	co+85229ab197510ca7@bugs.sh
+Subject: Re: [PATCH nf] netfilter: nft_exthdr: pull the IPv6 header before
+ ipv6_find_hdr()
+Message-ID: <awd9f47inahmDWRP@chamomile>
+References: <20261126001151.13793-1-xmei5@asu.edu>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -96,101 +71,80 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20261126001151.13793-1-xmei5@asu.edu>
 
-nft_dynset_init() currently adds expressions before timeout metadata and
-ignores all nft_set_ext_add_length() errors.
+On Wed, Nov 25, 2026 at 05:11:51PM -0700, Xiang Mei wrote:
+> nft_exthdr_ipv6_eval() checks only skb->protocol before calling
+> ipv6_find_hdr(), whose prologue reads ipv6_hdr(skb)->nexthdr from the
+> linear area without a pull. The expression is usable from every family,
+> and the netdev ingress hook does not normalise the skb: an 18-byte
+> 802.1Q frame with an ETH_P_IPV6 inner type has no IPv6 header,
 
-For a map with 64-byte keys, 64-byte values and two packet-limit
-expressions, the template is 264 bytes long before timeout is added.  The
-timeout start therefore cannot be represented in the extension's u8
-offset and nft_set_ext_add_length() returns -EINVAL.  Ignoring this error
-leaves the timeout offset unset, so packet-created elements do not expire
-automatically.
+Are you referring to a skbuff with vlan offload or with the vlan tag
+in the payload?
 
-Add timeout before expressions, as the control-plane element constructor
-does.  This places timeout at offset 144 and expressions at offset 160; the
-resulting 280-byte total remains valid because only individual extension
-starts and lengths are u8.  Propagate errors from every template builder so
-layouts rejected by those builders fail construction and use the existing
-expression unwind.
+netdev calls pskb_may_pull() to ensure the IPv6 header is linear.
 
-With a 30-second default set timeout, a raw nfnetlink reproducer creates
-the rule and inserts elements on both the unpatched and patched kernels.
-The unpatched element dump lacks EXPIRATION; the patched dump includes it.
-The missing extension also prevents the element from expiring during
-normal set expiration and garbage collection.
+Then, this only works with the skb->protocol check on IPv6.
 
-This fixes incorrect element lifetime and resource retention.  No
-memory-safety primitive has been identified.
+I find these text generated by LLM of very low quality for a human to
+understand.
 
-Fixes: 48b0ae046ee9 ("netfilter: nftables: netlink support for several set element expressions")
-Signed-off-by: Zach Loafman <zml@zml.net>
-
----
- net/netfilter/nft_dynset.c | 33 +++++++++++++++++++++++----------
- 1 file changed, 23 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index fa4da694e92d..8fc2ec2212f4 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -120,7 +120,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 		regs->verdict.code = NFT_BREAK;
- }
- 
--static void nft_dynset_ext_add_expr(struct nft_dynset *priv)
-+static int nft_dynset_ext_add_expr(struct nft_dynset *priv)
- {
- 	u8 size = 0;
- 	int i;
-@@ -128,8 +128,8 @@ static void nft_dynset_ext_add_expr(struct nft_dynset *priv)
- 	for (i = 0; i < priv->num_exprs; i++)
- 		size += priv->expr_array[i]->ops->size;
- 
--	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPRESSIONS,
--			       sizeof(struct nft_set_elem_expr) + size);
-+	return nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPRESSIONS,
-+				      sizeof(struct nft_set_elem_expr) + size);
- }
- 
- static struct nft_expr *
-@@ -317,16 +317,29 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	}
- 
- 	nft_set_ext_prepare(&priv->tmpl);
--	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
--	if (set->flags & NFT_SET_MAP)
--		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA, set->dlen);
-+	err = nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
-+	if (err < 0)
-+		goto err_expr_free;
- 
--	if (priv->num_exprs)
--		nft_dynset_ext_add_expr(priv);
-+	if (set->flags & NFT_SET_MAP) {
-+		err = nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA,
-+					     set->dlen);
-+		if (err < 0)
-+			goto err_expr_free;
-+	}
- 
- 	if (set->flags & NFT_SET_TIMEOUT &&
--	    (timeout || READ_ONCE(set->timeout)))
--		nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
-+	    (timeout || READ_ONCE(set->timeout))) {
-+		err = nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_TIMEOUT);
-+		if (err < 0)
-+			goto err_expr_free;
-+	}
-+
-+	if (priv->num_exprs) {
-+		err = nft_dynset_ext_add_expr(priv);
-+		if (err < 0)
-+			goto err_expr_free;
-+	}
- 
- 	priv->timeout = timeout;
- 
--- 
-2.52.0
+> so the read lands past skb_tail_pointer(), and an AF_PACKET frame
+> larger than a page leaves the header in frags, so it lands past
+> skb_headlen().
+>
+> With NFT_EXTHDR_F_PRESENT, it decides the result, and
+> 256 "exthdr ipv6 type=T exists counter" rules hand it to an
+> unprivileged user running in its own user and network namespace.
+> 
+> Raising the device headroom puts the skb head in kmalloc-1k. With freed
+> struct net_bridge_port objects sprayed under it, a uid 1000 run on
+> current mainline read back kernel-written data, byte 2 of
+> WORK_STRUCT_NO_POOL in query_queue_work.data, and bits 16..23 of the
+> query_queue.prev self-pointer, i.e. of direct-map heap addresses:
+> 
+>   read offset 570 = byte 2 of the 8-byte slot at 568
+>     freed net_bridge_port (32 probes):
+>       byte 0xe0 (224): 15/32
+>   read offset 554 = byte 2 of the 8-byte slot at 552
+>     freed net_bridge_port (32 probes):
+>       byte 0x15 ( 21): 2/32
+>       byte 0x21 ( 33): 2/32
+>       byte 0x59 ( 89): 1/32
+>       byte 0xb2 (178): 2/32
+>       byte 0xc3 (195): 1/32
+>       byte 0xd8 (216): 2/32
+>       ...
+> 
+> Pull the header before the call, as act_ct, virtio_net_hdr_to_skb() and
+> nft_set_pktinfo_ipv6_ingress() already do. For the ipv6 and inet
+> families ipv6_rcv() has already pulled it, so this is a length check.
+> 
+> Cc: stable@vger.kernel.org
+> Fixes: 96518518cc41 ("netfilter: add nftables")
+> Reported-by: co+85229ab197510ca7@bugs.sh
+> Signed-off-by: Xiang Mei <xmei5@asu.edu>
+> ---
+>  net/netfilter/nft_exthdr.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+> index 861bab93f435..a7c2f7553af8 100644
+> --- a/net/netfilter/nft_exthdr.c
+> +++ b/net/netfilter/nft_exthdr.c
+> @@ -52,7 +52,8 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
+>  	unsigned int offset = 0;
+>  	int err;
+>  
+> -	if (pkt->skb->protocol != htons(ETH_P_IPV6))
+> +	if (pkt->skb->protocol != htons(ETH_P_IPV6) ||
+> +	    !pskb_network_may_pull(pkt->skb, sizeof(struct ipv6hdr)))
+>  		goto err;
+>  
+>  	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
+> -- 
+> 2.43.0
+> 
