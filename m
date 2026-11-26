@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.70.190.124
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795653004;
-	b=O73G0k9T57kVhQaRno/FAsBRljfwch5ljPBi+iHY7ZgBH9f0T9D1SoPj+yYTPVxmbN4J
-	 VBJtK+LUUUysDvH4quY4De3TxVA/ADzOWkTIMzZH61OtfoM1FATXjdWTBCoko0b/yeNpO
-	 SFl0WOZnuVFitfbboCZ/j41SQIp3N+3Jb6sscFM380cazlYw+YnZl+/ybQA3+WijA1NC2
-	 D1PSaDQ/BjyLV3M7SumZrAcZZqzcZxZ5g4ntkc/wPgl5MOBdF6KUlqQNTE7k38Kn97+p+
-	 ynXF741rOK+PfsXHWU9U4pB9Gk6//hCFLTL3nmRoC9YD3vT9A4+UydhdV4ej0RZKNXA==
+	t=1795653557;
+	b=FYDRhCIvJiXhwbkYuABwZfOYHsT6IOw+UVDJ2aZNaZZbDz7UR7XFkklgRbY92HYlfCgO
+	 t0S2dxJZt0JCc6aXlr8ICWRe+7mQKMyBZbjijzPgZxls6mGZ1pkdNN73m87sA3I0Bhwgg
+	 P0+ZWz4O2+xp0yoXE3r/X5kd5Qw/Pv7Q6lpyZuFSRuMtJplSHJfwlStGUQKvOIPyIxQ+3
+	 DN8j3wBxSxHj+uJFIwAjeFgGge5z7I4SDnUAd6rOHYmus2ysqlhb+9CDzwy6y3HkfaUmD
+	 OX5ZNq5a3cZANtbykJCsLdIBA2ZdoaDcnNAie/+lOq9GAMwPS2m+agh0QqQFQDSkYlw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795653004;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795653557;
 	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
 	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
 	 In-Reply-To:X-Spam-Status:X-Spam-Checker-Version;
-	bh=EUm/LkC3y6aNyJgPXiAzr8Ej6L+SfXrNHTH4HEx0xMs=;
-	b=glXsb5RogvStNgbTN2qV3LGEVwuDYO4l6ZMhPP/QiMqM3thM/iGQ+XhkBsNNAQzyfHei
-	 VF2b7YgAX6OoQxEyXT7qGGj31dIRs0A/qJeQBG0K3aaCqFCmB9+RcPTvQU6vJzFbDpHDi
-	 Ihuo/OkAfoeZuk0GD5TcOpWWQaMw6CgJ0gN3P5i+9xmKwXRod0K1bFukSEUMF1VRl/kSH
-	 yXjtts+zNFPQ1mjObf1KmcVnHkKmc7RoxXv2s/67OuS2WHfuKPoQYxKUgc2fVhbkAlopW
-	 1N9ah2/KJs2x/dErZ4BzZ2tMLd3ZpdLvONZBFf+I9Kh6M9soVLsrj9dxDGzxPeghJzA==
+	bh=bBlNwFZ+fNyTjA/Lofoe4aKT6dSVGZVRnabD6V+RQuY=;
+	b=yvnQg/DATNsvpxkJWp3ke7Xu3RTF2DYn2yaonAI+k0X+/PLv+5SAy29fY/iitIgbNw4N
+	 kZnZC67UKp8KNMZmuvidMfVf0pyBkD0AzzRxauSkW7fn8DIVICAZRBjV5evjaO72Bg2Dz
+	 kp1bivAFhdg/RUW6K19YN76LH6Og6ENtBPWftDV7qQR6KZVldX4GksU9F6+NZBws28Kez
+	 4v+xLhxxVYOZYAWCLUVyeiRsMoiQqHnoaNHuwsKwAssFlwzp9J6F1k08qeprcKDuOMFv9
+	 w7VwbLuHjbKiHdqOQCpjuQvPdP/2enbjVZsuRo383eH9in3ZO+Kbo/7CD32ssbBeNWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=none header.from=netfilter.org;
 	spf=pass smtp.mailfrom=netfilter.org;
-	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Izd6fL2m;
+	dkim=pass header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bJRTvZO+;
 	arc=none smtp.remote-ip=217.70.190.124
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id 9C0DD606A31E;
-	Thu, 26 Nov 2026 00:30:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C0DD606A31E
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id C4B9B606A327;
+	Thu, 26 Nov 2026 00:39:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C4B9B606A327
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=Izd6fL2m
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.a=rsa-sha256 header.s=2025 header.b=bJRTvZO+
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1795652995;
-	bh=EUm/LkC3y6aNyJgPXiAzr8Ej6L+SfXrNHTH4HEx0xMs=;
+	s=2025; t=1795653554;
+	bh=bBlNwFZ+fNyTjA/Lofoe4aKT6dSVGZVRnabD6V+RQuY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Izd6fL2mBUmuctoei67NbT31zbp+xSnNkNcm/T3qw9QCdyme7/d33jOV6LXzZJLTi
-	 1Juf4i3FRgpu9VJon9Jmun5osfe9T/O/0FAgxXmOMm//up9mgu8+yjYTUl7BYmtOLi
-	 W1WSjOj5c0Un8tkAkA/yYGlb6KpGwmTgsmb3BGQYAVNxNehKtZWS64/kg2JiBy4ry+
-	 XCDRhLhAw1MXAUafrlkcLFQx9nMy6SWNiObqTueuV3bx6kpuhVUIbW9b93GWqUb0WS
-	 I0sdVIPv+6AtokYUvQkdMZ27gUo+T8YmcgAwK5qUA8cYbHR3uJLxZOHLud8OYlqcoj
-	 R7iR5P+hYxVig==
+	b=bJRTvZO+FiUvEQuD5kWrZYayWtScEqIkGYdVpP0KBXifbRgzq78CU5DZT6Lz98C3m
+	 DtSARt17IaXu5cFNfSZfmUsahmhhWmEMhUw6+omWPQMZ8ZA/mNSyuy7IoiYUpNzoNS
+	 m1xaQvT0Lp4kA/0eNfMqHxfAVbmr/5xrGFhzywXxdBnuLNIKvv0H0/DobDewHG5DTS
+	 SRbr4Qx2pzpDzNnCnWl7rlT3b4yPqIw6irU2jCuEcqCT5PheSyT3SZ1wWdM3ml40Gw
+	 xVaHhzoNmbHkmpbYOjivDNCcdtCiWWvUPKlKjwBAoZ0LM5Hp0VhummGR8XRCJM2hLr
+	 u7LcQBcAjvByA==
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D7E2660056;
-	Thu, 26 Nov 2026 01:29:54 +0100 (CET)
-Date: Thu, 26 Nov 2026 01:29:51 +0100
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 1E38660081;
+	Thu, 26 Nov 2026 01:39:14 +0100 (CET)
+Date: Thu, 26 Nov 2026 01:39:11 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Xiang Mei <xmei5@asu.edu>
 Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
@@ -60,8 +60,9 @@ Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
 	co+85229ab197510ca7@bugs.sh
 Subject: Re: [PATCH nf] netfilter: nft_exthdr: pull the IPv6 header before
  ipv6_find_hdr()
-Message-ID: <awd9f47inahmDWRP@chamomile>
+Message-ID: <awd_r2mOR7xuYzh4@chamomile>
 References: <20261126001151.13793-1-xmei5@asu.edu>
+ <awd9f47inahmDWRP@chamomile>
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Post: <mailto:netfilter-devel@vger.kernel.org>
@@ -71,80 +72,78 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:netfilter-devel+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="VkGGqG0RUrhCu0NS"
+Content-Disposition: inline
+In-Reply-To: <awd9f47inahmDWRP@chamomile>
+
+
+--VkGGqG0RUrhCu0NS
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261126001151.13793-1-xmei5@asu.edu>
 
-On Wed, Nov 25, 2026 at 05:11:51PM -0700, Xiang Mei wrote:
-> nft_exthdr_ipv6_eval() checks only skb->protocol before calling
-> ipv6_find_hdr(), whose prologue reads ipv6_hdr(skb)->nexthdr from the
-> linear area without a pull. The expression is usable from every family,
-> and the netdev ingress hook does not normalise the skb: an 18-byte
-> 802.1Q frame with an ETH_P_IPV6 inner type has no IPv6 header,
+On Thu, Nov 26, 2026 at 01:29:55AM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Nov 25, 2026 at 05:11:51PM -0700, Xiang Mei wrote:
+[...]
+> > Pull the header before the call, as act_ct, virtio_net_hdr_to_skb() and
+> > nft_set_pktinfo_ipv6_ingress() already do.
 
-Are you referring to a skbuff with vlan offload or with the vlan tag
-in the payload?
+I prefer this patch (see attachment).
 
-netdev calls pskb_may_pull() to ensure the IPv6 header is linear.
+Please, don't take, I will submit it myself including your
+Reported-by: tag.
 
-Then, this only works with the skb->protocol check on IPv6.
+Thanks.
 
-I find these text generated by LLM of very low quality for a human to
-understand.
+--VkGGqG0RUrhCu0NS
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="linearize-nh.patch"
 
-> so the read lands past skb_tail_pointer(), and an AF_PACKET frame
-> larger than a page leaves the header in frags, so it lands past
-> skb_headlen().
->
-> With NFT_EXTHDR_F_PRESENT, it decides the result, and
-> 256 "exthdr ipv6 type=T exists counter" rules hand it to an
-> unprivileged user running in its own user and network namespace.
-> 
-> Raising the device headroom puts the skb head in kmalloc-1k. With freed
-> struct net_bridge_port objects sprayed under it, a uid 1000 run on
-> current mainline read back kernel-written data, byte 2 of
-> WORK_STRUCT_NO_POOL in query_queue_work.data, and bits 16..23 of the
-> query_queue.prev self-pointer, i.e. of direct-map heap addresses:
-> 
->   read offset 570 = byte 2 of the 8-byte slot at 568
->     freed net_bridge_port (32 probes):
->       byte 0xe0 (224): 15/32
->   read offset 554 = byte 2 of the 8-byte slot at 552
->     freed net_bridge_port (32 probes):
->       byte 0x15 ( 21): 2/32
->       byte 0x21 ( 33): 2/32
->       byte 0x59 ( 89): 1/32
->       byte 0xb2 (178): 2/32
->       byte 0xc3 (195): 1/32
->       byte 0xd8 (216): 2/32
->       ...
-> 
-> Pull the header before the call, as act_ct, virtio_net_hdr_to_skb() and
-> nft_set_pktinfo_ipv6_ingress() already do. For the ipv6 and inet
-> families ipv6_rcv() has already pulled it, so this is a length check.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 96518518cc41 ("netfilter: add nftables")
-> Reported-by: co+85229ab197510ca7@bugs.sh
-> Signed-off-by: Xiang Mei <xmei5@asu.edu>
-> ---
->  net/netfilter/nft_exthdr.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-> index 861bab93f435..a7c2f7553af8 100644
-> --- a/net/netfilter/nft_exthdr.c
-> +++ b/net/netfilter/nft_exthdr.c
-> @@ -52,7 +52,8 @@ static void nft_exthdr_ipv6_eval(const struct nft_expr *expr,
->  	unsigned int offset = 0;
->  	int err;
->  
-> -	if (pkt->skb->protocol != htons(ETH_P_IPV6))
-> +	if (pkt->skb->protocol != htons(ETH_P_IPV6) ||
-> +	    !pskb_network_may_pull(pkt->skb, sizeof(struct ipv6hdr)))
->  		goto err;
->  
->  	err = ipv6_find_hdr(pkt->skb, &offset, priv->type, NULL, NULL);
-> -- 
-> 2.43.0
-> 
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index e715405a73cb..5df31948c42d 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -21,14 +21,13 @@ static inline void nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt)
+ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt,
+ 						  int nhoff)
+ {
+-	struct iphdr *iph, _iph;
+ 	u32 len, thoff, skb_len;
++	struct iphdr *iph;
+ 
+-	iph = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb) + nhoff,
+-				 sizeof(*iph), &_iph);
+-	if (!iph)
++	if (!pskb_may_pull(pkt->skb, sizeof(*iph)))
+ 		return -1;
+ 
++	iph = ip_hdr(pkt->skb);
+ 	if (iph->ihl < 5 || iph->version != 4)
+ 		return -1;
+ 
+diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
+index d7b8c559b795..06c0a57d54f0 100644
+--- a/include/net/netfilter/nf_tables_ipv6.h
++++ b/include/net/netfilter/nf_tables_ipv6.h
+@@ -30,17 +30,16 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt, int n
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	unsigned int flags = IP6_FH_F_AUTH;
+-	struct ipv6hdr *ip6h, _ip6h;
+ 	unsigned int thoff = nhoff;
+ 	unsigned short frag_off;
++	struct ipv6hdr *ip6h;
+ 	u32 pkt_len, skb_len;
+ 	int protohdr;
+ 
+-	ip6h = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb) + nhoff,
+-				  sizeof(*ip6h), &_ip6h);
+-	if (!ip6h)
++	if (!pskb_may_pull(pkt->skb, sizeof(*ip6h)))
+ 		return -1;
+ 
++	ip6h = ipv6_hdr(pkt->skb);
+ 	if (ip6h->version != 6)
+ 		return -1;
+ 
+
+--VkGGqG0RUrhCu0NS--
