@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795738610;
-	b=iGpnB/2mrm6pNruB3QZc7lask1BehUU0W5+i8p84xV6CYy0YWKWpxvqZ1mkSw+XHle3U
-	 WvzXwC95pteo8PgpqqIXKaQ74mX1BPMAT/25MxMBlGVP7Asf6566ALZMAoOMK40lODAFs
-	 n/C7ry3x0hZJdn7SV/KexuSmm8pDtKm9yXKlVdm1HirXl3qlrROwM1S1gI4+r/kw8LHrB
-	 8NzwqsRuRQUKMCJnnhLGBc4t7q1Rc6+T/mbkEZCYQ7x2OZrno8KMLxTKYmpNTyd3FYzwr
-	 dX1uyFBIWSoNWOW9ib1RmUgMIcsflF3TITSZkOhQEMpg8gzB6NddABJIZPwz98HL9Sw==
+	t=1795738611;
+	b=FzDfHLzS8auDTC3AOxuP3gge8FNjNPxzEd/rjfnVwy8qY1JNHqUF5zXXsTQCGh4Lz461
+	 o8EJJCYoVuS4u5aplA5BWIaLWrgrX6ecRXWFpL3gINvtaxI3arCER6mVA+MWJAa4NWz6/
+	 QWAt+gZdNa6OWloEiyKSIZe9shyCJiLSI87+iWLdgPezbSfCjjeKpXy+znfr9acRFxcm7
+	 7oAAp2MKG2McIy39ESe3GRLhnG7BcEcZ4fzFrCOJ1DuhtbleHY1fljxT8eCckacehPuCC
+	 hy4mxHrC1LLk2hRL2aYj9rvW5NdKRzKExQxDTU5M8NTmiCBZPFOQeO3KuQlqWb+3PNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795738610;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795738611;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=gye4YsbUN5yG8oY4A5kAtzWYZXrQDCSgln8D0vjm4yk=;
-	b=j6h4qKE9JGeYhDLV5aJ5obxKPzW+9CMm34wwUn8rfOYVvcg8Ukzp8/s5lTrmlq4RofBG
-	 Rh/tFcU3Qbvnzu+4PMhRm0aUO6poeS31NtqZKg4XIsn/HysZxs98KHWdxT6alrlddKT3R
-	 7tvT1H3RCqxy9BAdRMr4B9c0I6IhwUfGXM2zoCgBE4IhKKyoYsfD+3XyqDS0SyRNz77KP
-	 qv9yUrC/nX698beGNTny24h+dULh/f2LrOycVR5YFX6jq8WmvWnlWFkNGJA1qRnDMPZP/
-	 obv2URlSZ1u95RODpRywBd3wpBNXC2G2IrkPru+fW1bV17QeQKS3nWDq+15Vv0FaE3g==
+	bh=d09q77CW+vLOu0h3yXJDzaOaqLHW3peCBQAh0XhX6Zg=;
+	b=qM6C27ljaaasSTfT0/XOr5kGIx8EYu1prnUHCILOGTphjEEzjjr6b/7PeAn+jK29vc40
+	 xASlv2svCWga7tbvZpWQtAtfcK6cu3g72pkqjRLl3bIIO0bHBBXSHnNmYVCfOvT8ZAUhL
+	 /TZzvZ+kW0eQ797BnIVBZgvSpfVVsHvMXTHl+0rTwk9CoPuIU2zIjoUDqAxPLurtlkyw5
+	 OIsPmy9NjgTNpg/VYH/XwIOPupqy5LfMGm13WT5f90k7/nmwKV6SVV/yjM9oPrmbhJIHB
+	 p7zwajU7q3eCnpbnecnr3DHQmH7Ql84BsZ0wjz9QFTd9PHRFH/9l/Zhqs14ERXa0F6w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sBThwLrg;
-	arc=none smtp.remote-ip=209.85.128.48
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=D3+gfUgL;
+	arc=none smtp.remote-ip=209.85.128.45
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A91DD606A33C
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Nov 2026 00:16:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A91DD606A33C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A09FC606A6A7
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Nov 2026 00:16:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A09FC606A6A7
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=sBThwLrg
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4bb702a7548so68512575e9.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 16:16:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=D3+gfUgL
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4bb606491faso40033465e9.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 16:16:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795738608; x=1796343408; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795738609; x=1796343409; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=gye4YsbUN5yG8oY4A5kAtzWYZXrQDCSgln8D0vjm4yk=;
-        b=sBThwLrgwtNi/8V+i5S1cCVxWVRMg+L2Y0aTjHRPpx8c8uWlF6atBR2a4U/9ViPF/N
-         JPpZAwHvyB4+9tipx396YodjkCn+rOfe2lENaGPMNlBJ0GNCCehx/uyfqHfzRqdpFTgM
-         cZRd1rPnlDFW3Hh1yCBYH1LINsqHDqMpBSNBvgHSHPFWMxvWohlyTz2QSXhZyL2b6z26
-         M2sUHErEMu0C/DuQPOLPmluzICGiH2bVMJZs6cHx5AEdjCLX0As+kKmm+2oxoShPI3M1
-         /R0I9yWT3Kl9v7nzj7MHwDKFIt7EoczG0wYfYnpGHyXXopj9zSMIhm9uBegyCilBOmxf
-         GWhA==
+        bh=d09q77CW+vLOu0h3yXJDzaOaqLHW3peCBQAh0XhX6Zg=;
+        b=D3+gfUgLoHhmkjycLbU8ZDWQECx0FNnNAudpkYvjpTYaKXacBhxhxE9hkG0UIi88ik
+         BWLbgdFgEwU84Ypzy4/r+3Hx5ruvMwSTI4vYjog8bbq8F/Vgn0ta7ZDNVFH3PWmKNrhy
+         7txK+TAQNTQ3L/1w0Sl2MWPgZNvUB+VQD6E2ruo98DRv6a2lNf+XqKmm09Vu+vCl/ILd
+         S6rvS/6D3pngsAqu5p1SklS0Ruq99aWp9/xID6rq+eTPivnTQ7xbuDeh3cHZH8kxnD1Q
+         txx2BpxSAyyh7+hvs3xSAUdfJZLLGgIv7KxxnjbJ4DkLczEhiFzumSA26VFI2YFfQklx
+         IY8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795738608; x=1796343408;
+        d=1e100.net; s=20260707; t=1795738609; x=1796343409;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=gye4YsbUN5yG8oY4A5kAtzWYZXrQDCSgln8D0vjm4yk=;
-        b=IP2EYfKQSUhtVmhO4QT01G8NHWd12ALzG3IlCDirUyX+dE7BSoyewPWtR640eowBgn
-         Tb8hDf/66RDBoU10+QGtgifMefafTVEUbeuulXHXpNIG2yR5GgcDfpyhxLmNepwz6sh9
-         YTCVfCYzjjHSK+hN97NOyc5kr4XmXeZz3aX6lOaP8UuBVtYU7z/BTEr3lDMggo3OhMCW
-         pdAbnDejH/OLdQzl4fwI2KnS/YxblJ1MhczMcM4N+ietqdWBBzPNyF2dI28JuUuwGDeK
-         WGAXSUDTv7mC3iYKF2Gv1jxKdHmxRt08aNwCCOzzQ29CERlQY02toEQC0lCq1xbYtIed
-         XpZQ==
-X-Forwarded-Encrypted: i=1; AL+hErEWxihiQgPZ4ml2RkRW/RiXKeqcnG9xhXqShIf1dDzCKJ7wdMiBxTSUL8kTMEZ4ziT5IPe2m6vhLOYyigljGLg=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/M7Iqs1pWOTY4Xuow4AZov8C3RJ+SHZZcSt+3Uo/Oel7eqLKVM
-	J8UcwomdER8Lz7JmXXqajn/7/eQE/+XOtq8qnRcU3J5WEBn8w7HogYY=
-X-Gm-Gg: AZFdTZeSuSJa7p1+I168TsMC/u96pKo0wx1lZYune8+Vin1OTC9XO/auJOFZtPvmjn7
-	3oUyQAWItN0YLGs77O7l4DWrHzrh6vs+YbFDt3zgFuMqE4jwr2mGJNXAhKAeF+N/WwYrLoMU3Pi
-	7ZNnodtSsRspODXRx1X+peJhGv1jTw9YWehmSNZR8/RAWyHe573UU5Nt53z912hmqN3HuFA4t9d
-	IPI5RKV3oS9Fw/2UjnINKFiVbJTpe2kUXqkBdYIm/ZwYZyFr935V+YHlp9Be9BBcnJm3cHWVsp+
-	JVB7PupfSLgJ8WAYM8QvgYzxh/R/FFJyFaFoB089N7Ph0B7qvlihnNdkV63uZbdRnO5+lEPnqhJ
-	1QTHDn1KVbIdeVDxA1aUNnMXWNWMRgxo+XijM7UzV+6bV6lo8JNpJVJyQEE7bJLNEdw7g2pvNfT
-	iqXTIi92f5hcNmOGmECns2kKWmfngPQdpV4imiIEv7/90yfgbUIW887SOaqaskY73IrsxsqaVkj
-	bQcVynrRlVvLwtoC9d74CG0B5uNslFJjuoileuhR8J3dPq/7AbwdiYUqEed5mvAqmmnjISqe/Xi
-	HU0aI2igwRhagQuA
-X-Received: by 2002:a05:600c:800e:b0:4bb:7757:fe58 with SMTP id 5b1f17b1804b1-4bb8881b9d7mr470420415e9.19.1795738607998;
-        Thu, 26 Nov 2026 16:16:47 -0800 (PST)
+        bh=d09q77CW+vLOu0h3yXJDzaOaqLHW3peCBQAh0XhX6Zg=;
+        b=jEwDJfp7J4h/3i/fcKD6soNFJpXZoAl7Bw8yTsVzGAjX2UAt78Hi2pW1nMzfGl2hvN
+         nUrq5FwEJ4KMFm9dUlD6vM5cyygRFQhVNMlKJtPvNl1sg6mTqslRymQJICgaUzdybPsU
+         vbOnbqUWuH+5biyutA4MfaoU8yDYEY6u3GBxO/riEgiRCK+cPbqJTEPfbGBediRfuZlX
+         Jl9iXDidUA2AFptzimcSCq8XBJRpuQ+7FSnsU26EgkuiYPoPUH1Bw1BObQIpE6l/LKZq
+         zM8C7pOsP/6LDHeSUfQ8QqP7LA5LIzor9AWSDb8M0+Z2xrPWOXOBP6L/AXZBwJ9FRH4t
+         Omaw==
+X-Forwarded-Encrypted: i=1; AL+hErGoREEAO7jk5LfhEw9+A0WzFF+PXHqKJEpQ5HpHM4G+0Vw1GbGq9KEb1AOLsxMAMHHRDaln0wOPbH5S1RXuhzI=@vger.kernel.org
+X-Gm-Message-State: APuU4Z/rNq4B3CmStPHjvd3WPT2MWBj3Fx1NZ0z9uWaLl0XK+9KpEe+D
+	meKcz/pfofwME/1JlWnRpoS3ZUMlArViEB2OjvUGlUa79VNcUg9L/vo=
+X-Gm-Gg: AZFdTZfnCjSEupBOc90nyVGPBu+aSks6g/lteoXHtXRdH5a6fe9sOcRwmwa7hN7sTZS
+	6Ugr8MtZrU0JvfCrcCtQ4422nhYHkRu5jYA7iDK8DnjqvWyQDVje7n7IS4DZHg+BZm+dcaGte7x
+	8T/vjODeTiulOp8F7wU2Ta7iYPI3L8UfM01AkfjAwDMU4s7TD0uxPDBEZfHf395HBkZC505q2V+
+	UvIt9IUZsuTduZfWp/cRHvORdKZOdIwc+qrg9A8AihUzHTY1q/qXCGnCkdreDOE2ZXAAScMoDak
+	6EgKOc734iu9Cz+9hIbLbMLP24qJrJBWZxM6s8l07MVPkiPZfKxuSrQYSIbA1ePm8A2EzFygwri
+	HzdKsGSsCWo4VF1XDftyMMFsiI+GxqHo/e53CcftSSYla3N8AUt01a9vpbJfUyFPGPXd63Na3ra
+	THh8TNIijpYgBfLn9ShZfJB40VtohpCuVt6A7N8x4uIZfsglK5+vNAuJhbSUkOaKKkLVMkFL3J9
+	1XcLLBXIBWrpPiujTjMxD9PC8XFRDfwtJuA27ntm7QDAc0zQvqILjQyjC2x8ILKIL9hOYHbjBSl
+	NH8NuWureb9lnR8=
+X-Received: by 2002:a05:600c:8210:b0:4a1:dbdf:17a8 with SMTP id 5b1f17b1804b1-4bb887e25e8mr450837465e9.2.1795738609068;
+        Thu, 26 Nov 2026 16:16:49 -0800 (PST)
 Received: from localhost.localdomain ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm356650865e9.3.2026.11.26.16.16.47
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm356650865e9.3.2026.11.26.16.16.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 16:16:47 -0800 (PST)
+        Thu, 26 Nov 2026 16:16:48 -0800 (PST)
 From: Tristan Madani <tristmd@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -94,9 +94,9 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org,
 	Tristan Madani <tristan@talencesecurity.com>
-Subject: [PATCH v2 nf 2/5] netfilter: nft_meta: pin file with get_file_active before reading f_cred
-Date: Fri, 27 Nov 2026 00:16:34 +0000
-Message-ID: <20261127001637.1026589-3-tristmd@gmail.com>
+Subject: [PATCH v2 nf 4/5] netfilter: nfnetlink_queue: pin file with get_file_active before reading f_cred
+Date: Fri, 27 Nov 2026 00:16:36 +0000
+Message-ID: <20261127001637.1026589-5-tristmd@gmail.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261127001637.1026589-1-tristmd@gmail.com>
 References: <20261127001637.1026589-1-tristmd@gmail.com>
@@ -113,7 +113,7 @@ Content-Transfer-Encoding: 8bit
 
 From: Tristan Madani <tristan@talencesecurity.com>
 
-nft_meta_get_eval_skugid() reads sk->sk_socket->file->f_cred without
+nfqnl_put_sk_uidgid() reads sk->sk_socket->file->f_cred without
 holding a reference to the file. Since the file slab uses
 SLAB_TYPESAFE_BY_RCU, a concurrent close() may free and recycle the
 file object, causing stale credential data to be read through f_cred.
@@ -127,54 +127,66 @@ Fixes: 0ede61d8589c ("file: convert to SLAB_TYPESAFE_BY_RCU")
 Cc: stable@vger.kernel.org
 Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
 ---
- net/netfilter/nft_meta.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 35 ++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 01cfbaa365250..abf0bbce9bfda 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -17,6 +17,7 @@
- #include <linux/random.h>
- #include <linux/smp.h>
- #include <linux/static_key.h>
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a8aa7ad832c3f..7a31267ae38f6 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -22,6 +22,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/netfilter.h>
+ #include <linux/proc_fs.h>
 +#include <linux/fs.h>
- #include <net/dst.h>
- #include <net/ip.h>
- #include <net/sock.h>
-@@ -135,19 +136,17 @@ nft_meta_get_eval_skugid(enum nft_meta_keys key,
- 			 const struct nft_pktinfo *pkt)
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter_bridge.h>
+@@ -578,29 +579,27 @@ nfqnl_put_packet_info(struct sk_buff *nlskb, struct sk_buff *packet,
+ 
+ static int nfqnl_put_sk_uidgid(struct sk_buff *skb, struct sock *sk)
  {
- 	const struct sock *sk = skb_to_full_sk(pkt->skb);
 -	const struct socket *sock;
 -	const struct file *file;
+-	const struct cred *cred;
 +	struct socket *sock;
 +	struct file *file;
  
- 	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
- 		return false;
+ 	if (!sk_fullsock(sk))
+ 		return 0;
  
--	/* The sk pointer remains valid as long as the skb is. The sk_socket and
--	 * file pointer may become NULL if the socket is closed. Both structures
--	 * (including file->cred) are RCU freed which means they can be accessed
--	 * within a RCU read section.
+-	/* The sk pointer remains valid as long as the skb is.
+-	 * The sk_socket and file pointer may become NULL
+-	 * if the socket is closed.
+-	 * Both structures (including file->cred) are RCU freed
+-	 * which means they can be accessed within a RCU read section.
 -	 */
  	sock = READ_ONCE(sk->sk_socket);
 -	file = sock ? READ_ONCE(sock->file) : NULL;
-+	if (!sock)
-+		return false;
+-	if (file) {
+-		cred = file->f_cred;
+-		if (nla_put_be32(skb, NFQA_UID,
+-		    htonl(from_kuid_munged(&init_user_ns, cred->fsuid))))
+-			goto nla_put_failure;
+-		if (nla_put_be32(skb, NFQA_GID,
+-		    htonl(from_kgid_munged(&init_user_ns, cred->fsgid))))
+-			goto nla_put_failure;
++	if (sock) {
++		file = get_file_active(&sock->file);
++		if (file) {
++			const struct cred *cred = file->f_cred;
++			__be32 uid = htonl(from_kuid_munged(&init_user_ns,
++							cred->fsuid));
++			__be32 gid = htonl(from_kgid_munged(&init_user_ns,
++							cred->fsgid));
 +
-+	file = get_file_active(&sock->file);
- 	if (!file)
- 		return false;
- 
-@@ -164,6 +163,7 @@ nft_meta_get_eval_skugid(enum nft_meta_keys key,
- 		break;
++			fput(file);
++			if (nla_put_be32(skb, NFQA_UID, uid) ||
++			    nla_put_be32(skb, NFQA_GID, gid))
++				goto nla_put_failure;
++		}
  	}
- 
-+	fput(file);
- 	return true;
- }
+ 	return 0;
  
 -- 
 2.47.3
