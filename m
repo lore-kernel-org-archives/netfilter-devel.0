@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.50
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1795738611;
-	b=bWbIKaHHRZ5c9nIEFZcwT2QRjIebT6xnPFvIzzCqBzNM4qAd4EhA9rr1bd2lOa4udlrq
-	 Rwbx4upo7NxK0hrBZpihqVTKFfhTEQvxJmEn/lYt4dOfGaTKu5xWjLgL3/d6qr00tIkNT
-	 OlaKMZchzFLo7f2xNsInYJIE2ftHcfRSoOtTtWzgajjv+3xbIa1HaMQUL+XAsRiDnSQmD
-	 7P0GdoutlzE7mE48fEdp10UInn9ysNlACwmvOCcxtHts06jttnwZRiFfR3731LnyvQajm
-	 6/Bp3+d1jqBDm4mDm/jq96mmDPgeWDzP1JeLlKNgeMalgmYM3xWIi6dwdJWAxoBj4ig==
+	b=uKSmEaYc3Fchw5lCvl5LIA8Gyqv1XUBqthTefbplzv9qwXOZbU0Z9iYJuNdOCo9wolZ5
+	 d5tfRr38VkQv5c5aOl2K32edYSkegmP4idZbbAkwMylcmU4CTFHi7Iy1pKNNy2sAAIQaN
+	 ESvQ9W/A0cq5nirZb/FAbT8IeLnybcAGM1ldpMXIt59ZFMxHbSW1Nk7YZ4U9CbfanN5yC
+	 V7tlg7pTmzBujXPxwa4gYZ7+KXecjDPcDViBPqMlM8TXaR1I0+k0dngkUwqWDEvQ/Ta0I
+	 5bgMlRp5YXAaCX1cbgp15EyhQwIFBz1AkdlpoBYjQliLxiOPaSveRC/ZjHIbiQgJ4yQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795738611;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
 	 MIME-Version:Content-Transfer-Encoding;
-	bh=9nVnoKawCciJJKvofe0ViAurGqoccYhIy4wdIXnHSVE=;
-	b=d155cX9gEQiLYg34WueYSVT0qUoAAOoo0eGc5f2t5TAEhbRzesRip06XTWfYwFv3wo2+
-	 8j1APauxJ1kZqJ80NSrJNook7fs8NKuJK0kwNENnifviN/KYTH053EU5WK8m+xcJCtzVS
-	 gfEEPkN6EWaRHkLBR488ne6f+PqwgxCqANN5v/EypgwPEcryHtF0Vqk8+ZYcSYkYHgCFt
-	 fnH4zO8JXrSaX3ubQRlP05xYfmAf8C6boT23ANu7Rh35ULX4Gk+P/LdkWEhgypp0YXOjf
-	 edRzLrw0+dfW/nNedkwoVUopdsjYcffk02nWQwDeu4VCShL/jh7SDdIQ9a07olQc0rA==
+	bh=FRTP8FO/eHZGhtNodRe4fi46UFA5HdjhjKCVqbUUh2w=;
+	b=y1phObQzG9cp25uXGXB51rHUfMLCaazdQCHQ+w/ip9gnSn7Xuc5NkTtkfaQSXMkIU4p+
+	 juaJfC0kQe2GZXUbjV7duNJduL4WOiHszO0d1DuI927bbnfsjtc+yVljwLK5k4P0XDB5e
+	 54ML1L+b5mjxlE9SpyRce8TNlfpNHVWos93RuOk63aI5ohPBG/wrXTfSK0+ky5yMBB24F
+	 X2eEiE+oh9KcSUMzCuYOL92guDgVM+N0pyO3VKnhgh+QMYpAUyvMhW/PIj/C3vzRSDnT0
+	 6Lxpntp3MH5SsoYKnRiFnWT/KuvjvXuUVcCcV2DhRGpMlxKiuxQC6CWWND03C3PwQMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=gTyRMsh9;
-	arc=none smtp.remote-ip=209.85.128.41
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=T34DF08R;
+	arc=none smtp.remote-ip=209.85.221.50
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA82606A695
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Nov 2026 00:16:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3EA82606A695
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45571606A338
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Nov 2026 00:16:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 45571606A338
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=gTyRMsh9
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4a5177d78c7so76173695e9.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 16:16:49 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=T34DF08R
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-48e47347279so4615291f8f.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2026 16:16:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795738608; x=1796343408; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795738610; x=1796343410; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=9nVnoKawCciJJKvofe0ViAurGqoccYhIy4wdIXnHSVE=;
-        b=gTyRMsh9XGGeLgDZLXjO7XZSKbo+yBjLM9WRsFDN86Q2ovOeLCH4qChPqGozxhmVNS
-         C2hqkmY72B9gawQh8BMCZ6/54ms0o4T9rs+rsOh2aIDIXYh6z9F6RyBrum53dxgrvaRw
-         W/qFLObMtiCACdySief3G1IBZBuRQKL6je9gxQSBn1ObifSbv66SJclVPcGQPdSzX+Aj
-         mc426/+ugAtnGKpvXPrRgCDd3nex+ulW9xLKvRye/jQHADqFebQQcpbRhgwiPPAddgDm
-         NjIPr5CmPEsadmfz2cNBp3zC+g/dTY558D23aERp/PjEyOI5dvFcP3ytmzMbGoLxjM4a
-         9H9w==
+        bh=FRTP8FO/eHZGhtNodRe4fi46UFA5HdjhjKCVqbUUh2w=;
+        b=T34DF08RkclBqCp86/pbXD7dB5z9Qafib6EkPNsHvOuXnehvWwaTdcE+BsNxucSDfN
+         4XsiBrWPynipFk+C/A2q8pjqaO0JWTyO/4qFJJAfxRecIRgjZE9BV2rW32JTVL3RiJs6
+         CX8H0ARMJMDU09Bgr7ecaj4f9gF5bLK14MHa8L/j7a2mta74dKOEGWGJTNr5Z5Rg45jc
+         QxtuHA968TZBD/zSTWXWYmeCCxeo9TL9xLdX25vtHMOHZkfSMN/htrrVL/XHzo93Rguw
+         RvX3UmmWD8IhqExnbs4ia/wPAQxDcfUQY/UHDbYdYmTaujoz6Ogq5Ui17UB7WdIOWdKb
+         k5Pw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795738608; x=1796343408;
+        d=1e100.net; s=20260707; t=1795738610; x=1796343410;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=9nVnoKawCciJJKvofe0ViAurGqoccYhIy4wdIXnHSVE=;
-        b=JprjFLCjSDUAkHmX93NQqWuWt7SWH/BrTOliu2GHpfUcJRTjaP5IfP0dPeW0bk69Wf
-         xx8ijtMbzQErUukStFh6QkSJpD1/d9rqdAMB1xvj75/ZauI1mgArd23Ocs9ViFa6W2ne
-         CKGt2X4FSWGglOkCoh8hsMGDDsR4BydcYEWBYZgkQuufqkidPHgUrl2plUmLMMFvd1XO
-         0A7gecurHm6sD7Vvn8BEZH5W1irmArjzn2efaSZgTpsrjh/16/5wDCg2DcFlPYURqBQZ
-         YXaZYvZYTPkMTBbit2xYOybdYmHXkiyKdoW4wGtZhBe83pzAy8PEQ925MWEaMFNmrrjy
-         PiUw==
-X-Forwarded-Encrypted: i=1; AL+hErH6Lh/Aum31N04Pppn02SRwid7/hqYsyZ9jsNpDgDF4wa1h3/UsdzUCima0k0YQQ+CIm0mXScYMEeoe/ISishs=@vger.kernel.org
-X-Gm-Message-State: APuU4Z9vflezxdwlhKCxvRioEiDXDJIxpC+ES+dkqdQjdWS7RG5qq+fK
-	MlCz3jHd1yHLIvXn+Spi28Vtza4dcCkJS/825nG0ovPRtTSj7An5kw4=
-X-Gm-Gg: AZFdTZe0Ccv7cFKMCYcvo/oTFKMRpiLwmEl+KNXtd3Qcxswl5vxNWuyoj16w9XHpDwC
-	J99JXOnrA0PxtP4sz60Z69o7KYRvJrXIaPFDxFJ67rBkZ9+kcwmgT5M7y0LF+GQoxsZdpZxH0V6
-	uObLZIxEYFsbXFRApAJOaGcp3ueWtN23M43aTrFGu1FhTyqTQYrqgvKIzRLotTMwypeOWmqoOMo
-	FKiPLlcbKvRm5UORnhY1it3VFX3XTwjxeJAV1J+fCrZ9SrTb+UCZrNx76as6teyE0JUyNeaSnAm
-	qkhx1/6oKJsCrUzmUCMXOv2IdBIQor/SpDaxTtUqeqIaw+R8iXRVBwQWNjeOFHsFqJZNk1L/c4c
-	uBS0Tuigxg4uUaE43qO6uXCORiOJxeeQ+GV3vXtXLvr5VofznXhG9XoLFqSf/f4HTVhP5IEGrWj
-	hsC9Z9/fRpUgi37w/GQzMVc+64M9U31/zlUGIGuhy1SYdU+OTFU5JUNzeH/CjmkeQGw5cCesSDr
-	LIFg9jJuXGGKEMYtD66EB/y0ziSCY4ljZQUyUMFGkZZcVIZ705D+xCyb0y6hforjLg/YKNgUBPv
-	78lNUgd4kKVW49o=
-X-Received: by 2002:a05:600c:83ca:b0:4a1:9661:14b5 with SMTP id 5b1f17b1804b1-4bb888176eamr461715755e9.29.1795738608524;
-        Thu, 26 Nov 2026 16:16:48 -0800 (PST)
+        bh=FRTP8FO/eHZGhtNodRe4fi46UFA5HdjhjKCVqbUUh2w=;
+        b=XBZRsCCAgGFw9eBQnEWQ5D/I/GRIX9hHE0iiwl0huj41CK9crtbieaOM+/Mb989LOu
+         3Anjpr8ZBf8wljDNgpgck2uY6FnfSHzEltUrQ+xI8ZCyIqHHMAeZwaTmqCVO4L7lyjAW
+         bqGjtMnhIAhCRKa+bM4UBuGFKu/7kZBRIUzPuWX7RMiQKLONIBFhs0Y6a8SoaxJtO49g
+         cEHDpZxtlDPg3gM7aenXeymhbab3J16+EZ9Pgnx+dmHdiojwyjmy8iLscIQ+3nlnMi2i
+         RvO+SHuTTGz+IenO4x7Umni0PAKpVro3uE4fDWirvnCHYldJCGslrbEZ2Q6Aj6Tm/r+Q
+         Y1tA==
+X-Forwarded-Encrypted: i=1; AL+hErGP8taCwK3qO4Hk1Y2yTN1sXhLfrc1GEk5QcuULSAOLUPdiJjbL/HqkJW3o4gHfqQtPb5MqLzmXjhoAf9XpAPw=@vger.kernel.org
+X-Gm-Message-State: APuU4Z8801xgujxRi0FlY6nOS8RB/vHOxusu+2ITL5uCtThpDM94941J
+	0MKlZK88TtymTItr/RLBp66PAAlBczWtEha5ik4q2mEeT+zlALQDIDM=
+X-Gm-Gg: AZFdTZehbJf6dbXxS3Y/g/0A206RUPKHVLwzOwDujyjjhInPe6FThhRVx3Kg8u5OZKp
+	bNAuEWxUuPfjKcwdIDRakgjiWTpZdZylD3eeWi5qDJFtfQPx9PkmntGSRI9By/PwHRpnKw17WxC
+	SEE+qm93BFJYlP8Kta6JsrqZx+IAZuZMt4TbR9JzkOOL7fbZhYr9YGipMXSq97plxodezITlab6
+	0/Un8gMdO7xE0Wzq+mTlku0zpK9RDhLG7X4/yFmkn5eCVhT5zvS9fIgtNdqHI6j2lN+QjZjw82j
+	tnd+VzbuNKppurDaolL6dwVOIt7URkUz7F4qBmNX/Ye2q/PEnMGCcczY+vgAqbF/o3LAFMotCYr
+	6jrqBeIw4Jo4apA621b84e/mUx7eapWmlGpkUeqxeWscAOCCSzVOtGhXji8K+vwxa6fSLvestYd
+	/g0Orbxwn53fzFbSKwGECUrvKCWHVriIIRhNH4dz7XQdXTeDh4bgp+Ibn70uCNBrUlop/k7or0x
+	aqCg5taBd90NBYOWM38MV/aIZzTyb5zlz2fVFjMtbxGyeVsqCntxaCw6NomYatGEo0m3PMjyfU1
+	pLqTZSE/2XPTmeU=
+X-Received: by 2002:a05:600c:6298:b0:4bb:6375:aa41 with SMTP id 5b1f17b1804b1-4bb88934652mr434988635e9.27.1795738609584;
+        Thu, 26 Nov 2026 16:16:49 -0800 (PST)
 Received: from localhost.localdomain ([2001:41d0:303:db6b::])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm356650865e9.3.2026.11.26.16.16.48
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb906d6a13sm356650865e9.3.2026.11.26.16.16.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 26 Nov 2026 16:16:48 -0800 (PST)
+        Thu, 26 Nov 2026 16:16:49 -0800 (PST)
 From: Tristan Madani <tristmd@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
@@ -94,9 +94,9 @@ Cc: Phil Sutter <phil@nwl.cc>,
 	linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org,
 	Tristan Madani <tristan@talencesecurity.com>
-Subject: [PATCH v2 nf 3/5] netfilter: nfnetlink_log: pin file with get_file_active before reading f_cred
-Date: Fri, 27 Nov 2026 00:16:35 +0000
-Message-ID: <20261127001637.1026589-4-tristmd@gmail.com>
+Subject: [PATCH v2 nf 5/5] netfilter: nf_log_syslog: pin file with get_file_active before reading f_cred
+Date: Fri, 27 Nov 2026 00:16:37 +0000
+Message-ID: <20261127001637.1026589-6-tristmd@gmail.com>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20261127001637.1026589-1-tristmd@gmail.com>
 References: <20261127001637.1026589-1-tristmd@gmail.com>
@@ -113,7 +113,7 @@ Content-Transfer-Encoding: 8bit
 
 From: Tristan Madani <tristan@talencesecurity.com>
 
-__build_packet_message() reads sk->sk_socket->file->f_cred without
+nf_log_dump_sk_uid_gid() reads sk->sk_socket->file->f_cred without
 holding a reference to the file. Since the file slab uses
 SLAB_TYPESAFE_BY_RCU, a concurrent close() may free and recycle the
 file object, causing stale credential data to be read through f_cred.
@@ -127,62 +127,59 @@ Fixes: 0ede61d8589c ("file: convert to SLAB_TYPESAFE_BY_RCU")
 Cc: stable@vger.kernel.org
 Signed-off-by: Tristan Madani <tristan@talencesecurity.com>
 ---
- net/netfilter/nfnetlink_log.c | 35 +++++++++++++++++------------------
- 1 file changed, 17 insertions(+), 18 deletions(-)
+ net/netfilter/nf_log_syslog.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index d923f2cb13980..d4fe9a12088f4 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -28,6 +28,7 @@
- #include <linux/spinlock.h>
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index c3fd398ffcd77..dd15409100eba 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -6,6 +6,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/kernel.h>
 +#include <linux/fs.h>
- #include <linux/security.h>
- #include <linux/list.h>
- #include <linux/slab.h>
-@@ -632,25 +633,23 @@ __build_packet_message(struct nfnl_log_net *log,
- 	/* UID */
- 	sk = skb->sk;
- 	if (sk && sk_fullsock(sk)) {
--		const struct socket *sock;
--		const struct file *file;
+ #include <linux/module.h>
+ #include <linux/spinlock.h>
+ #include <linux/skbuff.h>
+@@ -168,25 +169,24 @@ static struct nf_logger nf_arp_logger __read_mostly = {
+ static void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
+ 				   struct sock *sk)
+ {
+-	const struct socket *sock;
+-	const struct file *file;
++	struct socket *sock;
++	struct file *file;
+ 
+ 	if (!sk || !sk_fullsock(sk) || !net_eq(net, sock_net(sk)))
+ 		return;
+ 
+-	/* The sk pointer remains valid as long as the skb is. The sk_socket and
+-	 * file pointer may become NULL if the socket is closed. Both structures
+-	 * (including file->cred) are RCU freed which means they can be accessed
+-	 * within a RCU read section.
+-	 */
+ 	sock = READ_ONCE(sk->sk_socket);
+-	file = sock ? READ_ONCE(sock->file) : NULL;
+-	if (file) {
+-		const struct cred *cred = file->f_cred;
 -
--		/* The sk pointer remains valid as long as the skb is.
--		 * The sk_socket and file pointer may become NULL
--		 * if the socket is closed.
--		 * Both structures (including file->cred) are RCU freed
--		 * which means they can be accessed within a RCU read section.
--		 */
-+		struct socket *sock;
-+		struct file *file;
+-		nf_log_buf_add(m, "UID=%u GID=%u ",
+-			       from_kuid_munged(&init_user_ns, cred->fsuid),
+-			       from_kgid_munged(&init_user_ns, cred->fsgid));
++	if (sock) {
++		file = get_file_active(&sock->file);
++		if (file) {
++			uid_t uid = from_kuid_munged(&init_user_ns,
++						    file->f_cred->fsuid);
++			gid_t gid = from_kgid_munged(&init_user_ns,
++						    file->f_cred->fsgid);
 +
- 		sock = READ_ONCE(sk->sk_socket);
--		file = sock ? READ_ONCE(sock->file) : NULL;
--		if (file) {
--			const struct cred *cred = file->f_cred;
--			struct user_namespace *user_ns = inst->peer_user_ns;
--			__be32 uid = htonl(from_kuid_munged(user_ns, cred->fsuid));
--			__be32 gid = htonl(from_kgid_munged(user_ns, cred->fsgid));
--			if (nla_put_be32(inst->skb, NFULA_UID, uid) ||
--			    nla_put_be32(inst->skb, NFULA_GID, gid))
--				goto nla_put_failure;
-+		if (sock) {
-+			file = get_file_active(&sock->file);
-+			if (file) {
-+				const struct cred *cred = file->f_cred;
-+				struct user_namespace *user_ns = inst->peer_user_ns;
-+				__be32 uid = htonl(from_kuid_munged(user_ns, cred->fsuid));
-+				__be32 gid = htonl(from_kgid_munged(user_ns, cred->fsgid));
-+
-+				fput(file);
-+				if (nla_put_be32(inst->skb, NFULA_UID, uid) ||
-+				    nla_put_be32(inst->skb, NFULA_GID, gid))
-+					goto nla_put_failure;
-+			}
- 		}
++			fput(file);
++			nf_log_buf_add(m, "UID=%u GID=%u ", uid, gid);
++		}
  	}
+ }
  
 -- 
 2.47.3
