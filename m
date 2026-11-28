@@ -1,83 +1,83 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.227.132
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795876644;
-	b=XhxIH0elR5+OoHgd+vARXMw1hqbpbDM/Eh236nDJ/j+bhJq6FgqDnaYoeB8zAkqcpIVH
-	 0tDn3L5QdRC4hvyipxBFVJ/q9T7i66L4MaDLCnUJ6aettwDtolC8aF1jYF2AEh75+I5JQ
-	 THsjr9RKvq7Ap4XN0BoWjT33Jtbgs3KJtmeJIryXpX5Gp6i1KjTMMjQ7PyhjpArRTHjPz
-	 CbnBvJOOXSUw+KucryMXe1ftJjW6XvWItR6oik95/JjBV9+TL+f3tWq7Ersur21e6o+SA
-	 iLsWJrmYipd+PopYepBkynTT/KSZWNUQ+8BG2s/HdIB6IMe5ZbhELE3ZN6yEE8W7uYw==
+	t=1795877111;
+	b=jonG4k7y0XC3UJTK6u4LWNHuTI0G+4KzeO74F4Ml/TpPZx4nfME082l6XdSeEDO7EQhO
+	 5qvoj6SZ1DrlR35sfAwXR2l2McAv+b74Rln661rowVZQwbl9T+FzhH67ws7T9ESMcyvlt
+	 n0VwkGRd6UJps5HHdQ5sfpMOS+zmIs3xEIrPtZQxacGNYqSFqtggEjtwiAZ6u5PlUTc2g
+	 x+nfg5bZQK56xgamZt28nDw2MKBksRcD69g5x/aBvJpYO9xkcIDqauCorasTLMxqLEeLP
+	 hXcNQccu5HzvhQm07ezGOd1Ae1Y8T+I0oMQSUnUrgPT2qLmn3pP5ARawffCtCCrlUoQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795876644;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795877111;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
 	 Content-Transfer-Encoding;
 	bh=yYzGGwI5EbgAAj/SOn20ulTMZQ+hqedEJnub6nNYwrI=;
-	b=OAwoRKdba3y2oAFyqv30+3Ze+1Y511nctPr+dN1+0nzPhefyPApSgV87G5IsN15N8OmF
-	 8mOP0LLCW9qbPZezffmYlaBE2NO5RZW6TW579kmafgVB2JP0gajS5ALzG0wBiNSas6xvB
-	 Y4pJOgWXvCUVKNxAPV0x3k49kp5E6dmeItqQCSiZQJdoWU3urIyC+ohPH4JifpNdrm29a
-	 8INa9TkBJVJJDtKdu+byfV5i2u2rng6HJFbeNgH3AuGLVQLNbw+LeZT/+kKwqS6Ad7MZT
-	 ChnwonaiBaPr6I2jZP5Pa2IWZd3kJUZFLWMPkk3Y+YaEsLhmDgjWbL+gLBIrWKm7+fg==
+	b=kl5AVStNNH8TlGl3ahU1pIYSQDgNTE5FNncua11ZlC0kvA++ZODzAFi/W1xx17h35bId
+	 zMvOMBae+p7eDW9yfmU02m/n6vgNh16cLToL/XMHcjZWVCKNQGpOS1SIwXuBj3t3c+FhK
+	 XhJJb/vIwk6gaSib9GWBaGY/RiEdgXEG0+q6Rp9ARE/HyKBkqcRd1KutWskPe81vxxhWX
+	 yrwS3a18VjSztHr+2HKVjw2Y2Hg8ieI+rPM3nC65X/5VCR8FLFU0ZW/pPEAaJII5hw9Ao
+	 4Uz9tz7CRt9/YgOCm1ocqXIWAEf2l/r/d5Zw/ngpOR43KVYkO5/RrHtkSBz2Sez9ufw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wc4ZFCqq;
-	arc=none smtp.remote-ip=74.125.227.139
-Received: from mail-pj2-f11.google.com (mail-pj2-f11.google.com [74.125.227.139])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=f5Ikc0j2;
+	arc=none smtp.remote-ip=74.125.227.132
+Received: from mail-pj2-f4.google.com (mail-pj2-f4.google.com [74.125.227.132])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCAE2606A321
-	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2026 14:37:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BCAE2606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778F5606A323
+	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2026 14:45:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 778F5606A323
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=wc4ZFCqq
-Received: by mail-pj2-f11.google.com with SMTP id 98e67ed59e1d1-3b3a24f9496so406484a91.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2026 06:37:23 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=f5Ikc0j2
+Received: by mail-pj2-f4.google.com with SMTP id d9443c01a7336-2f0440f49f4so61746175ad.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2026 06:45:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795876643; x=1796481443; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1795877110; x=1796481910; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
         bh=yYzGGwI5EbgAAj/SOn20ulTMZQ+hqedEJnub6nNYwrI=;
-        b=wc4ZFCqq3wEvKNv4SIwxw5mdJHFIq7gKHb9bsh6VIY8HbE9Sm0IG5lcCoPgrpDtpX5
-         waOsaADDFUIaQGzn5fdhAOkp467/vHWfbFJoS7lJP8R3aYsoOhlQYPKoK3vjyGwf7GVI
-         ap1yCNOmftXkcznR3YI4lDboi2ja/+6e+0YYjAqODYysPec4fD0SQeOL04qGOWY4dhn5
-         qEkH3SAWB5Ch53hENEy405Nvll31O/sud8DiY1lQA0leQHK1zWoZ4HsJfOOolpMaaamb
-         yr6V8hnA22GulbWZ8BQkW3RqNLjxoOlIEuvnpawOJE9ShmQibT/yxqkz8cCxGfvDI9qu
-         cOaA==
+        b=f5Ikc0j2v2pFZM0WwyInT2c7aCfYqJz8kDfU8fBjRpkBqDwuO4YdXUHal05a4qkF9T
+         AD2wmjdDMR/3XwfO5vU1P0MWw+vB+gGW+tboGT2c5SBBQgBzXEx86MSmd6Qrzp29fkxp
+         PTjjvDf8oep726sMLOKvcvzpRUOcrOwholUndk7q8L9UgaB0hOrNeTiKiQ/wqNHOYssn
+         Jf0z88ovj9MvIfWp5nYEEcpvnJ1IYpcqJOpGQYWrfZW76vWisF6ugUHmSsakCVuikD/U
+         FfdDDkVRleEVoHkRKAKRvq3kSkZm1Jf/cgpYp61J3KXW5Qot1Chk+pSQr4WG4MBBJRrk
+         dOpg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795876643; x=1796481443;
+        d=1e100.net; s=20260707; t=1795877110; x=1796481910;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to:content-type;
         bh=yYzGGwI5EbgAAj/SOn20ulTMZQ+hqedEJnub6nNYwrI=;
-        b=SFKxqV1XGyBgWUlBtqx35s62uWbjFGDm2dj27RH+6I4C4WllhyUlzGd0kDpxfR3OrG
-         ET0fdFuz1s7q/iYBf9DPW8YRpKf28ZRnuVaBVnghbD9XvffThnM3dolq3KGLBOKEz/bU
-         z4tO9vjuu3RDxkO10qXQfU8k2i0FPOJP2/i/xC5C+0SWlqoaGJ48gYqJMIeHYk/PyNt+
-         CZKgA7tU4xRRiZx0eHTr6ZxzvkL6uLLhqq2nfZRFzbyPukCLVJAi3p4ltJt9yI9Ku6YM
-         s/v2dbwLhQ8U9mss3mUrFvRR5xf2tkwASQG8iJPJZC4ZoijwX7m9K8M9CNwHSyPXb0mN
-         K9uQ==
-X-Forwarded-Encrypted: i=1; AL+hErHsw4ubv79rhjuat5D417ZiGpCNExAY0lXRotaTTbUApYauSYjITeDEKQEPXO5sO5VZSTiMhq8awZgrGqWmc18=@vger.kernel.org
-X-Gm-Message-State: APuU4Z/zKZ7HR3v7ZqOUiGkY2MWePFTMoCrUOD+d8GOGft1bAZusWuOm
-	s+5Q682NyqbzyWtPqa/Fn2ttRV632zfj3zh7C48i79NZPvKG4SFPqfp2
-X-Gm-Gg: AZFdTZfZhpRXPH4mButs5K6L7Fct+O0wu/emckR8kxtZfyJ/8ZNwBo2gUDTavHIST9I
-	XanJHkswu3LORvAzM8hlvySvL/ccRdIzJw0VCUYZfIovzt+ERoOXa+aJr4y45Z9ggguQHADrBKm
-	kjd9ftwzMbPBaoC+UHnzorbzRnf2m+qzzP23kpI9AFj79N86k/Q0WS44GYcXmmkdxP40ft9cuzk
-	6TWEOn5vk759AtxrZU/0slHA4/ATN1hUaLC44GyRiLV4knh2h04qmvsSR6AF4F2zXMAhFPlI1Qm
-	dw2q0pmFwJGdlWjRwrAFJoUBYEYAkEpRgQ5VY716q1ycnlqD1yD/DOwUKpSu8lsvgx1o40XbDNn
-	CloZZPULBjpS12nx5AkH7ayb5cSxHjB/QsJCjQ0mbwLMP+5J+aU5OZ384inqlNgBOzDg4fpRakO
-	WfPuUrFNmsYCV5XQb3Q+nBTB0zMi9DMHLbDjfS0tU3FjkFZ+rJVSpnujvLlia6g8ECRaB2fZy0M
-	tB6lI/8Ttn3V4CZgyAf/FJWHzGHfpU7/4pnLC7PRjwk/DLCK6xgbatZ1zdab/UebDlUs3TBhFWd
-	xlLlSWZrjW9QlA9smTnag2Kp9X5EzWwTZqNZCBYtjBVrLs+hV+MvFgsFAtB6i7XtV6BaisVUDFz
-	2
-X-Received: by 2002:a17:90b:3c11:b0:3a7:9ec3:ea0e with SMTP id 98e67ed59e1d1-3b41c908114mr17793259a91.22.1795876642889;
-        Sat, 28 Nov 2026 06:37:22 -0800 (PST)
-Received: from BSDHENRYMA-PC1.localdomain ([43.132.141.26])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b405ecb486sm46221316a91.16.2026.11.28.06.37.15
+        b=QrrN60DZWqTrNzJ6ScBCGy1nGATE9F+GCxN4fho5H/q1il7eqLYhPJMl4oaqWU1xH4
+         qd/9+R6ijb5v9c2BQVSy53PA13xQvUWHN1UNZJY9cIhE5HX2i3aUlgg3ht6HpH4LHBUe
+         OG0iRutGCyNSkesF59+T7suDBZsn9P9MENQuMz0oNvSBsWzQbG9cfNCr0FcMX1NO5u6Y
+         8VQe2uLETVpGSeNbDIQsVd/mjvzdkPqrPRmCBCu+X9ACPzYF2zZr24HlEmbRTahE5Ehu
+         DbizlYm5/8+p9oq8+RBG1yr/qv0Gx3SWhy5uO2+9eq3FP802ytu3aoTf8S4GOpSNojzk
+         oHKA==
+X-Forwarded-Encrypted: i=1; AL+hErF3niw0CT9npSFODU3Xmt3djmGWM3puSffpvEGAyH+N2bGfJnS3WXRJl2UdJ7UitQc2EZ2N6yPv6QbS+eCkrsE=@vger.kernel.org
+X-Gm-Message-State: APuU4Z9RZv4io8CtTCTX0UvQIR6plhPKyagnRTTwY8LFZT/9kMWO34xV
+	OAGSdwYRMvXclD8dzDNUvsLkxoMP+MG+79S4Whn5QLBpzBPAPJbVMsDf
+X-Gm-Gg: AZFdTZc/Et6kBo0Yoj02ezH6v54O8gdRAr3K+ieGIgffqRzeywb25dQXrvfRhxQpHLt
+	sJzc5zJNx93NN09ggDqLubEWfPXhIB/5UgwzcoFvaYvDBY/yUbcFtGREtpxB3/bXhu56PcsP1xJ
+	cqDyU43rqt8sWUKElnidqQ2AUFCrSBAyWb0YQJUcqKm80x80ah80Pjud0hnpiiLRODO/g3wF7u7
+	Ayd7xaoQUTqw6WkaQaOM7FdhpYAiWcm00YUh9VPhG54BW2plQ4BNcvxcCbKRC7mItD1lWhl58o6
+	toL62wvX/D5exZyjC5CL5tzP7q1xqrnO9iXHnt39MI9bPmICEvTlHcgYHKD/80vDicTEL2sgjoB
+	3U2lCeOuRXFsUJXxmmISqc5pgJDQLqIAhAA7dyFpZp8mdTaPefVau+LjjVQf+zdD+sAq/s11uuM
+	kYOli9Q0THlnFvbJpp039eNVDiYK54zppUqXihx2Ra/ChhBb+urqbiei7DywQfrE/nn95TH5d3R
+	t/6+Jlef2t2HAA3dGtHLDLk4RZuI06J31bWVMxWsciIcT/rQMFreS62JDeVk25h2BhEtfCzoXqk
+	/2Qf1AgDHEQzQtPDcewWDDq+C8jH5YA7jUpEnBtdHrpUctcNe7jL8td3ucY94b8P5hgGhc6pBQ=
+	=
+X-Received: by 2002:a17:903:2285:b0:2f0:41c7:9a40 with SMTP id d9443c01a7336-2f041c7b268mr303096595ad.4.1795877109640;
+        Sat, 28 Nov 2026 06:45:09 -0800 (PST)
+Received: from BSDHENRYMA-PC1.localdomain ([43.132.141.31])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-cdec1168866sm4926108a12.25.2026.11.28.06.45.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 28 Nov 2026 06:37:21 -0800 (PST)
+        Sat, 28 Nov 2026 06:45:09 -0800 (PST)
 From: Henry Martin <bsdhenrymartin@gmail.com>
 To: David Ahern <dsahern@kernel.org>,
 	Ido Schimmel <idosch@nvidia.com>,
@@ -94,10 +94,11 @@ To: David Ahern <dsahern@kernel.org>,
 Cc: netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
+	Henry Martin <bsdhenrymartin@gmail.com>,
 	stable@vger.kernel.org
 Subject: [PATCH net] netfilter: ipv6: fix out-of-bounds write in fragment reassembly
-Date: Sat, 28 Nov 2026 22:37:09 +0800
-Message-ID: <20261128143710.811389-1-bsdhenrymartin@gmail.com>
+Date: Sat, 28 Nov 2026 22:44:37 +0800
+Message-ID: <20261128144437.819730-1-bsdhenrymartin@gmail.com>
 X-Mailer: git-send-email 2.53.0
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
